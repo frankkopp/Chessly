@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component jdk="1.8" jdk_type="JavaSDK">
+	<exclude-output/>
+	<contentEntry url="file://$MODULE_DIR$">
+		<excludeFolder url="file://$MODULE_DIR$/src/fko/chessly/player/computer/FluxEngine"/>
+		<excludeFolder url="file://$MODULE_DIR$/test/fko/chessly/openingbook"/>
+		<excludeFolder url="file://$MODULE_DIR$/test/fko/chessly/ui/SwingGUI"/>
+	</contentEntry>
+</component>
