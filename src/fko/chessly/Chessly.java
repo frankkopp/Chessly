@@ -125,6 +125,7 @@ public class Chessly {
      * This constant holds the current version of Chessly by Frank Kopp
      * v1.2 - added basic opening book
      * v1.3a - extended opening book
+     * v1.4 - added pondering
      */
     public static final String VERSION = "v1.5";
 
