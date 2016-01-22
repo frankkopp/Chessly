@@ -126,7 +126,7 @@ public class Chessly {
      * v1.2 - added basic opening book
      * v1.3a - extended opening book
      */
-    public static final String VERSION = "v1.4";
+    public static final String VERSION = "v1.5";
 
     @SuppressWarnings("unused")
     private static Chessly _myChessly = null;
