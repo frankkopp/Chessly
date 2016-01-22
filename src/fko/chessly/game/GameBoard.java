@@ -1,30 +1,29 @@
-/*
- * <p>GPL Dislaimer</p>
- * <p>
+/**
+ * The MIT License (MIT)
+ *
  * "Chessly by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
+ *
  * mail-to:frank@familie-kopp.de
  *
- * This file is part of "Chessly by Frank Kopp".
+ * Copyright (c) 2016 Frank Kopp
  *
- * "Chessly by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * "Chessly by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with "Chessly by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.game;
 
 
@@ -73,6 +72,7 @@ public interface GameBoard {
      *
      * @return returns a string representing the current board
      */
+    @Override
     String toString();
 
     /**
@@ -151,16 +151,16 @@ public interface GameBoard {
      *  - next player
      *  - castling rights
      *  - en passant rights (and file)
-     *  
+     *
      * FIDE rules:
-     * Positions are considered the same if and only if the same player has the move, pieces of 
-     * the same kind and colour occupy the same squares and the possible moves of all the 
+     * Positions are considered the same if and only if the same player has the move, pieces of
+     * the same kind and colour occupy the same squares and the possible moves of all the
      * pieces of both players are the same. Thus positions are not the same if:
      * 	- at the start of the sequence a pawn could have been captured en passant.
-     *  - a king or rook had castling rights, but forfeited these after moving. The castling 
+     *  - a king or rook had castling rights, but forfeited these after moving. The castling
      *    rights are lost only after the king or rook is moved.
-     *   
-     * @param the board to check 
+     *
+     * @param the board to check
      * @return true when the position is identical according to FIDE rules
      */
     boolean hasSamePosition(GameBoard b);
@@ -191,7 +191,7 @@ public interface GameBoard {
      * Check if the field is attacked
      * @param a_col 1..8
      * @param a_row 1..8
-     * @param attackingColor 
+     * @param attackingColor
      * @return true when any other piece can capture on this field in the next move
      */
     boolean isFieldControlledBy(final GamePosition pos, final GameColor attackingColor);
@@ -211,7 +211,7 @@ public interface GameBoard {
 
 
     /**
-     * Checks if there is another piece between the from field 
+     * Checks if there is another piece between the from field
      * and the to field along the alowed move path.
      * @param fromCol 1..8
      * @param fromRow 1..8
@@ -222,7 +222,7 @@ public interface GameBoard {
     boolean checkForFreePath(GamePosition from, GamePosition to);
 
     /**
-     * Checks if there is another piece between the from field 
+     * Checks if there is another piece between the from field
      * and the to field along the alowed move path.
      * @param move
      * @return true if no other piece blocking the way - false otherwise
@@ -230,7 +230,7 @@ public interface GameBoard {
     boolean checkForFreePath(GameMove move);
 
     /**
-     * Checks if a move to a field is possible - is free or occupied by opponent. 
+     * Checks if a move to a field is possible - is free or occupied by opponent.
      * Does NOT check if pawn can capture forward!
      * Does NOT check if the way to the field is blocked!
      * Does NOT check if this is otherwise a legal move (e.g. King moving into Check)

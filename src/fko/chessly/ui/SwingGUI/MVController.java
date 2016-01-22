@@ -1,30 +1,29 @@
-/*
- * <p>GPL Dislaimer</p>
- * <p>
- * "Reversi by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
+/**
+ * The MIT License (MIT)
+ *
+ * "Chessly by Frank Kopp"
+ *
  * mail-to:frank@familie-kopp.de
  *
- * This file is part of "Reversi by Frank Kopp".
+ * Copyright (c) 2016 Frank Kopp
  *
- * "Reversi by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * "Reversi by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with "Reversi by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.ui.SwingGUI;
 
 import javax.swing.JOptionPane;
@@ -61,24 +60,24 @@ public class MVController {
         this._model = Chessly.getPlayroom();
     }
 
-   /**
-    * This method is called from a mouse event from the user. It hands a move
-    * over to a known HumanPlayer and then nulls the reference to the HumanPlayer. To
-    * make a HumanPlayer known call setMoveReceiver(HumanPlayer). If no HumanPlayer is
-    * known to the object nothing happens
-    * @param point representing the coordinates on the current board
-    */
-   public void setPlayerMove(GameMove move) {
-       synchronized(_moveReceiverLock) {
-           if (_moveReceiver!=null) {
+    /**
+     * This method is called from a mouse event from the user. It hands a move
+     * over to a known HumanPlayer and then nulls the reference to the HumanPlayer. To
+     * make a HumanPlayer known call setMoveReceiver(HumanPlayer). If no HumanPlayer is
+     * known to the object nothing happens
+     * @param point representing the coordinates on the current board
+     */
+    public void setPlayerMove(GameMove move) {
+        synchronized(_moveReceiverLock) {
+            if (_moveReceiver!=null) {
                 _moveReceiver.setMove(move);
-           }
-           // After we have handed over the move to the receiver player we delete the reference
-           // to the receiver. This will be set again by setMoveReceiver by  the observer update
-           // through the SwingGUI
-           _moveReceiver=null;
-       }
-   }
+            }
+            // After we have handed over the move to the receiver player we delete the reference
+            // to the receiver. This will be set again by setMoveReceiver by  the observer update
+            // through the SwingGUI
+            _moveReceiver=null;
+        }
+    }
 
     /**
      * Is called when a HumanPlayer has notified its Oberservers (ReversiGUI) that it is waiting
@@ -128,7 +127,7 @@ public class MVController {
         AbstractDialog.centerComponent(dialog);
         dialog.setVisible(true);
     }
-    
+
     /**
      * starts a new game
      */
@@ -153,7 +152,7 @@ public class MVController {
      */
     public void pauseOrResumeCurrentGame() {
         if (_model.getCurrentGame().isPaused()) {
-           _model.getCurrentGame().resumeGame();
+            _model.getCurrentGame().resumeGame();
         } else if (_model.getCurrentGame().isRunning()) {
             _model.getCurrentGame().pauseGame();
         }
@@ -165,17 +164,17 @@ public class MVController {
     public void exitReversi() {
         _model.exitReversi();
     }
-    
+
     /**
      * Undo Move
      */
     public void undoMove() {
-	_ui.getMainWindow().getMenu().getUndoMoveAction().setEnabled(false);
-	// take back two halfmoves
+        _ui.getMainWindow().getMenu().getUndoMoveAction().setEnabled(false);
+        // take back two halfmoves
         _model.undoMove(2);
     }
-    
-    
+
+
     /**
      * toggles the timed game setting
      */
@@ -250,7 +249,7 @@ public class MVController {
     public void setNumberOfGamesAction(int number) {
         _model.setNumberOfGames(number);
     }
-    
+
     /**
      * displays a dialog to set the number of threads
      */
@@ -260,7 +259,7 @@ public class MVController {
         dialog.setVisible(true);
     }
 
-       /**
+    /**
      * determines if the game is over or stopped
      * @return true when game is over or stopped
      */

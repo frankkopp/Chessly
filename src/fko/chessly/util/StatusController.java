@@ -1,36 +1,35 @@
-/*
- * <p>GPL Dislaimer</p>
- * <p>
+/**
+ * The MIT License (MIT)
+ *
  * "Chessly by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
+ *
  * mail-to:frank@familie-kopp.de
  *
- * This file is part of "Chessly by Frank Kopp".
+ * Copyright (c) 2016 Frank Kopp
  *
- * "Chessly by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * "Chessly by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with "Chessly by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.util;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * <p>This class is a helper to support classes which rely on certain states.</p>
@@ -71,7 +70,7 @@ public class StatusController {
 
     // The current state
     private final AtomicInteger state = new AtomicInteger(0);
-    //private volatile int state; 
+    //private volatile int state;
 
     // The state which will interrupt any waiting methods
     private final AtomicInteger interruptState = new AtomicInteger(-Integer.MAX_VALUE);
@@ -91,7 +90,7 @@ public class StatusController {
      * Defaults to StatusController(0,null)
      */
     public StatusController() {
-	this(0);
+        this(0);
     }
 
     /**
@@ -101,25 +100,27 @@ public class StatusController {
      * @param initialState
      */
     public StatusController(int initialState) {
-	this.state.set(initialState);
+        this.state.set(initialState);
     }
 
     /**
      * Returns the WriteLock of this object.
+     * @return writeLock
      *
      * @see ReentrantReadWriteLock
      */
     public Lock writeLock() {
-	return _writeLock;
+        return _writeLock;
     }
 
     /**
      * Returns the ReadLock of this object.
+     * @return readLock
      *
      * @see ReentrantReadWriteLock
      */
     public Lock readLock() {
-	return _readLock;
+        return _readLock;
     }
 
     /**
@@ -129,7 +130,7 @@ public class StatusController {
      * @return interrupt state
      */
     public int getInterruptState() {
-	return interruptState.get();
+        return interruptState.get();
     }
 
     /**
@@ -139,10 +140,10 @@ public class StatusController {
      * @param newInterruptState
      */
     public void setInterruptState(int newInterruptState) {
-	synchronized (_stateWatchLock) {
-	    this.interruptState.set(newInterruptState);
-	    _stateWatchLock.notifyAll();
-	}
+        synchronized (_stateWatchLock) {
+            this.interruptState.set(newInterruptState);
+            _stateWatchLock.notifyAll();
+        }
     }
 
     /**
@@ -151,7 +152,7 @@ public class StatusController {
      * @return state
      */
     public int getStatus() {
-	return this.state.get();
+        return this.state.get();
     }
 
     /**
@@ -161,18 +162,20 @@ public class StatusController {
      * checkTransition().<br/>
      * If checkTransition() returns false an exception is thrown and a stack trace is printed to System.err.<br/>
      * If getTransitionFaultFatal() is true a fault transition will cause the application to terminate with exit(1).
+     * @param newState
+     * @throws StateTransitionException
      */
     public void setStatus(int newState) throws StateTransitionException {
-	final int oldState = this.state.get();
-	if (transitionCheck.get()) {
-	    if (!checkTransition(this.state.get(), newState)) {
-		throw new StatusController.StateTransitionException("Transition fault! Tried to transist from " + oldState + " to " + newState);
-	    }
-	}
-	synchronized (_stateWatchLock) {
-	    this.state.set(newState);
-	    _stateWatchLock.notifyAll();
-	}
+        final int oldState = this.state.get();
+        if (transitionCheck.get()) {
+            if (!checkTransition(this.state.get(), newState)) {
+                throw new StatusController.StateTransitionException("Transition fault! Tried to transist from " + oldState + " to " + newState);
+            }
+        }
+        synchronized (_stateWatchLock) {
+            this.state.set(newState);
+            _stateWatchLock.notifyAll();
+        }
     }
 
     /**
@@ -182,25 +185,25 @@ public class StatusController {
      * @return true or false
      */
     public boolean inStatus(int status) {
-	return this.state.get() == status;
+        return this.state.get() == status;
     }
 
     /**
      * Waits until the status has hanged (oldState != currentState)
      */
     public void waitForStatusChange() {
-	final int oldState = state.get();
-	while (oldState == state.get()) {
-	    try {
-		synchronized (_stateWatchLock) {
-		    if (oldState == state.get()) _stateWatchLock.wait();	
-		}
-	    } catch (InterruptedException e) {
-		if (interruptState.get() == state.get()) {
-		    return;
-		}
-	    }
-	}
+        final int oldState = state.get();
+        while (oldState == state.get()) {
+            try {
+                synchronized (_stateWatchLock) {
+                    if (oldState == state.get()) _stateWatchLock.wait();
+                }
+            } catch (InterruptedException e) {
+                if (interruptState.get() == state.get()) {
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -209,9 +212,9 @@ public class StatusController {
      * @throws InterruptedException
      */
     public void waitForStateSet() throws InterruptedException {
-	synchronized (_stateWatchLock) {
-	    _stateWatchLock.wait();	
-	}
+        synchronized (_stateWatchLock) {
+            _stateWatchLock.wait();
+        }
     }
 
     /**
@@ -220,20 +223,20 @@ public class StatusController {
      * @param stateExpected
      */
     public void waitForState(int stateExpected) {
-	while (stateExpected != state.get() && interruptState.get() != state.get()) {
-	    try {
-		synchronized (_stateWatchLock) {
-		    if (stateExpected != state.get() && interruptState.get() != state.get()) _stateWatchLock.wait();	
-		}
-	    } catch (InterruptedException e) {
-		// ignore
-	    } finally {
-		if (interruptState.get() == state.get()) { 
-		    //noinspection ReturnInsideFinallyBlock
-		    return;
-		}
-	    }
-	}
+        while (stateExpected != state.get() && interruptState.get() != state.get()) {
+            try {
+                synchronized (_stateWatchLock) {
+                    if (stateExpected != state.get() && interruptState.get() != state.get()) _stateWatchLock.wait();
+                }
+            } catch (InterruptedException e) {
+                // ignore
+            } finally {
+                if (interruptState.get() == state.get()) {
+                    //noinspection ReturnInsideFinallyBlock
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -242,20 +245,20 @@ public class StatusController {
      * @param waitingState
      */
     public void waitWhileInState(int waitingState) {
-	while (waitingState == state.get()) {
-	    try {
-		synchronized (_stateWatchLock) {
-		    if (waitingState == state.get()) _stateWatchLock.wait();	
-		}
-	    } catch (InterruptedException e) {
-		// ignore
-	    } finally {
-		if (interruptState.get() == state.get()) {
-		    //noinspection ReturnInsideFinallyBlock
-		    return;
-		}
-	    }
-	}
+        while (waitingState == state.get()) {
+            try {
+                synchronized (_stateWatchLock) {
+                    if (waitingState == state.get()) _stateWatchLock.wait();
+                }
+            } catch (InterruptedException e) {
+                // ignore
+            } finally {
+                if (interruptState.get() == state.get()) {
+                    //noinspection ReturnInsideFinallyBlock
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -268,7 +271,7 @@ public class StatusController {
      * @param bool
      */
     public void setTransitionCheck(boolean bool) {
-	this.transitionCheck.set(bool);
+        this.transitionCheck.set(bool);
     }
 
     /**
@@ -281,7 +284,7 @@ public class StatusController {
      * @return true or false
      */
     public boolean getTransitionCheck() {
-	return this.transitionCheck.get();
+        return this.transitionCheck.get();
     }
 
     /**
@@ -294,8 +297,9 @@ public class StatusController {
      * @param targetState
      * @return true when transition is allowed, false otherwise
      */
+    @SuppressWarnings("static-method")
     protected boolean checkTransition(int sourceState, int targetState) {
-	return true;
+        return true;
     }
 
     /**
@@ -303,15 +307,21 @@ public class StatusController {
      */
     public static class StateTransitionException extends IllegalStateException {
 
-	private static final long serialVersionUID = 306467158237981330L;
+        private static final long serialVersionUID = 306467158237981330L;
 
-	public StateTransitionException() {
-	    super();
-	}
+        /**
+         *
+         */
+        public StateTransitionException() {
+            super();
+        }
 
-	public StateTransitionException(String message) {
-	    super(message);
-	}
+        /**
+         * @param message
+         */
+        public StateTransitionException(String message) {
+            super(message);
+        }
 
     }
 }

@@ -1,28 +1,29 @@
-/*
- * <p>GPL Dislaimer</p>
- * <p>
+/**
+ * The MIT License (MIT)
+ *
  * "Chessly by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
+ *
  * mail-to:frank@familie-kopp.de
  *
- * This file is part of "Chessly by Frank Kopp".
+ * Copyright (c) 2016 Frank Kopp
  *
- * "Chessly by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * "Chessly by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with "Chessly by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.game;
 
 import java.util.ArrayList;
@@ -110,33 +111,33 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @throws IllegalArgumentException when invalid arguments has been used.
      */
     public Game(Player whitePlayer, Player blackPlayer, long timeWhite,
-	    long timeBlack, boolean timedGame) {
+            long timeBlack, boolean timedGame) {
 
-	// Assert parameter
-	if (blackPlayer==null || whitePlayer == null) {
-	    throw new NullPointerException("Paramter blackPlayer and whitePlayer must not be null.");
-	}
-	if (timedGame && (timeBlack<1 || timeWhite<1)) {
-	    throw new IllegalArgumentException(
-		    "Paramter timeBlack and timeWhite must be >0 for timed game. Were " + timeBlack + ", " + timeWhite);
-	}
+        // Assert parameter
+        if (blackPlayer==null || whitePlayer == null) {
+            throw new NullPointerException("Paramter blackPlayer and whitePlayer must not be null.");
+        }
+        if (timedGame && (timeBlack<1 || timeWhite<1)) {
+            throw new IllegalArgumentException(
+                    "Paramter timeBlack and timeWhite must be >0 for timed game. Were " + timeBlack + ", " + timeWhite);
+        }
 
-	_playerBlack = blackPlayer;
-	_playerWhite = whitePlayer;
-	
-	_blackTime = timeBlack;
-	_whiteTime = timeWhite;
-	_blackClock = new GameClock(_playerBlack.getName());
-	_whiteClock = new GameClock(_playerWhite.getName());
-	
-	if (timedGame && _blackTime > 0 && _whiteTime > 0) {
-	    _isTimedGame = true;
-	    _blackClock.setAlarm(_blackTime,this);
-	    _whiteClock.setAlarm(_whiteTime,this);
-	}
+        _playerBlack = blackPlayer;
+        _playerWhite = whitePlayer;
 
-	_curBoard = new GameBoardImpl();
-	_boardHistory.add(new GameBoardImpl(_curBoard));
+        _blackTime = timeBlack;
+        _whiteTime = timeWhite;
+        _blackClock = new GameClock(_playerBlack.getName());
+        _whiteClock = new GameClock(_playerWhite.getName());
+
+        if (timedGame && _blackTime > 0 && _whiteTime > 0) {
+            _isTimedGame = true;
+            _blackClock.setAlarm(_blackTime,this);
+            _whiteClock.setAlarm(_whiteTime,this);
+        }
+
+        _curBoard = new GameBoardImpl();
+        _boardHistory.add(new GameBoardImpl(_curBoard));
 
     } // end constructor
 
@@ -144,128 +145,129 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * Start a game in a separate thread
      */
     public void startGameThread() {
-	_gameStatus.readLock().lock();
-	try {
-	    // -- if the game is not initialized we simply ignore this request --
-	    if (isInitialized() && _gameThread == null) {
-		_gameThread = new Thread(this, "Game");
-		_gameThread.setPriority(Thread.MIN_PRIORITY);
-		_gameThread.start();
-	    } else {
-		throw new IllegalStateException("Start game failed - not initialized or thread already running.");
-	    }
-	} finally {
-	    _gameStatus.readLock().unlock();
-	}
+        _gameStatus.readLock().lock();
+        try {
+            // -- if the game is not initialized we simply ignore this request --
+            if (isInitialized() && _gameThread == null) {
+                _gameThread = new Thread(this, "Game");
+                _gameThread.setPriority(Thread.MIN_PRIORITY);
+                _gameThread.start();
+            } else {
+                throw new IllegalStateException("Start game failed - not initialized or thread already running.");
+            }
+        } finally {
+            _gameStatus.readLock().unlock();
+        }
     }
 
     /**
      * Stop the game. It does <b>not</b> stop a paused game.
      */
     public void stopGameThread() {
-	_gameStatus.readLock().lock();
-	try {
-	    if (_gameThread!=null) {
-		_gameThread.interrupt();
-	    }
-	} finally {
-	    _gameStatus.readLock().unlock();
-	}
+        _gameStatus.readLock().lock();
+        try {
+            if (_gameThread!=null) {
+                _gameThread.interrupt();
+            }
+        } finally {
+            _gameStatus.readLock().unlock();
+        }
     }
 
     /**
      * Stop a running game. It does <b>not</b> stop a paused game.
      */
     public void stopRunningGame() {
-	_gameStatus.writeLock().lock();
-	try {
-	    // -- if the game is not running we simply ignore this request --
-	    if (isRunning() && _gameThread != null) {
-		// Set game in state stopped
-		_gameStatus.setStatus(Game.GAME_STOPPED);
-		// Stop the player clocks
-		_blackClock.stopClock();
-		_whiteClock.stopClock();
-		// We also must stop the player so that they come back from waiting for a move
-		_playerBlack.stopPlayer();
-		_playerWhite.stopPlayer();
-		// -- observer handling is done in the run() method
-	    } else {
-		throw new IllegalStateException("Stop game failed - not running.");
-	    }
-	} finally {
-	    _gameStatus.writeLock().unlock();
-	}
+        _gameStatus.writeLock().lock();
+        try {
+            // -- if the game is not running we simply ignore this request --
+            if (isRunning() && _gameThread != null) {
+                // Set game in state stopped
+                _gameStatus.setStatus(Game.GAME_STOPPED);
+                // Stop the player clocks
+                _blackClock.stopClock();
+                _whiteClock.stopClock();
+                // We also must stop the player so that they come back from waiting for a move
+                _playerBlack.stopPlayer();
+                _playerWhite.stopPlayer();
+                // -- observer handling is done in the run() method
+            } else {
+                throw new IllegalStateException("Stop game failed - not running.");
+            }
+        } finally {
+            _gameStatus.writeLock().unlock();
+        }
     }
 
     /**
      * Runnable.run() method where the actual game happens
      */
+    @Override
     public void run() {
 
-	try { // to finally reset _gameThread
+        try { // to finally reset _gameThread
 
-	    if (Thread.currentThread() != _gameThread) {
-		throw new UnsupportedOperationException("Direct call of Game.run() is not supported.");
-	    }
+            if (Thread.currentThread() != _gameThread) {
+                throw new UnsupportedOperationException("Direct call of Game.run() is not supported.");
+            }
 
-	    _gameStatus.writeLock().lock();
-	    try {
-		// Set game status to GAME_RUNNING
-		_gameStatus.setStatus(Game.GAME_RUNNING);
-		_gameOverCause.setStatus(Game.GAMEOVER_NONE);
-		_gameWinner.setStatus(Game.WINNER_NONE_YET);
-	    } finally {
-		_gameStatus.writeLock().unlock();
-	    }
+            _gameStatus.writeLock().lock();
+            try {
+                // Set game status to GAME_RUNNING
+                _gameStatus.setStatus(Game.GAME_RUNNING);
+                _gameOverCause.setStatus(Game.GAMEOVER_NONE);
+                _gameWinner.setStatus(Game.WINNER_NONE_YET);
+            } finally {
+                _gameStatus.writeLock().unlock();
+            }
 
-	    // -- start alarms --
-	    if (_isTimedGame) {
-		_blackClock.startAlarm();
-		_whiteClock.startAlarm();
-	    }
+            // -- start alarms --
+            if (_isTimedGame) {
+                _blackClock.startAlarm();
+                _whiteClock.startAlarm();
+            }
 
-	    // -- tell the views that model has changed --
-	    // -- the game thread is actually running now --
-	    setChanged();
-	    notifyObservers(new ModelEvent("GAME Runnning",
-		    SIG_GAME_RUNNING));
+            // -- tell the views that model has changed --
+            // -- the game thread is actually running now --
+            setChanged();
+            notifyObservers(new ModelEvent("GAME Runnning",
+                    SIG_GAME_RUNNING));
 
-	    // -- play game --
-	    while (isRunningOrPaused() && !Thread.interrupted()) {
-		waitWhileGamePaused();
+            // -- play game --
+            while (isRunningOrPaused() && !Thread.interrupted()) {
+                waitWhileGamePaused();
 
-		// -- do the next move --
-		nextMove(); 
+                // -- do the next move --
+                nextMove();
 
-		// -- observer handling is done in the methods
-		// -- nextMove, doMove, gameOver*
+                // -- observer handling is done in the methods
+                // -- nextMove, doMove, gameOver*
 
-	    } // -- end while --
+            } // -- end while --
 
-	    // -- tell the views that model has changed --
-	    setChanged();
-	    notifyObservers(new ModelEvent("GAME stopRunningGame() game stopped()",
-		    SIG_GAME_STOPPED));
+            // -- tell the views that model has changed --
+            setChanged();
+            notifyObservers(new ModelEvent("GAME stopRunningGame() game stopped()",
+                    SIG_GAME_STOPPED));
 
-	    // -- stop clock --
-	    _blackClock.stopAlarm();
-	    _whiteClock.stopAlarm();
+            // -- stop clock --
+            _blackClock.stopAlarm();
+            _whiteClock.stopAlarm();
 
-	    // Set game status to GAME_FINISHED
-	    _gameStatus.setStatus(Game.GAME_FINISHED);
+            // Set game status to GAME_FINISHED
+            _gameStatus.setStatus(Game.GAME_FINISHED);
 
-	    // -- tell the views that model has changed --
-	    // -- the game thread has actually stopped
-	    setChanged();
-	    notifyObservers(new ModelEvent("GAME finished",
-		    SIG_GAME_FINISHED));
+            // -- tell the views that model has changed --
+            // -- the game thread has actually stopped
+            setChanged();
+            notifyObservers(new ModelEvent("GAME finished",
+                    SIG_GAME_FINISHED));
 
-	} finally {
+        } finally {
 
-	    // -- free game thread --
-	    _gameThread = null;
-	}
+            // -- free game thread --
+            _gameThread = null;
+        }
 
     }
 
@@ -274,86 +276,86 @@ public class Game extends ModelObservable implements Runnable, Observer {
      */
     private void nextMove() {
 
-	GameMove nextMove = null;
+        GameMove nextMove = null;
 
-	// Get the next move
-	if (_curBoard.getNextPlayerColor().isBlack()) {
-	    // -- black has next move, ask player for move ---
-	    _blackClock.startClock();
-	    
-	    // Loop until we have a legal move from the player. Also handles undoMove.
-	    while (!_curBoard.isLegalMove(nextMove = _playerBlack.getNextMove(new GameBoardImpl(_curBoard)))) {
+        // Get the next move
+        if (_curBoard.getNextPlayerColor().isBlack()) {
+            // -- black has next move, ask player for move ---
+            _blackClock.startClock();
 
-		// Check if player has been stopped
-		if (_playerBlack.isStopped() && isRunningOrPaused()) stopRunningGame();
+            // Loop until we have a legal move from the player. Also handles undoMove.
+            while (!_curBoard.isLegalMove(nextMove = _playerBlack.getNextMove(new GameBoardImpl(_curBoard)))) {
 
-		// Check if game is still running or return directly. 
-		if (isRunning()) {
-		    // undoMove or IllegalMove?
-		    if (_undoMoveFlag.get()) {
-			doUndoMove();
-		    } else {
-			// -- set flag illegalMove so that observers can find out --
-			_illegalMoveFlag.set(true);
-			_illegalMove     = nextMove;
-			setChanged();
-			notifyObservers(new PlayerDependendModelEvent(
-				"GAME nextMove() illegalMove BLACK",
-				_playerBlack,
-				SIG_GAME_ILLEGAL_MOVE));
-		    }
+                // Check if player has been stopped
+                if (_playerBlack.isStopped() && isRunningOrPaused()) stopRunningGame();
 
-
-		} else {
-		    return;
-		}
-	    }
-	    _blackClock.stopClock();
-	} else if (_curBoard.getNextPlayerColor().isWhite()) {
-
-	    // -- white has next move, ask player for move ---
-	    _whiteClock.startClock();
-	    
-	    // Loop until we have a legal move from the player. Also handles undoMove.
-	    while (!_curBoard.isLegalMove(nextMove = _playerWhite.getNextMove(new GameBoardImpl(_curBoard)))) {
-		
-		// Check if player has been stopped
-		if (_playerWhite.isStopped() && isRunningOrPaused()) stopRunningGame();
-		
-		// Check if game is still running or return directly. 
-		if (isRunning()) {
-		    if (_undoMoveFlag.get()) {
-			doUndoMove();
-		    } else {
-			// -- set flag illegalMove so that observers can find out --
-			_illegalMoveFlag.set(true);
-			_illegalMove = nextMove;
-			setChanged();
-			notifyObservers(new PlayerDependendModelEvent(
-				"GAME nextMove() illegalMove WHITE",
-				_playerWhite,
-				SIG_GAME_ILLEGAL_MOVE));
-		    }
+                // Check if game is still running or return directly.
+                if (isRunning()) {
+                    // undoMove or IllegalMove?
+                    if (_undoMoveFlag.get()) {
+                        doUndoMove();
+                    } else {
+                        // -- set flag illegalMove so that observers can find out --
+                        _illegalMoveFlag.set(true);
+                        _illegalMove     = nextMove;
+                        setChanged();
+                        notifyObservers(new PlayerDependendModelEvent(
+                                "GAME nextMove() illegalMove BLACK",
+                                _playerBlack,
+                                SIG_GAME_ILLEGAL_MOVE));
+                    }
 
 
-		} else {
-		    return;
-		}
-	    }
-	    _whiteClock.stopClock();
-	}
+                } else {
+                    return;
+                }
+            }
+            _blackClock.stopClock();
+        } else if (_curBoard.getNextPlayerColor().isWhite()) {
 
-	// -- we have a legal move --> reset illegal move flag --
-	_illegalMoveFlag.set(false);
-	_illegalMove=null;
+            // -- white has next move, ask player for move ---
+            _whiteClock.startClock();
 
-	// -- tell the views that model has changed --
-	setChanged();
-	notifyObservers(new ModelEvent("GAME nextMove() got move",
-		SIG_GAME_GOT_MOVE_FROM_PLAYER));
+            // Loop until we have a legal move from the player. Also handles undoMove.
+            while (!_curBoard.isLegalMove(nextMove = _playerWhite.getNextMove(new GameBoardImpl(_curBoard)))) {
 
-	// -- take the move and actually commit it to the game --
-	doMove(nextMove);
+                // Check if player has been stopped
+                if (_playerWhite.isStopped() && isRunningOrPaused()) stopRunningGame();
+
+                // Check if game is still running or return directly.
+                if (isRunning()) {
+                    if (_undoMoveFlag.get()) {
+                        doUndoMove();
+                    } else {
+                        // -- set flag illegalMove so that observers can find out --
+                        _illegalMoveFlag.set(true);
+                        _illegalMove = nextMove;
+                        setChanged();
+                        notifyObservers(new PlayerDependendModelEvent(
+                                "GAME nextMove() illegalMove WHITE",
+                                _playerWhite,
+                                SIG_GAME_ILLEGAL_MOVE));
+                    }
+
+
+                } else {
+                    return;
+                }
+            }
+            _whiteClock.stopClock();
+        }
+
+        // -- we have a legal move --> reset illegal move flag --
+        _illegalMoveFlag.set(false);
+        _illegalMove=null;
+
+        // -- tell the views that model has changed --
+        setChanged();
+        notifyObservers(new ModelEvent("GAME nextMove() got move",
+                SIG_GAME_GOT_MOVE_FROM_PLAYER));
+
+        // -- take the move and actually commit it to the game --
+        doMove(nextMove);
 
     }
 
@@ -362,107 +364,107 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @param nextMove
      */
     private void doMove(GameMove nextMove) throws IllegalMoveException {
-	assert nextMove!=null : "Parameter nextMove may not be null";
+        assert nextMove!=null : "Parameter nextMove may not be null";
 
-	waitWhileGamePaused();
+        waitWhileGamePaused();
 
-	// -- do move ---
-	_gameStatus.readLock().lock();
-	try {
-	    if (isRunningOrPaused()) {
-		// -- here we actually commit the move to the game's board --
-		_curBoard.makeMove(nextMove);
-//System.out.println(_curBoard.toFEN());
-//System.out.println(_curBoard.toString());
-		//save a copy of the current board to board history - used for "take back"/undo
-		_boardHistory.add(new GameBoardImpl(_curBoard));
+        // -- do move ---
+        _gameStatus.readLock().lock();
+        try {
+            if (isRunningOrPaused()) {
+                // -- here we actually commit the move to the game's board --
+                _curBoard.makeMove(nextMove);
+                //System.out.println(_curBoard.toFEN());
+                //System.out.println(_curBoard.toString());
+                //save a copy of the current board to board history - used for "take back"/undo
+                _boardHistory.add(new GameBoardImpl(_curBoard));
 
-		// -- tell the views that model has changed --
-		setChanged();
+                // -- tell the views that model has changed --
+                setChanged();
 
-		// check for repetition
-		int repetitionCounter = 0;
-		repetitionCounter = countRepetitions();
+                // check for repetition
+                int repetitionCounter = 0;
+                repetitionCounter = countRepetitions();
 
-		// -- check for any more legal moves --> next player not NONE---
-		if (_curBoard.isGameOver() || repetitionCounter >= 3 ) {
-		    _gameStatus.readLock().unlock();
-		    try {
-			gameOverNoMoreMoves(repetitionCounter);
-		    } finally {
-			_gameStatus.readLock().lock();
-		    }
-		}
-	    }
-	} finally {
-	    _gameStatus.readLock().unlock();
-	}
-	notifyObservers(new ModelEvent(
-		"GAME doMove() move made and checked for game over",
-		SIG_GAME_MOVE_MADE));
+                // -- check for any more legal moves --> next player not NONE---
+                if (_curBoard.isGameOver() || repetitionCounter >= 3 ) {
+                    _gameStatus.readLock().unlock();
+                    try {
+                        gameOverNoMoreMoves(repetitionCounter);
+                    } finally {
+                        _gameStatus.readLock().lock();
+                    }
+                }
+            }
+        } finally {
+            _gameStatus.readLock().unlock();
+        }
+        notifyObservers(new ModelEvent(
+                "GAME doMove() move made and checked for game over",
+                SIG_GAME_MOVE_MADE));
 
     }
 
     public void undoMove(int numberOfHalfmoves) {
-	if (!_undoMoveFlag.get() // is not already set
-		&& this.isRunning() // game still running?
-		&& _boardHistory.size() - numberOfHalfmoves >= 0 // is there something to undo?
-		&& this.getNextPlayer() instanceof HumanPlayer // only human player can request undo
-		&& this.getNextPlayer().isThinking()
-		) {
+        if (!_undoMoveFlag.get() // is not already set
+                && this.isRunning() // game still running?
+                && _boardHistory.size() - numberOfHalfmoves >= 0 // is there something to undo?
+                && this.getNextPlayer() instanceof HumanPlayer // only human player can request undo
+                && this.getNextPlayer().isThinking()
+                ) {
 
-	    // set flag that we want to undo a move
-	    _undoMoveFlag.set(true);
-	    _numberOfHalfmovesToUndo.set(numberOfHalfmoves);
+            // set flag that we want to undo a move
+            _undoMoveFlag.set(true);
+            _numberOfHalfmovesToUndo.set(numberOfHalfmoves);
 
-	    setChanged();
-	    notifyObservers(new ModelEvent(
-		    "GAME undoMove() requested",
-		    SIG_GAME_WANTS_UNDO_MOVE));
+            setChanged();
+            notifyObservers(new ModelEvent(
+                    "GAME undoMove() requested",
+                    SIG_GAME_WANTS_UNDO_MOVE));
 
-	    // tell the human player that we want to undo a move
-	    ((HumanPlayer)this.getNextPlayer()).undoMove();
+            // tell the human player that we want to undo a move
+            ((HumanPlayer)this.getNextPlayer()).undoMove();
 
-	} // else ignore
+        } // else ignore
     }
 
     /**
      * Undos move by using a copy of a board from history as the current board.
      */
     private void doUndoMove() {
-	
-	for (int i=0; i<_numberOfHalfmovesToUndo.get(); i++) {
-	    _boardHistory.remove(_boardHistory.get(_boardHistory.size()-1));
-	}
-	
-	_curBoard = new GameBoardImpl(_boardHistory.get(_boardHistory.size()-1));
-	_undoMoveFlag.set(false);
-	
-	setChanged();
-	notifyObservers(new PlayerDependendModelEvent(
-		"GAME undoMove()",
-		getNextPlayer(),
-		SIG_GAME_UNDO_MOVE));
+
+        for (int i=0; i<_numberOfHalfmovesToUndo.get(); i++) {
+            _boardHistory.remove(_boardHistory.get(_boardHistory.size()-1));
+        }
+
+        _curBoard = new GameBoardImpl(_boardHistory.get(_boardHistory.size()-1));
+        _undoMoveFlag.set(false);
+
+        setChanged();
+        notifyObservers(new PlayerDependendModelEvent(
+                "GAME undoMove()",
+                getNextPlayer(),
+                SIG_GAME_UNDO_MOVE));
 
     }
 
     /**
      * Checks for position repetition using the board history. If history is not available
-     * this will repetition cannot be determinded. 
-     * @return number of repetitions. 
+     * this will repetition cannot be determinded.
+     * @return number of repetitions.
      */
     public int countRepetitions() {
-	int repetitionCounter = 0;
-	int i=_boardHistory.size()-1;
-	while (i > 3) {
-	    GameBoard b1 = _boardHistory.get(_boardHistory.size()-1);
-	    GameBoard b2 = _boardHistory.get(i-4);
-	    if (b1.hasSamePosition(b2)) {
-		repetitionCounter++;
-	    }
-	    i -= 4;
-	}
-	return repetitionCounter;
+        int repetitionCounter = 0;
+        int i=_boardHistory.size()-1;
+        while (i > 3) {
+            GameBoard b1 = _boardHistory.get(_boardHistory.size()-1);
+            GameBoard b2 = _boardHistory.get(i-4);
+            if (b1.hasSamePosition(b2)) {
+                repetitionCounter++;
+            }
+            i -= 4;
+        }
+        return repetitionCounter;
     }
 
     /**
@@ -470,40 +472,41 @@ public class Game extends ModelObservable implements Runnable, Observer {
      */
     private void gameOverNoMoreMoves(int repetitionCounter) {
 
-	_gameStatus.writeLock().lock();
-	try {
-	    if (_curBoard.hasCheckMate()) { // checkmate
-		_gameOverCause.setStatus(Game.GAMEOVER_CHECKMATE);
-		if (_curBoard.getNextPlayerColor() == GameColor.WHITE) {
-		    _gameWinner.setStatus(WINNER_BLACK);
-		} else {
-		    _gameWinner.setStatus(WINNER_WHITE);
-		}
-	    } else if (_curBoard.hasStaleMate()) { // stalemate 
-		_gameOverCause.setStatus(Game.GAMEOVER_STALEMATE);
-		_gameWinner.setStatus(WINNER_DRAW);
-	    } else if (repetitionCounter >= 3) { // repetition
-		_gameOverCause.setStatus(Game.GAMEOVER_STALEMATE);
-		_gameWinner.setStatus(WINNER_DRAW);
-	    } else // material, 50 moves rule
-		throw new RuntimeException(
-			"No more Moves but no checkmate or stalemate");
-	    _gameStatus.setStatus(Game.GAME_OVER);
-	    // -- model has changed --
-	    setChanged();
-	} finally {
-	    _gameStatus.writeLock().unlock();
-	}
-	notifyObservers(new ModelEvent("GAME game over: no more moves",
-		SIG_GAME_OVER));
+        _gameStatus.writeLock().lock();
+        try {
+            if (_curBoard.hasCheckMate()) { // checkmate
+                _gameOverCause.setStatus(Game.GAMEOVER_CHECKMATE);
+                if (_curBoard.getNextPlayerColor() == GameColor.WHITE) {
+                    _gameWinner.setStatus(WINNER_BLACK);
+                } else {
+                    _gameWinner.setStatus(WINNER_WHITE);
+                }
+            } else if (_curBoard.hasStaleMate()) { // stalemate
+                _gameOverCause.setStatus(Game.GAMEOVER_STALEMATE);
+                _gameWinner.setStatus(WINNER_DRAW);
+            } else if (repetitionCounter >= 3) { // repetition
+                _gameOverCause.setStatus(Game.GAMEOVER_STALEMATE);
+                _gameWinner.setStatus(WINNER_DRAW);
+            } else // material, 50 moves rule
+                throw new RuntimeException(
+                        "No more Moves but no checkmate or stalemate");
+            _gameStatus.setStatus(Game.GAME_OVER);
+            // -- model has changed --
+            setChanged();
+        } finally {
+            _gameStatus.writeLock().unlock();
+        }
+        notifyObservers(new ModelEvent("GAME game over: no more moves",
+                SIG_GAME_OVER));
     }
 
     /**
      * Game is an Observer to Clocks (Observable) and this implements the Observer interface.
      * It is only called when the time is up meaning the clock reached the alarm.
      */
+    @Override
     public void update(Observable o, Object arg) {
-	outOfTime((GameClock) o);
+        outOfTime((GameClock) o);
     }
 
     /**
@@ -511,25 +514,25 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @param clock
      */
     private void outOfTime(GameClock clock) {
-	_gameStatus.readLock().lock();
-	try {
-	    if (isRunning()) {
-		_blackClock.stopClock();
-		_blackClock.stopAlarm();
-		_blackClock.deleteObservers();
-		_whiteClock.stopClock();
-		_whiteClock.stopAlarm();
-		_whiteClock.deleteObservers();
-		_gameStatus.readLock().unlock();
-		try {
-		    gameOverOutOfTime(clock);
-		} finally {
-		    _gameStatus.readLock().lock();
-		}
-	    }
-	} finally {
-	    _gameStatus.readLock().unlock();
-	}
+        _gameStatus.readLock().lock();
+        try {
+            if (isRunning()) {
+                _blackClock.stopClock();
+                _blackClock.stopAlarm();
+                _blackClock.deleteObservers();
+                _whiteClock.stopClock();
+                _whiteClock.stopAlarm();
+                _whiteClock.deleteObservers();
+                _gameStatus.readLock().unlock();
+                try {
+                    gameOverOutOfTime(clock);
+                } finally {
+                    _gameStatus.readLock().lock();
+                }
+            }
+        } finally {
+            _gameStatus.readLock().unlock();
+        }
     }
 
     /**
@@ -537,49 +540,49 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @param clock
      */
     private void gameOverOutOfTime(GameClock clock) {
-	_gameStatus.writeLock().lock();
-	try {
-	    // -- We want to know which clock is calling this so we do not use .equals() here --
-	    if (clock.equals(_blackClock)) {
-		_gameWinner.setStatus(Game.WINNER_WHITE);
-	    } else if (clock.equals(_whiteClock)) {
-		_gameWinner.setStatus(Game.WINNER_BLACK);
-	    } else {
-		assert false;
-	    }
-	    _gameOverCause.setStatus(Game.GAMEOVER_TIME_IS_UP_FOR_ONE_PLAYER);
-	    _gameStatus.setStatus(Game.GAME_OVER);
-	    // -- model has changed --
-	    setChanged();
-	} finally {
-	    _gameStatus.writeLock().unlock();
-	}
-	// -- tell the views that model has changed --
-	notifyObservers(new ModelEvent("GAME game over: outOfTime",
-		SIG_GAME_OVER));
+        _gameStatus.writeLock().lock();
+        try {
+            // -- We want to know which clock is calling this so we do not use .equals() here --
+            if (clock.equals(_blackClock)) {
+                _gameWinner.setStatus(Game.WINNER_WHITE);
+            } else if (clock.equals(_whiteClock)) {
+                _gameWinner.setStatus(Game.WINNER_BLACK);
+            } else {
+                assert false;
+            }
+            _gameOverCause.setStatus(Game.GAMEOVER_TIME_IS_UP_FOR_ONE_PLAYER);
+            _gameStatus.setStatus(Game.GAME_OVER);
+            // -- model has changed --
+            setChanged();
+        } finally {
+            _gameStatus.writeLock().unlock();
+        }
+        // -- tell the views that model has changed --
+        notifyObservers(new ModelEvent("GAME game over: outOfTime",
+                SIG_GAME_OVER));
     }
 
     /**
      * Pause a running game
      */
     public void pauseGame() {
-	_gameStatus.writeLock().lock();
-	try {
-	    if (isRunning()) {
-		_gameStatus.setStatus(Game.GAME_PAUSED);
-		_blackClock.stopClock();
-		_whiteClock.stopClock();
-		// -- model has changed --
-		setChanged();
-	    } else {
-		throw new RuntimeException("Pause to a not running game");
-	    }
-	} finally {
-	    _gameStatus.writeLock().unlock();
-	}
-	// -- tell the views that model has changed --
-	notifyObservers(new ModelEvent("GAME pauseGame",
-		SIG_GAME_PAUSE_GAME));
+        _gameStatus.writeLock().lock();
+        try {
+            if (isRunning()) {
+                _gameStatus.setStatus(Game.GAME_PAUSED);
+                _blackClock.stopClock();
+                _whiteClock.stopClock();
+                // -- model has changed --
+                setChanged();
+            } else {
+                throw new RuntimeException("Pause to a not running game");
+            }
+        } finally {
+            _gameStatus.writeLock().unlock();
+        }
+        // -- tell the views that model has changed --
+        notifyObservers(new ModelEvent("GAME pauseGame",
+                SIG_GAME_PAUSE_GAME));
 
     }
 
@@ -587,26 +590,26 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * Resumes a paused game
      */
     public void resumeGame() {
-	_gameStatus.writeLock().lock();
-	try {
-	    if (isPaused()) {
-		_gameStatus.setStatus(Game.GAME_RUNNING);
-		if (_curBoard.getNextPlayerColor().isBlack()) {
-		    _blackClock.startClock();
-		} else {
-		    _whiteClock.startClock();
-		}
-		// -- model has changed --
-		setChanged();
-	    } else {
-		throw new RuntimeException("Resume to a not paused game");
-	    }
-	} finally {
-	    _gameStatus.writeLock().unlock();
-	}
-	// -- tell the views that model has changed --
-	notifyObservers(new ModelEvent("GAME resumeGame",
-		SIG_GAME_RESUME_GAME));
+        _gameStatus.writeLock().lock();
+        try {
+            if (isPaused()) {
+                _gameStatus.setStatus(Game.GAME_RUNNING);
+                if (_curBoard.getNextPlayerColor().isBlack()) {
+                    _blackClock.startClock();
+                } else {
+                    _whiteClock.startClock();
+                }
+                // -- model has changed --
+                setChanged();
+            } else {
+                throw new RuntimeException("Resume to a not paused game");
+            }
+        } finally {
+            _gameStatus.writeLock().unlock();
+        }
+        // -- tell the views that model has changed --
+        notifyObservers(new ModelEvent("GAME resumeGame",
+                SIG_GAME_RESUME_GAME));
     }
 
     /**
@@ -614,67 +617,67 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * by overriding the checkTransition method and defining legal transitions.
      */
     private static class GameStatusController extends StatusController {
-	private GameStatusController(int initialState) {
-	    super(initialState);
-	    this.setTransitionCheck(true);
-	}
-	@Override
-	protected boolean checkTransition(int sourceState, int targetState) {
-	    readLock().lock();
-	    try {
-		if (sourceState == targetState) {
-		    return true;
-		}
-		switch (sourceState) {
-		/**
-		 * Define which states are allowed when currently in a certain state.
-		 */
-		case Game.GAME_INITIALIZED:
-		    switch (targetState) {
-		    case Game.GAME_RUNNING:
-			return true;
-		    default:
-			return false;
-		    }
-		case Game.GAME_RUNNING:
-		    switch (targetState) {
-		    case Game.GAME_PAUSED:
-			return true;
-		    case Game.GAME_OVER:
-			return true;
-		    case Game.GAME_STOPPED:
-			return true;
-		    default:
-			return false;
-		    }
-		case Game.GAME_PAUSED:
-		    switch (targetState) {
-		    case Game.GAME_RUNNING:
-			return true;
-		    default:
-			return false;
-		    }
-		case Game.GAME_OVER:
-		    switch (targetState) {
-		    case Game.GAME_FINISHED:
-			return true;
-		    default:
-			return false;
-		    }
-		case Game.GAME_STOPPED:
-		    switch (targetState) {
-		    case Game.GAME_FINISHED:
-			return true;
-		    default:
-			return false;
-		    }
-		default :
-		    return false;
-		}
-	    } finally {
-		readLock().unlock();
-	    }
-	}
+        private GameStatusController(int initialState) {
+            super(initialState);
+            this.setTransitionCheck(true);
+        }
+        @Override
+        protected boolean checkTransition(int sourceState, int targetState) {
+            readLock().lock();
+            try {
+                if (sourceState == targetState) {
+                    return true;
+                }
+                switch (sourceState) {
+                    /**
+                     * Define which states are allowed when currently in a certain state.
+                     */
+                    case Game.GAME_INITIALIZED:
+                        switch (targetState) {
+                            case Game.GAME_RUNNING:
+                                return true;
+                            default:
+                                return false;
+                        }
+                    case Game.GAME_RUNNING:
+                        switch (targetState) {
+                            case Game.GAME_PAUSED:
+                                return true;
+                            case Game.GAME_OVER:
+                                return true;
+                            case Game.GAME_STOPPED:
+                                return true;
+                            default:
+                                return false;
+                        }
+                    case Game.GAME_PAUSED:
+                        switch (targetState) {
+                            case Game.GAME_RUNNING:
+                                return true;
+                            default:
+                                return false;
+                        }
+                    case Game.GAME_OVER:
+                        switch (targetState) {
+                            case Game.GAME_FINISHED:
+                                return true;
+                            default:
+                                return false;
+                        }
+                    case Game.GAME_STOPPED:
+                        switch (targetState) {
+                            case Game.GAME_FINISHED:
+                                return true;
+                            default:
+                                return false;
+                        }
+                    default :
+                        return false;
+                }
+            } finally {
+                readLock().unlock();
+            }
+        }
     }
 
     /**
@@ -712,12 +715,12 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return true if game is running or paused
      */
     public boolean isRunningOrPaused() {
-	_gameStatus.readLock().lock();
-	try {
-	    return isRunning() || isPaused();
-	} finally {
-	    _gameStatus.readLock().unlock();
-	}
+        _gameStatus.readLock().lock();
+        try {
+            return isRunning() || isPaused();
+        } finally {
+            _gameStatus.readLock().unlock();
+        }
     }
 
     /**
@@ -725,19 +728,19 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return true if game is over or stopped
      */
     public boolean isOverOrStopped() {
-	_gameStatus.readLock().lock();
-	try {
-	    return isOver() || isStopped();
-	} finally {
-	    _gameStatus.readLock().unlock();
-	}
+        _gameStatus.readLock().lock();
+        try {
+            return isOver() || isStopped();
+        } finally {
+            _gameStatus.readLock().unlock();
+        }
     }
 
     /**
      * Waits while the game is not finished
      */
     public void waitUntilGameFinished() {
-	_gameStatus.waitForState(Game.GAME_FINISHED);
+        _gameStatus.waitForState(Game.GAME_FINISHED);
     }
 
     /**
@@ -745,7 +748,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @see StatusController
      */
     public void waitWhileGamePaused() {
-	_gameStatus.waitWhileInState(Game.GAME_PAUSED);
+        _gameStatus.waitWhileInState(Game.GAME_PAUSED);
     }
 
     /**
@@ -753,7 +756,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @see StatusController
      */
     public void waitWhileRunning() {
-	_gameStatus.waitWhileInState(Game.GAME_RUNNING);
+        _gameStatus.waitWhileInState(Game.GAME_RUNNING);
     }
 
     /**
@@ -761,7 +764,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @see StatusController
      */
     public void waitUntilRunning() {
-	_gameStatus.waitForState(Game.GAME_RUNNING);
+        _gameStatus.waitForState(Game.GAME_RUNNING);
     }
 
     /**
@@ -769,13 +772,13 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * Uses join();
      */
     public void waitForThreadTermination() {
-	while (_gameThread != null && _gameThread.isAlive())  {
-	    try {
-		_gameThread.join();
-	    } catch (InterruptedException e) {
-		// -- ignore --
-	    }
-	}
+        while (_gameThread != null && _gameThread.isAlive())  {
+            try {
+                _gameThread.join();
+            } catch (InterruptedException e) {
+                // -- ignore --
+            }
+        }
     }
 
     /**
@@ -784,7 +787,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return int (see Game.GAMEOVER_* contants)
      */
     public int getGameOverCause() {
-	return _gameOverCause.getStatus();
+        return _gameOverCause.getStatus();
     }
 
     /**
@@ -793,11 +796,11 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return int (see Game.WINNER_* contants)
      */
     public int getGameWinnerStatus() {
-	return _gameWinner.getStatus();
+        return _gameWinner.getStatus();
     }
 
     public List<GameBoard> getBoardHistory() {
-	return _boardHistory;
+        return _boardHistory;
     }
 
     /**
@@ -805,7 +808,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return current board
      */
     public GameBoard getCurBoard() {
-	return this._curBoard;
+        return this._curBoard;
     }
 
     /**
@@ -813,7 +816,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return Player - the player who has the next move
      */
     public Player getNextPlayer() {
-	return _curBoard.getNextPlayerColor().isBlack() ? _playerBlack : _playerWhite;
+        return _curBoard.getNextPlayerColor().isBlack() ? _playerBlack : _playerWhite;
     }
 
     /**
@@ -821,7 +824,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return Player - the player who has the next move
      */
     public Player getLastPlayer() {
-	return _curBoard.getLastPlayerColor().isBlack() ? _playerBlack : _playerWhite;
+        return _curBoard.getLastPlayerColor().isBlack() ? _playerBlack : _playerWhite;
     }
 
     /**
@@ -829,7 +832,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return black player
      */
     public Player getPlayerBlack() {
-	return _playerBlack;
+        return _playerBlack;
     }
 
     /**
@@ -837,7 +840,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return white player
      */
     public Player getPlayerWhite() {
-	return _playerWhite;
+        return _playerWhite;
     }
 
     /**
@@ -845,7 +848,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return black clock
      */
     public GameClock getBlackClock() {
-	return _blackClock;
+        return _blackClock;
     }
 
     /**
@@ -853,7 +856,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return white clock
      */
     public GameClock getWhiteClock() {
-	return _whiteClock;
+        return _whiteClock;
     }
 
     /**
@@ -861,7 +864,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return true if setting for timed game is true
      */
     public boolean isTimedGame() {
-	return _isTimedGame;
+        return _isTimedGame;
     }
 
     /**
@@ -869,7 +872,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return initial black time
      */
     public long getBlackTime() {
-	return _blackTime;
+        return _blackTime;
     }
 
     /**
@@ -877,7 +880,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return initial white time
      */
     public long getWhiteTime() {
-	return _whiteTime;
+        return _whiteTime;
     }
 
     /**
@@ -885,7 +888,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return is true if last move was illegal
      */
     public boolean wasIllegalMoveFlag() {
-	return _illegalMoveFlag.get();
+        return _illegalMoveFlag.get();
     }
 
     /**
@@ -893,11 +896,11 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return the last illegal move
      */
     public GameMove getIllegalMove() {
-	return _illegalMove;
+        return _illegalMove;
     }
 
     public boolean undoMoveFlag() {
-	return _undoMoveFlag.get() ;
+        return _undoMoveFlag.get() ;
     }
 
     /**
@@ -905,7 +908,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return status (see Game.GAME_* contants)
      */
     public int getStatus() {
-	return this._gameStatus.getStatus();
+        return this._gameStatus.getStatus();
     }
 
     /**

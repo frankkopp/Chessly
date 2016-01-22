@@ -1,38 +1,37 @@
-/*
- * <p>GPL Dislaimer</p>
- * <p>
+/**
+ * The MIT License (MIT)
+ *
  * "Chessly by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
+ *
  * mail-to:frank@familie-kopp.de
  *
- * This file is part of "Chessly by Frank Kopp".
+ * Copyright (c) 2016 Frank Kopp
  *
- * "Chessly by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * "Chessly by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with "Chessly by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.player;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import fko.chessly.game.Game;
-import fko.chessly.game.GameMove;
 import fko.chessly.game.GameColor;
+import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelEvents.ModelEvent;
 
 /**
@@ -73,7 +72,7 @@ public class HumanPlayer extends AbstractPlayer {
     private AtomicBoolean _wantsMove       = new AtomicBoolean(false);;
     private AtomicBoolean _wantsUndoMove   = new AtomicBoolean(false);
     private AtomicBoolean _isReadyToReturn = new AtomicBoolean(false);;
-    
+
     private AtomicReference<GameMove> _move = new AtomicReference<GameMove>(null);
 
     // lock for use instead of "this"
@@ -103,6 +102,7 @@ public class HumanPlayer extends AbstractPlayer {
     /**
      * Returns the int value of the PlayerType for a given player
      */
+    @Override
     public PlayerType getPlayerType() {
         return PlayerType.HUMAN;
     }
@@ -116,33 +116,34 @@ public class HumanPlayer extends AbstractPlayer {
      * You can interrupt the wait for a move by telling the player to stop (player.stop())
      * and notifying the current thread.
      * The wait is also interrupted when we want to undo a move - the move will be set to null
-     * and returned. 
+     * and returned.
      * @return next move
      */
+    @Override
     public GameMove getMove() {
 
-	// indicate that we want to get a move
-	setChanged();
-	notifyObservers(new ModelEvent("HumanPlayer: wantsMove", SIG_HUMAN_PLAYER_WANTS_MOVE));
-	
-	ModelEvent event = null;
-	synchronized (_lock) {
-	
-	    _isReadyToReturn.set(false);
-	    _wantsMove.set(true);
-	    
-	    // test if we are stopped or have a move and wait otherwise
-	    while (!_isReadyToReturn.get()) {
-                
-		try {
+        // indicate that we want to get a move
+        setChanged();
+        notifyObservers(new ModelEvent("HumanPlayer: wantsMove", SIG_HUMAN_PLAYER_WANTS_MOVE));
+
+        ModelEvent event = null;
+        synchronized (_lock) {
+
+            _isReadyToReturn.set(false);
+            _wantsMove.set(true);
+
+            // test if we are stopped or have a move and wait otherwise
+            while (!_isReadyToReturn.get()) {
+
+                try {
                     if (!_wantsUndoMove.get()) { // double check not set in the meantime
-                	_lock.wait(); // and release lock
+                        _lock.wait(); // and release lock
                     }
                 } catch (InterruptedException e) {
                     // ignore
                 }
-                
-		// game is over or stopped
+
+                // game is over or stopped
                 if (this.isStopped()) {
                     _move.set(null);
                     event = new ModelEvent("HumanPlayer: player stopped", SIG_HUMAN_PLAYER_PLAYER_STOPPED);
@@ -150,7 +151,7 @@ public class HumanPlayer extends AbstractPlayer {
                 } else if (_wantsUndoMove.get()) {
                     _move.set(null);
                     event = new ModelEvent("HumanPlayer: undoMove", SIG_HUMAN_PLAYER_UNDO_MOVE);
-                    
+
                 } else if (_isReadyToReturn.get()) {
                     assert _move.get() != null;
                     event = new ModelEvent("HumanPlayer: hasMove", SIG_HUMAN_PLAYER_HAS_MOVE);
@@ -163,8 +164,8 @@ public class HumanPlayer extends AbstractPlayer {
                 _wantsUndoMove.set(false);
             }
         }
-	
-	// tell the observers that we don't need a move anymore
+
+        // tell the observers that we don't need a move anymore
         setChanged();
         notifyObservers(event);
 
@@ -188,20 +189,20 @@ public class HumanPlayer extends AbstractPlayer {
             _lock.notifyAll();
         }
     }
-    
+
     /**
-     * Called by Game: Tells the player the the game wants to undo a move. 
+     * Called by Game: Tells the player the the game wants to undo a move.
      */
     public void undoMove() {
-	synchronized (_lock) {
-	    // receive undo move from Game
+        synchronized (_lock) {
+            // receive undo move from Game
             _move.set(null);
             _wantsMove.set(false);
             _wantsUndoMove.set(true);
             _isReadyToReturn.set(true);
-	    // tell getMove() that we have a move and that is should come back from wait()
-	    _lock.notifyAll();
-	}
+            // tell getMove() that we have a move and that is should come back from wait()
+            _lock.notifyAll();
+        }
     }
 
     /**
@@ -209,7 +210,7 @@ public class HumanPlayer extends AbstractPlayer {
      * @return yes if a move is expected via setMove(Move m)
      */
     public boolean wantsMove() {
-    	return _wantsMove.get();
+        return _wantsMove.get();
     }
 
     // message for the observers

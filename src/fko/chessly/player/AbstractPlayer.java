@@ -1,41 +1,40 @@
-/*
- * <p>GPL Dislaimer</p>
- * <p>
+/**
+ * The MIT License (MIT)
+ *
  * "Chessly by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
+ *
  * mail-to:frank@familie-kopp.de
  *
- * This file is part of "Chessly by Frank Kopp".
+ * Copyright (c) 2016 Frank Kopp
  *
- * "Chessly by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * "Chessly by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with "Chessly by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.player;
-
-import fko.chessly.game.GameBoard;
-import fko.chessly.game.Game;
-import fko.chessly.game.GameMove;
-import fko.chessly.game.GameColor;
-import fko.chessly.mvc.ModelObservable;
-import fko.chessly.util.StatusController;
 
 import java.util.Observable;
 import java.util.Observer;
+
+import fko.chessly.game.Game;
+import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameColor;
+import fko.chessly.game.GameMove;
+import fko.chessly.mvc.ModelObservable;
+import fko.chessly.util.StatusController;
 
 /**
  * <p>This class is the abstract core implementation of a reversi player.
@@ -69,10 +68,10 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * @param color
      */
     protected AbstractPlayer(Game game, String name, GameColor color) {
-	this._game = game;
-	this._name = name;
-	this._color = color;
-	_playerStatus.setInterruptState(Player.STOPPED);
+        this._game = game;
+        this._name = name;
+        this._color = color;
+        _playerStatus.setInterruptState(Player.STOPPED);
     }
 
     /**
@@ -81,10 +80,10 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * @param color
      */
     protected AbstractPlayer(String name, GameColor color) {
-	this._name = name;
-	this._color = color;
-	this._game = null;
-	_playerStatus.setInterruptState(Player.STOPPED);
+        this._name = name;
+        this._color = color;
+        this._game = null;
+        _playerStatus.setInterruptState(Player.STOPPED);
 
     }
 
@@ -100,44 +99,47 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * Starts the player in a new thread. Calls setCurrentGame() to set the game reference as the current
      * game of this player.
      */
+    @Override
     public void startPlayer(Game game) {
-	_game = game;
-	// we call this method so that this method can be overwritten by subclasses
-	startPlayerPrepare();
-	synchronized(_playerThreadLock) {
-	    if (_playerThread == null) {
-		_playerThread = new Thread(this, "Player: " + _name);
-		_playerThread.setPriority(Thread.MIN_PRIORITY);
-		_playerThread.start();
-	    }
-	}
+        _game = game;
+        // we call this method so that this method can be overwritten by subclasses
+        startPlayerPrepare();
+        synchronized(_playerThreadLock) {
+            if (_playerThread == null) {
+                _playerThread = new Thread(this, "Player: " + _name);
+                _playerThread.setPriority(Thread.MIN_PRIORITY);
+                _playerThread.start();
+            }
+        }
     }
 
     /**
      * Stop the player by interrupting the players thread and setting its status to Player.STOPPED
      */
+    @Override
     public void stopPlayer() {
-	synchronized(_playerThreadLock) {
-	    if (_playerThread != null) {
-		_playerThread.interrupt();
-	    }
-	}
-	_playerStatus.setStatus(Player.STOPPED);
+        synchronized(_playerThreadLock) {
+            if (_playerThread != null) {
+                _playerThread.interrupt();
+            }
+        }
+        _playerStatus.setStatus(Player.STOPPED);
     }
 
     /**
      * Wait until the player thread dies. Ignores InterruptedException.
      */
+    @Override
     public void joinPlayerThread() {
-	synchronized(_playerThreadLock) {
-	    while (_playerThread != null) {
-		try {
-		    _playerThread.join();
-		} catch (InterruptedException e) {
-		    // -- ignore exception --
-		}
-	    }
-	}
+        synchronized(_playerThreadLock) {
+            while (_playerThread != null) {
+                try {
+                    _playerThread.join();
+                } catch (InterruptedException e) {
+                    // -- ignore exception --
+                }
+            }
+        }
     }
 
     /**
@@ -145,50 +147,51 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * the different status a player can be in.<br/>
      * It loops until the player is stopped (Player.STOPPED).
      */
+    @Override
     public void run() {
 
-	try {
-	    // We want to know what happens in the game
-	    _game.addObserver(this);
+        try {
+            // We want to know what happens in the game
+            _game.addObserver(this);
 
-	    // If player is stopped we exit out of all waits
-	    _playerStatus.setInterruptState(Player.STOPPED);
+            // If player is stopped we exit out of all waits
+            _playerStatus.setInterruptState(Player.STOPPED);
 
-	    // -- run until thread is stopped --
-	    while (!_playerStatus.inStatus(Player.STOPPED)) {
-		// -- wait until we are asked to return a new move --
-		_playerStatus.waitWhileInState(Player.WAITING);
-		// -- wait for state THINKING --
-		_playerStatus.waitForState(Player.THINKING);
-		// -- startGame thinking --
-		if (_playerStatus.inStatus(Player.THINKING)) {
-		    _playerMove = getMove();
-		    _playerStatus.writeLock().lock();
-		    try {
-			if (this._playerMove != null && !_playerStatus.inStatus(Player.STOPPED)) {
-			    // move recieved
-			    _playerStatus.setStatus(Player.HAS_MOVE);
-			} else if (this._playerMove == null && _game.undoMoveFlag() && !_playerStatus.inStatus(Player.STOPPED)) {
-			    // null move received -- indicator undoMove 
-			    _playerStatus.setStatus(Player.HAS_MOVE);
-			}
-		    } finally {
-			_playerStatus.writeLock().unlock();
-		    }
-		}
-		_playerStatus.waitWhileInState(Player.HAS_MOVE);
-	    }
+            // -- run until thread is stopped --
+            while (!_playerStatus.inStatus(Player.STOPPED)) {
+                // -- wait until we are asked to return a new move --
+                _playerStatus.waitWhileInState(Player.WAITING);
+                // -- wait for state THINKING --
+                _playerStatus.waitForState(Player.THINKING);
+                // -- startGame thinking --
+                if (_playerStatus.inStatus(Player.THINKING)) {
+                    _playerMove = getMove();
+                    _playerStatus.writeLock().lock();
+                    try {
+                        if (this._playerMove != null && !_playerStatus.inStatus(Player.STOPPED)) {
+                            // move recieved
+                            _playerStatus.setStatus(Player.HAS_MOVE);
+                        } else if (this._playerMove == null && _game.undoMoveFlag() && !_playerStatus.inStatus(Player.STOPPED)) {
+                            // null move received -- indicator undoMove
+                            _playerStatus.setStatus(Player.HAS_MOVE);
+                        }
+                    } finally {
+                        _playerStatus.writeLock().unlock();
+                    }
+                }
+                _playerStatus.waitWhileInState(Player.HAS_MOVE);
+            }
 
-	} catch (Exception e) {
-	    // I case of an exception set the player to stopped and we re-throw the exception
-	    _playerStatus.setStatus(Player.STOPPED);
-	    System.err.println(e.toString());
-	    e.printStackTrace(System.out);
-	    throw new RuntimeException(e);
+        } catch (Exception e) {
+            // I case of an exception set the player to stopped and we re-throw the exception
+            _playerStatus.setStatus(Player.STOPPED);
+            System.err.println(e.toString());
+            e.printStackTrace(System.out);
+            throw new RuntimeException(e);
 
-	} finally {
-	    _playerThread = null;
-	}
+        } finally {
+            _playerThread = null;
+        }
 
     }
 
@@ -201,42 +204,44 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * @param board where the next move shall be made
      * @return the move the player wants to play for the given board
      */
-    public GameMove getNextMove(GameBoard board) {          
-	_curBoard = board;
+    @Override
+    public GameMove getNextMove(GameBoard board) {
+        _curBoard = board;
 
-	// change state to THINKING so that the player thread
-	// starts thinking as this is called by a different thread!
-	_playerStatus.writeLock().lock();
-	try {
-	    if (!_playerStatus.inStatus(Player.STOPPED)) {
-		_playerStatus.setStatus(Player.THINKING);
-	    }
-	} finally {
-	    _playerStatus.writeLock().unlock();
-	}
+        // change state to THINKING so that the player thread
+        // starts thinking as this is called by a different thread!
+        _playerStatus.writeLock().lock();
+        try {
+            if (!_playerStatus.inStatus(Player.STOPPED)) {
+                _playerStatus.setStatus(Player.THINKING);
+            }
+        } finally {
+            _playerStatus.writeLock().unlock();
+        }
 
-	// -- wait until we found a move --
-	_playerStatus.waitForState(Player.HAS_MOVE);
+        // -- wait until we found a move --
+        _playerStatus.waitForState(Player.HAS_MOVE);
 
-	// -- move found -> change state to WAITING --
-	_playerStatus.writeLock().lock();
-	try {
-	    if (!_playerStatus.inStatus(Player.STOPPED)) {
-		_playerStatus.setStatus(Player.WAITING);
-	    }
-	} finally {
-	    _playerStatus.writeLock().unlock();
-	}
+        // -- move found -> change state to WAITING --
+        _playerStatus.writeLock().lock();
+        try {
+            if (!_playerStatus.inStatus(Player.STOPPED)) {
+                _playerStatus.setStatus(Player.WAITING);
+            }
+        } finally {
+            _playerStatus.writeLock().unlock();
+        }
 
-	return _playerMove;
+        return _playerMove;
     }
 
     /**
      * Returns the current game the player is in.
      * @return current game
      */
+    @Override
     public Game getCurrentGame() {
-	return _game;
+        return _game;
     }
 
     /**
@@ -252,8 +257,9 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * @param arg an argument passed to the <code>notifyObservers</code>
      *            method.
      */
+    @Override
     public void update(Observable o, Object arg) {
-	// do nothing by default
+        // do nothing by default
     }
 
     /**
@@ -261,8 +267,9 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * Colors are defined in interface Player.
      * @return player's color as defined in interface Player
      */
+    @Override
     public GameColor getColor() {
-	return _color;
+        return _color;
     }
 
     /**
@@ -270,24 +277,27 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * Colors are defined in interface Player.
      * @param color as defined in interface Player
      */
+    @Override
     public void setColor(GameColor color) {
-	this._color = color;
+        this._color = color;
     }
 
     /**
      * Returns the name of the player.
      * @return name of player
      */
+    @Override
     public String getName() {
-	return _name;
+        return _name;
     }
 
     /**
      * Sets the name of the player.
      * @param name of player
      */
+    @Override
     public void setName(String name) {
-	this._name = name;
+        this._name = name;
     }
 
     /**
@@ -296,15 +306,16 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * @return board the player shall find a move for
      */
     protected GameBoard getCurBoard() {
-	return _curBoard;
+        return _curBoard;
     }
 
     /**
      * Returns if the player is in state Player.WAITING
      * @return true if player is in state Player.WAITING
      */
+    @Override
     public boolean isWaiting() {
-	return _playerStatus.inStatus(WAITING);
+        return _playerStatus.inStatus(WAITING);
     }
 
     /**
@@ -313,31 +324,34 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      */
     @Override
     public void waitUntilWaiting() {
-	_playerStatus.waitForState(Player.WAITING);
+        _playerStatus.waitForState(Player.WAITING);
     }
 
     /**
      * Returns if the player is in state Player.THINKING
      * @return true if player is in state Player.THINKING
      */
+    @Override
     public boolean isThinking() {
-	return _playerStatus.inStatus(THINKING);
+        return _playerStatus.inStatus(THINKING);
     }
 
     /**
      * Returns if the player is in state Player.HAS_MOVE
      * @return true if player is in state Player.HAS_MOVE
      */
+    @Override
     public boolean hasMove() {
-	return _playerStatus.inStatus(HAS_MOVE);
+        return _playerStatus.inStatus(HAS_MOVE);
     }
 
     /**
      * Returns if the player is in state Player.STOPPED
      * @return true if player is in state Player.STOPPED
      */
+    @Override
     public boolean isStopped() {
-	return _playerStatus.inStatus(STOPPED);
+        return _playerStatus.inStatus(STOPPED);
     }
 
     /**
@@ -347,11 +361,11 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      */
     @Override
     public String toString() {
-	return new StringBuilder()
-	.append("Name: ").append(_name)
-	.append(" Color: ").append(_color)
-	.append(" Type: ").append(this.getPlayerType())
-	.toString();
+        return new StringBuilder()
+                .append("Name: ").append(_name)
+                .append(" Color: ").append(_color)
+                .append(" Type: ").append(this.getPlayerType())
+                .toString();
     }
 
     /**
@@ -360,51 +374,51 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
      * there.
      */
     public static class PlayerStatusController extends StatusController {
-	private PlayerStatusController(int initialState) {
-	    super(initialState);
-	    this.setTransitionCheck(true);
-	}
+        private PlayerStatusController(int initialState) {
+            super(initialState);
+            this.setTransitionCheck(true);
+        }
 
-	@Override
-	protected synchronized boolean checkTransition(int sourceState, int targetState) {
-	    if (sourceState == targetState) {
-		return true;
-	    }
-	    switch (sourceState) {
-	    /**
-	     * Define which states are allowed when currently in a certain state.
-	     */
-	    case Player.WAITING:
-		switch (targetState) {
-		case Player.THINKING:
-		    return true;
-		case Player.STOPPED:
-		    return true;
-		default:
-		    return false;
-		}
-	    case Player.THINKING:
-		switch (targetState) {
-		case Player.HAS_MOVE:
-		    return true;
-		case Player.STOPPED:
-		    return true;
-		default:
-		    return false;
-		}
-	    case Player.HAS_MOVE:
-		switch (targetState) {
-		case Player.WAITING:
-		    return true;
-		case Player.STOPPED:
-		    return true;
-		default:
-		    return false;
-		}
-	    default :
-		return false;
-	    }
-	}
+        @Override
+        protected synchronized boolean checkTransition(int sourceState, int targetState) {
+            if (sourceState == targetState) {
+                return true;
+            }
+            switch (sourceState) {
+                /**
+                 * Define which states are allowed when currently in a certain state.
+                 */
+                case Player.WAITING:
+                    switch (targetState) {
+                        case Player.THINKING:
+                            return true;
+                        case Player.STOPPED:
+                            return true;
+                        default:
+                            return false;
+                    }
+                case Player.THINKING:
+                    switch (targetState) {
+                        case Player.HAS_MOVE:
+                            return true;
+                        case Player.STOPPED:
+                            return true;
+                        default:
+                            return false;
+                    }
+                case Player.HAS_MOVE:
+                    switch (targetState) {
+                        case Player.WAITING:
+                            return true;
+                        case Player.STOPPED:
+                            return true;
+                        default:
+                            return false;
+                    }
+                default :
+                    return false;
+            }
+        }
     }
 
 
