@@ -128,7 +128,6 @@ public class Chessly {
      */
     public static final String VERSION = "v1.4";
 
-    @SuppressWarnings("unused")
     private static Chessly _myChessly = null;
 
     private final Playroom _playroom;
