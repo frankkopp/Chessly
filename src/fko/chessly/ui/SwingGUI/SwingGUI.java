@@ -123,7 +123,7 @@ public final class SwingGUI implements UserInterface {
 
         // -- move list --
         moveList = new MoveList();
-        moveListWindow = new SatelliteWindow(mainWindow, "Move List", "movelist");
+        moveListWindow = new SatelliteWindow("Move List", "movelist");
         moveListWindow.add(moveList, BorderLayout.CENTER);
         // -- show move list --
         if (_showMoveListWindow) {
@@ -140,7 +140,7 @@ public final class SwingGUI implements UserInterface {
         // -- engine info pane for black player --
         engineInfoBlack = new EngineInfoPanel(GameColor.BLACK);
         engineInfoBlack.setBorder(new TitledBorder(new EtchedBorder(), "Engine Info Black"));
-        engineInfoWindowBlack = new SatelliteWindow(mainWindow, "Engine Info Black", "engine_info_black");
+        engineInfoWindowBlack = new SatelliteWindow("Engine Info Black", "engine_info_black");
         engineInfoWindowBlack.add(engineInfoBlack, BorderLayout.CENTER);
         engineInfoWindowBlack.addWindowListener(new WindowAdapter() {
             @Override
@@ -156,7 +156,7 @@ public final class SwingGUI implements UserInterface {
         // -- engine info pane for white player --
         engineInfoWhite = new EngineInfoPanel(fko.chessly.game.GameColor.WHITE);
         engineInfoWhite.setBorder(new TitledBorder(new EtchedBorder(), "Engine Info White"));
-        engineInfoWindowWhite = new SatelliteWindow(mainWindow, "Engine Info White", "engine_info_white");
+        engineInfoWindowWhite = new SatelliteWindow("Engine Info White", "engine_info_white");
         engineInfoWindowWhite.add(engineInfoWhite, BorderLayout.CENTER);
         engineInfoWindowWhite.addWindowListener(new WindowAdapter() {
             @Override
@@ -268,8 +268,8 @@ public final class SwingGUI implements UserInterface {
     private void updateFromGame(Game game, ModelEvent event) {
 
         // -- draw the current board of the current game --
-        boardPanel.drawBoard(game.getCurBoard());
-        // -- update the movelist according to the moves in the current game --
+        boardPanel.setAndDrawBoard(game.getCurBoard());
+        // -- update the move list according to the moves in the current game --
         moveList.drawMove(game);
         // -- get the current status of the game --
         int status = game.getStatus();

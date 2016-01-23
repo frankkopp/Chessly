@@ -28,7 +28,6 @@ package fko.chessly.ui.SwingGUI;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -55,12 +54,11 @@ public class SatelliteWindow extends JFrame {
      * <p/>
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.
-     *
      * @param title the title for the frame
      * @param label a label for the frame to store and restore the last window size and position
      */
-    public SatelliteWindow(Frame frame, String title, String label) {
-        super( title);
+    public SatelliteWindow(String title, String label) {
+        super(title);
 
         // -- only keep word characters [a-zA-Z_0-9] --
         this._myLabel = label.trim().replaceAll("\\W+","");

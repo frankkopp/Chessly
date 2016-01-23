@@ -50,7 +50,7 @@ public class BoardPanelTest {
 
         BoardPanel bp = new BoardPanel(null);
 
-        bp.drawBoard(b);
+        bp.setAndDrawBoard(b);
 
         frame.getContentPane().add(bp, BorderLayout.CENTER);
         frame.pack();

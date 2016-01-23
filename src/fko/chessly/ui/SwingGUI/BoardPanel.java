@@ -28,16 +28,16 @@ package fko.chessly.ui.SwingGUI;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -65,7 +65,7 @@ import fko.chessly.game.pieces.Rook;
  * TODO: drag&drop
  *
  */
-public class BoardPanel extends JPanel implements MouseListener {
+public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener {
 
     private static final long serialVersionUID = -9147393642054887281L;
 
@@ -84,20 +84,43 @@ public class BoardPanel extends JPanel implements MouseListener {
     private Color _boardLightColor   	  = new Color(30, 140, 0);
     private Color _boardDarkColor         = new Color(90, 240, 0);
     private Color _lastMoveColor          = new Color(64, 128, 64);
+    /*
     private Color _blackGradientFromColor = Color.BLACK;
     private Color _blackGradientToColor   = Color.GRAY;
     private Color _whiteGradientFromColor = Color.GRAY;
     private Color _whiteGradientToColor   = Color.WHITE;
+     */
 
     // -- image objects for pieces
     private Image _wK,_wQ,_wB,_wN,_wR,_wP;
     private Image _bK,_bQ,_bB,_bN,_bR,_bP;
 
+    private List<Piece> _pieces = new ArrayList<>(64);
+
     // -- holds preselected field --
     private GamePosition _selectedFromField = null; // GamePosition.getGamePosition("c1");
 
-    private static enum orientation { NORTH, SOUTH };
+    static enum orientation { NORTH, SOUTH };
     private orientation _currentOrientation = orientation.NORTH;
+
+    // to avoid having to move parameters around these are fields
+    // easier readable code
+    private Graphics2D _graphics2D;
+    private int _boardSize;
+    private int _currentWidth;
+    private int _currentHeight;
+    private static final int DIM = 8;
+    private int _positionX;
+    private int _positionY;
+    private int _distance;
+    private float _stoneSize;
+
+    // the piece picked for dragging
+    private Piece _dragPiece;
+    private GamePosition _dragFromPosition;
+    // avoid jumping piece while drag
+    private int _dragOffsetX;
+    private int _dragOffsetY;
 
     /**
      * constructor
@@ -114,6 +137,8 @@ public class BoardPanel extends JPanel implements MouseListener {
         this.setBackground(Color.GRAY);
         // -- set mouse listener --
         this.addMouseListener(this);
+        // -- set mouse motion listener --
+        this.addMouseMotionListener(this);
 
         // -- colors from properties file --
         String[] colors;
@@ -134,14 +159,6 @@ public class BoardPanel extends JPanel implements MouseListener {
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.lastMoveColor")).split(":");
         _lastMoveColor = new Color(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.blackGradientFromColor")).split(":");
-        _blackGradientFromColor = new Color(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
-        colors = String.valueOf(Chessly.getProperties().getProperty("ui.blackGradientToColor")).split(":");
-        _blackGradientToColor = new Color(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
-        colors = String.valueOf(Chessly.getProperties().getProperty("ui.whiteGradientFromColor")).split(":");
-        _whiteGradientFromColor = new Color(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
-        colors = String.valueOf(Chessly.getProperties().getProperty("ui.whiteGradientToColor")).split(":");
-        _whiteGradientToColor = new Color(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
-
         getPieceImages();
 
     }
@@ -150,19 +167,226 @@ public class BoardPanel extends JPanel implements MouseListener {
      * Draws the board
      * @param board
      */
-    public synchronized void drawBoard(GameBoard board) {
+    public synchronized void setAndDrawBoard(GameBoard board) {
         this._curBoard = board;
         this.repaint();
     }
 
     /**
-     * Overrides the JComponent paintComponent method to redraw the board
      * @param g
+     * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
-    public void paintComponent(Graphics g) {
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        drawBoard(g);
+        _graphics2D = (Graphics2D) g;
+        drawBoard();
+    }
+
+    /**
+     * draws the actual graphical board
+     */
+    private void drawBoard() {
+        Insets insets = this.getInsets();
+        _currentWidth = getWidth() - insets.left - insets.right;
+        _currentHeight = getHeight() - insets.top - insets.bottom;
+        _boardSize = Math.min(_currentHeight, _currentWidth) -50;
+
+        if (_curBoard == null) {
+            drawCurrentBoard(new GameBoardImpl());
+        } else {
+            drawCurrentBoard(_curBoard);
+        }
+    }
+
+    /**
+     * This method draws the board with numbers, lines and stones
+     */
+    private void drawCurrentBoard(GameBoard board) {
+
+        int actualBoardSize = _boardSize;
+        actualBoardSize -= (actualBoardSize % DIM);
+        _positionX = (_currentWidth >> 1) - (actualBoardSize >> 1) + actualBoardSize/25;
+        _positionY = 8;
+        _distance = actualBoardSize / DIM;
+        _stoneSize = _distance * 0.9f;
+
+        // -- draw board background --
+        _graphics2D.setColor(_boardLightColor);
+        _graphics2D.fill3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);
+        _graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+
+        // -- lines & numbers
+        drawLinesAndNumbers(actualBoardSize);
+
+        // -- draw checkers
+        drawCheckers(actualBoardSize);
+
+        // -- mark last move field --
+        markLastMove(board);
+
+        // -- mark possible moves --
+        markPossibleMoves(board);
+
+        // -- mark king in check field --
+        markKingInCheckField();
+
+        // - mark current selected from Field --
+        markCurrentSelectedFromField(board);
+
+        // -- draw stones
+        drawPieces(board);
+    }
+
+    /**
+     * @param board
+     */
+    private void drawPieces(GameBoard board) {
+
+        // -- do not reset the piece list if we drag
+        if (_dragPiece == null) {
+
+            // clear the pieces array
+            _pieces.clear();
+
+            // fill the pieces array
+            for (int col = 1; col <= DIM; col++) {
+                for (int row = DIM; row > 0; row--) {
+                    if (board.getPiece(col, row) != null) {
+
+                        // >> equals division by 2
+                        int r = _currentOrientation == orientation.NORTH ? BoardPanel.DIM-row+1 : row ;
+                        float rowOffset = r * _distance - (_distance >> 1) - (_stoneSize / 2) + _positionY;
+
+                        // >> equals division by 2
+                        int c = _currentOrientation == orientation.NORTH ? col : BoardPanel.DIM-col+1;
+                        float colOffset = c * _distance - (_distance >> 1) - (_stoneSize / 2) + _positionX +1; // +1 small correction due to rounding
+
+                        // create piece to display
+                        Image pieceImage = getPieceImage(board.getPiece(col, row).getColor(), board.getPiece(col, row).getType());
+                        Piece piece = new Piece(pieceImage,(int)colOffset,(int)rowOffset);
+
+                        _pieces.add(piece);
+                    }
+                }
+            }
+        } else {
+            // determine if we drag a piece
+            _pieces.remove(_dragPiece);
+            _pieces.add(0, _dragPiece);
+        }
+
+        // now draw each piece
+        for (Piece p : _pieces) {
+            p.draw();
+        }
+
+    }
+
+    /**
+     * @param board
+     */
+    private void markCurrentSelectedFromField(GameBoard board) {
+        if (board !=null && _selectedFromField != null) {
+            _graphics2D.setColor(_selectedMoveColor);
+            int x = _currentOrientation == orientation.NORTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
+            int y = _currentOrientation == orientation.NORTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
+            _graphics2D.fillRect((x - 1) * _distance + _positionX + 1,
+                    (DIM - y) * _distance + _positionY + 1,
+                    _distance - 1,
+                    _distance - 1);
+        }
+    }
+
+    /**
+     */
+    private void markKingInCheckField() {
+        if (_curBoard != null && _curBoard.hasCheck()) {
+            GamePosition king;
+            king = _curBoard.getKingField(_curBoard.getNextPlayerColor());
+            _graphics2D.setColor(_checkColor);
+            int x = _currentOrientation == orientation.NORTH ? king.x : DIM - king.x+1;
+            int y = _currentOrientation == orientation.NORTH ? king.y : DIM - king.y+1;
+            _graphics2D.fillRect((x-1) * _distance + _positionX + 1,
+                    (DIM - y) * _distance + _positionY + 1,
+                    _distance - 1,
+                    _distance - 1);
+        }
+    }
+
+    /**
+     * @param board
+     */
+    private void markPossibleMoves(GameBoard board) {
+        if (_ui != null && _ui.is_showPossibleMoves() && _selectedFromField != null
+                && _curBoard.getPiece(_selectedFromField).getColor().equals(board.getNextPlayerColor())) {
+
+            List<GameMove> moves = _curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(board, _selectedFromField, false);
+            _graphics2D.setColor(_possibleMoveColor);
+            for (GameMove curMove : moves) {
+                int x = _currentOrientation == orientation.NORTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
+                int y = _currentOrientation == orientation.NORTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
+                _graphics2D.fillRect((x - 1) * _distance + _positionX + 1,
+                        (DIM - y) * _distance + _positionY + 1,
+                        _distance - 1,
+                        _distance - 1);
+            }
+        }
+    }
+
+    /**
+     * @param board
+     */
+    private void markLastMove(GameBoard board) {
+        GameMove lastMove = board.getLastMove();
+        _graphics2D.setColor(_lastMoveColor);
+        if (lastMove != null) {
+            int x = _currentOrientation == orientation.NORTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
+            int y = _currentOrientation == orientation.NORTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
+            _graphics2D.fillRect((x-1) * _distance + _positionX + 1,
+                    (DIM - y) * _distance + _positionY + 1,
+                    _distance - 1,
+                    _distance - 1);
+        }
+    }
+
+    /**
+     * draws lines and numbers
+     * @param size
+     */
+    private void drawLinesAndNumbers(int size) {
+        // -- board lines and numbers --
+        int fontSize = size/25;
+        _graphics2D.setColor(_boardGridColor);
+        _graphics2D.setFont(new Font("Arial Unicode MS", Font.PLAIN, fontSize));
+
+        for (int i = 1; i <= DIM; i++) {
+            int index =_currentOrientation == orientation.NORTH ?  i : DIM - i +1 ;
+            _graphics2D.drawString(getFilesLetter(index), _positionX + ((i-1)*_distance) + (_distance>>1) - (fontSize>>1), _positionY + size + fontSize + 2); // horizontal
+            _graphics2D.drawString(String.valueOf(index), _positionX - (fontSize), _positionY + size - ((i-1)*_distance) - (_distance>>1) + (fontSize>>1)); // vertical
+            // lines
+            _graphics2D.drawLine(_positionX + (i * _distance), _positionY, _positionX + (i * _distance), _positionY + size);
+            _graphics2D.drawLine(_positionX, _positionY + (i * _distance), _positionX + size, _positionY + (i * _distance));
+        }
+
+        _graphics2D.setColor(_boardBorderColor);
+        _graphics2D.draw3DRect(_positionX, _positionY, size, size, true);
+    }
+
+    /**
+     * draws the checkers in the chess board
+     * @param actuaSize
+     */
+    private void drawCheckers(int actuaSize) {
+        _graphics2D.setColor(_boardDarkColor);
+        for (int c=1;c<=DIM;c++) {
+            for (int r=1;r<=DIM;r++) {
+                if ((c+r)%2==0) {
+                    _graphics2D.fillRect((c-1) * _distance + _positionX + 1,(DIM-r) * _distance + _positionY + 1, _distance - 1, _distance - 1);
+                }
+            }
+        }
+
     }
 
     /**
@@ -191,246 +415,6 @@ public class BoardPanel extends JPanel implements MouseListener {
             case 3: return Knight.createKnight(color);
             default: return Pawn.createPawn(color);
         }
-    }
-
-    /**
-     * draws the actual graphical board
-     * @param g
-     */
-    private void drawBoard(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-
-        Insets insets = this.getInsets();
-        int currentWidth = getWidth() - insets.left - insets.right;
-        int currentHeight = getHeight() - insets.top - insets.bottom;
-        int size = Math.min(currentHeight, currentWidth) -50;
-
-        if (_curBoard == null) {
-            _drawCurrentBoard(new GameBoardImpl(), size, currentWidth, g2);
-        } else {
-            _drawCurrentBoard(_curBoard, size, currentWidth, g2);
-        }
-    }
-
-    /**
-     * This method draws the board with numbers, lines and stones
-     *
-     * @param size
-     * @param currentWidth
-     * @param g2
-     */
-    private void _drawCurrentBoard(GameBoard board, int size, int currentWidth, Graphics2D g2) {
-
-        int size1 = size;
-        int dim = 8;
-        size1 -= (size1 % dim);
-        int positionX = (currentWidth >> 1) - (size1 >> 1) + size1/25; // >> equals division by 2
-        int positionY = 8;
-        int distance = size1 / dim;
-
-        // -- draw board background --
-        g2.setColor(_boardLightColor);
-        g2.fill3DRect(positionX, positionY, size1, size1, true);
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-
-        // -- lines & numbers
-        drawLinesAndNumbers(g2, dim, positionX, positionY, distance, size1);
-
-        // -- draw checkers
-        drawCheckers(g2, dim, positionX, positionY, distance, size1);
-
-        // -- mark last move field --
-        makrLastMove(board, g2, dim, positionX, positionY, distance);
-
-        // -- mark possible moves --
-        markPossibleMoves(board, g2, dim, positionX, positionY, distance);
-
-        // -- mark king in check field --
-        markKingInCheckField(g2, dim, positionX, positionY, distance);
-
-        // - mark current selected from Field --
-        markCurrentSelectedFromField(board, g2, dim, positionX, positionY, distance);
-
-        // -- draw stones
-        drawStones(board, g2, dim, positionX, positionY, distance);
-    }
-
-    /**
-     * @param board
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     */
-    private void drawStones(GameBoard board, Graphics2D g2, int dim, int positionX, int positionY, int distance) {
-        GradientPaint stoneColor;
-        float stoneSize = distance * 0.9f;
-        for (int col = 1; col <= dim; col++) {
-            for (int row = dim; row > 0; row--) {
-                if (board.getPiece(col, row) != null) {
-
-                    // >> equals division by 2
-                    int r = _currentOrientation == orientation.NORTH ? dim-row+1 : row ;
-                    float rowOffset = r * distance - (distance >> 1) - (stoneSize / 2) + positionY;
-
-                    // >> equals division by 2
-                    int c = _currentOrientation == orientation.NORTH ? col : dim-col+1;
-                    float colOffset = c * distance - (distance >> 1) - (stoneSize / 2) + positionX;
-
-                    if (board.getPiece(col, row).getColor() == GameColor.BLACK) {
-                        stoneColor = new GradientPaint(colOffset, rowOffset, _blackGradientToColor,
-                                colOffset + stoneSize, rowOffset + stoneSize, _blackGradientFromColor);
-                    } else if (board.getPiece(col, row).getColor() == GameColor.WHITE) {
-                        stoneColor = new GradientPaint(colOffset, rowOffset, _whiteGradientToColor,
-                                colOffset + stoneSize, rowOffset + stoneSize, _whiteGradientFromColor);
-                    } else {
-                        throw new RuntimeException("Field has invalid color");
-                    }
-
-                    g2.setPaint(stoneColor);
-                    g2.drawImage(getPieceImage(board.getPiece(col, row).getColor(),
-                            board.getPiece(col, row).getType()),
-                            (int)colOffset, (int)rowOffset, (int)stoneSize, (int)stoneSize, null);
-                }
-            }
-        }
-    }
-
-    /**
-     * @param board
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     */
-    private void markCurrentSelectedFromField(GameBoard board, Graphics2D g2, int dim, int positionX, int positionY, int distance) {
-        if (board !=null && _selectedFromField != null) {
-            g2.setColor(_selectedMoveColor);
-            int x = _currentOrientation == orientation.NORTH ? _selectedFromField.x : dim - _selectedFromField.x+1;
-            int y = _currentOrientation == orientation.NORTH ? _selectedFromField.y : dim - _selectedFromField.y+1;
-            g2.fillRect((x - 1) * distance + positionX + 1,
-                    (dim - y) * distance + positionY + 1,
-                    distance - 1,
-                    distance - 1);
-        }
-    }
-
-    /**
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     */
-    private void markKingInCheckField(Graphics2D g2, int dim, int positionX, int positionY, int distance) {
-        if (_curBoard != null && _curBoard.hasCheck()) {
-            GamePosition king;
-            king = _curBoard.getKingField(_curBoard.getNextPlayerColor());
-            g2.setColor(_checkColor);
-            int x = _currentOrientation == orientation.NORTH ? king.x : dim - king.x+1;
-            int y = _currentOrientation == orientation.NORTH ? king.y : dim - king.y+1;
-            g2.fillRect((x-1) * distance + positionX + 1,
-                    (dim - y) * distance + positionY + 1,
-                    distance - 1,
-                    distance - 1);
-        }
-    }
-
-    /**
-     * @param board
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     */
-    private void markPossibleMoves(GameBoard board, Graphics2D g2, int dim, int positionX, int positionY, int distance) {
-        if (_ui != null && _ui.is_showPossibleMoves() && _selectedFromField != null
-                && _curBoard.getPiece(_selectedFromField).getColor().equals(board.getNextPlayerColor())) {
-
-            List<GameMove> moves = _curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(board, _selectedFromField, false);
-            g2.setColor(_possibleMoveColor);
-            for (GameMove curMove : moves) {
-                int x = _currentOrientation == orientation.NORTH ? curMove.getToField().x : dim - curMove.getToField().x+1;
-                int y = _currentOrientation == orientation.NORTH ? curMove.getToField().y : dim - curMove.getToField().y+1;
-                g2.fillRect((x - 1) * distance + positionX + 1,
-                        (dim - y) * distance + positionY + 1,
-                        distance - 1,
-                        distance - 1);
-            }
-        }
-    }
-
-    /**
-     * @param board
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     */
-    private void makrLastMove(GameBoard board, Graphics2D g2, int dim, int positionX, int positionY, int distance) {
-        GameMove lastMove = board.getLastMove();
-        g2.setColor(_lastMoveColor);
-        if (lastMove != null) {
-            int x = _currentOrientation == orientation.NORTH ? lastMove.getToField().x : dim - lastMove.getToField().x+1;
-            int y = _currentOrientation == orientation.NORTH ? lastMove.getToField().y : dim - lastMove.getToField().y+1;
-            g2.fillRect((x-1) * distance + positionX + 1,
-                    (dim - y) * distance + positionY + 1,
-                    distance - 1,
-                    distance - 1);
-        }
-    }
-
-    /**
-     * draws lines and numbers
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     * @param size
-     */
-    private void drawLinesAndNumbers(Graphics2D g2, int dim, int positionX, int positionY, int distance, int size) {
-        // -- board lines and numbers --
-        int fontSize = size/25;
-        g2.setColor(_boardGridColor);
-        g2.setFont(new Font("Arial Unicode MS", Font.PLAIN, fontSize));
-
-        for (int i = 1; i <= dim; i++) {
-            int index =_currentOrientation == orientation.NORTH ?  i : dim - i +1 ;
-            g2.drawString(getFilesLetter(index), positionX + ((i-1)*distance) + (distance>>1) - (fontSize>>1), positionY + size + fontSize + 2); // horizontal
-            g2.drawString(String.valueOf(index), positionX - (fontSize), positionY + size - ((i-1)*distance) - (distance>>1) + (fontSize>>1)); // vertical
-            // lines
-            g2.drawLine(positionX + (i * distance), positionY, positionX + (i * distance), positionY + size);
-            g2.drawLine(positionX, positionY + (i * distance), positionX + size, positionY + (i * distance));
-        }
-
-        g2.setColor(_boardBorderColor);
-        g2.draw3DRect(positionX, positionY, size, size, true);
-    }
-
-    /**
-     * draws the checkers in the chess board
-     * @param g2
-     * @param dim
-     * @param positionX
-     * @param positionY
-     * @param distance
-     * @param size1
-     */
-    private void drawCheckers(Graphics2D g2, int dim, int positionX, int positionY, int distance, int size1) {
-        g2.setColor(_boardDarkColor);
-        for (int c=1;c<=dim;c++) {
-            for (int r=1;r<=dim;r++) {
-                if ((c+r)%2==0) {
-                    g2.fillRect((c-1) * distance + positionX + 1,(dim-r) * distance + positionY + 1, distance - 1, distance - 1);
-                }
-            }
-        }
-
     }
 
     /**
@@ -516,7 +500,7 @@ public class BoardPanel extends JPanel implements MouseListener {
      * @param y
      * @return A Point object representing col and row on the board
      */
-    private Point determineField(int x, int y) {
+    private GamePosition determinePosition(int x, int y) {
 
         Insets insets = this.getInsets();
         int currentWidth = getWidth() - insets.left - insets.right;
@@ -540,7 +524,7 @@ public class BoardPanel extends JPanel implements MouseListener {
             row = dim-row+1;
         }
 
-        return new Point(col, row);
+        return GamePosition.getGamePosition(col, row);
     }
 
     /**
@@ -565,76 +549,131 @@ public class BoardPanel extends JPanel implements MouseListener {
     }
 
     /**
-     * Invoked when a mouse button has been released on a component.
-     */
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        if (Chessly.getPlayroom().getCurrentGame() == null
-                || !Chessly.getPlayroom().getCurrentGame().isRunning()) {
-            return;
-        }
-        if (e.getButton() != MouseEvent.BUTTON1) {
-            return;
-        }
-        int x = e.getX();
-        int y = e.getY();
-
-        Point p = determineField(x, y);
-        if (p==null) return;
-
-        GamePosition tmpField = GamePosition.getGamePosition(p.x, p.y);
-
-        if (_selectedFromField == null) { // no field chosen -> select
-            if (_curBoard.getPiece(tmpField) == null) return; // no piece on the chosen field - ignore click
-            _selectedFromField = tmpField;
-            this.repaint();
-        } else {
-            if (_selectedFromField.equals(tmpField)) { // same field clicked again -> deselect
-                _selectedFromField=null;
-                this.repaint();
-            } else { // from and to chosen
-
-                GamePiece fromPiece = _curBoard.getPiece(_selectedFromField);
-                GamePosition toField = tmpField;
-
-                GameMove m = new GameMoveImpl(_selectedFromField, tmpField, fromPiece);
-
-                // pawn promotion
-                if (fromPiece instanceof Pawn) {
-                    if (fromPiece.isWhite() && _selectedFromField.y == 7 && toField.y == 8) {
-                        // Promotion
-                        m.setPromotedTo(promotionDialog(GameColor.WHITE));
-                    } else if (fromPiece.isBlack() && _selectedFromField.y == 2 && toField.y == 1) {
-                        // Promotion
-                        m.setPromotedTo(promotionDialog(GameColor.BLACK));
-                    }
-                }
-
-                // if the toField is occupied store captured piece to Move - could be illegal move
-                if (_curBoard.getPiece(tmpField) != null)
-                    m.setCapturedPiece(_curBoard.getPiece(tmpField));
-
-                _ui.getController().setPlayerMove(m);
-
-                _selectedFromField=null;
-                this.repaint();
-
-            }
-        }
-    }
-
-    /**
      * Invoked when a mouse button has been pressed on a component.
      */
     @Override
-    public void mousePressed(MouseEvent e) { /* empty */ }
+    public void mousePressed(MouseEvent e) {
+        GamePosition pos = getGamePositionFromMouseEvent(e);
+        // mouse not on board
+        if (pos==null) return;
+
+        System.out.println("Mouse PRESS: "+pos+" "+e);
+
+        if (_selectedFromField == null) { // no field chosen -> select
+            if (_curBoard.getPiece(pos) != null) { // no piece on the chosen field - ignore click
+                _selectedFromField = pos;
+                this.repaint();
+            }
+        }
+
+        // which piece?
+        for (Piece p : _pieces) {
+            if (pos.equals(p.getPosition())) {
+                // found piece
+                _dragOffsetX = e.getX() - p.x;
+                _dragOffsetY = e.getY() - p.y;
+                _dragPiece = p;
+                _dragFromPosition = p.getPosition();
+            }
+        }
+
+        // put on top of the pieces list
+        if (_dragPiece != null) {
+            _pieces.remove(_dragPiece);
+            _pieces.add(0,_dragPiece);
+        }
+
+        this.repaint();
+
+    }
+
+    /**
+     * @see java.awt.event.MouseMotionListener#mouseDragged(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        System.out.println("Mouse DRAG: "+e);
+        if (_dragPiece == null) return;
+        _dragPiece.x=e.getX() - _dragOffsetX;
+        _dragPiece.y=e.getY() - _dragOffsetY;
+        this.repaint();
+    }
+
+    /**
+     * Invoked when a mouse button has been released on a component.
+     * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        GamePosition pos = getGamePositionFromMouseEvent(e);
+        // mouse not on board
+        if (pos==null) return;
+
+        System.out.println("Mouse RELEASE: "+pos+" "+e);
+
+        // this was a click (or multiple clicks)
+        if (e.getClickCount() >= 1) {
+
+            if (_selectedFromField == null) { // no field chosen -> select
+                return;
+            }
+
+            // clear drag piece
+            _dragPiece = null;
+
+            // from and to chosen
+            GamePiece fromPiece = _curBoard.getPiece(_selectedFromField);
+
+            GamePosition toField = pos;
+
+            GameMove m = new GameMoveImpl(_selectedFromField, pos, fromPiece);
+
+            // pawn promotion
+            if (fromPiece instanceof Pawn) {
+                if (fromPiece.isWhite() && _selectedFromField.y == 7 && toField.y == 8) {
+                    // Promotion
+                    m.setPromotedTo(promotionDialog(GameColor.WHITE));
+                } else if (fromPiece.isBlack() && _selectedFromField.y == 2 && toField.y == 1) {
+                    // Promotion
+                    m.setPromotedTo(promotionDialog(GameColor.BLACK));
+                }
+            }
+
+            // if the toField is occupied store captured piece to Move - could be illegal move
+            if (_curBoard.getPiece(pos) != null)
+                m.setCapturedPiece(_curBoard.getPiece(pos));
+
+            _ui.getController().setPlayerMove(m);
+
+            this.repaint();
+        }
+
+        // no click - press & release
+
+        // non valid field
+        if (_dragPiece != null) {
+            _dragPiece = null;
+        }
+
+        this.repaint();
+    }
 
     /**
      * Invoked when the mouse button has been clicked (pressed
      * and released) on a component.
      */
     @Override
-    public void mouseClicked(MouseEvent e) { /* empty */}
+    public void mouseClicked(MouseEvent e) {
+        //System.out.println("Mouse CLICK: "+e);
+    }
+
+    /**
+     * @see java.awt.event.MouseMotionListener#mouseMoved(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        //System.out.println("Mouse moved: "+e);
+    }
 
     /**
      * Invoked when the mouse enters a component.
@@ -647,4 +686,96 @@ public class BoardPanel extends JPanel implements MouseListener {
      */
     @Override
     public void mouseExited(MouseEvent e) { /* empty */}
+
+    /**
+     * @param e
+     */
+    private GamePosition getGamePositionFromMouseEvent(MouseEvent e) {
+        if (Chessly.getPlayroom().getCurrentGame() == null || !Chessly.getPlayroom().getCurrentGame().isRunning()) {
+            return null;
+        }
+
+        if (e.getButton() != MouseEvent.BUTTON1) {
+            return null;
+        }
+
+        int x = e.getX();
+        int y = e.getY();
+
+        return determinePosition(x, y);
+    }
+
+    /**
+     * Represents an Images with x and y coordinates
+     * @author Frank Kopp
+     */
+    private class Piece {
+
+        private Image img;
+        private int x;
+        private int y;
+        public Piece(Image img, int x, int y) {
+            this.img = img;
+            this.x = x;
+            this.y = y;
+        }
+
+        /**
+         */
+        void draw() {
+            draw(this.x, this.y);
+        }
+
+        /**
+         * @param mouseX
+         * @param mouseY
+         */
+        void draw(int mouseX, int mouseY) {
+            _graphics2D.drawImage(this.img, mouseX, mouseY, (int)_stoneSize, (int)_stoneSize, null);
+        }
+
+        GamePosition getPosition() {
+            return determinePosition(x, y);
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((this.img == null) ? 0 : this.img.hashCode());
+            result = prime * result + this.x;
+            result = prime * result + this.y;
+            return result;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) { return true; }
+            if (obj == null) { return false; }
+            if (!(obj instanceof Piece)) { return false; }
+            Piece other = (Piece) obj;
+            if (!getOuterType().equals(other.getOuterType())) { return false; }
+            if (this.img == null) {
+                if (other.img != null) { return false; }
+            } else if (this.img != other.img) { return false; }
+            if (!this.getPosition().equals(((Piece)obj).getPosition())) return false;
+            return true;
+        }
+
+        private BoardPanel getOuterType() {
+            return BoardPanel.this;
+        }
+
+
+
+
+    }
+
 }
