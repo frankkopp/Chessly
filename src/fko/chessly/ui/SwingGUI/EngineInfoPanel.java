@@ -99,7 +99,7 @@ public class EngineInfoPanel extends JPanel {
 
 
     /**
-     * Contructor
+     * Constructor
      * @param engineColor
      */
     public EngineInfoPanel(GameColor engineColor) {
@@ -553,7 +553,7 @@ public class EngineInfoPanel extends JPanel {
             final int curBoardCacheSize2 = engine.getCurBoardCacheSize();
             curBoardCacheSize.setText(numberFormat.format(curBoardCacheSize2));
 
-            // -- show the numer of boards in the cache --
+            // -- show the number of boards in the cache --
             final int curBoardsInCache = engine.getCurBoardsInCache();
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             curBoardCacheUse.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");

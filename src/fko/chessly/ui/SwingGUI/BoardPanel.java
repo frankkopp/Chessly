@@ -62,7 +62,7 @@ import fko.chessly.game.pieces.Rook;
 /**
  * The BoardPanel class displays the board of a given game.
  *
- * TODO: drag&drop
+ * TODO: Minor bug - dragged piece jumps shortly back to from field before painting on to field
  *
  */
 public class BoardPanel extends JPanel implements MouseListener, MouseMotionListener {
@@ -95,17 +95,19 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     private Image _wK,_wQ,_wB,_wN,_wR,_wP;
     private Image _bK,_bQ,_bB,_bN,_bR,_bP;
 
+    // list of pieces to iterate over while drawing
     private List<Piece> _pieces = new ArrayList<>(64);
 
     // -- holds preselected field --
     private GamePosition _selectedFromField = null; // GamePosition.getGamePosition("c1");
 
-    static enum orientation { NORTH, SOUTH };
-    private orientation _currentOrientation = orientation.NORTH;
+    //
+    static enum orientation { WHITE_SOUTH, WHITE_NORTH };
+    private orientation _currentOrientation = orientation.WHITE_SOUTH;
 
     // to avoid having to move parameters around these are fields
     // easier readable code
-    private Graphics2D _graphics2D;
+    private Graphics _graphics;
     private int _boardSize;
     private int _currentWidth;
     private int _currentHeight;
@@ -117,10 +119,12 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
     // the piece picked for dragging
     private Piece _dragPiece;
-    private GamePosition _dragFromPosition;
     // avoid jumping piece while drag
     private int _dragOffsetX;
     private int _dragOffsetY;
+
+    // supports handling of mouse press and release
+    private boolean _ignoreNextRelease;
 
     /**
      * constructor
@@ -159,7 +163,11 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.lastMoveColor")).split(":");
         _lastMoveColor = new Color(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.blackGradientFromColor")).split(":");
+
+        // load piece images
         getPieceImages();
+
+        this.setDoubleBuffered(true);
 
     }
 
@@ -167,8 +175,9 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
      * Draws the board
      * @param board
      */
-    public synchronized void setAndDrawBoard(GameBoard board) {
-        this._curBoard = board;
+    public void setAndDrawBoard(GameBoard board) {
+        // make own copy of the board to update it without side effects
+        this._curBoard = new GameBoardImpl(board);
         this.repaint();
     }
 
@@ -179,7 +188,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        _graphics2D = (Graphics2D) g;
+        _graphics = g;
         drawBoard();
     }
 
@@ -191,18 +200,16 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         _currentWidth = getWidth() - insets.left - insets.right;
         _currentHeight = getHeight() - insets.top - insets.bottom;
         _boardSize = Math.min(_currentHeight, _currentWidth) -50;
-
-        if (_curBoard == null) {
-            drawCurrentBoard(new GameBoardImpl());
-        } else {
-            drawCurrentBoard(_curBoard);
+        if (_curBoard == null) { // no board yet - use new board with standard setup
+            _curBoard = new GameBoardImpl();
         }
+        drawCurrentBoard();
     }
 
     /**
      * This method draws the board with numbers, lines and stones
      */
-    private void drawCurrentBoard(GameBoard board) {
+    private void drawCurrentBoard() {
 
         int actualBoardSize = _boardSize;
         actualBoardSize -= (actualBoardSize % DIM);
@@ -212,9 +219,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         _stoneSize = _distance * 0.9f;
 
         // -- draw board background --
-        _graphics2D.setColor(_boardLightColor);
-        _graphics2D.fill3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);
-        _graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        _graphics.setColor(_boardLightColor);
+        _graphics.fill3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);
+        ((Graphics2D) _graphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        ((Graphics2D) _graphics).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
         // -- lines & numbers
         drawLinesAndNumbers(actualBoardSize);
@@ -223,47 +231,45 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         drawCheckers(actualBoardSize);
 
         // -- mark last move field --
-        markLastMove(board);
+        markLastMove();
 
         // -- mark possible moves --
-        markPossibleMoves(board);
+        markPossibleMoves();
 
         // -- mark king in check field --
         markKingInCheckField();
 
         // - mark current selected from Field --
-        markCurrentSelectedFromField(board);
+        markCurrentSelectedFromField();
 
         // -- draw stones
-        drawPieces(board);
+        drawPieces();
     }
 
     /**
      * @param board
      */
-    private void drawPieces(GameBoard board) {
+    private void drawPieces() {
 
         // -- do not reset the piece list if we drag
         if (_dragPiece == null) {
-
             // clear the pieces array
             _pieces.clear();
-
             // fill the pieces array
             for (int col = 1; col <= DIM; col++) {
                 for (int row = DIM; row > 0; row--) {
-                    if (board.getPiece(col, row) != null) {
+                    if (_curBoard.getPiece(col, row) != null) {
 
                         // >> equals division by 2
-                        int r = _currentOrientation == orientation.NORTH ? BoardPanel.DIM-row+1 : row ;
+                        int r = _currentOrientation == orientation.WHITE_SOUTH ? BoardPanel.DIM-row+1 : row ;
                         float rowOffset = r * _distance - (_distance >> 1) - (_stoneSize / 2) + _positionY;
 
                         // >> equals division by 2
-                        int c = _currentOrientation == orientation.NORTH ? col : BoardPanel.DIM-col+1;
+                        int c = _currentOrientation == orientation.WHITE_SOUTH ? col : BoardPanel.DIM-col+1;
                         float colOffset = c * _distance - (_distance >> 1) - (_stoneSize / 2) + _positionX +1; // +1 small correction due to rounding
 
                         // create piece to display
-                        Image pieceImage = getPieceImage(board.getPiece(col, row).getColor(), board.getPiece(col, row).getType());
+                        Image pieceImage = getPieceImage(_curBoard.getPiece(col, row).getColor(), _curBoard.getPiece(col, row).getType());
                         Piece piece = new Piece(pieceImage,(int)colOffset,(int)rowOffset);
 
                         _pieces.add(piece);
@@ -271,14 +277,15 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
                 }
             }
         } else {
-            // determine if we drag a piece
-            _pieces.remove(_dragPiece);
-            _pieces.add(0, _dragPiece);
+            // we drag a piece
+            _pieces.remove(_dragPiece); // first occurrence
+            _pieces.add(0,_dragPiece); // add as first
         }
 
-        // now draw each piece
-        for (Piece p : _pieces) {
-            p.draw();
+        // now draw each piece (reverse to have the piece hover over the other pieces)
+        for (int i=_pieces.size()-1 ; i>=0; i--) {
+            //for (Piece p : _pieces) {
+            _pieces.get(i).draw();
         }
 
     }
@@ -286,12 +293,12 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     /**
      * @param board
      */
-    private void markCurrentSelectedFromField(GameBoard board) {
-        if (board !=null && _selectedFromField != null) {
-            _graphics2D.setColor(_selectedMoveColor);
-            int x = _currentOrientation == orientation.NORTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
-            int y = _currentOrientation == orientation.NORTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
-            _graphics2D.fillRect((x - 1) * _distance + _positionX + 1,
+    private void markCurrentSelectedFromField() {
+        if (_curBoard !=null && _selectedFromField != null) {
+            _graphics.setColor(_selectedMoveColor);
+            int x = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
+            int y = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
+            _graphics.fillRect((x - 1) * _distance + _positionX + 1,
                     (DIM - y) * _distance + _positionY + 1,
                     _distance - 1,
                     _distance - 1);
@@ -304,10 +311,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         if (_curBoard != null && _curBoard.hasCheck()) {
             GamePosition king;
             king = _curBoard.getKingField(_curBoard.getNextPlayerColor());
-            _graphics2D.setColor(_checkColor);
-            int x = _currentOrientation == orientation.NORTH ? king.x : DIM - king.x+1;
-            int y = _currentOrientation == orientation.NORTH ? king.y : DIM - king.y+1;
-            _graphics2D.fillRect((x-1) * _distance + _positionX + 1,
+            _graphics.setColor(_checkColor);
+            int x = _currentOrientation == orientation.WHITE_SOUTH ? king.x : DIM - king.x+1;
+            int y = _currentOrientation == orientation.WHITE_SOUTH ? king.y : DIM - king.y+1;
+            _graphics.fillRect((x-1) * _distance + _positionX + 1,
                     (DIM - y) * _distance + _positionY + 1,
                     _distance - 1,
                     _distance - 1);
@@ -317,16 +324,16 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     /**
      * @param board
      */
-    private void markPossibleMoves(GameBoard board) {
+    private void markPossibleMoves() {
         if (_ui != null && _ui.is_showPossibleMoves() && _selectedFromField != null
-                && _curBoard.getPiece(_selectedFromField).getColor().equals(board.getNextPlayerColor())) {
+                && _curBoard.getPiece(_selectedFromField).getColor().equals(_curBoard.getNextPlayerColor())) {
 
-            List<GameMove> moves = _curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(board, _selectedFromField, false);
-            _graphics2D.setColor(_possibleMoveColor);
+            List<GameMove> moves = _curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(_curBoard, _selectedFromField, false);
+            _graphics.setColor(_possibleMoveColor);
             for (GameMove curMove : moves) {
-                int x = _currentOrientation == orientation.NORTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
-                int y = _currentOrientation == orientation.NORTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
-                _graphics2D.fillRect((x - 1) * _distance + _positionX + 1,
+                int x = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
+                int y = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
+                _graphics.fillRect((x - 1) * _distance + _positionX + 1,
                         (DIM - y) * _distance + _positionY + 1,
                         _distance - 1,
                         _distance - 1);
@@ -337,13 +344,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     /**
      * @param board
      */
-    private void markLastMove(GameBoard board) {
-        GameMove lastMove = board.getLastMove();
-        _graphics2D.setColor(_lastMoveColor);
+    private void markLastMove() {
+        GameMove lastMove = _curBoard.getLastMove();
+        _graphics.setColor(_lastMoveColor);
         if (lastMove != null) {
-            int x = _currentOrientation == orientation.NORTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
-            int y = _currentOrientation == orientation.NORTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
-            _graphics2D.fillRect((x-1) * _distance + _positionX + 1,
+            int x = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
+            int y = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
+            _graphics.fillRect((x-1) * _distance + _positionX + 1,
                     (DIM - y) * _distance + _positionY + 1,
                     _distance - 1,
                     _distance - 1);
@@ -357,20 +364,20 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     private void drawLinesAndNumbers(int size) {
         // -- board lines and numbers --
         int fontSize = size/25;
-        _graphics2D.setColor(_boardGridColor);
-        _graphics2D.setFont(new Font("Arial Unicode MS", Font.PLAIN, fontSize));
+        _graphics.setColor(_boardGridColor);
+        _graphics.setFont(new Font("Arial Unicode MS", Font.PLAIN, fontSize));
 
         for (int i = 1; i <= DIM; i++) {
-            int index =_currentOrientation == orientation.NORTH ?  i : DIM - i +1 ;
-            _graphics2D.drawString(getFilesLetter(index), _positionX + ((i-1)*_distance) + (_distance>>1) - (fontSize>>1), _positionY + size + fontSize + 2); // horizontal
-            _graphics2D.drawString(String.valueOf(index), _positionX - (fontSize), _positionY + size - ((i-1)*_distance) - (_distance>>1) + (fontSize>>1)); // vertical
+            int index =_currentOrientation == orientation.WHITE_SOUTH ?  i : DIM - i +1 ;
+            _graphics.drawString(getFilesLetter(index), _positionX + ((i-1)*_distance) + (_distance>>1) - (fontSize>>1), _positionY + size + fontSize + 2); // horizontal
+            _graphics.drawString(String.valueOf(index), _positionX - (fontSize), _positionY + size - ((i-1)*_distance) - (_distance>>1) + (fontSize>>1)); // vertical
             // lines
-            _graphics2D.drawLine(_positionX + (i * _distance), _positionY, _positionX + (i * _distance), _positionY + size);
-            _graphics2D.drawLine(_positionX, _positionY + (i * _distance), _positionX + size, _positionY + (i * _distance));
+            _graphics.drawLine(_positionX + (i * _distance), _positionY, _positionX + (i * _distance), _positionY + size);
+            _graphics.drawLine(_positionX, _positionY + (i * _distance), _positionX + size, _positionY + (i * _distance));
         }
 
-        _graphics2D.setColor(_boardBorderColor);
-        _graphics2D.draw3DRect(_positionX, _positionY, size, size, true);
+        _graphics.setColor(_boardBorderColor);
+        _graphics.draw3DRect(_positionX, _positionY, size, size, true);
     }
 
     /**
@@ -378,11 +385,11 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
      * @param actuaSize
      */
     private void drawCheckers(int actuaSize) {
-        _graphics2D.setColor(_boardDarkColor);
+        _graphics.setColor(_boardDarkColor);
         for (int c=1;c<=DIM;c++) {
             for (int r=1;r<=DIM;r++) {
                 if ((c+r)%2==0) {
-                    _graphics2D.fillRect((c-1) * _distance + _positionX + 1,(DIM-r) * _distance + _positionY + 1, _distance - 1, _distance - 1);
+                    _graphics.fillRect((c-1) * _distance + _positionX + 1,(DIM-r) * _distance + _positionY + 1, _distance - 1, _distance - 1);
                 }
             }
         }
@@ -519,7 +526,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         int col = 1 + (x - positionX) / distance;
         int row = 1 + dim - 1 - (y - positionY) / distance;
 
-        if (_currentOrientation == orientation.SOUTH) {
+        if (_currentOrientation == orientation.WHITE_NORTH) {
             col = dim-col+1;
             row = dim-row+1;
         }
@@ -545,7 +552,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
      * flips the current orientation
      */
     public void flipOrientation() {
-        this._currentOrientation = _currentOrientation == orientation.NORTH ? orientation.SOUTH : orientation.NORTH;
+        this._currentOrientation = _currentOrientation == orientation.WHITE_SOUTH ? orientation.WHITE_NORTH : orientation.WHITE_SOUTH;
     }
 
     /**
@@ -554,16 +561,27 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     @Override
     public void mousePressed(MouseEvent e) {
         GamePosition pos = getGamePositionFromMouseEvent(e);
-        // mouse not on board
-        if (pos==null) return;
+        // mouse not on board - ignore mouse press
+        if (pos==null) {
+            _ignoreNextRelease = false;
+            return;
+        }
 
-        System.out.println("Mouse PRESS: "+pos+" "+e);
-
-        if (_selectedFromField == null) { // no field chosen -> select
-            if (_curBoard.getPiece(pos) != null) { // no piece on the chosen field - ignore click
+        //System.out.print("Mouse PRESS: "+pos+" ");
+        // which field?
+        if (_selectedFromField == null) {
+            // no field selected -> select
+            if (_curBoard.getPiece(pos) != null
+                    && _curBoard.getNextPlayerColor().equals(_curBoard.getPiece(pos).getColor()) ) {
                 _selectedFromField = pos;
                 this.repaint();
+            } else { // no piece on the chosen field - ignore click
+                //System.out.println();
+                return;
             }
+            _ignoreNextRelease = true;
+        } else {
+            _ignoreNextRelease = false;
         }
 
         // which piece?
@@ -573,18 +591,11 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
                 _dragOffsetX = e.getX() - p.x;
                 _dragOffsetY = e.getY() - p.y;
                 _dragPiece = p;
-                _dragFromPosition = p.getPosition();
             }
         }
 
-        // put on top of the pieces list
-        if (_dragPiece != null) {
-            _pieces.remove(_dragPiece);
-            _pieces.add(0,_dragPiece);
-        }
-
-        this.repaint();
-
+        //this.repaint();
+        //System.out.println("SelectedFrom: "+_selectedFromField+" DragPiece: "+_dragPiece.getPosition());
     }
 
     /**
@@ -592,8 +603,9 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
      */
     @Override
     public void mouseDragged(MouseEvent e) {
-        System.out.println("Mouse DRAG: "+e);
         if (_dragPiece == null) return;
+        //System.out.println("Mouse DRAG: "+e);
+        _ignoreNextRelease = false;
         _dragPiece.x=e.getX() - _dragOffsetX;
         _dragPiece.y=e.getY() - _dragOffsetY;
         this.repaint();
@@ -605,57 +617,75 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
      */
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (_ignoreNextRelease) return;
+
         GamePosition pos = getGamePositionFromMouseEvent(e);
-        // mouse not on board
-        if (pos==null) return;
-
-        System.out.println("Mouse RELEASE: "+pos+" "+e);
-
-        // this was a click (or multiple clicks)
-        if (e.getClickCount() >= 1) {
-
-            if (_selectedFromField == null) { // no field chosen -> select
-                return;
-            }
-
-            // clear drag piece
+        // mouse not on board - reset selection and drag and ignore the release
+        if (pos==null) {
+            _selectedFromField = null;
             _dragPiece = null;
-
-            // from and to chosen
-            GamePiece fromPiece = _curBoard.getPiece(_selectedFromField);
-
-            GamePosition toField = pos;
-
-            GameMove m = new GameMoveImpl(_selectedFromField, pos, fromPiece);
-
-            // pawn promotion
-            if (fromPiece instanceof Pawn) {
-                if (fromPiece.isWhite() && _selectedFromField.y == 7 && toField.y == 8) {
-                    // Promotion
-                    m.setPromotedTo(promotionDialog(GameColor.WHITE));
-                } else if (fromPiece.isBlack() && _selectedFromField.y == 2 && toField.y == 1) {
-                    // Promotion
-                    m.setPromotedTo(promotionDialog(GameColor.BLACK));
-                }
-            }
-
-            // if the toField is occupied store captured piece to Move - could be illegal move
-            if (_curBoard.getPiece(pos) != null)
-                m.setCapturedPiece(_curBoard.getPiece(pos));
-
-            _ui.getController().setPlayerMove(m);
-
             this.repaint();
+            return;
         }
 
-        // no click - press & release
+        //System.out.print("Mouse RELEASE: "+pos+" ---> ");
 
-        // non valid field
-        if (_dragPiece != null) {
+        if (_selectedFromField == null) {
+            return;
+        }
+
+        if (pos.equals(_selectedFromField)) {
+            // no selection - ignore release
+            //System.out.println("de-select: "+_selectedFromField);
             _dragPiece = null;
+            _selectedFromField = null;
+            this.repaint();
+            //System.out.println();
+            return;
         }
 
-        this.repaint();
+        // from and to chosen
+        GamePiece fromPiece = _curBoard.getPiece(_selectedFromField);
+        GamePosition fromField = _selectedFromField;
+        GamePosition toField = pos;
+
+        //System.out.print("From: "+fromField+" To: "+toField+" DragPiece: "+_dragPiece.getPosition()+" ");
+
+        GameMove m = new GameMoveImpl(fromField, toField, fromPiece);
+
+        if (!_curBoard.isLegalMove(m)) {
+            _dragPiece = null;
+            _selectedFromField = null;
+            this.repaint();
+            return;
+        }
+
+        // pawn promotion
+        if (fromPiece instanceof Pawn) {
+            if (fromPiece.isWhite() && _selectedFromField.y == 7 && toField.y == 8) {
+                // Promotion
+                m.setPromotedTo(promotionDialog(GameColor.WHITE));
+            } else if (fromPiece.isBlack() && _selectedFromField.y == 2 && toField.y == 1) {
+                // Promotion
+                m.setPromotedTo(promotionDialog(GameColor.BLACK));
+            }
+        }
+
+        // if the toField is occupied store captured piece to Move - could be illegal move
+        if (_curBoard.getPiece(pos) != null)
+            m.setCapturedPiece(_curBoard.getPiece(pos));
+
+        // clear drag piece
+        _dragPiece = null;
+        // reset ignore flag
+        _ignoreNextRelease = false;
+        // de-select
+        _selectedFromField = null;
+
+        //System.out.print("Move: "+m);
+        _ui.getController().setPlayerMove(m);
+
+        return;
     }
 
     /**
@@ -731,7 +761,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
          * @param mouseY
          */
         void draw(int mouseX, int mouseY) {
-            _graphics2D.drawImage(this.img, mouseX, mouseY, (int)_stoneSize, (int)_stoneSize, null);
+            _graphics.drawImage(this.img, mouseX, mouseY, (int)_stoneSize, (int)_stoneSize, null);
         }
 
         GamePosition getPosition() {

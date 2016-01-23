@@ -64,7 +64,7 @@ public final class SwingGUI implements UserInterface {
     private MainWindow mainWindow;
     // -- a clock panel with clocks for both players --
     private ClockPanel clockPanel;
-    // -- a panel displaying the reversi board --
+    // -- a panel displaying the Chessly board --
     private BoardPanel boardPanel;
     // -- a panel displaying text --
     private InfoPanel infoPanel;
