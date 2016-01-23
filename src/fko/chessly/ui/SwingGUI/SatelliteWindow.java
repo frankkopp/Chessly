@@ -32,14 +32,14 @@ import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-/**
+/**e
  * The SatelliteWindow class extends a JDialog mainly with the ability to store its window position
  * with the help of ReversiGUI.getWindowState().
  */
-public class SatelliteWindow extends JDialog {
+public class SatelliteWindow extends JFrame {
 
     private static final long serialVersionUID = 9190106299247327100L;
 
@@ -60,12 +60,12 @@ public class SatelliteWindow extends JDialog {
      * @param label a label for the frame to store and restore the last window size and position
      */
     public SatelliteWindow(Frame frame, String title, String label) {
-        super(frame, title);
+        super( title);
 
         // -- only keep word characters [a-zA-Z_0-9] --
         this._myLabel = label.trim().replaceAll("\\W+","");
 
-        // -- get last window position ans size--
+        // -- get last window position and size--
         int windowLocX = Integer.parseInt(
                 SwingGUI.getWindowState().getProperty("windowLocationX_"+_myLabel) == null
                 ? "100" : SwingGUI.getWindowState().getProperty("windowLocationX_"+_myLabel));
