@@ -1,3 +1,29 @@
+/**
+ * The MIT License (MIT)
+ *
+ * "Chessly by Frank Kopp"
+ *
+ * mail-to:frank@familie-kopp.de
+ *
+ * Copyright (c) 2016 Frank Kopp
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 package fko.chessly.ui.SwingGUI;
 
 import java.awt.BorderLayout;
@@ -9,29 +35,20 @@ import org.junit.Test;
 
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
-import fko.chessly.game.GameMove;
-import fko.chessly.game.GamePiece;
-import fko.chessly.game.IllegalMoveException;
 
 public class BoardPanelTest {
 
     @Test
-    public void test() {
-        //1. Create the frame.
+    public void testBoardPanel() {
+
         JFrame frame = new JFrame("FrameDemo");
-        frame.setSize(new Dimension(500,500));
-        frame.setMinimumSize(new Dimension(100,100));
+        frame.setMinimumSize(new Dimension(900,900));
+        frame.setSize(new Dimension(900,900));
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         GameBoard b = new GameBoardImpl("2r1k2r/1pq2ppp/3b4/p2ppb2/3n4/P2P4/1P3PPP/1RBKQBNR w k -");
-        GameMove m;
 
         BoardPanel bp = new BoardPanel(null);
-
-        //        // e2-e4
-        //        m = new GameMoveImpl(b.getPiece(5, 2), b.getPiece(5, 4), null);
-        //        assertTrue(b.isLegalMove(m));
-        //        makeMove(b, m);
 
         bp.drawBoard(b);
 
@@ -49,37 +66,5 @@ public class BoardPanelTest {
         System.out.println("test");
     }
 
-    /**
-     * @param b
-     * @param m
-     */
-    protected void makeMove(GameBoard b, GameMove m) {
-        GamePiece pC;
-        /*
-		System.out.println("Next Player:      "+b.getNextPlayerColor().toString());
-		System.out.println("Next Move Color:  "+m.getMoveColor().toString());
-		if (b.getField(m.getFromField().getCol(),m.getFromField().getRow()).getPiece() != null) {
-			System.out.println("From Field Color: "+b.getField(m.getFromField().getCol(),m.getFromField().getRow()).getPiece().getColor());
-		} else {
-			System.out.println("From Field Color: EMPTY");
-		}
-         */
-        try {
-            pC = b.makeMove(m);
-        } catch (IllegalMoveException e) {
-            //e.printStackTrace();
-        }
-        //print(b, m);
-    }
-
-    /**
-     * @param b
-     * @param m
-     */
-    protected void print(GameBoard b, GameMove m) {
-        System.out.println("Move: "+m.toString());
-        System.out.println();
-        System.out.println(b.toString());
-    }
 
 }

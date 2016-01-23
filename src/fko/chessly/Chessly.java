@@ -106,7 +106,6 @@ import fko.chessly.util.CmdLineParser;
  * <p>
  * <b>Todo List:</b>
  * <ul>
- * <li>TODO: turnable board</li>
  * <li>TODO: Drag&Drop move in UI
  * <li>DONE: Pondering</li>
  * <li>TODO: Show DRAW Reason</li>

@@ -86,7 +86,9 @@ public class MainMenu extends JMenuBar {
     private CommandAction blackLevelAction;
     private CommandAction whiteLevelAction;
 
+    private CommandAction flipBoardAction;
     private CommandAction showPossibleMovesAction;
+
     private CommandAction showMovelistAction;
     private CommandAction numberOfGamesAction;
     private CommandAction showEngineInfoBlackAction;
@@ -288,6 +290,33 @@ public class MainMenu extends JMenuBar {
             }
 
             /* **********************************************************************
+            // -- menu Board --
+             ************************************************************************/
+            JMenu menuBoard = new JMenu("Board");
+            add(menuBoard);
+
+            // -- flip board --
+            flipBoardAction = new CommandAction(
+                    Command.parse(_MVController, "flipBoardAction"),
+                    "Flip Board", null, "Flip Board",
+                    KeyStroke.getKeyStroke(82, 0),
+                    0,
+                    true
+                    );
+            menuBoard.add(flipBoardAction);
+
+            // -- show possible move toggle --
+            showPossibleMovesAction = new CommandAction(
+                    Command.parse(_MVController, "toggleShowPossibleMovesAction"),
+                    "Show possible moves", null, "Show possible moves",
+                    null, 0,
+                    true
+                    );
+            showPossibleMoves = new JCheckBoxMenuItem(showPossibleMovesAction);
+            showPossibleMoves.setState(_ui.is_showPossibleMoves());
+            menuBoard.add(showPossibleMoves);
+
+            /* **********************************************************************
             // -- menu Extras --
              ************************************************************************/
             JMenu menuExtras = new JMenu("Extras");
@@ -325,17 +354,6 @@ public class MainMenu extends JMenuBar {
             showEngineInfoWhite = new JCheckBoxMenuItem(showEngineInfoWhiteAction);
             showEngineInfoWhite.setState(_ui.is_showEngineInfoWindowWhite());
             menuExtras.add(showEngineInfoWhite);
-
-            // -- show possible move toggle --
-            showPossibleMovesAction = new CommandAction(
-                    Command.parse(_MVController, "toggleShowPossibleMovesAction"),
-                    "Show possible moves", null, "Show possible moves",
-                    null, 0,
-                    true
-                    );
-            showPossibleMoves = new JCheckBoxMenuItem(showPossibleMovesAction);
-            showPossibleMoves.setState(_ui.is_showPossibleMoves());
-            menuExtras.add(showPossibleMoves);
 
             menuExtras.addSeparator();
 

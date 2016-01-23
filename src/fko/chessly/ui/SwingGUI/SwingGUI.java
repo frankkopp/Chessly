@@ -50,7 +50,7 @@ import fko.chessly.ui.UserInterface;
 /**
  * Graphical User Interface for the Chessly game.
  *
- *  @author Frank Kopp (frank@familie-kopp.de)
+ * @author Frank Kopp (frank@familie-kopp.de)
  */
 public final class SwingGUI implements UserInterface {
 

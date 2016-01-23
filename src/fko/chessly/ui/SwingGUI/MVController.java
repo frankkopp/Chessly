@@ -214,6 +214,14 @@ public class MVController {
     }
 
     /**
+     * flips the orientation of the board
+     */
+    public void flipBoardAction() {
+        _ui.getBoardPanel().flipOrientation();
+        _ui.getBoardPanel().repaint();
+    }
+
+    /**
      * toggles the setting to show all possible moves
      */
     public void toggleShowPossibleMovesAction() {
