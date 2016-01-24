@@ -20,10 +20,12 @@ public class JavaFX_GUI extends Application implements UserInterface {
     public void start(Stage primaryStage) {
 
         try {
-            BorderPane root = (BorderPane)FXMLLoader.load(getClass().getResource("Frank_Sample.fxml"));
-            Scene scene = new Scene(root,735,790);
+            BorderPane root = (BorderPane)FXMLLoader.load(getClass().getResource("JavaFX_GUI.fxml"));
+            Scene scene = new Scene(root,780,840);
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
             primaryStage.setScene(scene);
+            primaryStage.setMinHeight(scene.getHeight());
+            primaryStage.setMinWidth(scene.getWidth());
             primaryStage.show();
         } catch(Exception e) {
             e.printStackTrace();

@@ -4,7 +4,7 @@ package fko.chessly.ui.JavaFX_GUI;
  * @author Frank
  *
  */
-public class Frank_SampleController {
+public class Main_Controller {
 
     // empty
 
