@@ -27,6 +27,7 @@
 package fko.chessly.ui.SwingGUI;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -37,8 +38,9 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -84,19 +86,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     private Color _boardLightColor   	  = new Color(30, 140, 0);
     private Color _boardDarkColor         = new Color(90, 240, 0);
     private Color _lastMoveColor          = new Color(64, 128, 64);
-    /*
-    private Color _blackGradientFromColor = Color.BLACK;
-    private Color _blackGradientToColor   = Color.GRAY;
-    private Color _whiteGradientFromColor = Color.GRAY;
-    private Color _whiteGradientToColor   = Color.WHITE;
-     */
 
     // -- image objects for pieces
     private Image _wK,_wQ,_wB,_wN,_wR,_wP;
     private Image _bK,_bQ,_bB,_bN,_bR,_bP;
 
     // list of pieces to iterate over while drawing
-    private List<Piece> _pieces = new ArrayList<>(64);
+    private Set<Piece> _pieces = new LinkedHashSet<Piece>(64);
 
     // -- holds preselected field --
     private GamePosition _selectedFromField = null; // GamePosition.getGamePosition("c1");
@@ -139,6 +135,8 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         this.setBorder(new BevelBorder(BevelBorder.LOWERED));
         // -- set background color --
         this.setBackground(Color.GRAY);
+        // -- set minimum size --
+        this.setMinimumSize(new Dimension(200, 200));
         // -- set mouse listener --
         this.addMouseListener(this);
         // -- set mouse motion listener --
@@ -278,15 +276,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             }
         } else {
             // we drag a piece
-            _pieces.remove(_dragPiece); // first occurrence
-            _pieces.add(0,_dragPiece); // add as first
+            _pieces.remove(_dragPiece);
+            _pieces.add(_dragPiece);
         }
 
-        // now draw each piece (reverse to have the piece hover over the other pieces)
-        for (int i=_pieces.size()-1 ; i>=0; i--) {
-            //for (Piece p : _pieces) {
-            _pieces.get(i).draw();
-        }
+        // now draw each piece
+        // (geeky new Java 8 lambda way - and parallel as well :) )
+        _pieces.parallelStream().forEach(Piece::draw);
 
     }
 
@@ -330,14 +326,17 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
             List<GameMove> moves = _curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(_curBoard, _selectedFromField, false);
             _graphics.setColor(_possibleMoveColor);
-            for (GameMove curMove : moves) {
-                int x = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
-                int y = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
-                _graphics.fillRect((x - 1) * _distance + _positionX + 1,
-                        (DIM - y) * _distance + _positionY + 1,
-                        _distance - 1,
-                        _distance - 1);
-            }
+            moves.forEach(
+                    curMove -> {
+                        int x = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
+                        int y = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
+                        _graphics.fillRect((x - 1) * _distance + _positionX + 1,
+                                (DIM - y) * _distance + _positionY + 1,
+                                _distance - 1,
+                                _distance - 1);
+                    }
+                    );
+
         }
     }
 
@@ -502,6 +501,19 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
+     * @param e
+     */
+    private GamePosition getGamePositionFromMouseEvent(MouseEvent e) {
+        if (Chessly.getPlayroom().getCurrentGame() == null || !Chessly.getPlayroom().getCurrentGame().isRunning()) {
+            return null;
+        }
+        if (e.getButton() != MouseEvent.BUTTON1) {
+            return null;
+        }
+        return determinePosition(e.getX(), e.getY());
+    }
+
+    /**
      * Determines the board coordinates of a user click
      * @param x
      * @param y
@@ -591,6 +603,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
                 _dragOffsetX = e.getX() - p.x;
                 _dragOffsetY = e.getY() - p.y;
                 _dragPiece = p;
+                _dragPiece.isDragged=true;
             }
         }
 
@@ -623,7 +636,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         // mouse not on board - reset selection and drag and ignore the release
         if (pos==null) {
             _selectedFromField = null;
-            _dragPiece = null;
+            if (_dragPiece != null) {
+                _dragPiece.isDragged=false;
+                _dragPiece = null;
+            }
             this.repaint();
             return;
         }
@@ -637,7 +653,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         if (pos.equals(_selectedFromField)) {
             // no selection - ignore release
             //System.out.println("de-select: "+_selectedFromField);
-            _dragPiece = null;
+            if (_dragPiece != null) {
+                _dragPiece.isDragged=false;
+                _dragPiece = null;
+            }
             _selectedFromField = null;
             this.repaint();
             //System.out.println();
@@ -654,7 +673,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         GameMove m = new GameMoveImpl(fromField, toField, fromPiece);
 
         if (!_curBoard.isLegalMove(m)) {
-            _dragPiece = null;
+            if (_dragPiece != null) {
+                _dragPiece.isDragged=false;
+                _dragPiece = null;
+            }
             _selectedFromField = null;
             this.repaint();
             return;
@@ -676,7 +698,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             m.setCapturedPiece(_curBoard.getPiece(pos));
 
         // clear drag piece
-        _dragPiece = null;
+        if (_dragPiece != null) {
+            _dragPiece.isDragged=false;
+            _dragPiece = null;
+        }
         // reset ignore flag
         _ignoreNextRelease = false;
         // de-select
@@ -718,24 +743,6 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     public void mouseExited(MouseEvent e) { /* empty */}
 
     /**
-     * @param e
-     */
-    private GamePosition getGamePositionFromMouseEvent(MouseEvent e) {
-        if (Chessly.getPlayroom().getCurrentGame() == null || !Chessly.getPlayroom().getCurrentGame().isRunning()) {
-            return null;
-        }
-
-        if (e.getButton() != MouseEvent.BUTTON1) {
-            return null;
-        }
-
-        int x = e.getX();
-        int y = e.getY();
-
-        return determinePosition(x, y);
-    }
-
-    /**
      * Represents an Images with x and y coordinates
      * @author Frank Kopp
      */
@@ -744,10 +751,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
         private Image img;
         private int x;
         private int y;
+        private boolean isDragged;
+
         public Piece(Image img, int x, int y) {
             this.img = img;
             this.x = x;
             this.y = y;
+            this.isDragged = false;
         }
 
         /**
@@ -777,6 +787,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             int result = 1;
             result = prime * result + getOuterType().hashCode();
             result = prime * result + ((this.img == null) ? 0 : this.img.hashCode());
+            result = prime * result + (this.isDragged ? 1231 : 1237);
             result = prime * result + this.x;
             result = prime * result + this.y;
             return result;
@@ -794,7 +805,8 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             if (!getOuterType().equals(other.getOuterType())) { return false; }
             if (this.img == null) {
                 if (other.img != null) { return false; }
-            } else if (this.img != other.img) { return false; }
+            } else if (!this.img.equals(other.img)) { return false; }
+            if (this.isDragged != other.isDragged) { return false; }
             if (!this.getPosition().equals(((Piece)obj).getPosition())) return false;
             return true;
         }
