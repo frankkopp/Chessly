@@ -82,7 +82,7 @@ public class PGN_Reader {
      */
     public static boolean VERBOSE = true;
 
-    // holds the orinal input lines
+    // holds the original input lines
     private final List<String> _lines;
 
     // holds all correctly interpreted games
