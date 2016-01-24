@@ -48,9 +48,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,7 +71,7 @@ import fko.chessly.util.HelperTools;
  *
  * TODO: No SER mode - only Cache Logic (present>use, not present create)
  *
- * @author fkopp
+ * @author Frank Kopp
  */
 public class OpeningBookImpl implements OpeningBook, Serializable {
 
@@ -85,7 +85,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * Value is BookEntry object
      * Trying different Collection implementations for it.
      */
-    private HashMap<String, OpeningBook_Entry> bookMap = new HashMap<String, OpeningBook_Entry>(10000);
+    private Map<String, OpeningBook_Entry> bookMap = Collections.synchronizedMap(new HashMap<String, OpeningBook_Entry>(10000));
 
     private Engine _engine;
     private Path _path;
@@ -216,7 +216,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 readBookfromSERFile(path);
                 break;
             case PGN:
-                readBookfromPGNFile(path);
+                processBookfromPGNFile(path);
                 saveOpeningBooktoSERFile(path);
                 break;
             case SAN:
@@ -259,7 +259,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         return lines;
     }
 
-    private void readBookfromPGNFile(Path path) {
+    private void processBookfromPGNFile(Path path) {
 
         List<String> lines = readAllLinesFromFile(path);
 
@@ -281,25 +281,13 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             printInfo(String.format("Creating internal book...%n"));
         }
 
-        // TODO: make this multi threaded
-        int i = 0;
-        for (PGN_Reader.pgnGame game : gameList) {
-
-            // to use the existing method we create a string of moves
+        synchronized (_counterLock) { _counter = 0; }
+        // parallel lambda expression - very fast and cool - needs some synchronizing though
+        gameList.parallelStream().forEach(game -> {
             String moves = game.getMoves().toString();
             moves = moves.replaceAll("[\\[\\],]", "");
-            processSANLine(moves);
-
-            if (_config.VERBOSE && ++i % 1000 == 0) {
-                Formatter f = new Formatter();
-                String s = f.format("%5d ", i).toString();
-                f.close();
-                //printInfo(s + "\b\b\b\b\b");
-                printInfo(s + " ");
-            }
-            if (_config.VERBOSE && i % 10000 == 0)
-                printInfo(String.format("%n"));
-        }
+            processLine(moves);
+        });
 
         long time = System.currentTimeMillis() - start;
         if (_config.VERBOSE) {
@@ -321,8 +309,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         if (_config.VERBOSE) {
             printInfo(String.format("Creating internal book...%n"));
         }
-
-        // TODO: make this multi threaded
 
         synchronized (_counterLock) { _counter = 0; }
         // parallel lambda expression - very fast and cool - needs some synchronizing though
@@ -355,12 +341,19 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 }
             }
         }
+
+        OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
+        rootEntry.occurenceCounter++;
+
         switch (_config._mode) {
             case SAN:
                 processSANLine(line);
                 break;
             case SIMPLE:
                 processSIMPLELine(line);
+                break;
+            case PGN:
+                processSANLine(line);
                 break;
             default:
                 break; // NYI
@@ -375,16 +368,12 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param line
      */
     private void processSANLine(String line) {
-        // System.out.println(line);
-
-        OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
-        rootEntry.occurenceCounter++;
 
         // separate each move
         String[] lineItems = line.split(" ");
 
         // board position
-        GameBoard currentPosition = new GameBoardImpl(rootEntry.position);
+        GameBoard currentPosition = new GameBoardImpl(NotationHelper.StandardBoardFEN);
 
         // iterate over line items
         for (String item : lineItems) {
@@ -423,7 +412,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 return;
             }
 
-            // we have succfully made the move
+            // we have successfully made the move
             // get fen notation from position
             String currentFen = currentPosition.toFEN();
 
@@ -434,10 +423,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     }
 
     private void processSIMPLELine(String line) {
-        // System.out.println(line);
-
-        OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
-        rootEntry.occurenceCounter++;
 
         // ignore lines start with a digit
         if (line.matches("^\\d+"))
@@ -453,50 +438,61 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         }
 
         // board position
-        GameBoard currentPosition = new GameBoardImpl(rootEntry.position);
+        GameBoard currentPosition = new GameBoardImpl(NotationHelper.StandardBoardFEN);
 
-        // iterate over line items
-        for (String item : lineItems) {
-            // trim whitespaces
-            item = item.trim();
+        // iterate over line items - not parallel / actually slower as we would have to copy the board.
+        lineItems.stream().forEach(item -> {
+            if (!processSIMPLELineItem(item, currentPosition)) return;
+        });
 
-            GameMove bookMove = null;
-            // try to create a move from it
-            try {
-                bookMove = NotationHelper.createNewMoveFromSimpleNotation(currentPosition, item);
-            } catch (InvalidMoveException e) {
-                // Jump back if the last move from file was not valid.
-                // We will then skip the rest of the line and try the next line.
-                // System.out.println("Invalid Move ");
-                // System.out.println();
-                return;
-            }
-            // System.out.print(m+" ");
+        /*for (String item : lineItems) {
+            if (!processSIMPLELineItem(item, currentPosition)) break;
+        }*/
 
-            // remember last position
-            GameBoard lastPosition = new GameBoardImpl(currentPosition);
-            String lastFen = lastPosition.toFEN();
+    }
 
-            // try to make move
-            try {
-                currentPosition.makeMove(bookMove);
-            } catch (IllegalMoveException e) {
-                // Jump back if the last move from file was not valid.
-                // We will then skip the rest of the line and try the next line.
-                // System.out.println("Illegal Move "+item+Character.LINE_SEPARATOR);
-                // System.out.println();
-                return;
-            }
+    /**
+     * @param item
+     * @param currentPosition
+     * @return
+     */
+    private boolean processSIMPLELineItem(String item, GameBoard currentPosition) {
+        // trim whitespaces
+        item = item.trim();
 
-            // we have succfully made the move
-            // get fen notation from position
-            String currentFen = currentPosition.toFEN();
-
-            addToBook(item, bookMove, lastFen, currentFen);
-
+        GameMove bookMove = null;
+        // try to create a move from it
+        try {
+            bookMove = NotationHelper.createNewMoveFromSimpleNotation(currentPosition, item);
+        } catch (InvalidMoveException e) {
+            // Jump back if the last move from file was not valid.
+            // We will then skip the rest of the line and try the next line.
+            //System.out.println("Invalid Move ");
+            // System.out.println();
+            return false;
         }
-        // System.out.println();
 
+        // remember last position
+        GameBoard lastPosition = new GameBoardImpl(currentPosition);
+        String lastFen = lastPosition.toFEN();
+
+        // try to make move
+        try {
+            currentPosition.makeMove(bookMove);
+        } catch (IllegalMoveException e) {
+            // Jump back if the last move from file was not valid.
+            // We will then skip the rest of the line and try the next line.
+            //System.out.println("Illegal Move "+item+Character.LINE_SEPARATOR);
+            // System.out.println();
+            return false;
+        }
+
+        // we have successfully made the move
+        // get fen notation from position
+        String currentFen = currentPosition.toFEN();
+
+        addToBook(item, bookMove, lastFen, currentFen);
+        return true;
     }
 
     /**
@@ -507,7 +503,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      */
     private synchronized void addToBook(String item, GameMove bookMove, String lastFen, String currentFen) {
 
-        // add the new entry to map or increase occurence counter to existing
+        // add the new entry to map or increase occurrence counter to existing
         // entry
         if (bookMap.containsKey(currentFen)) {
             OpeningBook_Entry currentEntry = bookMap.get(currentFen);
@@ -515,7 +511,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             if (!currentFen.equals(currentEntry.position)) {
                 throw new RuntimeException("Hashtable Collision!");
             }
-
             currentEntry.occurenceCounter++;
         } else {
             String key = new String(currentFen);
@@ -597,9 +592,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             }
             ObjectInputStream ois = new ObjectInputStream(in);
 
-            HashMap<String, OpeningBook_Entry> newBookMap = null;
-            newBookMap = (HashMap<String, OpeningBook_Entry>) ois.readObject();
-            bookMap = newBookMap;
+            bookMap = (Map<String, OpeningBook_Entry>) ois.readObject();
 
             ois.close();
 
