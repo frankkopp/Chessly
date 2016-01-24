@@ -1729,8 +1729,7 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
     /*
      * (non-Javadoc)
      *
-     * @see java.lang.Object#equals(java.lang.Object) TODO: Board.equals() - not
-     * sure if this is sufficient - equals should probably check on Interface
+     * @see java.lang.Object#equals(java.lang.Object)
      * Board not on BoardImpl
      */
     @Override

@@ -1,23 +1,23 @@
 # Window state file for Chessly by Frank Kopp
-#Sat Jan 23 15:31:40 CET 2016
+#Sun Jan 24 00:15:10 CET 2016
 windowSizeX_engine_info_black=749
 windowLocationY_engine_info=578
-windowLocationX_engine_info_white=410
-windowLocationX_movelist=0
+windowLocationX_engine_info_white=596
+windowLocationX_movelist=1331
 windowSizeY_engine_info_white=411
-windowSizeY_movelist=175
-windowSizeX_movelist=408
-windowLocationY=23
-windowLocationX=1
+windowSizeY_movelist=309
+windowSizeX_movelist=589
+windowLocationY=0
+windowLocationX=1331
 windowSizeX_engine_info=825
-windowLocationY_engine_info_white=431
-windowLocationX_engine_info_black=410
+windowLocationY_engine_info_white=403
+windowLocationX_engine_info_black=596
 windowSizeY_engine_info=126
 windowSizeY_engine_info_black=409
-windowLocationY_movelist=671
-windowLocationY_engine_info_black=23
+windowLocationY_movelist=859
+windowLocationY_engine_info_black=1
 windowSizeX_engine_info_white=749
-windowSizeY=643
-windowSizeX=408
+windowSizeY=865
+windowSizeX=593
 windowLocationX_engine_info=576
-dividerLocation=491
+dividerLocation=565

@@ -69,8 +69,6 @@ import fko.chessly.util.HelperTools;
  * result in serialized bin files. Implemented are SAN, SIMPLE and SER. ToDo:
  * PGN.
  *
- * TODO: No SER mode - only Cache Logic (present>use, not present create)
- *
  * @author Frank Kopp
  */
 public class OpeningBookImpl implements OpeningBook, Serializable {
@@ -119,6 +117,28 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     // --- START OF INTERFACE METHODS
 
     /**
+     * Selects a random move from available opening book moves of a position.
+     *
+     * @see fko.chessly.openingbook.OpeningBook#getBookMove(java.lang.String)
+     */
+    @Override
+    public GameMove getBookMove(String fen) {
+
+        GameMove move = null;
+
+        if (bookMap.containsKey(fen)) {
+            ArrayList<GameMove> moveList;
+            moveList = bookMap.get(fen).moves;
+            if (moveList.isEmpty())
+                return move;
+            Collections.shuffle(moveList);
+            move = moveList.get(0);
+        }
+
+        return move;
+    }
+
+    /**
      * @see fko.chessly.openingbook.OpeningBook#initialize()
      */
     @Override
@@ -155,27 +175,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         _isInitialized = true;
     }
 
-    /**
-     * Selects a random move from available opening book moves of a position.
-     *
-     * @see fko.chessly.openingbook.OpeningBook#getBookMove(java.lang.String)
-     */
-    @Override
-    public GameMove getBookMove(String fen) {
 
-        GameMove move = null;
-
-        if (bookMap.containsKey(fen)) {
-            ArrayList<GameMove> moveList;
-            moveList = bookMap.get(fen).moves;
-            if (moveList.isEmpty())
-                return move;
-            Collections.shuffle(moveList);
-            move = moveList.get(0);
-        }
-
-        return move;
-    }
 
     // --- END OF INTERFACE METHODS
 
@@ -184,7 +184,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * (serialization) of the book is already present. If present calls
      * readBookfromSERFile().<br/>
      * TODO: trigger regeneration not only when missing
-     * but when file data of original file is newer than the cache file If not
+     * and when file data of original file is newer than the cache file If not
      * uses _mode flag to determine which format to use.<br/>
      * TODO: determine format automatically.
      *
