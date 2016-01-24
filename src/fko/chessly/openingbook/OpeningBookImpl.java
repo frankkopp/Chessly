@@ -77,7 +77,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
     private static final long serialVersionUID = -6462934049609479248L;
 
-    private Openingbook_Configuration _config = new Openingbook_Configuration();
+    protected Openingbook_Configuration _config = new Openingbook_Configuration();
 
     /**
      * this is the book mapping itself - Key, Value
@@ -90,6 +90,10 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     private Engine _engine;
     private Path _path;
     private boolean _isInitialized = false;
+
+    // -- helps with process output
+    private int _counter = 0;
+    private Object _counterLock = new Object();
 
     /**
      * Constructor
@@ -123,7 +127,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         if (_isInitialized) return;
 
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Opening Book initialization...%n"));
+            printInfo(String.format("Opening Book initialization...%n"));
         }
 
         System.gc();
@@ -142,10 +146,10 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         long memEnd = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Memory used at Start: %s MB %n", HelperTools.getMBytes(memStart)));
-            _engine.printInfo(String.format("Memory used at End: %s MB%n", HelperTools.getMBytes(memEnd)));
-            _engine.printInfo(String.format("Memory used by Opening Book: ~%s MB%n", HelperTools.getMBytes(memEnd - memStart)));
-            _engine.printInfo(String.format("Opening Book initialization took %f sec.%n%n", (time / 1000f)));
+            printInfo(String.format("Memory used at Start: %s MB %n", HelperTools.getMBytes(memStart)));
+            printInfo(String.format("Memory used at End: %s MB%n", HelperTools.getMBytes(memEnd)));
+            printInfo(String.format("Memory used by Opening Book: ~%s MB%n", HelperTools.getMBytes(memEnd - memStart)));
+            printInfo(String.format("Opening Book initialization took %f sec.%n%n", (time / 1000f)));
         }
 
         _isInitialized = true;
@@ -196,7 +200,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 path = serPath;
             } else {
                 if (_config.VERBOSE)
-                    _engine.printInfo(String.format("Cache file exists but ignored as FORCE_CREATE is set.%n"));
+                    printInfo(String.format("Cache file exists but ignored as FORCE_CREATE is set.%n"));
             }
 
         } else if (path.toFile().exists()) {
@@ -216,11 +220,11 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 saveOpeningBooktoSERFile(path);
                 break;
             case SAN:
-                readPlainBookfromFile(path);
+                processAllLines(path);
                 saveOpeningBooktoSERFile(path);
                 break;
             case SIMPLE:
-                readPlainBookfromFile(path);
+                processAllLines(path);
                 saveOpeningBooktoSERFile(path);
                 break;
             default:
@@ -229,7 +233,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     }
 
     /**
-     * Reads all lines from a file into list and reutrns it as a List<String>.
+     * Reads all lines from a file into list and returns it as a List<String>.
      *
      * @param path
      * @return List<String> allLines
@@ -241,11 +245,11 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         List<String> lines = null;
         try {
             if (_config.VERBOSE)
-                _engine.printInfo(String.format("Reading Opening Book...: %s%n",path));
+                printInfo(String.format("Reading Opening Book...: %s%n",path));
             lines = Files.readAllLines(path, charset);
             long time = System.currentTimeMillis() - start;
             if (_config.VERBOSE)
-                _engine.printInfo(String.format("Finished reading %d lines. (%f sec)%n", lines.size(), (time / 1000f)));
+                printInfo(String.format("Finished reading %d lines. (%f sec)%n", lines.size(), (time / 1000f)));
         } catch (CharacterCodingException e) {
             Chessly.criticalError("Opening Book file '" + path + "' has wrong charset (needs to be ISO-8859-1) - not loaded!");
         } catch (IOException e) {
@@ -274,7 +278,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         long start = System.currentTimeMillis();
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Creating internal book...%n"));
+            printInfo(String.format("Creating internal book...%n"));
         }
 
         // TODO: make this multi threaded
@@ -290,16 +294,16 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 Formatter f = new Formatter();
                 String s = f.format("%5d ", i).toString();
                 f.close();
-                //_engine.printInfo(s + "\b\b\b\b\b");
-                _engine.printInfo(s + " ");
+                //printInfo(s + "\b\b\b\b\b");
+                printInfo(s + " ");
             }
             if (_config.VERBOSE && i % 10000 == 0)
-                _engine.printInfo(String.format("%n"));
+                printInfo(String.format("%n"));
         }
 
         long time = System.currentTimeMillis() - start;
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("%nOpening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
+            printInfo(String.format("%nOpening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
         }
     }
 
@@ -309,35 +313,29 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      *
      * @param path
      */
-    private void readPlainBookfromFile(Path path) {
+    private void processAllLines(Path path) {
 
         List<String> lines = readAllLinesFromFile(path);
 
         long start = System.currentTimeMillis();
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Creating internal book...%n"));
+            printInfo(String.format("Creating internal book...%n"));
         }
 
         // TODO: make this multi threaded
-        int i = 0;
-        for (String line : lines) {
+
+        synchronized (_counterLock) { _counter = 0; }
+        // parallel lambda expression - very fast and cool - needs some synchronizing though
+        lines.parallelStream().forEach(line -> {
             processLine(line);
-            if (_config.VERBOSE && ++i % 1000 == 0) {
-                Formatter f = new Formatter();
-                String s = f.format("%7d", i).toString();
-                f.close();
-                //_engine.printInfo(s + "\b\b\b\b\b");
-                _engine.printInfo(s + " ");
-            }
-            if (_config.VERBOSE && i % 10000 == 0)
-                _engine.printInfo(String.format("%n"));
-        }
+        });
+
         if (_config.VERBOSE)
-            _engine.printInfo(String.format("%n"));
+            printInfo(String.format("%n"));
 
         long time = System.currentTimeMillis() - start;
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Opening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
+            printInfo(String.format("Opening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
         }
     }
 
@@ -348,7 +346,15 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param line
      */
     private void processLine(String line) {
-
+        synchronized (_counterLock) {
+            _counter++;
+            if (_config.VERBOSE && _counter % 1000 == 0) {
+                printInfo(String.format("%7d ", _counter));
+                if (_config.VERBOSE && _counter % 10000 == 0) {
+                    printInfo(String.format("%n"));
+                }
+            }
+        }
         switch (_config._mode) {
             case SAN:
                 processSANLine(line);
@@ -499,7 +505,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param lastFen
      * @param currentFen
      */
-    private void addToBook(String item, GameMove bookMove, String lastFen, String currentFen) {
+    private synchronized void addToBook(String item, GameMove bookMove, String lastFen, String currentFen) {
 
         // add the new entry to map or increase occurence counter to existing
         // entry
@@ -533,7 +539,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         if (_config.VERBOSE) {
             start = System.currentTimeMillis();
-            _engine.printInfo(String.format("Saving Open Book to cache file..."));
+            printInfo(String.format("Saving Open Book to cache file..."));
         }
 
         path = FileSystems.getDefault().getPath(_config._serPath, path.getFileName().toString() + ".ser");
@@ -563,7 +569,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         if (result) {
             if (_config.VERBOSE) {
                 time = System.currentTimeMillis() - start;
-                _engine.printInfo(String.format("successful.(%f sec) %n", (time / 1000f)));
+                printInfo(String.format("successful.(%f sec) %n", (time / 1000f)));
             }
         } else {
             if (_config.VERBOSE) {
@@ -587,7 +593,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         long start = System.currentTimeMillis();
         try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
             if (_config.VERBOSE) {
-                _engine.printInfo(String.format("Reading Opening Book as SER file: %s%n",path));
+                printInfo(String.format("Reading Opening Book as SER file: %s%n",path));
             }
             ObjectInputStream ois = new ObjectInputStream(in);
 
@@ -616,11 +622,22 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         long time = System.currentTimeMillis() - start;
 
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Opening Book ready! %d Positions (%f sec)%n", bookMap.size(), (time / 1000f)));
+            printInfo(String.format("Opening Book ready! %d Positions (%f sec)%n", bookMap.size(), (time / 1000f)));
         }
 
         return true;
 
+    }
+
+    /**
+     * @param info
+     */
+    public void printInfo(String info) {
+        if (_engine != null) {
+            _engine.printInfo(info);
+        } else {
+            System.out.print(info);
+        }
     }
 
     /**
