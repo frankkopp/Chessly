@@ -201,7 +201,6 @@ public class BoardImplTest {
      * @param b
      * @param m
      */
-    @SuppressWarnings("static-method")
     protected void print(GameBoard b, GameMove m) {
         System.out.println("Move: "+m.toString());
         System.out.println();

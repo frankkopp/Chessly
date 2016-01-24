@@ -151,7 +151,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
     private int _currentMoveNumber = 0;
     private int _currrentExtraSearchDepth = 0;
 
-    // is set when obort conditionare met - stops recursions at certain points
+    // is set when abort conditions are met - stops recursions at certain points
     private boolean _abort = false;
 
     // some counters
@@ -199,7 +199,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
     /**
      * Generates an instance of this Engine implementation.
      * It initializes caches, move generators and the opening book if these features
-     * are enabled by propersties, options or code.
+     * are enabled by properties, options or code.
      */
     public PulseEngine_v2() {
         super();
@@ -1378,8 +1378,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
      */
     @Override
     public void setNumberOfThreads(int n) {
-        // TODO Auto-generated method stub
-
+        // ignore
     }
 
     /**

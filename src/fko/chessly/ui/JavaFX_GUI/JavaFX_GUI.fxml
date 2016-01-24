@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1100.0" style="-fx-background-color: #eeeeee; -fx-border-color: #000000; -fx-border-width: 2; -fx-background-radius: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.JavaFX_GUI">
+   <top>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <MenuBar maxHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0">
+              <menus>
+                <Menu mnemonicParsing="false" text="Game">
+                  <items>
+                        <MenuItem mnemonicParsing="false" text="New Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <MenuItem disable="true" mnemonicParsing="false" text="Stop Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <MenuItem disable="true" mnemonicParsing="false" text="Pause Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <MenuItem disable="true" mnemonicParsing="false" text="Resume Game" />
+                    <MenuItem mnemonicParsing="false" text="Close">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                  </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="G" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Moves">
+                  <items>
+                    <MenuItem disable="true" mnemonicParsing="false" text="Undo Last Move">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <Menu mnemonicParsing="false" text="Unspecified Menu">
+                          <items>
+                            <MenuItem mnemonicParsing="false" text="Action 1" />
+                          </items>
+                        </Menu>
+                  </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="M" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                </Menu>
+                  <Menu mnemonicParsing="false" text="Level">
+                    <items>
+                        <CheckMenuItem mnemonicParsing="false" selected="true" text="Timed Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="T" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </CheckMenuItem>
+                        <MenuItem mnemonicParsing="false" text="Time White...">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
+                      <MenuItem mnemonicParsing="false" text="Tiime Black">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <Menu mnemonicParsing="false" text="Level White">
+                          <items>
+                              <RadioMenuItem mnemonicParsing="false" text="2" />
+                              <RadioMenuItem mnemonicParsing="false" text="4" />
+                              <RadioMenuItem mnemonicParsing="false" text="6" />
+                              <RadioMenuItem mnemonicParsing="false" text="8" />
+                              <RadioMenuItem mnemonicParsing="false" text="10" />
+                              <RadioMenuItem mnemonicParsing="false" text="20" />
+                              <RadioMenuItem mnemonicParsing="false" text="other" />
+                          </items>
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                           </accelerator>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Level Black...">
+                          <items>
+                              <RadioMenuItem mnemonicParsing="false" text="2" />
+                              <RadioMenuItem mnemonicParsing="false" text="4" />
+                              <RadioMenuItem mnemonicParsing="false" text="6" />
+                              <RadioMenuItem mnemonicParsing="false" text="8" />
+                              <RadioMenuItem mnemonicParsing="false" text="10" />
+                              <RadioMenuItem mnemonicParsing="false" text="20" />
+                              <RadioMenuItem mnemonicParsing="false" text="other" />
+                          </items>
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                           </accelerator>
+                        </Menu>
+                    </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="L" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="Board">
+                    <items>
+                      <MenuItem mnemonicParsing="false" text="Flip Board">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
+                        <CheckMenuItem mnemonicParsing="false" text="Show Posible Moves">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="V" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </CheckMenuItem>
+                    </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="B" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </Menu>
+                <Menu mnemonicParsing="false" text="?">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="About" />
+                  </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="H" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <ToolBar maxHeight="-Infinity" minHeight="-Infinity" prefHeight="35.0">
+              <items>
+                <Button mnemonicParsing="false" text="New" />
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <Button disable="true" mnemonicParsing="false" text="Stop" />
+                  <Button disable="true" mnemonicParsing="false" text="Pause" />
+                  <Button disable="true" mnemonicParsing="false" text="Resume" />
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <Button disable="true" mnemonicParsing="false" text="Undo" />
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <Button mnemonicParsing="false" text="Flip" />
+              </items>
+            </ToolBar>
+         </children>
+      </VBox>
+   </top>
+   <bottom>
+      <AnchorPane maxHeight="25.0" minHeight="25.0" prefHeight="25.0" style="-fx-background-color: #cccccc; -fx-border-color: #000000; -fx-border-width: 1 0 0 0;" BorderPane.alignment="CENTER">
+         <children>
+            <GridPane gridLinesVisible="true" prefHeight="30.0" prefWidth="968.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" percentWidth="25.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" percentWidth="60.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="(c) Copyright: Frank Kopp 2016">
+                     <GridPane.margin>
+                        <Insets left="5.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <Label text="Game Status: Game running, White is thinking" GridPane.columnIndex="1">
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                     <GridPane.margin>
+                        <Insets left="5.0" right="5.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <Label text="102 MB frei von 345 MB" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                     <GridPane.margin>
+                        <Insets right="5.0" />
+                     </GridPane.margin>
+                  </Label>
+               </children>
+            </GridPane>
+         </children>
+      </AnchorPane>
+   </bottom>
+   <center>
+      <SplitPane dividerPositions="0.7723214285714286" minHeight="400.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
+        <items>
+            <GridPane SplitPane.resizableWithParent="false">
+               <children>
+                  <VBox alignment="TOP_CENTER" GridPane.columnIndex="1">
+                     <children>
+                        <GridPane alignment="CENTER" minHeight="-Infinity" prefHeight="90.0" prefWidth="413.0">
+                           <children>
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="White Player">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font></Label>
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="Black Player" GridPane.columnIndex="1" />
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font name="Arial Bold" size="20.0" />
+                                 </font>
+                              </Label>
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font size="20.0" />
+                                 </font>
+                              </Label>
+                              <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="2">
+                                 <children>
+                                    <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Engine">
+                                       <font>
+                                          <Font name="Arial Bold" size="12.0" />
+                                       </font></Label>
+                                    <ProgressIndicator>
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                       <HBox.margin>
+                                          <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                                       </HBox.margin>
+                                    </ProgressIndicator>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                 <children>
+                                    <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Human" />
+                                    <ProgressIndicator disable="true" visible="false">
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                       <HBox.margin>
+                                          <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                                       </HBox.margin>
+                                    </ProgressIndicator>
+                                 </children>
+                              </HBox>
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                        <AnchorPane minWidth="-Infinity" prefHeight="5000.0" prefWidth="210.0">
+                           <children>
+                              <TableView minWidth="-Infinity" prefHeight="434.0" prefWidth="210.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <columns>
+                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="C1" />
+                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="C2" />
+                                 </columns>
+                              </TableView>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </VBox>
+                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: #ffffff;">
+                     <children>
+                        <ImageView fitHeight="529.0" fitWidth="535.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../../../../../Chessly/images/dummy_board.PNG" />
+                           </image>
+                        </ImageView>
+                     </children></Pane>
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="209.0" prefWidth="210.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+            </GridPane>
+            <TabPane maxHeight="1.7976931348623157E308" minHeight="150.0" prefHeight="150.0" tabClosingPolicy="UNAVAILABLE">
+              <tabs>
+                <Tab text="White: Engine &lt;THINKING&gt;">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                  </content>
+                </Tab>
+                <Tab text="Black: Human &lt;WAITING&gt;">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+        </items>
+      </SplitPane>
+   </center>
+</BorderPane>
