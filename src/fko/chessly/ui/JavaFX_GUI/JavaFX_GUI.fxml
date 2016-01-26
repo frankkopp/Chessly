@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.input.*?>
 <?import javafx.geometry.*?>
@@ -10,7 +12,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1100.0" style="-fx-background-color: #eeeeee; -fx-border-color: #000000; -fx-border-width: 2; -fx-background-radius: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.JavaFX_GUI">
+<BorderPane fx:id="rootPanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="640.0" style="-fx-background-color: #eeeeee; -fx-border-color: #000000; -fx-border-width: 2; -fx-background-radius: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -18,7 +20,7 @@
               <menus>
                 <Menu mnemonicParsing="false" text="Game">
                   <items>
-                        <MenuItem mnemonicParsing="false" text="New Game">
+                        <MenuItem fx:id="menu_newGame" mnemonicParsing="false" onAction="#newGameDialog_Action" text="New Game">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
@@ -126,7 +128,7 @@
                   </Menu>
                 <Menu mnemonicParsing="false" text="?">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="About" />
+                    <MenuItem fx:id="menu_about" mnemonicParsing="false" onAction="#aboutDialog_openAction" text="About" />
                   </items>
                      <accelerator>
                         <KeyCodeCombination alt="DOWN" code="H" control="UP" meta="UP" shift="UP" shortcut="UP" />
@@ -136,7 +138,7 @@
             </MenuBar>
             <ToolBar maxHeight="-Infinity" minHeight="-Infinity" prefHeight="35.0">
               <items>
-                <Button mnemonicParsing="false" text="New" />
+                <Button mnemonicParsing="false" onAction="#newGameDialog_Action" text="New" />
                   <Separator orientation="VERTICAL" prefHeight="200.0" />
                   <Button disable="true" mnemonicParsing="false" text="Stop" />
                   <Button disable="true" mnemonicParsing="false" text="Pause" />
@@ -163,23 +165,32 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label text="(c) Copyright: Frank Kopp 2016">
+                  <Label fx:id="statusbar_copyright_test" text="(c) Frank Kopp 2016">
                      <GridPane.margin>
                         <Insets left="5.0" />
                      </GridPane.margin>
+                     <font>
+                        <Font name="Arial" size="11.0" />
+                     </font>
                   </Label>
-                  <Label text="Game Status: Game running, White is thinking" GridPane.columnIndex="1">
+                  <Label fx:id="statusbar_status_text" text="Game Status: Game running, White is thinking" GridPane.columnIndex="1">
                      <opaqueInsets>
                         <Insets />
                      </opaqueInsets>
                      <GridPane.margin>
                         <Insets left="5.0" right="5.0" />
                      </GridPane.margin>
+                     <font>
+                        <Font size="11.0" />
+                     </font>
                   </Label>
-                  <Label text="102 MB frei von 345 MB" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                  <Label fx:id="statusbar_mem_text" text="? MB / ? MB" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
                      <GridPane.margin>
                         <Insets right="5.0" />
                      </GridPane.margin>
+                     <font>
+                        <Font name="Arial" size="11.0" />
+                     </font>
                   </Label>
                </children>
             </GridPane>
@@ -187,35 +198,31 @@
       </AnchorPane>
    </bottom>
    <center>
-      <SplitPane dividerPositions="0.7723214285714286" minHeight="400.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
+      <SplitPane dividerPositions="0.7" minHeight="400.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
         <items>
-            <GridPane SplitPane.resizableWithParent="false">
+            <GridPane fx:id="board_panel_grid">
                <children>
                   <VBox alignment="TOP_CENTER" GridPane.columnIndex="1">
                      <children>
                         <GridPane alignment="CENTER" minHeight="-Infinity" prefHeight="90.0" prefWidth="413.0">
                            <children>
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="White Player">
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="White Player" GridPane.halignment="RIGHT">
                                  <font>
                                     <Font name="System Bold" size="12.0" />
                                  </font></Label>
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="Black Player" GridPane.columnIndex="1" />
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.rowIndex="1">
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="Black Player" GridPane.columnIndex="1" GridPane.halignment="LEFT" />
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
                                  <font>
-                                    <Font name="Arial Bold" size="20.0" />
+                                    <Font name="Arial Bold" size="21.0" />
                                  </font>
                               </Label>
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1">
                                  <font>
-                                    <Font size="20.0" />
+                                    <Font name="Arial" size="21.0" />
                                  </font>
                               </Label>
-                              <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="2">
+                              <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                                  <children>
-                                    <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Engine">
-                                       <font>
-                                          <Font name="Arial Bold" size="12.0" />
-                                       </font></Label>
                                     <ProgressIndicator>
                                        <opaqueInsets>
                                           <Insets />
@@ -224,12 +231,16 @@
                                           <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
                                        </HBox.margin>
                                     </ProgressIndicator>
+                                    <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Engine">
+                                       <font>
+                                          <Font name="Arial Bold" size="12.0" />
+                                       </font></Label>
                                  </children>
                               </HBox>
-                              <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                              <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2">
                                  <children>
                                     <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Human" />
-                                    <ProgressIndicator disable="true" visible="false">
+                                    <ProgressIndicator disable="true">
                                        <opaqueInsets>
                                           <Insets />
                                        </opaqueInsets>
@@ -254,32 +265,24 @@
                            <children>
                               <TableView minWidth="-Infinity" prefHeight="434.0" prefWidth="210.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <columns>
-                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="C1" />
-                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="C2" />
+                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="White Moves" />
+                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Black Moves" />
                                  </columns>
                               </TableView>
                            </children>
                         </AnchorPane>
                      </children>
                   </VBox>
-                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: #ffffff;">
-                     <children>
-                        <ImageView fitHeight="529.0" fitWidth="535.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../../../../../../../Chessly/images/dummy_board.PNG" />
-                           </image>
-                        </ImageView>
-                     </children></Pane>
                </children>
                <columnConstraints>
                   <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="209.0" prefWidth="210.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="210.0" prefWidth="210.0" />
                </columnConstraints>
                <rowConstraints>
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                </rowConstraints>
             </GridPane>
-            <TabPane maxHeight="1.7976931348623157E308" minHeight="150.0" prefHeight="150.0" tabClosingPolicy="UNAVAILABLE">
+            <TabPane maxHeight="1.7976931348623157E308" minHeight="150.0" prefHeight="150.0" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false">
               <tabs>
                 <Tab text="White: Engine &lt;THINKING&gt;">
                   <content>
