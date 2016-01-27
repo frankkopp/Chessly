@@ -92,7 +92,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                _ui.exitReversi();
+                _ui.exitChessly();
             }
         });
 

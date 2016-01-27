@@ -454,7 +454,7 @@ public final class SwingGUI implements UserInterface {
     /**
      * This method is called when we want to exit the application
      */
-    public void exitReversi() {
+    public void exitChessly() {
         if (mainWindow.userConfirmation("Do you really want to quit?") == JOptionPane.NO_OPTION) {
             return;
         }
@@ -469,7 +469,7 @@ public final class SwingGUI implements UserInterface {
         // -- save the window state --
         windowState.save();
         // -- tell the model to clean up and exit the programm--
-        this._MVController.exitReversi();
+        this._MVController.exitChessly();
     }
 
     /**

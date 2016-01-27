@@ -2,9 +2,13 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.net.URL;
 import java.util.Calendar;
+import java.util.Observable;
 import java.util.ResourceBundle;
 
+import fko.chessly.Playroom;
 import fko.chessly.game.GameMove;
+import fko.chessly.player.HumanPlayer;
+import fko.chessly.ui.SwingGUI.SwingGUI;
 import fko.chessly.util.HelperTools;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -28,6 +32,15 @@ import javafx.util.Duration;
  *
  */
 public class JavaFX_GUI_Controller {
+
+    // -- reference to the _model (playroom) --
+    private Playroom _model;
+
+    // -- we only can tell the model the users move when we know which player we have to use --
+    private HumanPlayer _moveReceiver = null;
+    private final Object _moveReceiverLock = new Object();
+
+    // -- FXML START --
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -62,14 +75,15 @@ public class JavaFX_GUI_Controller {
     @FXML // fx:id="aboutDialog_OK_button"
     private Button aboutDialog_OK_button; // Value injected by FXMLLoader
 
-    private Stage _stage;
+    // -- FXML END --
 
+    private Stage _primaryStage;
     private Stage _aboutDialogStage;
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
 
-        _stage = JavaFX_GUI.getStage();
+        _primaryStage = JavaFX_GUI.getStage();
 
         if (statusbar_status_text != null) statusbar_status_text.setText("JavaFX GUI started");
 
@@ -78,6 +92,9 @@ public class JavaFX_GUI_Controller {
 
         // add constantly updated memory info into status panel
         addMemLabelUpdater();
+
+        // TODO: initialize all controls
+
 
     }
 
@@ -117,7 +134,8 @@ public class JavaFX_GUI_Controller {
     }
 
     /**
-     * Adds the board panel from the previous Swing UI
+     * Adds the board panel from the previous Swing UI.
+     * TODO: Rebuild board panel with JavaFX.
      */
     private void addBoardPanel() {
         SwingNode boardPanelSwingNode = new SwingNode();
@@ -146,11 +164,48 @@ public class JavaFX_GUI_Controller {
     }
 
     /**
-     * @param m
+     * Is called whenever the model has changes. Needs to update the GUI accordingly.
+     * @param o
+     * @param arg
      */
-    public void setPlayerMove(GameMove m) {
-        // TODO Auto-generated method stub
+    public void update(Observable o, Object arg) {
+
+        // TODO: update UI
 
     }
+
+    /**
+     * This method is called from a mouse event from the user. It hands a move
+     * over to a known HumanPlayer and then nulls the reference to the HumanPlayer. To
+     * make a HumanPlayer known call setMoveReceiver(HumanPlayer). If no HumanPlayer is
+     * known to the object nothing happens
+     * @param move
+     */
+    public void setPlayerMove(GameMove move) {
+        synchronized(_moveReceiverLock) {
+            if (_moveReceiver!=null) {
+                _moveReceiver.setMove(move);
+            }
+            // After we have handed over the move to the receiver player we delete the reference
+            // to the receiver. This will be set again by setMoveReceiver by  the observer update
+            // through the UI.
+            // TODO: rethink this
+            _moveReceiver=null;
+        }
+    }
+
+    /**
+     * Is called when a HumanPlayer has notified its Oberservers (UI) that it is waiting
+     * for a move from a human player.
+     * If the receiving player is know to the class it accepts new moves through setPlayerMove()
+     * usual from mouse input
+     * @param player
+     */
+    public void setMoveReceiver(HumanPlayer player) {
+        synchronized(_moveReceiverLock) {
+            _moveReceiver = player;
+        }
+    }
+
 
 }

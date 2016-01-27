@@ -2,9 +2,16 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.util.Observable;
 
+import javax.swing.JFrame;
+
+import com.sun.javafx.application.PlatformImpl;
+
+import fko.chessly.Chessly;
 import fko.chessly.ui.UserInterface;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -16,26 +23,48 @@ import javafx.stage.Stage;
  */
 public class JavaFX_GUI extends Application implements UserInterface {
 
-    private static Stage _stage;
+    public static UserInterface _instance;
+    public static Stage _stage;
     private JavaFX_GUI_Controller _controller;
+    private Parent _root;
+    private JFrame _frame;
 
+    /**
+     * Creates the JavaFX UI through a Swing JPanel
+     */
+    @SuppressWarnings("restriction")
+    public JavaFX_GUI() {
+        // Startup the JavaFX platform
+        PlatformImpl.startup(() -> {});
+        Platform.setImplicitExit(false);
+    }
+
+    /**
+     * Standard way to start a JavaFX application.
+     *
+     */
     @Override
     public void start(Stage primaryStage) {
 
+        JavaFX_GUI._instance = this;
+        JavaFX_GUI._stage = primaryStage;
+
         try {
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("JavaFX_GUI.fxml"));
-            BorderPane root = (BorderPane)loader.load();
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("JavaFX_GUI.fxml"));
+            BorderPane root = (BorderPane)fxmlLoader.load();
+
+            _root = fxmlLoader.getRoot();
+            _controller = fxmlLoader.getController();
 
             Scene scene = new Scene(root,root.getPrefWidth(),root.getPrefHeight());
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-
-            JavaFX_GUI._stage = primaryStage;
 
             primaryStage.setScene(scene);
             primaryStage.setMinHeight(scene.getHeight());
             primaryStage.setMinWidth(scene.getWidth());
             primaryStage.show();
+            primaryStage.setOnCloseRequest(event -> { Chessly.exitChessly(); });
 
         } catch(Exception e) {
             e.printStackTrace();
@@ -44,6 +73,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
     }
 
     /**
+     * The UI can be started separately for test purposes. Does not start
      * @param args
      */
     public static void main(String[] args) {
@@ -69,8 +99,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
      */
     @Override
     public void update(Observable o, Object arg) {
-        // TODO Auto-generated method stub
-
+        if (_controller!=null) _controller.update(o, arg);
     }
 
     /**

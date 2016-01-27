@@ -161,8 +161,8 @@ public class MVController {
     /**
      * Tell the model to clean up and exit
      */
-    public void exitReversi() {
-        _model.exitReversi();
+    public void exitChessly() {
+        _model.exitChessly();
     }
 
     /**

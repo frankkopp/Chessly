@@ -243,7 +243,7 @@ public class Chessly {
     /**
      * Clean up and exit the application
      */
-    public static void exitReversi() {
+    public static void exitChessly() {
         exitReversi(0);
     }
 
