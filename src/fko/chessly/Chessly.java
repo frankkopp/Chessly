@@ -145,10 +145,11 @@ public class Chessly {
     public static void main(final String[] args) {
 
         CmdLineParser cp = new CmdLineParser();
+        CmdLineParser.Option javafx   = cp.addBooleanOption('x', "javafx"  );
         CmdLineParser.Option debug    = cp.addBooleanOption('d', "debug"  );
         CmdLineParser.Option start    = cp.addBooleanOption('s', "start"  );
         CmdLineParser.Option cache    = cp.addBooleanOption('c', "cache"  );
-        CmdLineParser.Option nocache  = cp.addBooleanOption("nocache");
+        CmdLineParser.Option nocache  = cp.addBooleanOption('n', "nocache");
         CmdLineParser.Option usage    = cp.addBooleanOption('?', "help"   );
 
         // Parse cmd line args
@@ -170,6 +171,8 @@ public class Chessly {
         if ((Boolean) cp.getOptionValue(start)) { changeProperty("start", "true");}
         if ((Boolean) cp.getOptionValue(cache)) { changeProperty("engine.cacheEnabled", "true");  }
         if ((Boolean) cp.getOptionValue(nocache)) { changeProperty("engine.cacheEnabled", "false");  }
+
+        if ((Boolean) cp.getOptionValue(javafx)) { changeProperty("ui.class", "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI"); }
 
         // Now create our singleton instance of Chessly
         _myChessly = new Chessly();
