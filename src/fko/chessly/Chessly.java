@@ -149,7 +149,7 @@ public class Chessly {
         CmdLineParser.Option debug    = cp.addBooleanOption('d', "debug"  );
         CmdLineParser.Option start    = cp.addBooleanOption('s', "start"  );
         CmdLineParser.Option cache    = cp.addBooleanOption('c', "cache"  );
-        CmdLineParser.Option nocache  = cp.addBooleanOption('n', "nocache");
+        CmdLineParser.Option nocache  = cp.addBooleanOption("nocache");
         CmdLineParser.Option usage    = cp.addBooleanOption('?', "help"   );
 
         // Parse cmd line args
@@ -246,7 +246,7 @@ public class Chessly {
     /**
      * Clean up and exit the application
      */
-    public static void exitReversi() {
+    public static void exitChessly() {
         exitReversi(0);
     }
 

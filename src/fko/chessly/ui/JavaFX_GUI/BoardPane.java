@@ -159,6 +159,8 @@ public class BoardPane extends Pane {
         // load piece images
         getPieceImages();
 
+        drawBoard();
+
     }
 
     /**
@@ -201,14 +203,15 @@ public class BoardPane extends Pane {
 
         // -- draw board background --
         this.setBackground(new Background(new BackgroundFill(_boardLightColor,null,null)));
-        Rectangle rectangle = new Rectangle(_positionX, _positionY, actualBoardSize, actualBoardSize);
-        rectangle.setFill(_boardLightColor);
+        Rectangle rectangle = new Rectangle(0, 0, 100, 100);
+        rectangle.setFill(_boardDarkColor);
         this.getChildren().add(rectangle);
+
         //_graphics.fill3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);
         // ((Graphics2D) _graphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         // ((Graphics2D) _graphics).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
-        // -- lines & numbers
+        /*        // -- lines & numbers
         drawLinesAndNumbers(actualBoardSize);
 
         // -- draw checkers
@@ -227,7 +230,7 @@ public class BoardPane extends Pane {
         markCurrentSelectedFromField();
 
         // -- draw stones
-        drawPieces();
+        drawPieces();*/
     }
 
     /**
@@ -238,7 +241,7 @@ public class BoardPane extends Pane {
         // -- board lines and numbers --
         double fontSize = actualBoardSize/25;
 
-        Text text = new Text();
+        /*        Text text = new Text();
         text.setFont(new Font(20));
         text.setWrappingWidth(200);
         text.setTextAlignment(TextAlignment.JUSTIFY)
@@ -257,7 +260,7 @@ public class BoardPane extends Pane {
         }
 
         _graphics.setColor(_boardBorderColor);
-        _graphics.draw3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);
+        _graphics.draw3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);*/
     }
 
     /**
@@ -265,14 +268,14 @@ public class BoardPane extends Pane {
      * @param actualBoardSize
      */
     private void drawCheckers(double actualBoardSize) {
-        _graphics.setColor(_boardDarkColor);
+        /*        _graphics.setColor(_boardDarkColor);
         for (int c=1;c<=DIM;c++) {
             for (int r=1;r<=DIM;r++) {
                 if ((c+r)%2==0) {
                     _graphics.fillRect((c-1) * _distance + _positionX + 1,(DIM-r) * _distance + _positionY + 1, _distance - 1, _distance - 1);
                 }
             }
-        }
+        }*/
 
     }
 
@@ -398,7 +401,7 @@ public class BoardPane extends Pane {
      * displays a dialog to start a new game
      */
     private GamePiece promotionDialog(GameColor color) {
-        Object[] options = {
+        /*        Object[] options = {
                 "QUEEN",
                 "ROOK",
                 "BISHOP",
@@ -419,7 +422,8 @@ public class BoardPane extends Pane {
             case 2: return Bishop.createBishop(color);
             case 3: return Knight.createKnight(color);
             default: return Pawn.createPawn(color);
-        }
+        }*/
+        return null;
     }
 
     /**
@@ -451,7 +455,7 @@ public class BoardPane extends Pane {
         // -- get images for pieces --
         String _userDir = System.getProperty("user.dir");
         String imageFolder = _userDir+"/images/";
-        _wK = Toolkit.getDefaultToolkit().getImage(imageFolder+"wK.png");
+        /*        _wK = Toolkit.getDefaultToolkit().getImage(imageFolder+"wK.png");
         _bK = Toolkit.getDefaultToolkit().getImage(imageFolder+"bK.png");
         _wQ = Toolkit.getDefaultToolkit().getImage(imageFolder+"wQ.png");
         _bQ = Toolkit.getDefaultToolkit().getImage(imageFolder+"bQ.png");
@@ -462,7 +466,7 @@ public class BoardPane extends Pane {
         _wR = Toolkit.getDefaultToolkit().getImage(imageFolder+"wR.png");
         _bR = Toolkit.getDefaultToolkit().getImage(imageFolder+"bR.png");
         _wP = Toolkit.getDefaultToolkit().getImage(imageFolder+"wP.png");
-        _bP = Toolkit.getDefaultToolkit().getImage(imageFolder+"bP.png");
+        _bP = Toolkit.getDefaultToolkit().getImage(imageFolder+"bP.png");*/
     }
 
     /**
@@ -519,7 +523,7 @@ public class BoardPane extends Pane {
      * @return A Point object representing col and row on the board
      */
     private GamePosition determinePosition(double d, double e) {
-
+        /*
         Insets insets = this.getInsets();
         int currentWidth = getWidth() - insets.left - insets.right;
         int currentHeight = getHeight() - insets.top - insets.bottom;
@@ -542,7 +546,8 @@ public class BoardPane extends Pane {
             row = dim-row+1;
         }
 
-        return GamePosition.getGamePosition(col, row);
+        return GamePosition.getGamePosition(col, row);*/
+        return null;
     }
 
     /**
@@ -571,7 +576,7 @@ public class BoardPane extends Pane {
      * @param event
      */
     public void mousePressed(MouseEvent event) {
-        GamePosition pos = getGamePositionFromMouseEvent(event);
+        /*        GamePosition pos = getGamePositionFromMouseEvent(event);
         // mouse not on board - ignore mouse press
         if (pos==null) {
             _ignoreNextRelease = false;
@@ -605,7 +610,7 @@ public class BoardPane extends Pane {
                 _dragPiece.isDragged=true;
             }
         }
-
+         */
         //this.repaint();
         //System.out.println("SelectedFrom: "+_selectedFromField+" DragPiece: "+_dragPiece.getPosition());
     }
@@ -614,12 +619,12 @@ public class BoardPane extends Pane {
      * @see java.awt.event.MouseMotionListener#mouseDragged(java.awt.event.MouseEvent)
      */
     public void mouseDragged(MouseEvent e) {
-        if (_dragPiece == null) return;
+        /*        if (_dragPiece == null) return;
         //System.out.println("Mouse DRAG: "+e);
         _ignoreNextRelease = false;
         _dragPiece.x=e.getX() - _dragOffsetX;
         _dragPiece.y=e.getY() - _dragOffsetY;
-        this.repaint();
+        this.repaint();*/
     }
 
     /**
@@ -627,7 +632,7 @@ public class BoardPane extends Pane {
      * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
      */
     public void mouseReleased(MouseEvent e) {
-        if (_ignoreNextRelease) return;
+        /*        if (_ignoreNextRelease) return;
 
         GamePosition pos = getGamePositionFromMouseEvent(e);
         // mouse not on board - reset selection and drag and ignore the release
@@ -706,7 +711,7 @@ public class BoardPane extends Pane {
 
         //System.out.print("Move: "+m);
         _controller.setPlayerMove(m);
-
+         */
         return;
     }
 
@@ -739,7 +744,7 @@ public class BoardPane extends Pane {
          * @param mouseY
          */
         void draw(int mouseX, int mouseY) {
-            _graphics.drawImage(this.img, mouseX, mouseY, (int)_stoneSize, (int)_stoneSize, null);
+            //_graphics.drawImage(this.img, mouseX, mouseY, (int)_stoneSize, (int)_stoneSize, null);
         }
 
         GamePosition getPosition() {
@@ -779,8 +784,8 @@ public class BoardPane extends Pane {
             return true;
         }
 
-        private BoardPanel getOuterType() {
-            return BoardPanel.this;
+        private BoardPane getOuterType() {
+            return BoardPane.this;
         }
 
 

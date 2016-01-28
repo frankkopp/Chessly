@@ -27,7 +27,13 @@
 
 package fko.chessly.ui;
 
+import java.awt.datatransfer.SystemFlavorMap;
+
+import com.sun.org.apache.bcel.internal.generic.LoadClass;
+
 import fko.chessly.Chessly;
+import sun.reflect.CallerSensitive;
+import sun.reflect.Reflection;
 
 /**
  * <p>A factory to create the user interface.<br>
@@ -75,13 +81,14 @@ public class UserInterfaceFactory {
         }
 
         try {
-            return (UserInterface) ClassLoader.getSystemClassLoader().loadClass(ui).newInstance();
+            Class<?> loadClass = ClassLoader.getSystemClassLoader().loadClass(ui);
+            return (UserInterface) loadClass.newInstance();
         } catch (InstantiationException e) {
-            Chessly.fatalError("Engine class " + ui + " could not be loaded");
+            Chessly.fatalError("UI class " + ui + " could not be loaded");
         } catch (IllegalAccessException e) {
-            Chessly.fatalError("Engine class " + ui + " could not be loaded");
+            Chessly.fatalError("UI class " + ui + " could not be loaded");
         } catch (ClassNotFoundException e) {
-            Chessly.fatalError("Engine class " + ui + " could not be loaded");
+            Chessly.fatalError("UI class " + ui + " could not be loaded");
         }
         return null;
     }

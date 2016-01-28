@@ -138,10 +138,12 @@ public class JavaFX_GUI_Controller {
      * TODO: Rebuild board panel with JavaFX.
      */
     private void addBoardPanel() {
-        SwingNode boardPanelSwingNode = new SwingNode();
+        /*        SwingNode boardPanelSwingNode = new SwingNode();
         BoardPanel p = new BoardPanel(this);
         boardPanelSwingNode.setContent(p);
-        board_panel_grid.getChildren().add(boardPanelSwingNode);
+        board_panel_grid.getChildren().add(boardPanelSwingNode);*/
+        BoardPane bp = new BoardPane(this);
+        board_panel_grid.getChildren().add(bp);
     }
 
     @FXML

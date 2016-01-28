@@ -7,8 +7,15 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+/**
+ * @author fkopp
+ *
+ */
 public class BoardImplTest {
 
+    /**
+     *
+     */
     @Test
     public void test() {
 
@@ -83,6 +90,9 @@ public class BoardImplTest {
         System.out.flush();
     }
 
+    /**
+     *
+     */
     @Test
     public void testBoardEquals() {
         System.out.println("Test Equal");

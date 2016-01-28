@@ -156,7 +156,7 @@ public class MainMenu extends JMenuBar {
 
             // -- EXIT --
             exitAction = new CommandAction(
-                    Command.parse(_ui, "exitReversi"),
+                    Command.parse(_ui, "exitChessly"),
                     "Exit programm.", null, "Exit programm.",
                     KeyStroke.getKeyStroke(81, java.awt.event.InputEvent.CTRL_DOWN_MASK),
                     0,
