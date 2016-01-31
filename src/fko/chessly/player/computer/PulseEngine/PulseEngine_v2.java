@@ -370,7 +370,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
         // Should not happen!
         // We cannot search further.
         if (_rootMoves.size == 0) {
-            assert false;
+            //assert false;
             // send NOMOVE if we got this board
             // let the outside deal with this
             return Move.NOMOVE;

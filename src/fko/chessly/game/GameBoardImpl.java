@@ -220,7 +220,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         for (int col = 0; col < DIM; col++) {
             for (int row = 0; row < DIM; row++) {
                 // we can't do an arraycopy here as we do not know the
-                // implemantation of the old board
+                // Implementation of the old board
                 _fields[col][row] = oldBoard.getPiece(col + 1, row + 1) == null ? null
                         : (GamePiece) oldBoard.getPiece(col + 1, row + 1)
                         .clone();

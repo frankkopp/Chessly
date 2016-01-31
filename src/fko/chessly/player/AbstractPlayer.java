@@ -57,9 +57,9 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
     // Fields
     private String     _name;
     private GameColor _color;
-    private Game       _game;
-    private GameBoard      _curBoard = null;
-    private GameMove       _playerMove = null;
+    private Game      _game;
+    private GameBoard _curBoard = null;
+    private GameMove  _playerMove = null;
 
     /**
      * Constructor is non-public as it is used by subclasses only
@@ -137,6 +137,8 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
                     _playerThread.join();
                 } catch (InterruptedException e) {
                     // -- ignore exception --
+                } catch (NullPointerException e) {
+                    // ignore
                 }
             }
         }

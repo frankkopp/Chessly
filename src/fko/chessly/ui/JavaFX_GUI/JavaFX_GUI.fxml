@@ -12,28 +12,29 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane fx:id="rootPanel" minHeight="640.0" minWidth="600.0" style="-fx-background-color: #eeeeee; -fx-border-color: #000000; -fx-border-width: 2; -fx-background-radius: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller">
+<BorderPane fx:id="rootPanel" minHeight="640.0" minWidth="640.0" prefHeight="640.0" prefWidth="640.0" style="-fx-background-color: #eeeeee; -fx-border-color: #000000; -fx-border-width: 2; -fx-background-radius: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
             <MenuBar maxHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0">
               <menus>
-                <Menu mnemonicParsing="false" text="Game">
+                <Menu fx:id="menu_game" mnemonicParsing="false" text="Game">
                   <items>
-                        <MenuItem fx:id="menu_newGame" mnemonicParsing="false" onAction="#newGameDialog_Action" text="New Game">
+                        <MenuItem fx:id="newGame_menu" mnemonicParsing="false" onAction="#newGameDialog_Action" text="New Game">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem disable="true" mnemonicParsing="false" text="Stop Game">
+                        <MenuItem fx:id="stopGame_menu" disable="true" mnemonicParsing="false" onAction="#stopGame_action" text="Stop Game">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem disable="true" mnemonicParsing="false" text="Pause Game">
+                        <MenuItem fx:id="pauseGame_menu" disable="true" mnemonicParsing="false" onAction="#pauseGame_action" text="Pause Game">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem disable="true" mnemonicParsing="false" text="Resume Game" />
-                    <MenuItem mnemonicParsing="false" text="Close">
+                        <MenuItem fx:id="resumeGame_menu" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume Game" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                    <MenuItem fx:id="close_menu" mnemonicParsing="false" onAction="#close_action" text="Close">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
@@ -42,35 +43,30 @@
                         <KeyCodeCombination alt="DOWN" code="G" control="UP" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                 </Menu>
-                <Menu mnemonicParsing="false" text="Moves">
+                <Menu fx:id="menu_moves" mnemonicParsing="false" text="Moves">
                   <items>
-                    <MenuItem disable="true" mnemonicParsing="false" text="Undo Last Move">
+                    <MenuItem fx:id="undoMove_menu" disable="true" mnemonicParsing="false" onAction="#undoMove_action" text="Undo Last Move">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <Menu mnemonicParsing="false" text="Unspecified Menu">
-                          <items>
-                            <MenuItem mnemonicParsing="false" text="Action 1" />
-                          </items>
-                        </Menu>
                   </items>
                      <accelerator>
                         <KeyCodeCombination alt="DOWN" code="M" control="UP" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                 </Menu>
-                  <Menu mnemonicParsing="false" text="Level">
+                  <Menu fx:id="menu_level" mnemonicParsing="false" text="Level">
                     <items>
-                        <CheckMenuItem mnemonicParsing="false" selected="true" text="Timed Game">
+                        <CheckMenuItem fx:id="timedGame_menu" mnemonicParsing="false" onAction="#timedGame_action" selected="true" text="Timed Game">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="T" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </CheckMenuItem>
-                        <MenuItem mnemonicParsing="false" text="Time White...">
+                        <MenuItem fx:id="timeWhite_menu" mnemonicParsing="false" onAction="#timeWhite_action" text="Time White...">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
-                      <MenuItem mnemonicParsing="false" text="Tiime Black">
+                      <MenuItem fx:id="timeBlack_menu" mnemonicParsing="false" onAction="#timeBlack_action" text="Time Black">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
@@ -109,14 +105,19 @@
                         <KeyCodeCombination alt="DOWN" code="L" control="UP" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </Menu>
-                  <Menu mnemonicParsing="false" text="Board">
+                  <Menu fx:id="menu_board" mnemonicParsing="false" text="Board">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="Flip Board">
+                      <MenuItem fx:id="flip_menu" mnemonicParsing="false" onAction="#flipButton_action" text="Flip Board">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
-                        <CheckMenuItem mnemonicParsing="false" text="Show Posible Moves">
+                        <CheckMenuItem fx:id="showLastMove_menu" mnemonicParsing="false" onAction="#showLastMove_action" selected="true" text="Show Last Move">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="L" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </CheckMenuItem>
+                        <CheckMenuItem fx:id="showPossibleMoves_menu" mnemonicParsing="false" onAction="#showPossibleMoves_action" selected="true" text="Show Posible Moves">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="V" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
@@ -126,9 +127,9 @@
                         <KeyCodeCombination alt="DOWN" code="B" control="UP" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </Menu>
-                <Menu mnemonicParsing="false" text="?">
+                <Menu fx:id="menu_help" mnemonicParsing="false" text="?">
                   <items>
-                    <MenuItem fx:id="menu_about" mnemonicParsing="false" onAction="#aboutDialog_openAction" text="About" />
+                    <MenuItem fx:id="about_menu" mnemonicParsing="false" onAction="#aboutDialogOpen_action" text="About" />
                   </items>
                      <accelerator>
                         <KeyCodeCombination alt="DOWN" code="H" control="UP" meta="UP" shift="UP" shortcut="UP" />
@@ -138,15 +139,15 @@
             </MenuBar>
             <ToolBar maxHeight="-Infinity" minHeight="-Infinity" prefHeight="35.0">
               <items>
-                <Button mnemonicParsing="false" onAction="#newGameDialog_Action" text="New" />
+                <Button fx:id="newGame_button" mnemonicParsing="false" onAction="#newGameDialog_Action" text="New" />
                   <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <Button disable="true" mnemonicParsing="false" text="Stop" />
-                  <Button disable="true" mnemonicParsing="false" text="Pause" />
-                  <Button disable="true" mnemonicParsing="false" text="Resume" />
+                  <Button fx:id="stopGame_button" disable="true" mnemonicParsing="false" onAction="#stopGame_action" text="Stop" />
+                  <Button fx:id="pauseGame_button" disable="true" mnemonicParsing="false" onAction="#pauseGame_action" text="Pause" />
+                  <Button fx:id="resumeGame_button" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume" />
                   <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <Button disable="true" mnemonicParsing="false" text="Undo" />
+                  <Button fx:id="undoMove_button" disable="true" mnemonicParsing="false" onAction="#undoMove_action" text="Undo" />
                   <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <Button mnemonicParsing="false" text="Flip" />
+                  <Button fx:id="flip_button" mnemonicParsing="false" onAction="#flipButton_action" text="Flip" />
               </items>
             </ToolBar>
          </children>
@@ -204,69 +205,61 @@
                <children>
                   <VBox alignment="TOP_CENTER" GridPane.columnIndex="1">
                      <children>
-                        <GridPane alignment="CENTER" minHeight="-Infinity" prefHeight="90.0" prefWidth="413.0">
+                        <GridPane alignment="CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="110.0" prefWidth="250.0">
                            <children>
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="White Player" GridPane.halignment="RIGHT">
+                              <Label fx:id="whitePlayer_name" alignment="CENTER" prefHeight="15.0" prefWidth="134.0" text="White Player">
                                  <font>
-                                    <Font name="System Bold" size="12.0" />
+                                    <Font name="Arial" size="12.0" />
                                  </font></Label>
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="100.0" text="Black Player" GridPane.columnIndex="1" GridPane.halignment="LEFT" />
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                              <Label fx:id="blackPlayer_name" alignment="CENTER" prefHeight="17.0" prefWidth="144.0" text="Black Player" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
                                  <font>
-                                    <Font name="Arial Bold" size="21.0" />
-                                 </font>
-                              </Label>
-                              <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="100.0" text="00:00:00" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1">
+                                    <Font name="Arial" size="13.0" />
+                                 </font></Label>
+                              <Label fx:id="white_clock" alignment="CENTER" prefHeight="25.0" prefWidth="128.0" text="00:00:00" GridPane.rowIndex="1">
                                  <font>
                                     <Font name="Arial" size="21.0" />
                                  </font>
                               </Label>
-                              <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
-                                 <children>
-                                    <ProgressIndicator>
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets>
-                                       <HBox.margin>
-                                          <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
-                                       </HBox.margin>
-                                    </ProgressIndicator>
-                                    <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Engine">
-                                       <font>
-                                          <Font name="Arial Bold" size="12.0" />
-                                       </font></Label>
-                                 </children>
-                              </HBox>
-                              <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2">
-                                 <children>
-                                    <Label alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="60.0" text="Human" />
-                                    <ProgressIndicator disable="true">
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets>
-                                       <HBox.margin>
-                                          <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
-                                       </HBox.margin>
-                                    </ProgressIndicator>
-                                 </children>
-                              </HBox>
+                              <Label fx:id="black_clock" alignment="CENTER" prefHeight="25.0" prefWidth="131.0" text="00:00:00" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font name="Arial" size="21.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="white_playertype" alignment="CENTER" prefHeight="15.0" prefWidth="127.0" text="Engine" GridPane.rowIndex="2">
+                                 <font>
+                                    <Font name="Arial" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="black_playertype" alignment="CENTER" prefHeight="17.0" prefWidth="141.0" text="Human" GridPane.columnIndex="1" GridPane.rowIndex="2" HBox.hgrow="NEVER">
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin>
+                                 <font>
+                                    <Font name="Arial" size="12.0" />
+                                 </font>
+                              </Label>
+                              <ProgressBar fx:id="white_progressbar" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="15.0" prefWidth="200.0" GridPane.rowIndex="3" />
+                              <ProgressBar fx:id="black_progressbar" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="15.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                            </children>
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
                            </columnConstraints>
                            <rowConstraints>
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
                            </rowConstraints>
                         </GridPane>
-                        <AnchorPane minWidth="-Infinity" prefHeight="5000.0" prefWidth="210.0">
+                        <AnchorPane minWidth="-Infinity" prefHeight="5000.0" prefWidth="250.0">
                            <children>
-                              <TableView minWidth="-Infinity" prefHeight="434.0" prefWidth="210.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <TableView fx:id="move_table" minWidth="-Infinity" prefHeight="434.0" prefWidth="210.0" style="-fx-font-size: 10; -fx-font-family: &quot;Lucida Console&quot;;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <columns>
-                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="White Moves" />
-                                    <TableColumn maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Black Moves" />
+                                    <TableColumn fx:id="move_table_number" editable="false" maxWidth="-1.0" minWidth="30.0" prefWidth="-1.0" sortable="false" text="#" />
+                                    <TableColumn fx:id="move_table_white" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="White Moves" />
+                                    <TableColumn fx:id="move_table_black" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="Black Moves" />
                                  </columns>
                               </TableView>
                            </children>
@@ -275,21 +268,34 @@
                   </VBox>
                </children>
                <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="210.0" prefWidth="210.0" />
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="256.0" minWidth="256.0" prefWidth="256.0" />
                </columnConstraints>
                <rowConstraints>
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                </rowConstraints>
             </GridPane>
-            <TabPane tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false">
+            <TabPane fx:id="tab_pane" rotateGraphic="false" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false">
               <tabs>
-                <Tab text="White: Engine &lt;THINKING&gt;">
+                <Tab fx:id="info_tab" closable="false" text="Info">
+                     <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <TextArea fx:id="info_panel" editable="false" text="Chessly by Frank Kopp (c)" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <font>
+                                    <Font name="Lucida Console" size="11.0" />
+                                 </font>
+                              </TextArea>
+                           </children>
+                        </AnchorPane>
+                     </content>
+                  </Tab>
+                <Tab fx:id="white_enginetab" closable="false" disable="true" text="White: Engine &lt;THINKING&gt;">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                   </content>
                 </Tab>
-                <Tab text="Black: Human &lt;WAITING&gt;">
+                <Tab fx:id="black_enginetab" closable="false" disable="true" text="Black: Human &lt;WAITING&gt;">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                   </content>

@@ -35,31 +35,29 @@ import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
-import fko.chessly.game.GameMoveImpl;
 import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePieceType;
 import fko.chessly.game.GamePosition;
-import fko.chessly.game.pieces.Bishop;
-import fko.chessly.game.pieces.Knight;
-import fko.chessly.game.pieces.Pawn;
-import fko.chessly.game.pieces.Queen;
-import fko.chessly.game.pieces.Rook;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Text;
 
 /**
  * The BoardPanel class displays the board of a given game.
- *
- * TODO: Minor bug - dragged piece jumps shortly back to from field before painting on to field
- *
  */
 public class BoardPane extends Pane {
 
@@ -93,17 +91,14 @@ public class BoardPane extends Pane {
     static enum orientation { WHITE_SOUTH, WHITE_NORTH };
     private orientation _currentOrientation = orientation.WHITE_SOUTH;
 
+    private static final int DIM = 8;
+
     // to avoid having to move parameters around these are fields
     // easier readable code
-    //private Graphics _graphics;
-    private double _boardSize;
-    private double _currentWidth;
-    private double _currentHeight;
-    private static final int DIM = 8;
-    private double _positionX;
-    private int _positionY;
-    private double _distance;
-    private double _stoneSize;
+    private NumberBinding _boardSize;
+    private NumberBinding _offset_x;
+    private NumberBinding _offset_y;
+    private NumberBinding _checkerSize;
 
     // the piece picked for dragging
     private Piece _dragPiece;
@@ -123,11 +118,8 @@ public class BoardPane extends Pane {
 
         this._controller = backReference;
 
-        // -- set border --
-        //this.setBorder(new BevelBorder(BevelBorder.LOWERED));
-        // -- set background color --
-        //this.setBackground(Color.GRAY);
-        this.setBackground(new Background(new BackgroundFill(Paint.valueOf("#cccccc"),null,null)));
+        this.setPadding(new Insets(0,0,0,50));
+        this.setBackground(new Background(new BackgroundFill(Color.GRAY,null,null)));
         // -- set minimum size --
         this.setMinWidth(200);
         this.setMinHeight(200);
@@ -159,6 +151,7 @@ public class BoardPane extends Pane {
         // load piece images
         getPieceImages();
 
+        // draw initial board
         drawBoard();
 
     }
@@ -167,234 +160,278 @@ public class BoardPane extends Pane {
      * Draws the board
      * @param board
      */
-    public void setAndDrawBoard(GameBoard board) {
+    public synchronized void setAndDrawBoard(GameBoard board) {
         // make own copy of the board to update it without side effects
         this._curBoard = new GameBoardImpl(board);
-        // TODO: repaint()???
-        this.requestLayout();
+        drawBoard();
     }
 
     /**
      * draws the actual graphical board
      * TODO: where and when is this called in JavaFX?
      */
-    private void drawBoard() {
-        Insets insets = this.getInsets();
-        _currentWidth = this.getWidth() - insets.getLeft() - insets.getRight();
-        _currentHeight = getHeight() - insets.getTop() - insets.getBottom();
-        _boardSize = Math.min(_currentHeight, _currentWidth) -50;
+    protected void drawBoard() {
         if (_curBoard == null) { // no board yet - use new board with standard setup
             _curBoard = new GameBoardImpl();
         }
-        drawCurrentBoard();
+        drawBoard(_curBoard);
     }
 
     /**
      * This method draws the board with numbers, lines and stones
+     * @param curBoard
      */
-    private void drawCurrentBoard() {
+    private void drawBoard(GameBoard curBoard) {
 
-        double actualBoardSize = _boardSize;
-        actualBoardSize -= (actualBoardSize % DIM);
-        _positionX = (_currentWidth / 2) - (actualBoardSize / 2) + actualBoardSize/25;
-        _positionY = 8;
-        _distance = actualBoardSize / DIM;
-        _stoneSize = _distance * 0.9d;
+        // clear the node to redraw everything
+        this.getChildren().clear();
 
-        // -- draw board background --
-        this.setBackground(new Background(new BackgroundFill(_boardLightColor,null,null)));
-        Rectangle rectangle = new Rectangle(0, 0, 100, 100);
-        rectangle.setFill(_boardDarkColor);
+        // 90% of pane size to let room for files and rank designations
+        _boardSize = Bindings.min(this.heightProperty(), this.widthProperty()).multiply(0.9);
+
+        // board should leave space for rank numbers on the left and file letters on the bottom
+        _offset_x = this.widthProperty().subtract(_boardSize).divide(2).add(_boardSize.multiply(0.01));
+        _offset_y = this.heightProperty().subtract(this.heightProperty()).add(10);
+
+        Rectangle rectangle = new Rectangle();
+        rectangle.setStroke(_boardDarkColor);
+        rectangle.setFill(_boardLightColor);
+        // here we position the rectangle (this depends on pane size as well)
+        rectangle.xProperty().bind(_offset_x);
+        rectangle.yProperty().bind(_offset_y);
+        // here we bind rectangle size to pane size
+        rectangle.heightProperty().bind(_boardSize);
+        rectangle.widthProperty().bind(_boardSize);
         this.getChildren().add(rectangle);
 
-        //_graphics.fill3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);
-        // ((Graphics2D) _graphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // ((Graphics2D) _graphics).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-
-        /*        // -- lines & numbers
-        drawLinesAndNumbers(actualBoardSize);
-
         // -- draw checkers
-        drawCheckers(actualBoardSize);
+        drawCheckers(rectangle);
+
+        // -- lines & numbers
+        drawLinesAndNumbers(rectangle);
+
 
         // -- mark last move field --
-        markLastMove();
+        markLastMove(curBoard);
 
         // -- mark possible moves --
-        markPossibleMoves();
+        markPossibleMoves(curBoard);
 
         // -- mark king in check field --
-        markKingInCheckField();
+        markKingInCheckField(curBoard);
 
         // - mark current selected from Field --
-        markCurrentSelectedFromField();
+        markCurrentSelectedFromField(curBoard);
 
         // -- draw stones
-        drawPieces();*/
-    }
-
-    /**
-     * draws lines and numbers
-     * @param actualBoardSize
-     */
-    private void drawLinesAndNumbers(double actualBoardSize) {
-        // -- board lines and numbers --
-        double fontSize = actualBoardSize/25;
-
-        /*        Text text = new Text();
-        text.setFont(new Font(20));
-        text.setWrappingWidth(200);
-        text.setTextAlignment(TextAlignment.JUSTIFY)
-        text.setText("The quick brown fox jumps over the lazy dog");
-
-        _graphics.setColor(_boardGridColor);
-        _graphics.setFont(new Font("Arial Unicode MS", Font.PLAIN, fontSize));
-
-        for (int i = 1; i <= DIM; i++) {
-            int index =_currentOrientation == orientation.WHITE_SOUTH ?  i : DIM - i +1 ;
-            _graphics.drawString(getFilesLetter(index), _positionX + ((i-1)*_distance) + (_distance>>1) - (fontSize>>1), _positionY + actualBoardSize + fontSize + 2); // horizontal
-            _graphics.drawString(String.valueOf(index), _positionX - (fontSize), _positionY + actualBoardSize - ((i-1)*_distance) - (_distance>>1) + (fontSize>>1)); // vertical
-            // lines
-            _graphics.drawLine(_positionX + (i * _distance), _positionY, _positionX + (i * _distance), _positionY + actualBoardSize);
-            _graphics.drawLine(_positionX, _positionY + (i * _distance), _positionX + actualBoardSize, _positionY + (i * _distance));
-        }
-
-        _graphics.setColor(_boardBorderColor);
-        _graphics.draw3DRect(_positionX, _positionY, actualBoardSize, actualBoardSize, true);*/
+        drawPieces(curBoard);
     }
 
     /**
      * draws the checkers in the chess board
-     * @param actualBoardSize
+     * @param rectangle
+     * @param boardSize
      */
-    private void drawCheckers(double actualBoardSize) {
-        /*        _graphics.setColor(_boardDarkColor);
-        for (int c=1;c<=DIM;c++) {
-            for (int r=1;r<=DIM;r++) {
-                if ((c+r)%2==0) {
-                    _graphics.fillRect((c-1) * _distance + _positionX + 1,(DIM-r) * _distance + _positionY + 1, _distance - 1, _distance - 1);
+    private void drawCheckers(Rectangle rectangle) {
+        _checkerSize = rectangle.widthProperty().divide(DIM);
+        for (int c=0;c<DIM;c++) {
+            for (int r=0;r<DIM;r++) {
+                if ((c+r)%2==1) {
+                    Rectangle checkerField = new Rectangle();
+                    checkerField.setFill(_boardDarkColor);
+                    // here we position rectangles (this depends on pane size as well)
+                    checkerField.xProperty().bind(_offset_x.add(_checkerSize.multiply(c)));
+                    checkerField.yProperty().bind(_offset_y.add(_checkerSize.multiply(r)));
+                    // here we bind rectangle size to pane size
+                    checkerField.heightProperty().bind(_checkerSize);
+                    checkerField.widthProperty().bind(_checkerSize);
+                    this.getChildren().add(checkerField);
                 }
             }
-        }*/
-
-    }
-
-    /**
-     * @param board
-     */
-    private void markLastMove() {
-        GameMove lastMove = _curBoard.getLastMove();
-        if (lastMove != null) {
-            int x = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
-            int y = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
-            Rectangle rectangle = new Rectangle(
-                    (x - 1) * _distance + _positionX + 1,
-                    (DIM - y) * _distance + _positionY + 1,
-                    _distance-1,
-                    _distance-1);
-            rectangle.setFill(_lastMoveColor);
-            this.getChildren().add(rectangle);
-
         }
     }
 
     /**
-     * @param board
+     * draws lines and numbers
+     * @param rectangle
+     * @param boardSize
      */
-    private void markPossibleMoves() {
-        if (_controller != null && _controller.is_showPossibleMoves() && _selectedFromField != null
-                && _curBoard.getPiece(_selectedFromField).getColor().equals(_curBoard.getNextPlayerColor())) {
+    private void drawLinesAndNumbers(Rectangle rectangle) {
 
-            List<GameMove> moves = _curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(_curBoard, _selectedFromField, false);
+        // hack as there is no property binding for fontsize in Font
+        DoubleProperty fontSize = new SimpleDoubleProperty();
+        fontSize.bind(_boardSize.divide(25));
+        this.styleProperty().bind(Bindings.concat(
+                "-fx-font-size: ", fontSize.asString(), ";"
+                ,"-fx-font-family: \"Arial\";"
+                ));
+
+        // for each file and rank
+        for (int i = 0; i < DIM; i++) {
+            int index =_currentOrientation == orientation.WHITE_SOUTH ?  i+1 : DIM - i;
+
+            // File letter - calculates the middle off the letter and adds half of the checker size
+            Text fileLetter = new Text(getFilesLetter(index));
+            fileLetter.xProperty().bind(_offset_x.add(_checkerSize.multiply(i).subtract(fontSize.multiply(0.4)).add(_checkerSize.multiply(0.5))));
+            fileLetter.yProperty().bind(rectangle.heightProperty().add(10).add(fontSize));
+            this.getChildren().add(fileLetter);
+
+            // Rank digit - position the digit in the middle of the rank
+            Text rankDigit = new Text(String.valueOf(index));
+            rankDigit.xProperty().bind(_offset_x.subtract(fontSize.multiply(0.4)).subtract(8));
+            rankDigit.yProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-i).add(fontSize.multiply(0.3)).subtract(_checkerSize.multiply(0.5))));
+            this.getChildren().add(rankDigit);
+
+            // horizontal lines
+            Line h_line = new Line();
+            h_line.setStroke(_boardGridColor);
+            h_line.startXProperty().bind(_offset_x);
+            h_line.endXProperty().bind(_offset_x.add(_boardSize));
+            h_line.startYProperty().bind(_offset_y.add(_checkerSize.multiply(index)));
+            h_line.endYProperty().bind(h_line.startYProperty());
+            this.getChildren().add(h_line);
+
+            // vertical lines
+            Line v_line = new Line();
+            v_line.setStroke(_boardGridColor);
+            v_line.startXProperty().bind(_offset_x.add(_checkerSize.multiply(index)));
+            v_line.endXProperty().bind(v_line.startXProperty());
+            v_line.startYProperty().bind(_offset_y);
+            v_line.endYProperty().bind(_offset_y.add(_boardSize));
+            this.getChildren().add(v_line);
+
+            // border box
+            Rectangle r = new Rectangle();
+            r.setStroke(_boardGridColor);
+            r.setFill(Color.TRANSPARENT);
+            r.xProperty().bind(_offset_x);
+            r.yProperty().bind(_offset_y);
+            r.widthProperty().bind(_boardSize);
+            r.heightProperty().bind(_boardSize);
+            this.getChildren().add(r);
+        }
+    }
+
+    private void markLastMove(GameBoard curBoard) {
+        GameMove lastMove = curBoard.getLastMove();
+        //GameMove lastMove = NotationHelper.createNewMoveFromSimpleNotation(_curBoard, "b1c3"); // TEST
+
+        if (lastMove != null && _controller != null && _controller.isShowLastMove() ) {
+            // from field
+            int fromFile = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getFromField().x : DIM - lastMove.getFromField().x+1;
+            int fromRank = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getFromField().y : DIM - lastMove.getFromField().y+1;
+            //markField(fromFile, fromRank, _lastMoveColor);
+
+            // to field
+            int toFile = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
+            int toRank = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
+            markField(toFile, toRank, _lastMoveColor);
+
+            // line from source field to target field
+            Line line = new Line();
+            line.setStroke(Color.BLUE);
+            line.setStrokeLineCap(StrokeLineCap.ROUND);
+            line.setSmooth(true);
+            line.setStrokeWidth(5);
+            line.startXProperty().bind(_offset_x.add(_checkerSize.multiply(fromFile)).subtract(_checkerSize.multiply(0.5)));
+            line.startYProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-fromRank)).add(_checkerSize.multiply(0.5)));
+            line.endXProperty().bind(_offset_x.add(_checkerSize.multiply(toFile)).subtract(_checkerSize.multiply(0.5)));
+            line.endYProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-toRank)).add(_checkerSize.multiply(0.5)));
+            this.getChildren().add(line);
+
+        }
+    }
+
+    private void markPossibleMoves(GameBoard curBoard) {
+        //_selectedFromField = GamePosition.getGamePosition("e2");
+        if (_controller != null && _controller.isShowPossibleMoves() && _selectedFromField != null
+                && curBoard.getPiece(_selectedFromField).getColor().equals(curBoard.getNextPlayerColor())) {
+
+            List<GameMove> moves = curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(curBoard, _selectedFromField, false);
             moves.forEach(curMove -> {
-                int x = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
-                int y = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
-                Rectangle rectangle = new Rectangle(
-                        (x - 1) * _distance + _positionX + 1,
-                        (DIM - y) * _distance + _positionY + 1,
-                        _distance-1,
-                        _distance-1);
-                rectangle.setFill(_possibleMoveColor);
-                this.getChildren().add(rectangle);
+                int file = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
+                int rank = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
+                markField(file, rank, _possibleMoveColor);
             });
         }
     }
 
-    /**
-     */
-    private void markKingInCheckField() {
-        if (_curBoard != null && _curBoard.hasCheck()) {
+    private void markKingInCheckField(GameBoard curBoard) {
+        if (curBoard != null && curBoard.hasCheck()) {
             GamePosition king;
-            king = _curBoard.getKingField(_curBoard.getNextPlayerColor());
-            int x = _currentOrientation == orientation.WHITE_SOUTH ? king.x : DIM - king.x+1;
-            int y = _currentOrientation == orientation.WHITE_SOUTH ? king.y : DIM - king.y+1;
-            Rectangle rectangle = new Rectangle(
-                    (x - 1) * _distance + _positionX + 1,
-                    (DIM - y) * _distance + _positionY + 1,
-                    _distance-1,
-                    _distance-1);
-            rectangle.setFill(_checkColor);
-            this.getChildren().add(rectangle);
+            king = curBoard.getKingField(curBoard.getNextPlayerColor());
+            int file = _currentOrientation == orientation.WHITE_SOUTH ? king.x : DIM - king.x+1;
+            int rank = _currentOrientation == orientation.WHITE_SOUTH ? king.y : DIM - king.y+1;
+            markField(file, rank, _checkColor);
+        }
+    }
+
+    private void markCurrentSelectedFromField(GameBoard curBoard) {
+        //_selectedFromField = GamePosition.getGamePosition("e2");
+        if (curBoard !=null && _selectedFromField != null) {
+            int file = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
+            int rank = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
+            markField(file, rank, _selectedMoveColor);
         }
     }
 
     /**
-     * @param board
+     * Paints a field in a different color
+     * @param file
+     * @param rank
+     * @param color
      */
-    private void markCurrentSelectedFromField() {
-        if (_curBoard !=null && _selectedFromField != null) {
-            int x = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
-            int y = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
-            Rectangle rectangle = new Rectangle(
-                    (x - 1) * _distance + _positionX + 1,
-                    (DIM - y) * _distance + _positionY + 1,
-                    _distance-1,
-                    _distance-1);
-            rectangle.setFill(_selectedMoveColor);
-            this.getChildren().add(rectangle);
-        }
+    private void markField(int file, int rank, Color color) {
+        Rectangle checkerField = new Rectangle();
+        checkerField.setFill(color);
+        // here we position rectangles (this depends on pane size as well)
+        checkerField.xProperty().bind(_offset_x.add(_checkerSize.multiply(file-1)));
+        checkerField.yProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-rank)));
+        // here we bind rectangle size to pane size
+        checkerField.heightProperty().bind(_checkerSize);
+        checkerField.widthProperty().bind(_checkerSize);
+        this.getChildren().add(checkerField);
     }
 
     /**
+     * @param curBoard
      * @param board
      */
-    private void drawPieces() {
-
+    private void drawPieces(GameBoard curBoard) {
         // -- do not reset the piece list if we drag
         if (_dragPiece == null) {
             // clear the pieces array
             _pieces.clear();
             // fill the pieces array
-            for (int col = 1; col <= DIM; col++) {
-                for (int row = DIM; row > 0; row--) {
-                    if (_curBoard.getPiece(col, row) != null) {
+            for (int file = 1; file <= DIM; file++) {
+                for (int rank = DIM; rank > 0; rank--) {
+                    if (curBoard.getPiece(file, rank) != null) {
 
-                        // >> equals division by 2
-                        int r = _currentOrientation == orientation.WHITE_SOUTH ? DIM-row+1 : row ;
-                        double rowOffset = r * _distance - (_distance / 2) - (_stoneSize / 2) + _positionY;
+                        int file2 = _currentOrientation == orientation.WHITE_SOUTH ? file : DIM - file+1;
+                        int rank2 = _currentOrientation == orientation.WHITE_SOUTH ? rank : DIM - rank+1;
 
-                        // >> equals division by 2
-                        int c = _currentOrientation == orientation.WHITE_SOUTH ? col : DIM-col+1;
-                        double colOffset = c * _distance - (_distance / 2) - (_stoneSize / 2) + _positionX +1; // +1 small correction due to rounding
+                        // Create ImageView
+                        Image pieceImage = getPieceImage(curBoard.getPiece(file, rank).getColor(), curBoard.getPiece(file, rank).getType());
+                        ImageView pieceView = new ImageView(pieceImage);
+                        pieceView.setPreserveRatio(true);
+                        pieceView.setSmooth(true);
 
-                        // create piece to display
-                        Image pieceImage = getPieceImage(_curBoard.getPiece(col, row).getColor(), _curBoard.getPiece(col, row).getType());
-                        Piece piece = new Piece(pieceImage,(int)colOffset,(int)rowOffset);
+                        // Add mouse handler
+                        pieceView.setOnMousePressed((e) -> { System.out.println("Mouse Click: "+e);});
+                        pieceView.setOnMouseDragged((e) -> { System.out.println("Mouse Drag: "+e);});
 
-                        _pieces.add(piece);
+                        // here we position the ImageView (this depends on pane size as well)
+                        pieceView.xProperty().bind(_offset_x.add(_checkerSize.multiply(file2-1)));
+                        pieceView.yProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-rank2)));
+                        // here we bind ImageView size to checker size
+                        pieceView.fitHeightProperty().bind(_checkerSize);
+                        pieceView.fitWidthProperty().bind(_checkerSize);
+
+                        this.getChildren().add(pieceView);
                     }
                 }
             }
-        } else {
-            // we drag a piece
-            _pieces.remove(_dragPiece);
-            _pieces.add(_dragPiece);
         }
-
-        // now draw each piece
-        // (geeky new Java 8 lambda way - and parallel as well :) )
-        _pieces.stream().forEach(Piece::draw);
-
     }
 
     /**
@@ -454,19 +491,20 @@ public class BoardPane extends Pane {
     private void getPieceImages() {
         // -- get images for pieces --
         String _userDir = System.getProperty("user.dir");
-        String imageFolder = _userDir+"/images/";
-        /*        _wK = Toolkit.getDefaultToolkit().getImage(imageFolder+"wK.png");
-        _bK = Toolkit.getDefaultToolkit().getImage(imageFolder+"bK.png");
-        _wQ = Toolkit.getDefaultToolkit().getImage(imageFolder+"wQ.png");
-        _bQ = Toolkit.getDefaultToolkit().getImage(imageFolder+"bQ.png");
-        _wB = Toolkit.getDefaultToolkit().getImage(imageFolder+"wB.png");
-        _bB = Toolkit.getDefaultToolkit().getImage(imageFolder+"bB.png");
-        _wN = Toolkit.getDefaultToolkit().getImage(imageFolder+"wN.png");
-        _bN = Toolkit.getDefaultToolkit().getImage(imageFolder+"bN.png");
-        _wR = Toolkit.getDefaultToolkit().getImage(imageFolder+"wR.png");
-        _bR = Toolkit.getDefaultToolkit().getImage(imageFolder+"bR.png");
-        _wP = Toolkit.getDefaultToolkit().getImage(imageFolder+"wP.png");
-        _bP = Toolkit.getDefaultToolkit().getImage(imageFolder+"bP.png");*/
+        String imageFolder = "file:"+_userDir+"/images/";
+        _wK = new Image(imageFolder+"wK.png");
+        _bK = new Image(imageFolder+"bK.png");
+        _wQ = new Image(imageFolder+"wQ.png");
+        _bQ = new Image(imageFolder+"bQ.png");
+        _wB = new Image(imageFolder+"wB.png");
+        _bB = new Image(imageFolder+"bB.png");
+        _wN = new Image(imageFolder+"wN.png");
+        _bN = new Image(imageFolder+"bN.png");
+        _wR = new Image(imageFolder+"wR.png");
+        _bR = new Image(imageFolder+"bR.png");
+        _wP = new Image(imageFolder+"wP.png");
+        _bP = new Image(imageFolder+"bP.png");
+
     }
 
     /**
@@ -562,6 +600,7 @@ public class BoardPane extends Pane {
      */
     public void setCurrentOrientation(orientation currentOrientation) {
         this._currentOrientation = currentOrientation;
+        drawBoard();
     }
 
     /**
@@ -569,6 +608,7 @@ public class BoardPane extends Pane {
      */
     public void flipOrientation() {
         this._currentOrientation = _currentOrientation == orientation.WHITE_SOUTH ? orientation.WHITE_NORTH : orientation.WHITE_SOUTH;
+        drawBoard();
     }
 
     /**

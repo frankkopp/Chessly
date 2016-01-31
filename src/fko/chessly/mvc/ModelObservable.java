@@ -27,6 +27,7 @@
 package fko.chessly.mvc;
 
 import java.util.Observable;
+import java.util.Observer;
 
 import fko.chessly.mvc.ModelEvents.ModelEvent;
 
@@ -39,6 +40,17 @@ import fko.chessly.mvc.ModelEvents.ModelEvent;
  * @author Frank Kopp (frank@familie-kopp.de)
  */
 public class ModelObservable extends Observable {
+
+
+
+    /* (non-Javadoc)
+     * @see java.util.Observable#addObserver(java.util.Observer)
+     */
+    @Override
+    public synchronized void addObserver(Observer o) {
+        //System.out.println("Add observer: "+o);
+        super.addObserver(o);
+    }
 
     /**
      * If this object has changed, as indicated by the
@@ -55,6 +67,7 @@ public class ModelObservable extends Observable {
      * @see java.util.Observer#update(java.util.Observable, Object)
      */
     public void notifyObservers(ModelEvent me) {
+        //System.out.println("notifyObservers: "+me);
         super.notifyObservers(me);
     }
 

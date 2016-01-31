@@ -37,7 +37,7 @@ import fko.chessly.openingbook.OpeningBookImpl.Mode;
 public class Configuration {
 
     /** If set to true this object will produce info output to System.out */
-    public boolean VERBOSE_TO_SYSOUT = false;
+    public boolean VERBOSE_TO_SYSOUT = true;
 
     /** verbose output at the root level of the iterative search */
     public boolean VERBOSE_ITERATIVE_SEARCH = false;

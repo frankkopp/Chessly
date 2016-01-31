@@ -44,6 +44,9 @@ public class AboutDialog extends Stage {
     /**
      * Creates a new window (stage) in form of the About Dialog.
      * This creates the window. Needs to be display with
+     *
+     * TODO: Complete AboutDoalog
+     *
      */
     public AboutDialog() {
         super();

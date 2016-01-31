@@ -403,6 +403,13 @@ public class Game extends ModelObservable implements Runnable, Observer {
                 "GAME doMove() move made and checked for game over",
                 SIG_GAME_MOVE_MADE));
 
+        // Sleep a short while to let the UI catch up (book moves are too fast otherwise)
+        try {
+            Thread.sleep(250);
+        } catch (InterruptedException e) {
+            // ignore
+        }
+
     }
 
     public void undoMove(int numberOfHalfmoves) {
@@ -808,7 +815,9 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * @return current board
      */
     public GameBoard getCurBoard() {
-        return this._curBoard;
+        // we take the last one from the board history as this is a clone
+        // that will not change in the future
+        return this._boardHistory.get(_boardHistory.size()-1);
     }
 
     /**

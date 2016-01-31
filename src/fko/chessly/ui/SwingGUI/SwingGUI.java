@@ -276,7 +276,6 @@ public final class SwingGUI implements UserInterface {
 
         // -- find out state of the game --
         switch (status) {
-
             case Game.GAME_INITIALIZED:
                 gameInitializedGuiUpdate(game, event);
                 break;

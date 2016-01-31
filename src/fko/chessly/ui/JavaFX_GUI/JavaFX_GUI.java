@@ -2,20 +2,18 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.util.Observable;
 
-import javax.swing.JFrame;
-
 import com.sun.javafx.application.PlatformImpl;
 
 import fko.chessly.Chessly;
 import fko.chessly.ui.UserInterface;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  * @author Frank
@@ -78,7 +76,12 @@ public class JavaFX_GUI extends Application implements UserInterface {
             _stage.setMinHeight(_root.getMinHeight()+40);
             _stage.setMinWidth(_root.getMinWidth()+20);
             _stage.show();
-            _stage.setOnCloseRequest(event -> { Chessly.exitChessly(); });
+
+            // closeAction - close app through close action
+            scene.getWindow().setOnCloseRequest(event -> {
+                _controller.close_action(event);
+                event.consume();
+            });
 
         } catch(Exception e) {
             e.printStackTrace();
@@ -127,6 +130,6 @@ public class JavaFX_GUI extends Application implements UserInterface {
      * @return true when highlighting possible moves on the board is activated
      */
     public static boolean is_showPossibleMoves() {
-        return _controller.is_showPossibleMoves();
+        return _controller.isShowPossibleMoves();
     }
 }

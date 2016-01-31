@@ -24,34 +24,47 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package fko.chessly.openingbook;
 
-import fko.chessly.openingbook.OpeningBookImpl.Mode;
+package fko.chessly.ui.JavaFX_GUI;
+
+import java.io.IOException;
+
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 /**
  * @author fkopp
+ *
  */
-public class Openingbook_Configuration {
+public class NewGameDialog extends Stage {
 
     /**
-     * If set to true this object will produce info output to System.out
+     * Creates a new window (stage) in form of the NewGameDialog.
+     * This creates the window. Needs to be display with
+     *
+     * TODO: Complete AboutDoalog
+     *
      */
-    public boolean VERBOSE = false;
+    public NewGameDialog() {
+        super();
 
-    /**
-     * If set to true will ignore an existing cache file and recreate it
-     */
-    public boolean FORCE_CREATE = false;
+        try {
 
-    /** default value for folder to books */
-    public String _folderPath = "./book/";
-    /** default value for serialization folder */
-    public String _serPath = "./book/ser/";
-    /** default opening book */
-    public String _fileNamePlain = "Test_PGN/perle.pgn";
-    /** default mode */
-    public Mode _mode = Mode.PGN;
+            // Load the fxml file and create a new stage for the popup dialog.
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(JavaFX_GUI.class.getResource("NewGameDialog.fxml"));
+            AnchorPane pane = (AnchorPane) loader.load();
+            Scene scene = new Scene(pane);
+            this.setTitle("New Game");
+            this.initModality(Modality.WINDOW_MODAL);
+            this.initOwner(JavaFX_GUI.getStage());
+            this.setScene(scene);
 
-    /** Creates opening book configuration object */
-    public Openingbook_Configuration() {}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
