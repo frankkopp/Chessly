@@ -52,6 +52,16 @@ public class JavaFX_GUI extends Application implements UserInterface {
             start(primaryStage);
         });
         JavaFX_GUI._instance = this;
+
+        // wait for the UI to show before returning
+        while (_stage == null || !_stage.isShowing()) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                // empty
+            }
+        }
+
     }
 
     /**
