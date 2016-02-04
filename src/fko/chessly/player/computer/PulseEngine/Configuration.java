@@ -74,9 +74,12 @@ public class Configuration {
     /** default value for folder to books */
     public String _OB_FolderPath = "./book/";
     /** default opening book file */
-    public String _OB_fileNamePlain = "8moves_GM_LB.pgn";
+    //public String _OB_fileNamePlain = "8moves_GM_LB.pgn";
+    public String _OB_fileNamePlain = "book_graham.txt";
     /** default opening book value */
-    public Mode _OB_Mode = Mode.PGN;
+    //public Mode _OB_Mode = Mode.PGN;
+    public Mode _OB_Mode = Mode.SAN;
+
     // private final static String _fileNamePlain = "book_graham.txt";
     // private static Mode _mode = Mode.SAN;
     // private final static String _fileNamePlain = "book.txt";

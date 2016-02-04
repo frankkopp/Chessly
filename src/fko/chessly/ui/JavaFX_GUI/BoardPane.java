@@ -28,6 +28,7 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import fko.chessly.Chessly;
@@ -35,18 +36,28 @@ import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveImpl;
 import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePieceType;
 import fko.chessly.game.GamePosition;
+import fko.chessly.game.pieces.Bishop;
+import fko.chessly.game.pieces.Knight;
+import fko.chessly.game.pieces.Pawn;
+import fko.chessly.game.pieces.Queen;
+import fko.chessly.game.pieces.Rook;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
@@ -55,19 +66,21 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.StageStyle;
 
 /**
  * The BoardPanel class displays the board of a given game.
  */
 public class BoardPane extends Pane {
 
-    // -- back reference to _ui --
+    // back reference to _ui
     private JavaFX_GUI_Controller _controller;
 
-    // -- copy of the current board --
+    // copy of the current board
     private GameBoard _curBoard = null;
 
-    // -- colors --
+    // colors
     private Color _possibleMoveColor      = Color.rgb(115, 215, 115);
     private Color _selectedMoveColor      = Color.rgb(0, 215, 0);
     private Color _checkColor             = Color.rgb(255, 128, 128);
@@ -77,17 +90,17 @@ public class BoardPane extends Pane {
     private Color _boardDarkColor         = Color.rgb(90, 240, 0);
     private Color _lastMoveColor          = Color.rgb(64, 128, 64);
 
-    // -- image objects for pieces
+    // image objects for pieces
     private Image _wK,_wQ,_wB,_wN,_wR,_wP;
     private Image _bK,_bQ,_bB,_bN,_bR,_bP;
 
     // list of pieces to iterate over while drawing
     private Set<Piece> _pieces = new LinkedHashSet<Piece>(64);
 
-    // -- holds preselected field --
+    // holds preselected field
     private GamePosition _selectedFromField = null; // GamePosition.getGamePosition("c1");
 
-    //
+    // used to support flip board
     static enum orientation { WHITE_SOUTH, WHITE_NORTH };
     private orientation _currentOrientation = orientation.WHITE_SOUTH;
 
@@ -102,9 +115,12 @@ public class BoardPane extends Pane {
 
     // the piece picked for dragging
     private Piece _dragPiece;
+    // while dragging we use a copy of the _dragPiece to show during the drag
+    private Piece _dragPieceCopy;
+
     // avoid jumping piece while drag
-    private int _dragOffsetX;
-    private int _dragOffsetY;
+    private double _dragOffsetX;
+    private double _dragOffsetY;
 
     // supports handling of mouse press and release
     private boolean _ignoreNextRelease;
@@ -116,19 +132,21 @@ public class BoardPane extends Pane {
     public BoardPane(JavaFX_GUI_Controller backReference) {
         super();
 
+        // store the reference to the _controller
         this._controller = backReference;
 
+        // set up the pane
         this.setPadding(new Insets(0,0,0,50));
         this.setBackground(new Background(new BackgroundFill(Color.GRAY,null,null)));
-        // -- set minimum size --
+        // set minimum size --
         this.setMinWidth(200);
         this.setMinHeight(200);
-        // -- set mouse listener --
+        // set mouse listener --
         this.setOnMousePressed(this::mousePressed);
         this.setOnMouseReleased(this::mouseReleased);
         this.setOnMouseDragged(this::mouseDragged);
 
-        // -- colors from properties file --
+        // colors from properties file
         String[] colors;
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.possibleMoveColor")).split(":");
         _possibleMoveColor = Color.rgb(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
@@ -148,7 +166,7 @@ public class BoardPane extends Pane {
         _lastMoveColor = Color.rgb(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.blackGradientFromColor")).split(":");
 
-        // load piece images
+        // pre-load piece images
         getPieceImages();
 
         // draw initial board
@@ -157,18 +175,17 @@ public class BoardPane extends Pane {
     }
 
     /**
-     * Draws the board
-     * @param board
+     * Updates the known board and re-draws the BoardPane.
+     * @param board - must not be null and must not change any longer.
      */
-    public synchronized void setAndDrawBoard(GameBoard board) {
+    public void setAndDrawBoard(GameBoard board) {
         // make own copy of the board to update it without side effects
         this._curBoard = new GameBoardImpl(board);
         drawBoard();
     }
 
     /**
-     * draws the actual graphical board
-     * TODO: where and when is this called in JavaFX?
+     * Draws the current board.
      */
     protected void drawBoard() {
         if (_curBoard == null) { // no board yet - use new board with standard setup
@@ -194,7 +211,7 @@ public class BoardPane extends Pane {
         _offset_y = this.heightProperty().subtract(this.heightProperty()).add(10);
 
         Rectangle rectangle = new Rectangle();
-        rectangle.setStroke(_boardDarkColor);
+        rectangle.setStroke(_boardBorderColor);
         rectangle.setFill(_boardLightColor);
         // here we position the rectangle (this depends on pane size as well)
         rectangle.xProperty().bind(_offset_x);
@@ -209,7 +226,6 @@ public class BoardPane extends Pane {
 
         // -- lines & numbers
         drawLinesAndNumbers(rectangle);
-
 
         // -- mark last move field --
         markLastMove(curBoard);
@@ -312,6 +328,10 @@ public class BoardPane extends Pane {
         }
     }
 
+    /**
+     * marks the field of the last move and draws a line from the source to the target field
+     * @param curBoard
+     */
     private void markLastMove(GameBoard curBoard) {
         GameMove lastMove = curBoard.getLastMove();
         //GameMove lastMove = NotationHelper.createNewMoveFromSimpleNotation(_curBoard, "b1c3"); // TEST
@@ -342,6 +362,10 @@ public class BoardPane extends Pane {
         }
     }
 
+    /**
+     * marks all fields the selected piece can move to
+     * @param curBoard
+     */
     private void markPossibleMoves(GameBoard curBoard) {
         //_selectedFromField = GamePosition.getGamePosition("e2");
         if (_controller != null && _controller.isShowPossibleMoves() && _selectedFromField != null
@@ -356,6 +380,10 @@ public class BoardPane extends Pane {
         }
     }
 
+    /**
+     * if a king is in check we highlight the field
+     * @param curBoard
+     */
     private void markKingInCheckField(GameBoard curBoard) {
         if (curBoard != null && curBoard.hasCheck()) {
             GamePosition king;
@@ -366,6 +394,10 @@ public class BoardPane extends Pane {
         }
     }
 
+    /**
+     * marks the field of the currently selected piece
+     * @param curBoard
+     */
     private void markCurrentSelectedFromField(GameBoard curBoard) {
         //_selectedFromField = GamePosition.getGamePosition("e2");
         if (curBoard !=null && _selectedFromField != null) {
@@ -394,11 +426,12 @@ public class BoardPane extends Pane {
     }
 
     /**
+     * Draw all pieces on the board
      * @param curBoard
      * @param board
      */
     private void drawPieces(GameBoard curBoard) {
-        // -- do not reset the piece list if we drag
+        // do not reset the piece list if we drag
         if (_dragPiece == null) {
             // clear the pieces array
             _pieces.clear();
@@ -416,10 +449,6 @@ public class BoardPane extends Pane {
                         pieceView.setPreserveRatio(true);
                         pieceView.setSmooth(true);
 
-                        // Add mouse handler
-                        pieceView.setOnMousePressed((e) -> { System.out.println("Mouse Click: "+e);});
-                        pieceView.setOnMouseDragged((e) -> { System.out.println("Mouse Drag: "+e);});
-
                         // here we position the ImageView (this depends on pane size as well)
                         pieceView.xProperty().bind(_offset_x.add(_checkerSize.multiply(file2-1)));
                         pieceView.yProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-rank2)));
@@ -427,40 +456,44 @@ public class BoardPane extends Pane {
                         pieceView.fitHeightProperty().bind(_checkerSize);
                         pieceView.fitWidthProperty().bind(_checkerSize);
 
-                        this.getChildren().add(pieceView);
+                        Piece piece = new Piece(pieceView, this);
+                        _pieces.add(piece);
                     }
                 }
             }
         }
+        _pieces.stream().forEach(Piece::addToNode);
     }
 
     /**
-     * displays a dialog to start a new game
+     * Displays a dialog to start a new game
      */
-    private GamePiece promotionDialog(GameColor color) {
-        /*        Object[] options = {
-                "QUEEN",
-                "ROOK",
-                "BISHOP",
-                "KNIGHT"
-        };
-        int n = JOptionPane.showOptionDialog(this,
-                "Which piece would you like?",
-                "Pawn Promotion",
-                JOptionPane.YES_NO_CANCEL_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0]);
+    private static GamePiece promotionDialog(GameColor color) {
 
-        switch (n) {
-            case 0: return Queen.createQueen(color);
-            case 1: return Rook.createRook(color);
-            case 2: return Bishop.createBishop(color);
-            case 3: return Knight.createKnight(color);
-            default: return Pawn.createPawn(color);
-        }*/
-        return null;
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Pawn Promotion");
+        alert.setHeaderText("Please select an officer piece.");
+        alert.setContentText("Choose");
+        ButtonType buttonTypeOne = new ButtonType("Queen");
+        ButtonType buttonTypeTwo = new ButtonType("Rook");
+        ButtonType buttonTypeThree = new ButtonType("Bishop");
+        ButtonType buttonTypeFour = new ButtonType("Knight");
+        alert.getButtonTypes().setAll(buttonTypeOne, buttonTypeTwo, buttonTypeThree, buttonTypeFour);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.initStyle(StageStyle.UNDECORATED);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == buttonTypeOne){
+            return Queen.createQueen(color);
+        } else if (result.get() == buttonTypeTwo) {
+            return Rook.createRook(color);
+        } else if (result.get() == buttonTypeThree) {
+            return Bishop.createBishop(color);
+        } else if (result.get() == buttonTypeFour) {
+            return Knight.createKnight(color);
+        } else {
+            return Queen.createQueen(color);
+        }
     }
 
     /**
@@ -504,11 +537,10 @@ public class BoardPane extends Pane {
         _bR = new Image(imageFolder+"bR.png");
         _wP = new Image(imageFolder+"wP.png");
         _bP = new Image(imageFolder+"bP.png");
-
     }
 
     /**
-     * chooses preloaded Image from color and piecetype
+     * chooses pre-loaded Image from color and piecetype
      * @param color
      * @param piecetype
      * @return piece Image Object or null (should not happen)
@@ -542,53 +574,6 @@ public class BoardPane extends Pane {
     }
 
     /**
-     * @param e
-     */
-    private GamePosition getGamePositionFromMouseEvent(MouseEvent e) {
-        if (Chessly.getPlayroom().getCurrentGame() == null || !Chessly.getPlayroom().getCurrentGame().isRunning()) {
-            return null;
-        }
-        if (e.getButton() != e.getButton().PRIMARY) {
-            return null;
-        }
-        return determinePosition(e.getX(), e.getY());
-    }
-
-    /**
-     * Determines the board coordinates of a user click
-     * @param d
-     * @param e
-     * @return A Point object representing col and row on the board
-     */
-    private GamePosition determinePosition(double d, double e) {
-        /*
-        Insets insets = this.getInsets();
-        int currentWidth = getWidth() - insets.left - insets.right;
-        int currentHeight = getHeight() - insets.top - insets.bottom;
-        int size = Math.min(currentHeight, currentWidth) - 50;
-
-        int dim = 8;
-        size -= (size % dim);
-        int positionX = (currentWidth >> 1) - (size >> 1) + size/25;
-        int positionY = 8;
-        int distance = size / dim;
-
-        // -- outside of board --
-        if (d < positionX || d > positionX + size || e > positionY + size || e < positionY) return null;
-
-        int col = 1 + (d - positionX) / distance;
-        int row = 1 + dim - 1 - (e - positionY) / distance;
-
-        if (_currentOrientation == orientation.WHITE_NORTH) {
-            col = dim-col+1;
-            row = dim-row+1;
-        }
-
-        return GamePosition.getGamePosition(col, row);*/
-        return null;
-    }
-
-    /**
      * @return the currentOrientation
      */
     public orientation getCurrentOrientation() {
@@ -612,27 +597,64 @@ public class BoardPane extends Pane {
     }
 
     /**
+     * Calculates the file and rank from the xy coordinates of the mouse event
+     * @param event
+     */
+    private GamePosition getGamePositionFromMouseEvent(MouseEvent event) {
+        if (Chessly.getPlayroom().getCurrentGame() == null || !Chessly.getPlayroom().getCurrentGame().isRunning()) {
+            return null;
+        }
+        if (event.getButton() != MouseButton.PRIMARY) {
+            return null;
+        }
+        return determinePosition(event.getX(), event.getY());
+    }
+
+    /**
+     * Calculates the file and rank from the given xy coordinates
+     * @param x
+     * @param y
+     * @return A Point object representing col and row on the board
+     */
+    private GamePosition determinePosition(double x, double y) {
+        // -- outside of board --
+        if (x < _offset_x.doubleValue() || x > _offset_x.add(_boardSize).doubleValue()
+                || y > _offset_y.add(_boardSize).doubleValue()  || y < _offset_y.doubleValue()) return null;
+
+        // calculate file and rank
+        int file = 1 + (int) ((x - _offset_x.doubleValue()) / _checkerSize.doubleValue());
+        int rank = DIM - (int) ((y - _offset_y.doubleValue()) / _checkerSize.doubleValue());
+        // flip board correction
+        if (_currentOrientation == orientation.WHITE_NORTH) {
+            file = DIM-file+1;
+            rank = DIM-rank+1;
+        }
+        return GamePosition.getGamePosition(file, rank);
+    }
+
+    /**
      * Invoked when a mouse button has been pressed on a component.
      * @param event
      */
     public void mousePressed(MouseEvent event) {
-        /*        GamePosition pos = getGamePositionFromMouseEvent(event);
+
+        GamePosition pos = getGamePositionFromMouseEvent(event);
         // mouse not on board - ignore mouse press
         if (pos==null) {
             _ignoreNextRelease = false;
             return;
         }
 
-        //System.out.print("Mouse PRESS: "+pos+" ");
         // which field?
         if (_selectedFromField == null) {
             // no field selected -> select
             if (_curBoard.getPiece(pos) != null
                     && _curBoard.getNextPlayerColor().equals(_curBoard.getPiece(pos).getColor()) ) {
+
                 _selectedFromField = pos;
-                this.repaint();
+                Platform.runLater(this::drawBoard);
+
             } else { // no piece on the chosen field - ignore click
-                //System.out.println();
                 return;
             }
             _ignoreNextRelease = true;
@@ -644,63 +666,90 @@ public class BoardPane extends Pane {
         for (Piece p : _pieces) {
             if (pos.equals(p.getPosition())) {
                 // found piece
-                _dragOffsetX = event.getX() - p.x;
-                _dragOffsetY = event.getY() - p.y;
+                _dragOffsetX = event.getX() - p.pieceView.xProperty().doubleValue();
+                _dragOffsetY = event.getY() - p.pieceView.yProperty().doubleValue();
                 _dragPiece = p;
                 _dragPiece.isDragged=true;
             }
         }
-         */
-        //this.repaint();
         //System.out.println("SelectedFrom: "+_selectedFromField+" DragPiece: "+_dragPiece.getPosition());
     }
 
     /**
-     * @see java.awt.event.MouseMotionListener#mouseDragged(java.awt.event.MouseEvent)
+     * Invoked when a mouse drag event happens on the board
+     * @param event
      */
-    public void mouseDragged(MouseEvent e) {
-        /*        if (_dragPiece == null) return;
-        //System.out.println("Mouse DRAG: "+e);
+    public void mouseDragged(MouseEvent event) {
+
+        // if we did not press on a field with a piece we can't drag anything
+        if (_dragPiece == null) return;
+
+        // resets the helper for press/release events
         _ignoreNextRelease = false;
-        _dragPiece.x=e.getX() - _dragOffsetX;
-        _dragPiece.y=e.getY() - _dragOffsetY;
-        this.repaint();*/
+
+        // remove the piece to be dragged from the piece list to not display it any longer
+        // when drawBoard is called
+        _pieces.remove(_dragPiece);
+
+        //System.out.println("Mouse DRAG: "+event);
+        //System.out.println("Mouse DRAG: "+_dragPiece.pieceView);
+
+        // Create copy of the dragged piece for displaying while dragging
+        if (_dragPieceCopy == null) {
+            Image pieceImage = _dragPiece.pieceView.getImage();
+            ImageView pieceView = new ImageView(pieceImage);
+            pieceView.setPreserveRatio(true);
+            pieceView.setSmooth(true);
+            _dragPieceCopy = new Piece(pieceView, this);
+            // here we bind ImageView size to checker size
+            _dragPieceCopy.pieceView.fitHeightProperty().bind(_checkerSize);
+            _dragPieceCopy.pieceView.fitWidthProperty().bind(_checkerSize);
+            _pieces.add(_dragPieceCopy);
+            _dragPieceCopy.addToNode();
+        }
+
+        // here we position the piece according to the mouse grag movement
+        // the offset avoid a jumping piece image if the click was not in the
+        // 0,0 coordinated of the field
+        _dragPieceCopy.pieceView.setX(event.getX() - _dragOffsetX);
+        _dragPieceCopy.pieceView.setY(event.getY() - _dragOffsetY);
+
+        // re draw the board to display the pieces including the copy of dragged piece
+        Platform.runLater(this::drawBoard);
     }
 
     /**
      * Invoked when a mouse button has been released on a component.
-     * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
+     * @param event
      */
-    public void mouseReleased(MouseEvent e) {
-        /*        if (_ignoreNextRelease) return;
+    public void mouseReleased(MouseEvent event) {
 
-        GamePosition pos = getGamePositionFromMouseEvent(e);
+        // helps the press/release management
+        if (_ignoreNextRelease) return;
+
+        GamePosition pos = getGamePositionFromMouseEvent(event);
+
         // mouse not on board - reset selection and drag and ignore the release
         if (pos==null) {
-            _selectedFromField = null;
-            if (_dragPiece != null) {
-                _dragPiece.isDragged=false;
-                _dragPiece = null;
-            }
-            this.repaint();
+            clearMouseSelection();
+            Platform.runLater(this::drawBoard);
             return;
         }
 
         //System.out.print("Mouse RELEASE: "+pos+" ---> ");
-
+        // if we do not have a selection from a previous press/release cycle
+        // ignore the release
         if (_selectedFromField == null) {
             return;
         }
 
+        // we have a selection and the press/release happened on the same field
+        // therefore de-select the selection
         if (pos.equals(_selectedFromField)) {
             // no selection - ignore release
             //System.out.println("de-select: "+_selectedFromField);
-            if (_dragPiece != null) {
-                _dragPiece.isDragged=false;
-                _dragPiece = null;
-            }
-            _selectedFromField = null;
-            this.repaint();
+            clearMouseSelection();
+            Platform.runLater(this::drawBoard);
             //System.out.println();
             return;
         }
@@ -711,16 +760,12 @@ public class BoardPane extends Pane {
         GamePosition toField = pos;
 
         //System.out.print("From: "+fromField+" To: "+toField+" DragPiece: "+_dragPiece.getPosition()+" ");
-
         GameMove m = new GameMoveImpl(fromField, toField, fromPiece);
 
+        // check if move would legal - if not de-select and return
         if (!_curBoard.isLegalMove(m)) {
-            if (_dragPiece != null) {
-                _dragPiece.isDragged=false;
-                _dragPiece = null;
-            }
-            _selectedFromField = null;
-            this.repaint();
+            clearMouseSelection();
+            Platform.runLater(this::drawBoard);
             return;
         }
 
@@ -740,97 +785,54 @@ public class BoardPane extends Pane {
             m.setCapturedPiece(_curBoard.getPiece(pos));
 
         // clear drag piece
-        if (_dragPiece != null) {
-            _dragPiece.isDragged=false;
-            _dragPiece = null;
-        }
+        clearMouseSelection();
+
         // reset ignore flag
         _ignoreNextRelease = false;
-        // de-select
-        _selectedFromField = null;
 
-        //System.out.print("Move: "+m);
+        // now deliver the move to the player through the Controller
         _controller.setPlayerMove(m);
-         */
-        return;
+
     }
 
     /**
-     * Represents an Images with x and y coordinates
-     * @author Frank Kopp
+     * Clears selected field and also drag piece
+     */
+    private void clearMouseSelection() {
+        _selectedFromField = null;
+        if (_dragPiece != null) {
+            _dragPiece.isDragged=false;
+        }
+        _dragPiece = null;
+        _dragPieceCopy = null;
+    }
+
+    /**
+     * Represents an Piece with a ImageView
      */
     private class Piece {
 
-        private Image img;
-        private int x;
-        private int y;
+        private final BoardPane node;
+        private final ImageView pieceView;
         private boolean isDragged;
 
-        public Piece(Image img, int x, int y) {
-            this.img = img;
-            this.x = x;
-            this.y = y;
+        /**
+         * @param pieceView
+         * @param node
+         */
+        public Piece(ImageView pieceView, BoardPane node) {
+            this.node = node;
+            this.pieceView = pieceView;
             this.isDragged = false;
         }
 
-        /**
-         */
-        void draw() {
-            draw(this.x, this.y);
-        }
-
-        /**
-         * @param mouseX
-         * @param mouseY
-         */
-        void draw(int mouseX, int mouseY) {
-            //_graphics.drawImage(this.img, mouseX, mouseY, (int)_stoneSize, (int)_stoneSize, null);
+        void addToNode() {
+            node.getChildren().add(pieceView);
         }
 
         GamePosition getPosition() {
-            return determinePosition(x, y);
+            return determinePosition(pieceView.xProperty().doubleValue(), pieceView.yProperty().doubleValue());
         }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + getOuterType().hashCode();
-            result = prime * result + ((this.img == null) ? 0 : this.img.hashCode());
-            result = prime * result + (this.isDragged ? 1231 : 1237);
-            result = prime * result + this.x;
-            result = prime * result + this.y;
-            return result;
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#equals(java.lang.Object)
-         */
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) { return true; }
-            if (obj == null) { return false; }
-            if (!(obj instanceof Piece)) { return false; }
-            Piece other = (Piece) obj;
-            if (!getOuterType().equals(other.getOuterType())) { return false; }
-            if (this.img == null) {
-                if (other.img != null) { return false; }
-            } else if (!this.img.equals(other.img)) { return false; }
-            if (this.isDragged != other.isDragged) { return false; }
-            if (!this.getPosition().equals(((Piece)obj).getPosition())) return false;
-            return true;
-        }
-
-        private BoardPane getOuterType() {
-            return BoardPane.this;
-        }
-
-
-
-
     }
 
 }

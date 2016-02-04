@@ -80,6 +80,9 @@ public class PlayerClockUpdater {
 
     }
 
+    /**
+     *
+     */
     public void clear() {
 
         this.whitePlayer_name.setText(Chessly.getPlayroom().getNameWhitePlayer());
@@ -110,6 +113,9 @@ public class PlayerClockUpdater {
 
     }
 
+    /**
+     *
+     */
     public void update() {
 
         if (Chessly.getPlayroom().getCurrentGame() != null) {
@@ -167,6 +173,12 @@ public class PlayerClockUpdater {
                 this.white_clock.setUnderline(false);
                 this.black_clock.setUnderline(true);
             }
+            if (Chessly.getPlayroom().getCurrentGame().isPaused()) {
+                this.white_progressbar.setProgress(0);
+                this.white_progressbar.setDisable(true);
+                this.black_progressbar.setProgress(0);
+                this.black_progressbar.setDisable(true);
+            }
         } else {
             this.white_progressbar.setProgress(0);
             this.white_progressbar.setDisable(true);
@@ -178,6 +190,9 @@ public class PlayerClockUpdater {
 
     }
 
+    /**
+     * Starts the updater thread
+     */
     public void startUpdate() {
         updater.start();
     }

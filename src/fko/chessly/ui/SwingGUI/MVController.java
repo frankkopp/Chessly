@@ -261,7 +261,7 @@ public class MVController {
     /**
      * displays a dialog to set the number of threads
      */
-    public void numberOfTreadsDialog() {
+    public void numberOfThreadsDialog() {
         EngineThreadsDialog dialog = new EngineThreadsDialog(_ui);
         AbstractDialog.centerComponent(dialog);
         dialog.setVisible(true);

@@ -389,7 +389,7 @@ public class MainMenu extends JMenuBar {
 
             menuExtras.addSeparator();
 
-            // -- number of threads --
+            /*            // -- number of threads --
             numberOfThreadsAction = new CommandAction(
                     Command.parse(_MVController, "numberOfTreadsDialog"),
                     "Number of Threads...", null, "Number of Threads...",
@@ -399,7 +399,7 @@ public class MainMenu extends JMenuBar {
                     );
             menuExtras.add(numberOfThreadsAction);
 
-            menuExtras.addSeparator();
+            menuExtras.addSeparator();*/
 
             menuExtras.add(initLookAndFeelMenu());
 

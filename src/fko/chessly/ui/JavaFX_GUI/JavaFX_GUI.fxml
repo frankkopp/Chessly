@@ -74,13 +74,16 @@
                         <SeparatorMenuItem mnemonicParsing="false" />
                         <Menu mnemonicParsing="false" text="Level White">
                           <items>
-                              <RadioMenuItem mnemonicParsing="false" text="2" />
-                              <RadioMenuItem mnemonicParsing="false" text="4" />
-                              <RadioMenuItem mnemonicParsing="false" text="6" />
-                              <RadioMenuItem mnemonicParsing="false" text="8" />
-                              <RadioMenuItem mnemonicParsing="false" text="10" />
-                              <RadioMenuItem mnemonicParsing="false" text="20" />
-                              <RadioMenuItem mnemonicParsing="false" text="other" />
+                              <RadioMenuItem fx:id="levelWhite2" mnemonicParsing="false" onAction="#setLevelAction" text="2">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="levelWhite" />
+                                 </toggleGroup></RadioMenuItem>
+                              <RadioMenuItem fx:id="levelWhite4" mnemonicParsing="false" onAction="#setLevelAction" text="4" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite6" mnemonicParsing="false" onAction="#setLevelAction" text="6" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite8" mnemonicParsing="false" onAction="#setLevelAction" text="8" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite10" mnemonicParsing="false" onAction="#setLevelAction" text="10" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite20" mnemonicParsing="false" onAction="#setLevelAction" text="20" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhiteMax" mnemonicParsing="false" onAction="#setLevelAction" text="Max" toggleGroup="$levelWhite" />
                           </items>
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
@@ -88,13 +91,16 @@
                         </Menu>
                         <Menu mnemonicParsing="false" text="Level Black...">
                           <items>
-                              <RadioMenuItem mnemonicParsing="false" text="2" />
-                              <RadioMenuItem mnemonicParsing="false" text="4" />
-                              <RadioMenuItem mnemonicParsing="false" text="6" />
-                              <RadioMenuItem mnemonicParsing="false" text="8" />
-                              <RadioMenuItem mnemonicParsing="false" text="10" />
-                              <RadioMenuItem mnemonicParsing="false" text="20" />
-                              <RadioMenuItem mnemonicParsing="false" text="other" />
+                              <RadioMenuItem fx:id="levelBlack2" mnemonicParsing="false" onAction="#setLevelAction" text="2">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="levelBlack" />
+                                 </toggleGroup></RadioMenuItem>
+                              <RadioMenuItem fx:id="levelBlack4" mnemonicParsing="false" onAction="#setLevelAction" text="4" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack6" mnemonicParsing="false" onAction="#setLevelAction" text="6" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack8" mnemonicParsing="false" onAction="#setLevelAction" text="8" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack10" mnemonicParsing="false" onAction="#setLevelAction" text="10" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack20" mnemonicParsing="false" onAction="#setLevelAction" text="20" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlackMax" mnemonicParsing="false" onAction="#setLevelAction" text="Max" toggleGroup="$levelBlack" />
                           </items>
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />

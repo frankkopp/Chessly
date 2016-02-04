@@ -36,7 +36,7 @@ public class Openingbook_Configuration {
     /**
      * If set to true this object will produce info output to System.out
      */
-    public boolean VERBOSE = false;
+    public boolean VERBOSE = true;
 
     /**
      * If set to true will ignore an existing cache file and recreate it

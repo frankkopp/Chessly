@@ -121,7 +121,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     protected GameMoveList _moveListCache = null;
     protected boolean _moveListCacheValid = false;
 
-    // Contructors START -----------------------------------------
+    // Constructors START -----------------------------------------
 
     /**
      * Creates a standard Chessly board and initialises it with standard chess
@@ -1373,6 +1373,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // Standard Start Board
         setupFromFEN(fen);
+
+        // DEBUG
+        //setupFromFEN("8/1P6/6k1/8/8/8/p1K5/8 w - - 0 1");
 
         // Test - Mate in 2
         //setupFromFEN("1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1");

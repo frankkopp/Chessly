@@ -65,7 +65,7 @@ public class MoveListModel {
     }
 
     /**
-     * builds the list of move of the given board
+     * Builds the list of moves of the given board.
      * @param moves
      */
     public void updateList(GameMoveList moves) {
@@ -93,6 +93,10 @@ public class MoveListModel {
         }
     }
 
+    public ObservableList<FullMove> getMoveList() {
+        return this.moveList;
+    }
+
     /**
      * formats a string based on the integer value of the move
      * @param value integer value of a move
@@ -118,11 +122,8 @@ public class MoveListModel {
         return moveValueString;
     }
 
-    public ObservableList<FullMove> getMoveList() {
-        return this.moveList;
-    }
-
     /**
+     * A full move has three Strings: move number, white move and black move.
      * @author fkopp
      */
     public class FullMove {

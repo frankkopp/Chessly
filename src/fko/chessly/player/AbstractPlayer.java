@@ -171,7 +171,7 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
                     _playerStatus.writeLock().lock();
                     try {
                         if (this._playerMove != null && !_playerStatus.inStatus(Player.STOPPED)) {
-                            // move recieved
+                            // move received
                             _playerStatus.setStatus(Player.HAS_MOVE);
                         } else if (this._playerMove == null && _game.undoMoveFlag() && !_playerStatus.inStatus(Player.STOPPED)) {
                             // null move received -- indicator undoMove
