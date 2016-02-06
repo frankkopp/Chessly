@@ -45,7 +45,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
 
     private static final long serialVersionUID = 7011908028071836016L;
 
-    // independed of board
+    // Independent of board
     private final GamePosition _fromField;
     private final GamePosition _toField;
     private final GamePiece _pieceMoved;

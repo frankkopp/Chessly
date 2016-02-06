@@ -52,7 +52,7 @@ import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
-import fko.chessly.player.computer.EngineWatcher;
+import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.util.HelperTools;
 
 /**
@@ -99,7 +99,7 @@ public class EngineInfoPanel extends JPanel {
 
 
     /**
-     * Contructor
+     * Constructor
      * @param engineColor
      */
     public EngineInfoPanel(GameColor engineColor) {
@@ -488,9 +488,9 @@ public class EngineInfoPanel extends JPanel {
 
     private void updateGUI(Game game, Player player) {
         // -- we can only watch the engine when the Interface "TreeSearchEngineWatcher" is implemented --
-        if (((ComputerPlayer)player).getEngine() instanceof EngineWatcher) {
+        if (((ComputerPlayer)player).getEngine() instanceof ObservableEngine) {
 
-            EngineWatcher engine = (EngineWatcher)((ComputerPlayer)player).getEngine();
+            ObservableEngine engine = (ObservableEngine)((ComputerPlayer)player).getEngine();
 
             // Print verbose or debug info into the info text panel
             String newInfoText = engine.getInfoText();
@@ -553,7 +553,7 @@ public class EngineInfoPanel extends JPanel {
             final int curBoardCacheSize2 = engine.getCurBoardCacheSize();
             curBoardCacheSize.setText(numberFormat.format(curBoardCacheSize2));
 
-            // -- show the numer of boards in the cache --
+            // -- show the number of boards in the cache --
             final int curBoardsInCache = engine.getCurBoardsInCache();
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             curBoardCacheUse.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");

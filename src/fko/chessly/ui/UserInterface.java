@@ -35,6 +35,11 @@ import fko.chessly.mvc.ModelObserver;
  */
 public interface UserInterface extends ModelObserver {
 
+    /**
+     * This can be called to wait until the UI is build up and shown on the screen
+     */
+    public void waitForUI();
+
     // -- empty --
 
 }

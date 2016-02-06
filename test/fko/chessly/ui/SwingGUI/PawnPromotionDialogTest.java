@@ -46,7 +46,7 @@ public class PawnPromotionDialogTest {
 		assertTrue(b.isLegalMove(m));
 		makeMove(b, m);
 		
-		bp.drawBoard(b);
+		bp.setAndDrawBoard(b);
 		
 		frame.getContentPane().add(bp, BorderLayout.CENTER);
 		frame.pack();

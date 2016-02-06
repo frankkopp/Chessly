@@ -156,7 +156,7 @@ public class MainMenu extends JMenuBar {
 
             // -- EXIT --
             exitAction = new CommandAction(
-                    Command.parse(_ui, "exitReversi"),
+                    Command.parse(_ui, "exitChessly"),
                     "Exit programm.", null, "Exit programm.",
                     KeyStroke.getKeyStroke(81, java.awt.event.InputEvent.CTRL_DOWN_MASK),
                     0,
@@ -389,7 +389,7 @@ public class MainMenu extends JMenuBar {
 
             menuExtras.addSeparator();
 
-            // -- number of threads --
+            /*            // -- number of threads --
             numberOfThreadsAction = new CommandAction(
                     Command.parse(_MVController, "numberOfTreadsDialog"),
                     "Number of Threads...", null, "Number of Threads...",
@@ -399,7 +399,7 @@ public class MainMenu extends JMenuBar {
                     );
             menuExtras.add(numberOfThreadsAction);
 
-            menuExtras.addSeparator();
+            menuExtras.addSeparator();*/
 
             menuExtras.add(initLookAndFeelMenu());
 

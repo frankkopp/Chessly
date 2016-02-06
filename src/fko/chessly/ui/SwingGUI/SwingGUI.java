@@ -64,7 +64,7 @@ public final class SwingGUI implements UserInterface {
     private MainWindow mainWindow;
     // -- a clock panel with clocks for both players --
     private ClockPanel clockPanel;
-    // -- a panel displaying the reversi board --
+    // -- a panel displaying the Chessly board --
     private BoardPanel boardPanel;
     // -- a panel displaying text --
     private InfoPanel infoPanel;
@@ -123,7 +123,7 @@ public final class SwingGUI implements UserInterface {
 
         // -- move list --
         moveList = new MoveList();
-        moveListWindow = new SatelliteWindow(mainWindow, "Move List", "movelist");
+        moveListWindow = new SatelliteWindow("Move List", "movelist");
         moveListWindow.add(moveList, BorderLayout.CENTER);
         // -- show move list --
         if (_showMoveListWindow) {
@@ -140,7 +140,7 @@ public final class SwingGUI implements UserInterface {
         // -- engine info pane for black player --
         engineInfoBlack = new EngineInfoPanel(GameColor.BLACK);
         engineInfoBlack.setBorder(new TitledBorder(new EtchedBorder(), "Engine Info Black"));
-        engineInfoWindowBlack = new SatelliteWindow(mainWindow, "Engine Info Black", "engine_info_black");
+        engineInfoWindowBlack = new SatelliteWindow("Engine Info Black", "engine_info_black");
         engineInfoWindowBlack.add(engineInfoBlack, BorderLayout.CENTER);
         engineInfoWindowBlack.addWindowListener(new WindowAdapter() {
             @Override
@@ -156,7 +156,7 @@ public final class SwingGUI implements UserInterface {
         // -- engine info pane for white player --
         engineInfoWhite = new EngineInfoPanel(fko.chessly.game.GameColor.WHITE);
         engineInfoWhite.setBorder(new TitledBorder(new EtchedBorder(), "Engine Info White"));
-        engineInfoWindowWhite = new SatelliteWindow(mainWindow, "Engine Info White", "engine_info_white");
+        engineInfoWindowWhite = new SatelliteWindow("Engine Info White", "engine_info_white");
         engineInfoWindowWhite.add(engineInfoWhite, BorderLayout.CENTER);
         engineInfoWindowWhite.addWindowListener(new WindowAdapter() {
             @Override
@@ -268,15 +268,14 @@ public final class SwingGUI implements UserInterface {
     private void updateFromGame(Game game, ModelEvent event) {
 
         // -- draw the current board of the current game --
-        boardPanel.drawBoard(game.getCurBoard());
-        // -- update the movelist according to the moves in the current game --
+        boardPanel.setAndDrawBoard(game.getCurBoard());
+        // -- update the move list according to the moves in the current game --
         moveList.drawMove(game);
         // -- get the current status of the game --
         int status = game.getStatus();
 
         // -- find out state of the game --
         switch (status) {
-
             case Game.GAME_INITIALIZED:
                 gameInitializedGuiUpdate(game, event);
                 break;
@@ -454,7 +453,7 @@ public final class SwingGUI implements UserInterface {
     /**
      * This method is called when we want to exit the application
      */
-    public void exitReversi() {
+    public void exitChessly() {
         if (mainWindow.userConfirmation("Do you really want to quit?") == JOptionPane.NO_OPTION) {
             return;
         }
@@ -469,7 +468,7 @@ public final class SwingGUI implements UserInterface {
         // -- save the window state --
         windowState.save();
         // -- tell the model to clean up and exit the programm--
-        this._MVController.exitReversi();
+        this._MVController.exitChessly();
     }
 
     /**
@@ -637,6 +636,21 @@ public final class SwingGUI implements UserInterface {
         } catch (InterruptedException e) {
             // ignore
         }
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.ui.UserInterface#waitForUI()
+     */
+    @Override
+    public void waitForUI() {
+        // wait for the UI to show before returning
+        do {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                return;
+            }
+        } while (mainWindow == null || !mainWindow.isShowing());
     }
 
     /**

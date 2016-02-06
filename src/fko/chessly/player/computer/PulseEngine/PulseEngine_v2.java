@@ -67,6 +67,8 @@ import fko.chessly.openingbook.OpeningBookImpl;
 import fko.chessly.player.AbstractPlayer.PlayerStatusController;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
+import fko.chessly.player.computer.Engine;
+import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.PulseEngine.MoveList.Entry;
 import fko.chessly.player.computer.PulseEngine.MoveList.MoveVariation;
 import fko.chessly.util.HelperTools;
@@ -103,7 +105,7 @@ import fko.chessly.util.HelperTools;
  *
  * @author Frank Kopp, Phokham Nonava
  */
-public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.chessly.player.computer.EngineWatcher {
+public class PulseEngine_v2 implements Engine, ObservableEngine {
 
     /**
      * read in the default configuration - change the public fields if necessary
@@ -151,7 +153,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
     private int _currentMoveNumber = 0;
     private int _currrentExtraSearchDepth = 0;
 
-    // is set when obort conditionare met - stops recursions at certain points
+    // is set when abort conditions are met - stops recursions at certain points
     private boolean _abort = false;
 
     // some counters
@@ -193,13 +195,19 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
     private Board _ponderBoard = null;
     private boolean _isPondering;
 
+    /*
+     * A string holding the current status of the engine for the ui.
+     * E.g. "thinking", "waiting", "pondering on e2-e4", "book move"
+     */
+    private String _statusInfo;
+
 
     // Constructor ----------------------------------------------
 
     /**
      * Generates an instance of this Engine implementation.
      * It initializes caches, move generators and the opening book if these features
-     * are enabled by propersties, options or code.
+     * are enabled by properties, options or code.
      */
     public PulseEngine_v2() {
         super();
@@ -245,6 +253,8 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
         if (_config._USE_PONDERER) {
             _ponderer = new Ponderer(_player.getName());
         }
+
+        _statusInfo = "Engine initialized.";
 
     }
 
@@ -319,6 +329,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
 
         // no book move found
         if (move == null) {
+            _statusInfo = "Engine calculating... ";
             // Search
             prepareSearch();
             int bestMove = iterativeSearch(convertedBoard);
@@ -328,6 +339,8 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
             // prepare pondering
             _ponderBoard = convertedBoard;
             _ponderBoard.makeMove(bestMove);
+        } else {
+            _statusInfo = "Engine opening book move "+move;
         }
 
         if (_timer != null) {
@@ -370,7 +383,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
         // Should not happen!
         // We cannot search further.
         if (_rootMoves.size == 0) {
-            assert false;
+            //assert false;
             // send NOMOVE if we got this board
             // let the outside deal with this
             return Move.NOMOVE;
@@ -964,6 +977,8 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
      */
     private void startPondering() {
 
+        _statusInfo = "Engine pondering... ";
+
         // Signals the ponderer to start pondering
         _timeToPonder=true;
 
@@ -980,6 +995,8 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
      * to interfere with each other.
      */
     private void stopPondering() {
+
+        _statusInfo = "Engine waiting";
 
         // Signals the ponderer to stop pondering
         _timeToPonder=false;
@@ -1378,8 +1395,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
      */
     @Override
     public void setNumberOfThreads(int n) {
-        // TODO Auto-generated method stub
-
+        // ignore
     }
 
     /**
@@ -1546,6 +1562,14 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
         return s;
     }
 
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getStatus()
+     */
+    @Override
+    public String getStatus() {
+        return _statusInfo;
+    }
+
     /**
      * This TimeKeeper class is used to implement a Timer that calls this Timekeeper when a time limit has been
      * reached. This TimeKeeper then sets the time limit reached flags.
@@ -1679,6 +1703,8 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
             // the most likely white move from the last PV
             if (_pv[0] != null && _pv[0].size > 1 && _pv[0].moves[1] != Move.NOMOVE) {
 
+                _statusInfo = "Engine pondering on move " + Move.toString(_pv[0].moves[1])
+                ;
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Pondering over move %s%n",Move.toString(_pv[0].moves[1]));
                     printInfo(info);
@@ -1692,6 +1718,7 @@ public class PulseEngine_v2 implements fko.chessly.player.computer.Engine, fko.c
                 iterativeSearch(_ponderBoard);
 
             } else {
+                _statusInfo = "Engine waiting.";
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Nothing to ponder%n");
                     printInfo(info);

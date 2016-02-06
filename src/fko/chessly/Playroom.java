@@ -694,14 +694,14 @@ public class Playroom extends ModelObservable implements Runnable {
     /**
      * Clean up playroom and call Chessly.exit()
      */
-    public void exitReversi() {
+    public void exitChessly() {
 
         // Tell the current game to stop
         if (_playroomThread!=null && _playroomThread.isAlive()) {
             stopPlayroom();
         }
         // Call the exit mothod of Chessly to let that class also do some cleanup
-        Chessly.exitReversi();
+        Chessly.exitChessly();
     }
 
     /** */

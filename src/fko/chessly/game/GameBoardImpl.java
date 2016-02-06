@@ -121,7 +121,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     protected GameMoveList _moveListCache = null;
     protected boolean _moveListCacheValid = false;
 
-    // Contructors START -----------------------------------------
+    // Constructors START -----------------------------------------
 
     /**
      * Creates a standard Chessly board and initialises it with standard chess
@@ -220,7 +220,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         for (int col = 0; col < DIM; col++) {
             for (int row = 0; row < DIM; row++) {
                 // we can't do an arraycopy here as we do not know the
-                // implemantation of the old board
+                // Implementation of the old board
                 _fields[col][row] = oldBoard.getPiece(col + 1, row + 1) == null ? null
                         : (GamePiece) oldBoard.getPiece(col + 1, row + 1)
                         .clone();
@@ -1374,6 +1374,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // Standard Start Board
         setupFromFEN(fen);
 
+        // DEBUG
+        //setupFromFEN("8/1P6/6k1/8/8/8/p1K5/8 w - - 0 1");
+
         // Test - Mate in 2
         //setupFromFEN("1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1");
 
@@ -1729,8 +1732,7 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
     /*
      * (non-Javadoc)
      *
-     * @see java.lang.Object#equals(java.lang.Object) TODO: Board.equals() - not
-     * sure if this is sufficient - equals should probably check on Interface
+     * @see java.lang.Object#equals(java.lang.Object)
      * Board not on BoardImpl
      */
     @Override

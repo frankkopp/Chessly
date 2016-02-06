@@ -161,8 +161,8 @@ public class MVController {
     /**
      * Tell the model to clean up and exit
      */
-    public void exitReversi() {
-        _model.exitReversi();
+    public void exitChessly() {
+        _model.exitChessly();
     }
 
     /**
@@ -261,7 +261,7 @@ public class MVController {
     /**
      * displays a dialog to set the number of threads
      */
-    public void numberOfTreadsDialog() {
+    public void numberOfThreadsDialog() {
         EngineThreadsDialog dialog = new EngineThreadsDialog(_ui);
         AbstractDialog.centerComponent(dialog);
         dialog.setVisible(true);

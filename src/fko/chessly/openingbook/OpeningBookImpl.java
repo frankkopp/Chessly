@@ -48,9 +48,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,15 +69,13 @@ import fko.chessly.util.HelperTools;
  * result in serialized bin files. Implemented are SAN, SIMPLE and SER. ToDo:
  * PGN.
  *
- * TODO: No SER mode - only Cache Logic (present>use, not present create)
- *
- * @author fkopp
+ * @author Frank Kopp
  */
 public class OpeningBookImpl implements OpeningBook, Serializable {
 
     private static final long serialVersionUID = -6462934049609479248L;
 
-    private Openingbook_Configuration _config = new Openingbook_Configuration();
+    protected Openingbook_Configuration _config = new Openingbook_Configuration();
 
     /**
      * this is the book mapping itself - Key, Value
@@ -85,11 +83,15 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * Value is BookEntry object
      * Trying different Collection implementations for it.
      */
-    private HashMap<String, OpeningBook_Entry> bookMap = new HashMap<String, OpeningBook_Entry>(10000);
+    private Map<String, OpeningBook_Entry> bookMap = Collections.synchronizedMap(new HashMap<String, OpeningBook_Entry>(10000));
 
     private Engine _engine;
     private Path _path;
     private boolean _isInitialized = false;
+
+    // -- helps with process output
+    private int _counter = 0;
+    private Object _counterLock = new Object();
 
     /**
      * Constructor
@@ -115,43 +117,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     // --- START OF INTERFACE METHODS
 
     /**
-     * @see fko.chessly.openingbook.OpeningBook#initialize()
-     */
-    @Override
-    public void initialize() {
-
-        if (_isInitialized) return;
-
-        if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Opening Book initialization...%n"));
-        }
-
-        System.gc();
-        long memStart = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-
-        long start = System.currentTimeMillis();
-
-        // setup the root node
-        bookMap.put(NotationHelper.StandardBoardFEN, new OpeningBook_Entry(NotationHelper.StandardBoardFEN));
-
-        readBookfromFile(_path);
-
-        long time = System.currentTimeMillis() - start;
-
-        System.gc();
-        long memEnd = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-
-        if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Memory used at Start: %s MB %n", HelperTools.getMBytes(memStart)));
-            _engine.printInfo(String.format("Memory used at End: %s MB%n", HelperTools.getMBytes(memEnd)));
-            _engine.printInfo(String.format("Memory used by Opening Book: ~%s MB%n", HelperTools.getMBytes(memEnd - memStart)));
-            _engine.printInfo(String.format("Opening Book initialization took %f sec.%n%n", (time / 1000f)));
-        }
-
-        _isInitialized = true;
-    }
-
-    /**
      * Selects a random move from available opening book moves of a position.
      *
      * @see fko.chessly.openingbook.OpeningBook#getBookMove(java.lang.String)
@@ -173,6 +138,45 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         return move;
     }
 
+    /**
+     * @see fko.chessly.openingbook.OpeningBook#initialize()
+     */
+    @Override
+    public void initialize() {
+
+        if (_isInitialized) return;
+
+        if (_config.VERBOSE) {
+            printInfo(String.format("Opening Book initialization...%n"));
+        }
+
+        System.gc();
+        long memStart = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+        long start = System.currentTimeMillis();
+
+        // setup the root node
+        bookMap.put(NotationHelper.StandardBoardFEN, new OpeningBook_Entry(NotationHelper.StandardBoardFEN));
+
+        readBookfromFile(_path);
+
+        long time = System.currentTimeMillis() - start;
+
+        System.gc();
+        long memEnd = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+        if (_config.VERBOSE) {
+            printInfo(String.format("Memory used at Start: %s MB %n", HelperTools.getMBytes(memStart)));
+            printInfo(String.format("Memory used at End: %s MB%n", HelperTools.getMBytes(memEnd)));
+            printInfo(String.format("Memory used by Opening Book: ~%s MB%n", HelperTools.getMBytes(memEnd - memStart)));
+            printInfo(String.format("Opening Book initialization took %f sec.%n%n", (time / 1000f)));
+        }
+
+        _isInitialized = true;
+    }
+
+
+
     // --- END OF INTERFACE METHODS
 
     /**
@@ -180,7 +184,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * (serialization) of the book is already present. If present calls
      * readBookfromSERFile().<br/>
      * TODO: trigger regeneration not only when missing
-     * but when file data of original file is newer than the cache file If not
+     * and when file data of original file is newer than the cache file If not
      * uses _mode flag to determine which format to use.<br/>
      * TODO: determine format automatically.
      *
@@ -196,7 +200,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 path = serPath;
             } else {
                 if (_config.VERBOSE)
-                    _engine.printInfo(String.format("Cache file exists but ignored as FORCE_CREATE is set.%n"));
+                    printInfo(String.format("Cache file exists but ignored as FORCE_CREATE is set.%n"));
             }
 
         } else if (path.toFile().exists()) {
@@ -212,15 +216,15 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 readBookfromSERFile(path);
                 break;
             case PGN:
-                readBookfromPGNFile(path);
+                processBookfromPGNFile(path);
                 saveOpeningBooktoSERFile(path);
                 break;
             case SAN:
-                readPlainBookfromFile(path);
+                processAllLines(path);
                 saveOpeningBooktoSERFile(path);
                 break;
             case SIMPLE:
-                readPlainBookfromFile(path);
+                processAllLines(path);
                 saveOpeningBooktoSERFile(path);
                 break;
             default:
@@ -229,7 +233,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     }
 
     /**
-     * Reads all lines from a file into list and reutrns it as a List<String>.
+     * Reads all lines from a file into list and returns it as a List<String>.
      *
      * @param path
      * @return List<String> allLines
@@ -241,11 +245,11 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         List<String> lines = null;
         try {
             if (_config.VERBOSE)
-                _engine.printInfo(String.format("Reading Opening Book...: %s%n",path));
+                printInfo(String.format("Reading Opening Book...: %s%n",path));
             lines = Files.readAllLines(path, charset);
             long time = System.currentTimeMillis() - start;
             if (_config.VERBOSE)
-                _engine.printInfo(String.format("Finished reading %d lines. (%f sec)%n", lines.size(), (time / 1000f)));
+                printInfo(String.format("Finished reading %d lines. (%f sec)%n", lines.size(), (time / 1000f)));
         } catch (CharacterCodingException e) {
             Chessly.criticalError("Opening Book file '" + path + "' has wrong charset (needs to be ISO-8859-1) - not loaded!");
         } catch (IOException e) {
@@ -255,7 +259,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         return lines;
     }
 
-    private void readBookfromPGNFile(Path path) {
+    private void processBookfromPGNFile(Path path) {
 
         List<String> lines = readAllLinesFromFile(path);
 
@@ -274,32 +278,20 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         long start = System.currentTimeMillis();
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Creating internal book...%n"));
+            printInfo(String.format("Creating internal book...%n"));
         }
 
-        // TODO: make this multi threaded
-        int i = 0;
-        for (PGN_Reader.pgnGame game : gameList) {
-
-            // to use the existing method we create a string of moves
+        synchronized (_counterLock) { _counter = 0; }
+        // parallel lambda expression - very fast and cool - needs some synchronizing though
+        gameList.parallelStream().forEach(game -> {
             String moves = game.getMoves().toString();
             moves = moves.replaceAll("[\\[\\],]", "");
-            processSANLine(moves);
-
-            if (_config.VERBOSE && ++i % 1000 == 0) {
-                Formatter f = new Formatter();
-                String s = f.format("%5d ", i).toString();
-                f.close();
-                //_engine.printInfo(s + "\b\b\b\b\b");
-                _engine.printInfo(s + " ");
-            }
-            if (_config.VERBOSE && i % 10000 == 0)
-                _engine.printInfo(String.format("%n"));
-        }
+            processLine(moves);
+        });
 
         long time = System.currentTimeMillis() - start;
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("%nOpening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
+            printInfo(String.format("%nOpening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
         }
     }
 
@@ -309,35 +301,27 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      *
      * @param path
      */
-    private void readPlainBookfromFile(Path path) {
+    private void processAllLines(Path path) {
 
         List<String> lines = readAllLinesFromFile(path);
 
         long start = System.currentTimeMillis();
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Creating internal book...%n"));
+            printInfo(String.format("Creating internal book...%n"));
         }
 
-        // TODO: make this multi threaded
-        int i = 0;
-        for (String line : lines) {
+        synchronized (_counterLock) { _counter = 0; }
+        // parallel lambda expression - very fast and cool - needs some synchronizing though
+        lines.parallelStream().forEach(line -> {
             processLine(line);
-            if (_config.VERBOSE && ++i % 1000 == 0) {
-                Formatter f = new Formatter();
-                String s = f.format("%7d", i).toString();
-                f.close();
-                //_engine.printInfo(s + "\b\b\b\b\b");
-                _engine.printInfo(s + " ");
-            }
-            if (_config.VERBOSE && i % 10000 == 0)
-                _engine.printInfo(String.format("%n"));
-        }
+        });
+
         if (_config.VERBOSE)
-            _engine.printInfo(String.format("%n"));
+            printInfo(String.format("%n"));
 
         long time = System.currentTimeMillis() - start;
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Opening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
+            printInfo(String.format("Opening Book ready! %d Positions (%f sec) %n", bookMap.size(), (time / 1000f)));
         }
     }
 
@@ -348,6 +332,18 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param line
      */
     private void processLine(String line) {
+        synchronized (_counterLock) {
+            _counter++;
+            if (_config.VERBOSE && _counter % 1000 == 0) {
+                printInfo(String.format("%7d ", _counter));
+                if (_config.VERBOSE && _counter % 10000 == 0) {
+                    printInfo(String.format("%n"));
+                }
+            }
+        }
+
+        OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
+        rootEntry.occurenceCounter++;
 
         switch (_config._mode) {
             case SAN:
@@ -355,6 +351,9 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 break;
             case SIMPLE:
                 processSIMPLELine(line);
+                break;
+            case PGN:
+                processSANLine(line);
                 break;
             default:
                 break; // NYI
@@ -369,16 +368,12 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param line
      */
     private void processSANLine(String line) {
-        // System.out.println(line);
-
-        OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
-        rootEntry.occurenceCounter++;
 
         // separate each move
         String[] lineItems = line.split(" ");
 
         // board position
-        GameBoard currentPosition = new GameBoardImpl(rootEntry.position);
+        GameBoard currentPosition = new GameBoardImpl(NotationHelper.StandardBoardFEN);
 
         // iterate over line items
         for (String item : lineItems) {
@@ -417,7 +412,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
                 return;
             }
 
-            // we have succfully made the move
+            // we have successfully made the move
             // get fen notation from position
             String currentFen = currentPosition.toFEN();
 
@@ -428,10 +423,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     }
 
     private void processSIMPLELine(String line) {
-        // System.out.println(line);
-
-        OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
-        rootEntry.occurenceCounter++;
 
         // ignore lines start with a digit
         if (line.matches("^\\d+"))
@@ -447,50 +438,61 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         }
 
         // board position
-        GameBoard currentPosition = new GameBoardImpl(rootEntry.position);
+        GameBoard currentPosition = new GameBoardImpl(NotationHelper.StandardBoardFEN);
 
-        // iterate over line items
-        for (String item : lineItems) {
-            // trim whitespaces
-            item = item.trim();
+        // iterate over line items - not parallel / actually slower as we would have to copy the board.
+        lineItems.stream().forEach(item -> {
+            if (!processSIMPLELineItem(item, currentPosition)) return;
+        });
 
-            GameMove bookMove = null;
-            // try to create a move from it
-            try {
-                bookMove = NotationHelper.createNewMoveFromSimpleNotation(currentPosition, item);
-            } catch (InvalidMoveException e) {
-                // Jump back if the last move from file was not valid.
-                // We will then skip the rest of the line and try the next line.
-                // System.out.println("Invalid Move ");
-                // System.out.println();
-                return;
-            }
-            // System.out.print(m+" ");
+        /*for (String item : lineItems) {
+            if (!processSIMPLELineItem(item, currentPosition)) break;
+        }*/
 
-            // remember last position
-            GameBoard lastPosition = new GameBoardImpl(currentPosition);
-            String lastFen = lastPosition.toFEN();
+    }
 
-            // try to make move
-            try {
-                currentPosition.makeMove(bookMove);
-            } catch (IllegalMoveException e) {
-                // Jump back if the last move from file was not valid.
-                // We will then skip the rest of the line and try the next line.
-                // System.out.println("Illegal Move "+item+Character.LINE_SEPARATOR);
-                // System.out.println();
-                return;
-            }
+    /**
+     * @param item
+     * @param currentPosition
+     * @return
+     */
+    private boolean processSIMPLELineItem(String item, GameBoard currentPosition) {
+        // trim whitespaces
+        item = item.trim();
 
-            // we have succfully made the move
-            // get fen notation from position
-            String currentFen = currentPosition.toFEN();
-
-            addToBook(item, bookMove, lastFen, currentFen);
-
+        GameMove bookMove = null;
+        // try to create a move from it
+        try {
+            bookMove = NotationHelper.createNewMoveFromSimpleNotation(currentPosition, item);
+        } catch (InvalidMoveException e) {
+            // Jump back if the last move from file was not valid.
+            // We will then skip the rest of the line and try the next line.
+            //System.out.println("Invalid Move ");
+            // System.out.println();
+            return false;
         }
-        // System.out.println();
 
+        // remember last position
+        GameBoard lastPosition = new GameBoardImpl(currentPosition);
+        String lastFen = lastPosition.toFEN();
+
+        // try to make move
+        try {
+            currentPosition.makeMove(bookMove);
+        } catch (IllegalMoveException e) {
+            // Jump back if the last move from file was not valid.
+            // We will then skip the rest of the line and try the next line.
+            //System.out.println("Illegal Move "+item+Character.LINE_SEPARATOR);
+            // System.out.println();
+            return false;
+        }
+
+        // we have successfully made the move
+        // get fen notation from position
+        String currentFen = currentPosition.toFEN();
+
+        addToBook(item, bookMove, lastFen, currentFen);
+        return true;
     }
 
     /**
@@ -499,9 +501,9 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param lastFen
      * @param currentFen
      */
-    private void addToBook(String item, GameMove bookMove, String lastFen, String currentFen) {
+    private synchronized void addToBook(String item, GameMove bookMove, String lastFen, String currentFen) {
 
-        // add the new entry to map or increase occurence counter to existing
+        // add the new entry to map or increase occurrence counter to existing
         // entry
         if (bookMap.containsKey(currentFen)) {
             OpeningBook_Entry currentEntry = bookMap.get(currentFen);
@@ -509,7 +511,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             if (!currentFen.equals(currentEntry.position)) {
                 throw new RuntimeException("Hashtable Collision!");
             }
-
             currentEntry.occurenceCounter++;
         } else {
             String key = new String(currentFen);
@@ -533,7 +534,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         if (_config.VERBOSE) {
             start = System.currentTimeMillis();
-            _engine.printInfo(String.format("Saving Open Book to cache file..."));
+            printInfo(String.format("Saving Open Book to cache file..."));
         }
 
         path = FileSystems.getDefault().getPath(_config._serPath, path.getFileName().toString() + ".ser");
@@ -563,7 +564,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         if (result) {
             if (_config.VERBOSE) {
                 time = System.currentTimeMillis() - start;
-                _engine.printInfo(String.format("successful.(%f sec) %n", (time / 1000f)));
+                printInfo(String.format("successful.(%f sec) %n", (time / 1000f)));
             }
         } else {
             if (_config.VERBOSE) {
@@ -587,13 +588,11 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         long start = System.currentTimeMillis();
         try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
             if (_config.VERBOSE) {
-                _engine.printInfo(String.format("Reading Opening Book as SER file: %s%n",path));
+                printInfo(String.format("Reading Opening Book as SER file: %s%n",path));
             }
             ObjectInputStream ois = new ObjectInputStream(in);
 
-            HashMap<String, OpeningBook_Entry> newBookMap = null;
-            newBookMap = (HashMap<String, OpeningBook_Entry>) ois.readObject();
-            bookMap = newBookMap;
+            bookMap = (Map<String, OpeningBook_Entry>) ois.readObject();
 
             ois.close();
 
@@ -616,11 +615,22 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         long time = System.currentTimeMillis() - start;
 
         if (_config.VERBOSE) {
-            _engine.printInfo(String.format("Opening Book ready! %d Positions (%f sec)%n", bookMap.size(), (time / 1000f)));
+            printInfo(String.format("Opening Book ready! %d Positions (%f sec)%n", bookMap.size(), (time / 1000f)));
         }
 
         return true;
 
+    }
+
+    /**
+     * @param info
+     */
+    public void printInfo(String info) {
+        if (_engine != null) {
+            _engine.printInfo(info);
+        } else {
+            System.out.print(info);
+        }
     }
 
     /**

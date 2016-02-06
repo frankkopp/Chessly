@@ -106,7 +106,7 @@ import fko.chessly.util.CmdLineParser;
  * <p>
  * <b>Todo List:</b>
  * <ul>
- * <li>TODO: Drag&Drop move in UI
+ * <li>DONE: Drag&Drop move in UI
  * <li>DONE: Pondering</li>
  * <li>TODO: Show DRAW Reason</li>
  * <li>TODO: Force Move - break thinking<</li>
@@ -145,6 +145,7 @@ public class Chessly {
     public static void main(final String[] args) {
 
         CmdLineParser cp = new CmdLineParser();
+        CmdLineParser.Option javafx   = cp.addBooleanOption('x', "javafx"  );
         CmdLineParser.Option debug    = cp.addBooleanOption('d', "debug"  );
         CmdLineParser.Option start    = cp.addBooleanOption('s', "start"  );
         CmdLineParser.Option cache    = cp.addBooleanOption('c', "cache"  );
@@ -171,6 +172,8 @@ public class Chessly {
         if ((Boolean) cp.getOptionValue(cache)) { changeProperty("engine.cacheEnabled", "true");  }
         if ((Boolean) cp.getOptionValue(nocache)) { changeProperty("engine.cacheEnabled", "false");  }
 
+        if ((Boolean) cp.getOptionValue(javafx)) { changeProperty("ui.class", "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI"); }
+
         // Now create our singleton instance of Chessly
         _myChessly = new Chessly();
 
@@ -178,13 +181,17 @@ public class Chessly {
 
     /**
      * Singleton instance so this constructor is private.
-     * This gets the Playroom instance, creates the gui and adds it to the Playroom instance as an Observer (MVC).
+     * This gets the Playroom instance, creates the ui and adds it to the Playroom instance as an Observer (MVC).
      */
     private Chessly() {
-        // Create and get an instance of the singleton Playroom class
-        _playroom = Playroom.getInstance();
+
         // Create and get an instance of an interface for Chessly.
         _ui = UserInterfaceFactory.getUI();
+        _ui.waitForUI();
+
+        // Create and get an instance of the singleton Playroom class
+        _playroom = Playroom.getInstance();
+
         // The user interface (View) is an Observer to the Playroom (Model)
         _playroom.addObserver(_ui);
 
@@ -243,7 +250,7 @@ public class Chessly {
     /**
      * Clean up and exit the application
      */
-    public static void exitReversi() {
+    public static void exitChessly() {
         exitReversi(0);
     }
 
