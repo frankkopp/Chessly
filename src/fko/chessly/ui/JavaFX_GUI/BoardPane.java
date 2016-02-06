@@ -185,6 +185,14 @@ public class BoardPane extends Pane {
     }
 
     /**
+     * Resets the board to standard configuration
+     */
+    public void resetBoard() {
+        this._curBoard = null;
+        drawBoard();
+    }
+
+    /**
      * Draws the current board.
      */
     protected void drawBoard() {

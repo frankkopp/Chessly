@@ -405,7 +405,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
         // Sleep a short while to let the UI catch up (book moves are too fast otherwise)
         try {
-            Thread.sleep(250);
+            Thread.sleep(350);
         } catch (InterruptedException e) {
             // ignore
         }

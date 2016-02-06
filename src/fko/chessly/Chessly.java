@@ -181,13 +181,17 @@ public class Chessly {
 
     /**
      * Singleton instance so this constructor is private.
-     * This gets the Playroom instance, creates the gui and adds it to the Playroom instance as an Observer (MVC).
+     * This gets the Playroom instance, creates the ui and adds it to the Playroom instance as an Observer (MVC).
      */
     private Chessly() {
-        // Create and get an instance of the singleton Playroom class
-        _playroom = Playroom.getInstance();
+
         // Create and get an instance of an interface for Chessly.
         _ui = UserInterfaceFactory.getUI();
+        _ui.waitForUI();
+
+        // Create and get an instance of the singleton Playroom class
+        _playroom = Playroom.getInstance();
+
         // The user interface (View) is an Observer to the Playroom (Model)
         _playroom.addObserver(_ui);
 

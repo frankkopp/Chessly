@@ -27,13 +27,7 @@
 
 package fko.chessly.ui;
 
-import java.awt.datatransfer.SystemFlavorMap;
-
-import com.sun.org.apache.bcel.internal.generic.LoadClass;
-
 import fko.chessly.Chessly;
-import sun.reflect.CallerSensitive;
-import sun.reflect.Reflection;
 
 /**
  * <p>A factory to create the user interface.<br>

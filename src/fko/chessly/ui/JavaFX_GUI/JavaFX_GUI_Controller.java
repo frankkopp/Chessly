@@ -20,15 +20,19 @@ import fko.chessly.util.HelperTools;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -39,12 +43,13 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  * Main Controller for the Chessly JavaFX user interface.
@@ -57,8 +62,8 @@ public class JavaFX_GUI_Controller implements Observer {
      * FMXL injected variables are declared at the and of the file!
      */
 
-    // limits the text stored in the info area to prevent out of memory
-    private static final int MAX_LENGTH_INFO_AREA = 20000;
+    // -- to save and restore the last position of our window
+    private static final WindowStateFX windowState = new WindowStateFX();
 
     // reference to the _model (playroom) --
     private Playroom _model;
@@ -68,11 +73,11 @@ public class JavaFX_GUI_Controller implements Observer {
     private final Object _moveReceiverLock = new Object();
 
     // important nodes
-    @SuppressWarnings("unused")
     private Stage _primaryStage;
     private BoardPane _boardPane;
 
     private MoveListModel _moveListModel = new MoveListModel();
+
     @SuppressWarnings("unused")
     private PlayerClockUpdater _clockUpdater;
 
@@ -86,6 +91,23 @@ public class JavaFX_GUI_Controller implements Observer {
 
     private final BooleanProperty _timedGame =
             new SimpleBooleanProperty(this, "timedGame",false);
+
+    // engineInfoUpdater
+    @SuppressWarnings("unused")
+    private EngineInfoUpdater _whiteEngineInfoUpdater;
+    @SuppressWarnings("unused")
+    private EngineInfoUpdater _blackEngineInfoUpdater;
+
+    // engine info windows with text areas
+    private InfoTextArea _infoAreaW =  new InfoTextArea();;
+    private Scene _infoAreaSceneW = new Scene(_infoAreaW);
+    private Stage _popupW = new Stage(StageStyle.UTILITY);
+    private InfoTextArea _infoAreaB =  new InfoTextArea();;
+    private Scene _infoAreaSceneB = new Scene(_infoAreaB);
+    private Stage _popupB = new Stage(StageStyle.UTILITY);
+
+    // the general info pane
+    private InfoTextArea _info_panel;
 
     // ##########################################
     // methods
@@ -120,6 +142,9 @@ public class JavaFX_GUI_Controller implements Observer {
         // add constantly updated memory info into status panel
         addMemLabelUpdater();
 
+        // add engine info updater
+        addEngineUpdater();
+
         // add a updater for the player clocks
         _clockUpdater = new PlayerClockUpdater(
                 whitePlayer_name, white_clock, white_playertype, white_progressbar,
@@ -137,6 +162,92 @@ public class JavaFX_GUI_Controller implements Observer {
 
         // reset the controls to no game
         setControlsNoGame();
+    }
+
+    private void addEngineUpdater() {
+
+        // create updater for engine info - the updater has a thread to update the info fields regularly
+        _whiteEngineInfoUpdater = new EngineInfoUpdater(GameColor.WHITE, new EngineInfoLabels(GameColor.WHITE));
+        _blackEngineInfoUpdater = new EngineInfoUpdater(GameColor.BLACK, new EngineInfoLabels(GameColor.BLACK));
+
+        // on popup close uncheck the checkbox so that external close (window close button)
+        // also uncheck the checkbox
+        _popupW.setOnHidden(e -> {showVerboseInfo_checkboxW.setSelected(false);});
+        _popupB.setOnHidden(e -> {showVerboseInfo_checkboxB.setSelected(false);});
+
+        // FIXME - windows stay always in front - this does not help
+        _popupW.setAlwaysOnTop(false);
+        _popupB.setAlwaysOnTop(false);
+
+        // move the engine info windows with the main window.
+        _primaryStage.xProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                double offset_X_W = _popupW.getX() - oldValue.doubleValue();
+                double offset_X_B = _popupB.getX() - oldValue.doubleValue();
+                _popupW.setX(newValue.doubleValue()+offset_X_W);
+                _popupB.setX(newValue.doubleValue()+offset_X_B);
+            }
+        });
+        _primaryStage.yProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                double offset_Y_W = _popupW.getY() - oldValue.doubleValue();
+                double offset_Y_B = _popupB.getY() - oldValue.doubleValue();
+                _popupW.setY(newValue.doubleValue()+offset_Y_W);
+                _popupB.setY(newValue.doubleValue()+offset_Y_B);
+            }
+        });
+
+        // bring the correct engine info area to front when engine info tab is selected
+        white_enginetab.setOnSelectionChanged(e -> {
+            if (_primaryStage.isFocused() && white_enginetab.isSelected()) _popupW.toFront();
+            else _popupW.toBack();
+        });
+
+        // show the window below the main window when checkbox is selected
+        showVerboseInfo_checkboxW.setOnAction(e -> {
+            if (showVerboseInfo_checkboxW.isSelected()) {
+
+                _popupW.setTitle("White Engine Info");
+                _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
+                _popupW.setHeight(200);
+                _popupW.setX(_primaryStage.getScene().getWindow().getX());
+                _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
+
+                _popupW.setScene(_infoAreaSceneW);
+                _popupW.show();
+
+            } else {
+                _infoAreaW.clear();
+                _popupW.hide();
+            }
+        });
+
+        // bring the correct engine info area to front when engine info tab is selected
+        black_enginetab.setOnSelectionChanged(e -> {
+            if (_primaryStage.isFocused() && black_enginetab.isSelected()) _popupB.toFront();
+            else _popupB.toBack();
+        });
+
+        // show the window below the main window when checkbox is selected
+        showVerboseInfo_checkboxB.setOnAction(e -> {
+            if (showVerboseInfo_checkboxB.isSelected()) {
+
+                _popupB.setTitle("Black Engine Info");
+                _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
+                _popupB.setHeight(200);
+                _popupB.setX(_primaryStage.getScene().getWindow().getX());
+                _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
+
+                _popupB.setScene(_infoAreaSceneB);
+                _popupB.show();
+
+            } else {
+                _infoAreaB.clear();
+                _popupB.hide();
+            }
+        });
     }
 
     /**
@@ -173,6 +284,13 @@ public class JavaFX_GUI_Controller implements Observer {
      * Configures the info_panel
      */
     private void configInfoPanel() {
+        _info_panel = new InfoTextArea();
+        infoTab_pane.getChildren().add(_info_panel);
+        AnchorPane.setLeftAnchor(_info_panel, 0.0);
+        AnchorPane.setRightAnchor(_info_panel, 0.0);
+        AnchorPane.setBottomAnchor(_info_panel, 0.0);
+        AnchorPane.setTopAnchor(_info_panel, 0.0);
+
         printToInfoln();
         printToInfoln("Java GUI started!");
     }
@@ -316,11 +434,8 @@ public class JavaFX_GUI_Controller implements Observer {
      * @param s
      */
     private void printToInfo(String s) {
-        if (info_panel.getLength() > MAX_LENGTH_INFO_AREA) {
-            info_panel.deleteText(0, info_panel.getLength() - MAX_LENGTH_INFO_AREA);
-        }
-        info_panel.appendText(String.format(s));
-        info_panel.setScrollTop(Double.MAX_VALUE);
+        _info_panel.printInfo(String.format(s));
+        //info_panel.setScrollTop(Double.MAX_VALUE);
     }
 
     /**
@@ -336,6 +451,13 @@ public class JavaFX_GUI_Controller implements Observer {
      */
     private void printToInfoln() {
         printToInfo("%n");
+    }
+
+    /**
+     * @return the windowstate
+     */
+    public static WindowStateFX getWindowState() {
+        return windowState;
     }
 
     /*
@@ -358,7 +480,8 @@ public class JavaFX_GUI_Controller implements Observer {
      * @param bT
      */
     public void startNewGame_action(ActionEvent event, String whiteName, PlayerType wT, String blackName, PlayerType bT) {
-        System.out.println("Start New Game ACTION");
+        //System.out.println("Start New Game ACTION");
+        _boardPane.resetBoard();
         _model.setNameWhitePlayer(whiteName);
         _model.setPlayerTypeWhite(wT);
         _model.setNameBlackPlayer(blackName);
@@ -418,15 +541,29 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML
     void close_action(Event event) {
         Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.initOwner(_primaryStage);
         alert.setTitle("Close Chessly");
         alert.setHeaderText("Close Chessly");
         alert.setContentText("Do your really want to close Chessly?");
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK){
+            saveWindowStates();
             Chessly.exitChessly();
         } else {
             // ... user chose CANCEL or closed the dialog
         }
+    }
+
+    /**
+     * Save the current sizes and coordinates of all windows to restore them
+     * when starting up the next time.
+     */
+    private void saveWindowStates() {
+        windowState.setProperty("windowLocationX", String.valueOf(this._primaryStage.getX()));
+        windowState.setProperty("windowLocationY", String.valueOf(this._primaryStage.getY()));
+        windowState.setProperty("windowSizeX", String.valueOf(this._primaryStage.getWidth()));
+        windowState.setProperty("windowSizeY", String.valueOf(this._primaryStage.getHeight()));
+        windowState.save();
     }
 
     @FXML
@@ -609,7 +746,6 @@ public class JavaFX_GUI_Controller implements Observer {
     // Observable updates from Model
     // ##########################################
 
-
     /**
      * Is called whenever the model has changes. Needs to update the GUI accordingly.
      *
@@ -624,7 +760,8 @@ public class JavaFX_GUI_Controller implements Observer {
      */
     @Override
     public void update(Observable model, Object event) {
-        System.out.println("JavaFX Controller: Update from "+event);
+        //System.out.println("JavaFX Controller: Update from "+event);
+        //printToInfoln("Update from "+event);
 
         ModelEvent mevent = (ModelEvent)event;
         // Dispatch the update to the appropriate method
@@ -648,11 +785,15 @@ public class JavaFX_GUI_Controller implements Observer {
      */
     private void updateFromPlayroom(Playroom playroom, ModelEvent event) {
         //System.out.println("JavaFX Controller: Update from "+event);
+        printToInfoln("Update from "+event);
 
         // Playroom is playing - game exists
         if (playroom.isPlaying() && playroom.getCurrentGame() != null) {
+
             // -- game is initialized --
             if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
+                // clear the board panel
+                Platform.runLater(() -> { _boardPane.resetBoard();});
                 // -- now we want to observe the game --
                 playroom.getCurrentGame().addObserver(this);
                 // -- there are human players we need to observe them as well to see if they
@@ -801,7 +942,6 @@ public class JavaFX_GUI_Controller implements Observer {
         showLastMove_menu.setDisable(false);
         showPossibleMoves_menu.setDisable(false);
         about_menu.setDisable(false);
-        tab_pane.getSelectionModel().select(info_tab);
         // clear move list
         _moveListModel.clear();
         statusbar_status_text.setText("New Game started.");
@@ -840,7 +980,6 @@ public class JavaFX_GUI_Controller implements Observer {
         showLastMove_menu.setDisable(false);
         showPossibleMoves_menu.setDisable(false);
         about_menu.setDisable(false);
-        tab_pane.getSelectionModel().select(info_tab);
         statusbar_status_text.setText("Game running.");
     }
 
@@ -868,7 +1007,6 @@ public class JavaFX_GUI_Controller implements Observer {
         showLastMove_menu.setDisable(false);
         showPossibleMoves_menu.setDisable(false);
         about_menu.setDisable(false);
-        tab_pane.getSelectionModel().select(info_tab);
         statusbar_status_text.setText("Game paused.");
     }
 
@@ -896,9 +1034,6 @@ public class JavaFX_GUI_Controller implements Observer {
         showLastMove_menu.setDisable(false);
         showPossibleMoves_menu.setDisable(false);
         about_menu.setDisable(false);
-        tab_pane.getSelectionModel().select(info_tab);
-        // clear move list
-        _moveListModel.clear();
         statusbar_status_text.setText("Game finished.");
     }
 
@@ -961,76 +1096,202 @@ public class JavaFX_GUI_Controller implements Observer {
         showLastMove_menu.setDisable(false);
         showPossibleMoves_menu.setDisable(false);
         about_menu.setDisable(false);
-        tab_pane.getSelectionModel().select(info_tab);
         statusbar_status_text.setText("No game running.");
     }
 
     /**
-     *
+     * From FXML Scene BUIlder() - checks if all elements from the FXML are injected
+     * through assertions.
      */
     private void assertFXids() {
-        assert newGame_button != null : "fx:id=\"newGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert undoMove_button != null : "fx:id=\"undoMove_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack2 != null : "fx:id=\"levelBlack2\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert newGame_menu != null : "fx:id=\"newGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert timeBlack_menu != null : "fx:id=\"timeBlack_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert undoMove_menu != null : "fx:id=\"undoMove_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack8 != null : "fx:id=\"levelBlack8\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack10 != null : "fx:id=\"levelBlack10\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack6 != null : "fx:id=\"levelBlack6\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcUse_labelB != null : "fx:id=\"bcUse_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack4 != null : "fx:id=\"levelBlack4\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert move_table_number != null : "fx:id=\"move_table_number\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncMisses_labelW != null : "fx:id=\"ncMisses_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncSize_labelW != null : "fx:id=\"ncSize_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcUse_labelW != null : "fx:id=\"bcUse_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncHits_labelW != null : "fx:id=\"ncHits_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcHits_labelB != null : "fx:id=\"bcHits_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert black_progressbar != null : "fx:id=\"black_progressbar\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcSize_labelB != null : "fx:id=\"bcSize_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert info_tab != null : "fx:id=\"info_tab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert status_labelW != null : "fx:id=\"status_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert menu_game != null : "fx:id=\"menu_game\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncSize_labelB != null : "fx:id=\"ncSize_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert timeWhite_menu != null : "fx:id=\"timeWhite_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert rootPanel != null : "fx:id=\"rootPanel\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcSize_labelW != null : "fx:id=\"bcSize_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert tab_pane != null : "fx:id=\"tab_pane\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncMisses_labelB != null : "fx:id=\"ncMisses_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert showLastMove_menu != null : "fx:id=\"showLastMove_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert resumeGame_button != null : "fx:id=\"resumeGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert newGame_button != null : "fx:id=\"newGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert status_labelB != null : "fx:id=\"status_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert white_playertype != null : "fx:id=\"white_playertype\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert flip_button != null : "fx:id=\"flip_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert statusbar_copyright_test != null : "fx:id=\"statusbar_copyright_test\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert nonQuiet_labelB != null : "fx:id=\"nonQuiet_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert black_clock != null : "fx:id=\"black_clock\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert undoMove_menu != null : "fx:id=\"undoMove_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert about_menu != null : "fx:id=\"menu_about\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert flip_menu != null : "fx:id=\"flip_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table_number != null : "fx:id=\"move_table_number\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert config_labelB != null : "fx:id=\"config_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert blackPlayer_name != null : "fx:id=\"blackPlayer_name\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_help != null : "fx:id=\"menu_help\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert nonQuiet_labelW != null : "fx:id=\"nonQuiet_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert close_menu != null : "fx:id=\"close_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite10 != null : "fx:id=\"levelWhite10\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert black_enginetab != null : "fx:id=\"black_enginetab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack != null : "fx:id=\"levelBlack\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncHits_labelB != null : "fx:id=\"ncHits_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert board_panel_grid != null : "fx:id=\"board_panel_grid\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bestMove_labelB != null : "fx:id=\"bestMove_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert move_table_white != null : "fx:id=\"move_table_white\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcMisses_labelB != null : "fx:id=\"bcMisses_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert resumeGame_menu != null : "fx:id=\"resumeGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack20 != null : "fx:id=\"levelBlack20\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert stopGame_menu != null : "fx:id=\"stopGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert menu_moves != null : "fx:id=\"menu_moves\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert time_labelW != null : "fx:id=\"time_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlackMax != null : "fx:id=\"levelBlackMax\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhiteMax != null : "fx:id=\"levelWhiteMax\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert white_progressbar != null : "fx:id=\"white_progressbar\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcHits_labelW != null : "fx:id=\"bcHits_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert time_labelB != null : "fx:id=\"time_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bcMisses_labelW != null : "fx:id=\"bcMisses_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert currentMove_labelB != null : "fx:id=\"currentMove_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite6 != null : "fx:id=\"levelWhite6\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert nodes_labelB != null : "fx:id=\"nodes_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert showVerboseInfo_checkboxB != null : "fx:id=\"showVerboseInfo_checkboxB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite8 != null : "fx:id=\"levelWhite8\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert about_menu != null : "fx:id=\"about_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert bestMove_labelW != null : "fx:id=\"bestMove_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite2 != null : "fx:id=\"levelWhite2\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite4 != null : "fx:id=\"levelWhite4\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert stopGame_button != null : "fx:id=\"stopGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert pauseGame_button != null : "fx:id=\"pauseGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert pauseGame_menu != null : "fx:id=\"pauseGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_level != null : "fx:id=\"menu_level\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert black_progressbar != null : "fx:id=\"black_progressbar\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table != null : "fx:id=\"move_table\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert close_menu != null : "fx:id=\"close_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert black_enginetab != null : "fx:id=\"black_enginetab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert white_enginetab != null : "fx:id=\"white_enginetab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert currentMove_labelW != null : "fx:id=\"currentMove_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert statusbar_mem_text != null : "fx:id=\"statusbar_mem_text\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert info_tab != null : "fx:id=\"info_tab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert board_panel_grid != null : "fx:id=\"board_panel_grid\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table_white != null : "fx:id=\"move_table_white\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert depth_labelW != null : "fx:id=\"depth_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert config_labelW != null : "fx:id=\"config_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert move_table_black != null : "fx:id=\"move_table_black\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert resumeGame_menu != null : "fx:id=\"resumeGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert newGame_menu != null : "fx:id=\"menu_newGame\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_game != null : "fx:id=\"menu_game\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert stopGame_menu != null : "fx:id=\"stopGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_moves != null : "fx:id=\"menu_moves\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert nodes_labelW != null : "fx:id=\"nodes_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert showPossibleMoves_menu != null : "fx:id=\"showPossibleMoves_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert white_clock != null : "fx:id=\"white_clock\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert boards_labelB != null : "fx:id=\"boards_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert depth_labelB != null : "fx:id=\"depth_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert whitePlayer_name != null : "fx:id=\"whitePlayer_name\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite20 != null : "fx:id=\"levelWhite20\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert boards_labelW != null : "fx:id=\"boards_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert undoMove_button != null : "fx:id=\"undoMove_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert statusbar_copyright_test != null : "fx:id=\"statusbar_copyright_test\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert pv_labelW != null : "fx:id=\"pv_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert speed_labelB != null : "fx:id=\"speed_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncUse_labelW != null : "fx:id=\"ncUse_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert flip_menu != null : "fx:id=\"flip_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert speed_labelW != null : "fx:id=\"speed_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert menu_help != null : "fx:id=\"menu_help\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert menu_level != null : "fx:id=\"menu_level\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert pv_labelB != null : "fx:id=\"pv_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert move_table != null : "fx:id=\"move_table\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert white_enginetab != null : "fx:id=\"white_enginetab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelWhite != null : "fx:id=\"levelWhite\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert ncUse_labelB != null : "fx:id=\"ncUse_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert black_playertype != null : "fx:id=\"black_playertype\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert statusbar_status_text != null : "fx:id=\"statusbar_status_text\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert timeWhite_menu != null : "fx:id=\"timeWhite_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert showVerboseInfo_checkboxW != null : "fx:id=\"showVerboseInfo_checkboxW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert menu_board != null : "fx:id=\"menu_board\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
         assert timedGame_menu != null : "fx:id=\"timedGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert rootPanel != null : "fx:id=\"rootPanel\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert tab_pane != null : "fx:id=\"tab_pane\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert info_panel != null : "fx:id=\"info_panel\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert white_progressbar != null : "fx:id=\"white_progressbar\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert whitePlayer_name != null : "fx:id=\"whitePlayer_name\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert showPossibleMoves_menu != null : "fx:id=\"showPossibleMoves_menu1\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert showLastMove_menu != null : "fx:id=\"showLastMove_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert resumeGame_button != null : "fx:id=\"resumeGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert infoTab_pane != null : "fx:id=\"infoTab_pane\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
 
     }
 
+    /**
+     * Helper class to gove the engineInfoUpdater access to all the labels from the FXML
+     */
+    class EngineInfoLabels {
+
+        Tab engineTab;
+        final InfoTextArea infoArea;
+        final Label pv_label;
+        final Label currentMove_label;
+        final Label bestMove_label;
+        final Label depth_label;
+        final Label time_label;
+        final Label nodes_label;
+        final Label speed_label;
+        final Label boards_label;
+        final Label nonQuiet_label;
+        final Label ncSize_label;
+        final Label ncUse_label;
+        final Label ncHits_label;
+        final Label ncMisses_label;
+        final Label bcSize_label;
+        final Label bcUse_label;
+        final Label bcHits_label;
+        final Label bcMisses_label;
+        final Label config_label;
+        final Label status_label;
+
+        /**
+         * @param color
+         */
+        public EngineInfoLabels(GameColor color) {
+            if (!(color==GameColor.WHITE || color == GameColor.BLACK)) {
+                throw new IllegalArgumentException("Invalid Color");
+            }
+            if (color == GameColor.WHITE) {
+                engineTab = white_enginetab;
+                infoArea = _infoAreaW;
+                pv_label = pv_labelW;
+                currentMove_label = currentMove_labelW;
+                bestMove_label = bestMove_labelW;
+                depth_label = depth_labelW;
+                time_label = time_labelW;
+                nodes_label = nodes_labelW;
+                speed_label = speed_labelW;
+                boards_label = boards_labelW;
+                nonQuiet_label = nonQuiet_labelW;
+                ncSize_label = ncSize_labelW;
+                ncUse_label = ncUse_labelW;
+                ncHits_label = ncHits_labelW;
+                ncMisses_label = ncMisses_labelW;
+                bcSize_label = bcSize_labelW;
+                bcUse_label = bcUse_labelW;
+                bcHits_label = bcHits_labelW;
+                bcMisses_label = bcMisses_labelW;
+                config_label = config_labelW;
+                status_label = status_labelW;
+            } else {
+                engineTab = black_enginetab;
+                infoArea = _infoAreaB;
+                pv_label = pv_labelB;
+                currentMove_label = currentMove_labelB;
+                bestMove_label = bestMove_labelB;
+                depth_label = depth_labelB;
+                time_label = time_labelB;
+                nodes_label = nodes_labelB;
+                speed_label = speed_labelB;
+                boards_label = boards_labelB;
+                nonQuiet_label = nonQuiet_labelB;
+                ncSize_label = ncSize_labelB;
+                ncUse_label = ncUse_labelB;
+                ncHits_label = ncHits_labelB;
+                ncMisses_label = ncMisses_labelB;
+                bcSize_label = bcSize_labelB;
+                bcUse_label = bcUse_labelB;
+                bcHits_label = bcHits_labelB;
+                bcMisses_label = bcMisses_labelB;
+                config_label = config_labelB;
+                status_label = status_labelB;
+            }
+        }
+    }
+
     // -- FXML START --
-
-    @FXML // ResourceBundle that was given to the FXMLLoader
-    private ResourceBundle resources;
-
-    @FXML // URL location of the FXML file that was given to the FXMLLoader
-    private URL location;
-
-    @FXML // fx:id="rootPanel"
-    private BorderPane rootPanel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="info_panel"
-    private TextArea info_panel; // Value injected by FXMLLoader
 
     @FXML // fx:id="move_table"
     private TableView<MoveListModel.FullMove> move_table; // Value injected by FXMLLoader
@@ -1044,14 +1305,98 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML // fx:id="move_table_black"
     private TableColumn<MoveListModel.FullMove, String> move_table_black; // Value injected by FXMLLoader
 
-    @FXML // fx:id="newGame_button"
-    private Button newGame_button; // Value injected by FXMLLoader
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
 
-    @FXML // fx:id="undoMove_button"
-    private Button undoMove_button; // Value injected by FXMLLoader
+    @FXML // URL location of the FXML file that was given to the FXMLLoader
+    private URL location;
+
+    @FXML // fx:id="rootPanel"
+    private BorderPane rootPanel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack2"
+    private RadioMenuItem levelBlack2; // Value injected by FXMLLoader
+
+    @FXML // fx:id="newGame_menu"
+    private MenuItem newGame_menu; // Value injected by FXMLLoader
 
     @FXML // fx:id="timeBlack_menu"
     private MenuItem timeBlack_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="undoMove_menu"
+    private MenuItem undoMove_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack8"
+    private RadioMenuItem levelBlack8; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack10"
+    private RadioMenuItem levelBlack10; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack6"
+    private RadioMenuItem levelBlack6; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcUse_labelB"
+    private Label bcUse_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack4"
+    private RadioMenuItem levelBlack4; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncMisses_labelW"
+    private Label ncMisses_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncSize_labelW"
+    private Label ncSize_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcUse_labelW"
+    private Label bcUse_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncHits_labelW"
+    private Label ncHits_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcHits_labelB"
+    private Label bcHits_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="black_progressbar"
+    private ProgressBar black_progressbar; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcSize_labelB"
+    private Label bcSize_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="info_tab"
+    private Tab info_tab; // Value injected by FXMLLoader
+
+    @FXML // fx:id="status_labelW"
+    private Label status_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menu_game"
+    private Menu menu_game; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncSize_labelB"
+    private Label ncSize_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="timeWhite_menu"
+    private MenuItem timeWhite_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcSize_labelW"
+    private Label bcSize_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="tab_pane"
+    private TabPane tab_pane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncMisses_labelB"
+    private Label ncMisses_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="showLastMove_menu"
+    private CheckMenuItem showLastMove_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="resumeGame_button"
+    private Button resumeGame_button; // Value injected by FXMLLoader
+
+    @FXML // fx:id="newGame_button"
+    private Button newGame_button; // Value injected by FXMLLoader
+
+    @FXML // fx:id="status_labelB"
+    private Label status_labelB; // Value injected by FXMLLoader
 
     @FXML // fx:id="white_playertype"
     private Label white_playertype; // Value injected by FXMLLoader
@@ -1059,26 +1404,104 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML // fx:id="flip_button"
     private Button flip_button; // Value injected by FXMLLoader
 
-    @FXML // fx:id="statusbar_copyright_test"
-    private Label statusbar_copyright_test; // Value injected by FXMLLoader
+    @FXML // fx:id="nonQuiet_labelB"
+    private Label nonQuiet_labelB; // Value injected by FXMLLoader
 
     @FXML // fx:id="black_clock"
     private Label black_clock; // Value injected by FXMLLoader
 
-    @FXML // fx:id="undoMove_menu"
-    private MenuItem undoMove_menu; // Value injected by FXMLLoader
-
-    @FXML // fx:id="menu_about"
-    private MenuItem about_menu; // Value injected by FXMLLoader
-
-    @FXML // fx:id="flip_menu"
-    private MenuItem flip_menu; // Value injected by FXMLLoader
+    @FXML // fx:id="config_labelB"
+    private Label config_labelB; // Value injected by FXMLLoader
 
     @FXML // fx:id="blackPlayer_name"
     private Label blackPlayer_name; // Value injected by FXMLLoader
 
-    @FXML // fx:id="menu_help"
-    private Menu menu_help; // Value injected by FXMLLoader
+    @FXML // fx:id="nonQuiet_labelW"
+    private Label nonQuiet_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="close_menu"
+    private MenuItem close_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite10"
+    private RadioMenuItem levelWhite10; // Value injected by FXMLLoader
+
+    @FXML // fx:id="black_enginetab"
+    private Tab black_enginetab; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack"
+    private ToggleGroup levelBlack; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncHits_labelB"
+    private Label ncHits_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="board_panel_grid"
+    private GridPane board_panel_grid; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bestMove_labelB"
+    private Label bestMove_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcMisses_labelB"
+    private Label bcMisses_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="resumeGame_menu"
+    private MenuItem resumeGame_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlack20"
+    private RadioMenuItem levelBlack20; // Value injected by FXMLLoader
+
+    @FXML // fx:id="stopGame_menu"
+    private MenuItem stopGame_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menu_moves"
+    private Menu menu_moves; // Value injected by FXMLLoader
+
+    @FXML // fx:id="time_labelW"
+    private Label time_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelBlackMax"
+    private RadioMenuItem levelBlackMax; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhiteMax"
+    private RadioMenuItem levelWhiteMax; // Value injected by FXMLLoader
+
+    @FXML // fx:id="white_progressbar"
+    private ProgressBar white_progressbar; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcHits_labelW"
+    private Label bcHits_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="time_labelB"
+    private Label time_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bcMisses_labelW"
+    private Label bcMisses_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="currentMove_labelB"
+    private Label currentMove_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite6"
+    private RadioMenuItem levelWhite6; // Value injected by FXMLLoader
+
+    @FXML // fx:id="nodes_labelB"
+    private Label nodes_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="showVerboseInfo_checkboxB"
+    private CheckBox showVerboseInfo_checkboxB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite8"
+    private RadioMenuItem levelWhite8; // Value injected by FXMLLoader
+
+    @FXML // fx:id="about_menu"
+    private MenuItem about_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="bestMove_labelW"
+    private Label bestMove_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite2"
+    private RadioMenuItem levelWhite2; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite4"
+    private RadioMenuItem levelWhite4; // Value injected by FXMLLoader
 
     @FXML // fx:id="stopGame_button"
     private Button stopGame_button; // Value injected by FXMLLoader
@@ -1089,56 +1512,80 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML // fx:id="pauseGame_menu"
     private MenuItem pauseGame_menu; // Value injected by FXMLLoader
 
-    @FXML // fx:id="menu_level"
-    private Menu menu_level; // Value injected by FXMLLoader
-
-    @FXML // fx:id="black_progressbar"
-    private ProgressBar black_progressbar; // Value injected by FXMLLoader
-
-    @FXML // fx:id="close_menu"
-    private MenuItem close_menu; // Value injected by FXMLLoader
-
-    @FXML // fx:id="black_enginetab"
-    private Tab black_enginetab; // Value injected by FXMLLoader
-
-    @FXML // fx:id="white_enginetab"
-    private Tab white_enginetab; // Value injected by FXMLLoader
+    @FXML // fx:id="currentMove_labelW"
+    private Label currentMove_labelW; // Value injected by FXMLLoader
 
     @FXML // fx:id="statusbar_mem_text"
     private Label statusbar_mem_text; // Value injected by FXMLLoader
 
-    @FXML // fx:id="tab_pane"
-    private TabPane tab_pane; // Value injected by FXMLLoader
+    @FXML // fx:id="depth_labelW"
+    private Label depth_labelW; // Value injected by FXMLLoader
 
-    @FXML // fx:id="info_tab"
-    private Tab info_tab; // Value injected by FXMLLoader
+    @FXML // fx:id="config_labelW"
+    private Label config_labelW; // Value injected by FXMLLoader
 
-    @FXML // fx:id="board_panel_grid"
-    private GridPane board_panel_grid; // Value injected by FXMLLoader
-
-    @FXML // fx:id="resumeGame_menu"
-    private MenuItem resumeGame_menu; // Value injected by FXMLLoader
-
-    @FXML // fx:id="menu_newGame"
-    private MenuItem newGame_menu; // Value injected by FXMLLoader
-
-    @FXML // fx:id="menu_game"
-    private Menu menu_game; // Value injected by FXMLLoader
-
-    @FXML // fx:id="stopGame_menu"
-    private MenuItem stopGame_menu; // Value injected by FXMLLoader
-
-    @FXML // fx:id="showLastMove_menu"
-    private CheckMenuItem showLastMove_menu; // Value injected by FXMLLoader
+    @FXML // fx:id="nodes_labelW"
+    private Label nodes_labelW; // Value injected by FXMLLoader
 
     @FXML // fx:id="showPossibleMoves_menu"
     private CheckMenuItem showPossibleMoves_menu; // Value injected by FXMLLoader
 
-    @FXML // fx:id="menu_moves"
-    private Menu menu_moves; // Value injected by FXMLLoader
-
     @FXML // fx:id="white_clock"
     private Label white_clock; // Value injected by FXMLLoader
+
+    @FXML // fx:id="boards_labelB"
+    private Label boards_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="depth_labelB"
+    private Label depth_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="whitePlayer_name"
+    private Label whitePlayer_name; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite20"
+    private RadioMenuItem levelWhite20; // Value injected by FXMLLoader
+
+    @FXML // fx:id="boards_labelW"
+    private Label boards_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="undoMove_button"
+    private Button undoMove_button; // Value injected by FXMLLoader
+
+    @FXML // fx:id="statusbar_copyright_test"
+    private Label statusbar_copyright_test; // Value injected by FXMLLoader
+
+    @FXML // fx:id="pv_labelW"
+    private Label pv_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="speed_labelB"
+    private Label speed_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncUse_labelW"
+    private Label ncUse_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="flip_menu"
+    private MenuItem flip_menu; // Value injected by FXMLLoader
+
+    @FXML // fx:id="speed_labelW"
+    private Label speed_labelW; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menu_help"
+    private Menu menu_help; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menu_level"
+    private Menu menu_level; // Value injected by FXMLLoader
+
+    @FXML // fx:id="pv_labelB"
+    private Label pv_labelB; // Value injected by FXMLLoader
+
+    @FXML // fx:id="white_enginetab"
+    private Tab white_enginetab; // Value injected by FXMLLoader
+
+    @FXML // fx:id="levelWhite"
+    private ToggleGroup levelWhite; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ncUse_labelB"
+    private Label ncUse_labelB; // Value injected by FXMLLoader
 
     @FXML // fx:id="black_playertype"
     private Label black_playertype; // Value injected by FXMLLoader
@@ -1146,8 +1593,8 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML // fx:id="statusbar_status_text"
     private Label statusbar_status_text; // Value injected by FXMLLoader
 
-    @FXML // fx:id="timeWhite_menu"
-    private MenuItem timeWhite_menu; // Value injected by FXMLLoader
+    @FXML // fx:id="showVerboseInfo_checkboxW"
+    private CheckBox showVerboseInfo_checkboxW; // Value injected by FXMLLoader
 
     @FXML // fx:id="menu_board"
     private Menu menu_board; // Value injected by FXMLLoader
@@ -1155,62 +1602,8 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML // fx:id="timedGame_menu"
     private CheckMenuItem timedGame_menu; // Value injected by FXMLLoader
 
-    @FXML // fx:id="white_progressbar"
-    private ProgressBar white_progressbar; // Value injected by FXMLLoader
-
-    @FXML // fx:id="whitePlayer_name"
-    private Label whitePlayer_name; // Value injected by FXMLLoader
-
-    @FXML // fx:id="resumeGame_button"
-    private Button resumeGame_button; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack2"
-    private RadioMenuItem levelBlack2; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite6"
-    private RadioMenuItem levelWhite6; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack8"
-    private RadioMenuItem levelBlack8; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite8"
-    private RadioMenuItem levelWhite8; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack10"
-    private RadioMenuItem levelBlack10; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack6"
-    private RadioMenuItem levelBlack6; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack4"
-    private RadioMenuItem levelBlack4; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite2"
-    private RadioMenuItem levelWhite2; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite4"
-    private RadioMenuItem levelWhite4; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack"
-    private ToggleGroup levelBlack; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite"
-    private ToggleGroup levelWhite; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlack20"
-    private RadioMenuItem levelBlack20; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelBlackMax"
-    private RadioMenuItem levelBlackMax; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhiteMax"
-    private RadioMenuItem levelWhiteMax; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite10"
-    private RadioMenuItem levelWhite10; // Value injected by FXMLLoader
-
-    @FXML // fx:id="levelWhite20"
-    private RadioMenuItem levelWhite20; // Value injected by FXMLLoader
+    @FXML // fx:id="infoTab_pane"
+    private AnchorPane infoTab_pane; // Value injected by FXMLLoader
 
     // -- FXML END --
     // ##############################################################

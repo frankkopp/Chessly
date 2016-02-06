@@ -65,6 +65,7 @@ public class GameClock extends Observable {
 
     /**
      * Creates  a clock.
+     * @param name
      */
     public GameClock(String name) {
         this._playerName = name;
@@ -72,6 +73,7 @@ public class GameClock extends Observable {
 
     /**
      * Creates a clock with given alarm settings.
+     * @param name
      * @param alarmTime in milliseconds
      */
     public GameClock(String name, long alarmTime) {
@@ -81,8 +83,9 @@ public class GameClock extends Observable {
 
     /**
      * Creates a clock with given alarm settings.
+     * @param name
      * @param alarmTime in milliseconds
-     * @param Observer reference
+     * @param o
      */
     public GameClock(String name, long alarmTime, Observer o) {
         this._playerName = name;
@@ -93,7 +96,7 @@ public class GameClock extends Observable {
     /**
      * Sets an alarm and changes status object to given state
      * @param time in milliseconds
-     * @param Oberserver reference
+     * @param o
      */
     public synchronized void setAlarm(long time, Observer o) {
         this._alarmTime = time;
@@ -148,9 +151,8 @@ public class GameClock extends Observable {
     public synchronized long getTime() {
         if (_isRunning) {
             return _timeSoFar + (System.currentTimeMillis() - _lastStartTime);
-        } else {
-            return _timeSoFar;
         }
+        return _timeSoFar;
     }
 
     /**

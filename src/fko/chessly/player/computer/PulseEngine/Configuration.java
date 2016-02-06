@@ -37,11 +37,11 @@ import fko.chessly.openingbook.OpeningBookImpl.Mode;
 public class Configuration {
 
     /** If set to true this object will produce info output to System.out */
-    public boolean VERBOSE_TO_SYSOUT = true;
+    public boolean VERBOSE_TO_SYSOUT = false;
 
     /** verbose output at the root level of the iterative search */
     public boolean VERBOSE_ITERATIVE_SEARCH = false;
-    /** verbose output in the negamax recursion */
+    /** verbose output in the nega-max recursion */
     public boolean VERBOSE_ALPHABETA = false;
     /** verbose output when pondering */
     public boolean VERBOSE_PONDERER = true;

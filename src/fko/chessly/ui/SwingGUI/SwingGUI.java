@@ -638,6 +638,21 @@ public final class SwingGUI implements UserInterface {
         }
     }
 
+    /* (non-Javadoc)
+     * @see fko.chessly.ui.UserInterface#waitForUI()
+     */
+    @Override
+    public void waitForUI() {
+        // wait for the UI to show before returning
+        do {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                return;
+            }
+        } while (mainWindow == null || !mainWindow.isShowing());
+    }
+
     /**
      * Runnable called by the Observer update() method
      * through invokeAndWait() or invokeLater()

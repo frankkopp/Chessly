@@ -34,7 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- *
+ * Represents a properties file with the last window states.
  */
 public class WindowState extends java.util.Properties {
 

@@ -29,6 +29,8 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import org.junit.Test;
 
+import fko.chessly.ui.UserInterface;
+
 
 
 /**
@@ -41,7 +43,7 @@ public class testJavaFX_GUI {
     @Test
     public void test() {
 
-        JavaFX_GUI app = new JavaFX_GUI();
+        UserInterface app = new JavaFX_GUI();
 
         JavaFX_GUI.main(null);
 

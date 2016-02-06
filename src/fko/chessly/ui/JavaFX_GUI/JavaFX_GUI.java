@@ -1,11 +1,13 @@
 package fko.chessly.ui.JavaFX_GUI;
 
+import java.awt.Dimension;
 import java.util.Observable;
 
 import com.sun.javafx.application.PlatformImpl;
 
 import fko.chessly.Chessly;
 import fko.chessly.ui.UserInterface;
+import fko.chessly.ui.SwingGUI.SwingGUI;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -53,14 +55,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
         });
         JavaFX_GUI._instance = this;
 
-        // wait for the UI to show before returning
-        while (_stage == null || !_stage.isShowing()) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                // empty
-            }
-        }
+        waitForUI();
 
     }
 
@@ -81,13 +76,34 @@ public class JavaFX_GUI extends Application implements UserInterface {
 
             Scene scene = new Scene(_root,_root.getPrefWidth(),_root.getPrefHeight());
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-
             _stage.setScene(scene);
-            _stage.setMinHeight(_root.getMinHeight()+40);
-            _stage.setMinWidth(_root.getMinWidth()+20);
+
+            _stage.setMinWidth(740);
+            _stage.setMinHeight(700);
+
+            // -- get last window position and size--
+            double windowLocX = Double.parseDouble(
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationX") == null
+                    ? "100" : JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationX"));
+            double windowLocY = Double.parseDouble(
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationY") == null
+                    ? "200" : JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationY"));
+            double windowSizeX = Double.parseDouble(
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeX") == null
+                    ? "740" : JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeX"));
+            double windowSizeY = Double.parseDouble(
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY") == null
+                    ? "700" : JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY"));
+
+            // -- position and resize the window  --
+            _stage.setX(windowLocX);
+            _stage.setY(windowLocY);
+            _stage.setWidth(windowSizeX);
+            _stage.setHeight(windowSizeY);
+
             _stage.show();
 
-            // closeAction - close app through close action
+            // closeAction - close through close action
             scene.getWindow().setOnCloseRequest(event -> {
                 _controller.close_action(event);
                 event.consume();
@@ -99,13 +115,20 @@ public class JavaFX_GUI extends Application implements UserInterface {
 
     }
 
-    //    /**
-    //     * The UI can be started separately for test purposes. Does not start
-    //     * @param args
-    //     */
-    //    public static void main(String[] args) {
-    //        launch(args);
-    //    }
+    /**
+     * Waits for the UI to show
+     */
+    @Override
+    public void waitForUI() {
+        // wait for the UI to show before returning
+        do {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                //return;
+            }
+        } while (_stage == null || !_stage.isShowing());
+    }
 
     /**
      * @return controller
@@ -136,10 +159,4 @@ public class JavaFX_GUI extends Application implements UserInterface {
         if (_controller!=null) _controller.update(o, arg);
     }
 
-    /**
-     * @return true when highlighting possible moves on the board is activated
-     */
-    public static boolean is_showPossibleMoves() {
-        return _controller.isShowPossibleMoves();
-    }
 }

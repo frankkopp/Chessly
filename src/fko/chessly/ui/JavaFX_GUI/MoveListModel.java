@@ -28,12 +28,16 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.util.Iterator;
 
+import com.sun.javafx.scene.control.Logging;
+
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveList;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import sun.util.logging.PlatformLogger;
+import sun.util.logging.PlatformLogger.Level;
 
 /**
  * This class shows a list of moves in a table within a JScrollpane.
@@ -70,6 +74,13 @@ public class MoveListModel {
      */
     public void updateList(GameMoveList moves) {
 
+        /*
+         * FIXME hack to avoid a INFO message int VirtualFlow.class - bug in JavaFX ?
+         */
+        final PlatformLogger logger = Logging.getControlsLogger();
+        Level old = logger.level();
+        logger.setLevel(Level.OFF);
+
         // clear the old list
         moveList.clear();
 
@@ -89,10 +100,16 @@ public class MoveListModel {
                 moveWhite = null;
                 moveBlack = move;
             }
+
+
             moveList.add(new FullMove(moveWhite, moveBlack));
         }
+        //logger.setLevel(old);
     }
 
+    /**
+     * @return a reference to the move list as observable list.
+     */
     public ObservableList<FullMove> getMoveList() {
         return this.moveList;
     }
