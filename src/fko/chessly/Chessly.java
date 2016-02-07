@@ -125,8 +125,10 @@ public class Chessly {
      * v1.2 - added basic opening book
      * v1.3a - extended opening book
      * v1.4 - added pondering
+     * v1.5 - added JavaFX
+     * v2.0 - JavaFX complete (w.i.p.)
      */
-    public static final String VERSION = "v2.0 beta 1";
+    public static final String VERSION = "v2.0 beta 2";
 
     @SuppressWarnings("unused")
     private static Chessly _myChessly = null;
