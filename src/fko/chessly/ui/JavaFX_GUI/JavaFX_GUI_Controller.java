@@ -67,7 +67,7 @@ public class JavaFX_GUI_Controller implements Observer {
     // -- to save and restore the last position of our window
     private static final WindowStateFX windowState = new WindowStateFX();
 
-    private static final boolean VERBOSE_TO_SYSOUT = true;
+    private static final boolean VERBOSE_TO_SYSOUT = false;
 
     // reference to the _model (playroom) --
     private Playroom _model;
@@ -458,9 +458,7 @@ public class JavaFX_GUI_Controller implements Observer {
         if (VERBOSE_TO_SYSOUT) {
             System.out.print(String.format(s));
         }
-        // With Platform-runLater() this has caused an exception in the Platform code - Java Bug?
-        // This is a workaround
-        Platform.runLater(() -> _info_panel.printInfo(String.format(s)));
+        PlatformUtil.platformRunAndWait(() -> _info_panel.printInfo(String.format(s)));
         //info_panel.setScrollTop(Double.MAX_VALUE);
     }
 
@@ -822,7 +820,7 @@ public class JavaFX_GUI_Controller implements Observer {
             if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
 
                 // clear the board panel
-                Platform.runLater(() -> { _boardPane.resetBoard();});
+                PlatformUtil.platformRunAndWait(() -> {_boardPane.resetBoard();});
 
                 // now we want to observe the game --
                 playroom.getCurrentGame().addObserver(this);
@@ -869,10 +867,7 @@ public class JavaFX_GUI_Controller implements Observer {
                     printToInfoln("");
                 }
             }
-            Platform.runLater(() -> gameOverGuiUpdate(playroom.getCurrentGame(), event));
-
-            // not sure why I had this here - comment out and test
-            //updateFromGame(playroom.getCurrentGame(), event);
+            PlatformUtil.platformRunAndWait(() -> gameOverGuiUpdate(playroom.getCurrentGame(), event));
 
             // Playroom is not playing - game still exists
         } else if (!playroom.isPlaying() && playroom.getCurrentGame() != null) {
@@ -894,12 +889,15 @@ public class JavaFX_GUI_Controller implements Observer {
                     }
                 }
             }
-            updateFromGame(playroom.getCurrentGame(), event);
+            //updateFromGame(playroom.getCurrentGame(), event);
+
             // No game exists
         } else {
-            Platform.runLater(() -> setControlsNoGame());
+            PlatformUtil.platformRunAndWait(() -> setControlsNoGame());
         }
     }
+
+
 
     /**
      * Is called when model Game changed
@@ -910,33 +908,32 @@ public class JavaFX_GUI_Controller implements Observer {
         //System.out.println("JavaFX Controller: Update from "+event);
 
         // -- draw the current board of the current game --
-        Platform.runLater(() -> _boardPane.setAndDrawBoard(game.getCurBoard()));
+        PlatformUtil.platformRunAndWait(() -> {_boardPane.setAndDrawBoard(game.getCurBoard());});
 
         // -- update the move list according to the moves in the current game --
-        //moveList.drawMove(game);
-        Platform.runLater(() -> updateMoveList(game));
+        PlatformUtil.platformRunAndWait(() -> {updateMoveList(game);});
 
         // -- get the current status of the game --
         int status = game.getStatus();
         switch (status) {
             case Game.GAME_INITIALIZED:
-                Platform.runLater(() -> gameInitializedGuiUpdate(game, event));
+                PlatformUtil.platformRunAndWait(() -> gameInitializedGuiUpdate(game, event));
                 break;
 
             case Game.GAME_RUNNING:
-                Platform.runLater(() -> gameRunningGuiUpdate(game, event));
+                PlatformUtil.platformRunAndWait(() -> gameRunningGuiUpdate(game, event));
                 break;
 
             case Game.GAME_OVER:
-                Platform.runLater(() -> gameOverGuiUpdate(game, event));
+                PlatformUtil.platformRunAndWait(() -> gameOverGuiUpdate(game, event));
                 break;
 
             case Game.GAME_PAUSED:
-                Platform.runLater(() -> gamePausedGuiUpdate());
+                PlatformUtil.platformRunAndWait(() -> gamePausedGuiUpdate());
                 break;
 
             case Game.GAME_FINISHED:
-                Platform.runLater(() -> gameFinishedGuiUpdate());
+                PlatformUtil.platformRunAndWait(() -> gameFinishedGuiUpdate());
                 break;
 
             default:
@@ -989,6 +986,7 @@ public class JavaFX_GUI_Controller implements Observer {
         // clear move list
         _moveListModel.clear();
         statusbar_status_text.setText("New Game started.");
+
         //if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
         printToInfoln();
         printToInfoln("--- New Game started ------------------");
