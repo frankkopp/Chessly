@@ -12,7 +12,9 @@ import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.mvc.ModelObservable;
 import fko.chessly.mvc.ModelEvents.ModelEvent;
+import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.HumanPlayer;
 import fko.chessly.player.PlayerType;
 import fko.chessly.ui.JavaFX_GUI.MoveListModel.FullMove;
@@ -65,6 +67,8 @@ public class JavaFX_GUI_Controller implements Observer {
     // -- to save and restore the last position of our window
     private static final WindowStateFX windowState = new WindowStateFX();
 
+    private static final boolean VERBOSE_TO_SYSOUT = false;
+
     // reference to the _model (playroom) --
     private Playroom _model;
 
@@ -101,10 +105,10 @@ public class JavaFX_GUI_Controller implements Observer {
     // engine info windows with text areas
     private InfoTextArea _infoAreaW =  new InfoTextArea();;
     private Scene _infoAreaSceneW = new Scene(_infoAreaW);
-    private Stage _popupW = new Stage(StageStyle.UTILITY);
+    private Stage _popupW = new Stage(StageStyle.DECORATED);
     private InfoTextArea _infoAreaB =  new InfoTextArea();;
     private Scene _infoAreaSceneB = new Scene(_infoAreaB);
-    private Stage _popupB = new Stage(StageStyle.UTILITY);
+    private Stage _popupB = new Stage(StageStyle.DECORATED);
 
     // the general info pane
     private InfoTextArea _info_panel;
@@ -125,7 +129,7 @@ public class JavaFX_GUI_Controller implements Observer {
         assertFXids();
 
         // set convenience reference to primary stage
-        _primaryStage = JavaFX_GUI.getStage();
+        _primaryStage = JavaFX_GUI.getPrimaryStage();
 
         // status bar
         statusbar_status_text.setText("JavaFX GUI started");
@@ -146,16 +150,10 @@ public class JavaFX_GUI_Controller implements Observer {
         addEngineUpdater();
 
         // add a updater for the player clocks
-        _clockUpdater = new PlayerClockUpdater(
-                whitePlayer_name, white_clock, white_playertype, white_progressbar,
-                blackPlayer_name, black_clock, black_playertype, black_progressbar
-                );
+        addClockUpdater();
 
         // bind some controls controls
-        showLastMove_menu.selectedProperty().bindBidirectional(_showLastMove);
-        showPossibleMoves_menu.selectedProperty().bindBidirectional(_showPossibleMoves);
-        _timedGame.set(_model.isTimedGame());
-        timedGame_menu.selectedProperty().bindBidirectional(_timedGame);
+        createBindings();
 
         // configure level menu
         configEngineLevel();
@@ -164,120 +162,12 @@ public class JavaFX_GUI_Controller implements Observer {
         setControlsNoGame();
     }
 
-    private void addEngineUpdater() {
-
-        // create updater for engine info - the updater has a thread to update the info fields regularly
-        _whiteEngineInfoUpdater = new EngineInfoUpdater(GameColor.WHITE, new EngineInfoLabels(GameColor.WHITE));
-        _blackEngineInfoUpdater = new EngineInfoUpdater(GameColor.BLACK, new EngineInfoLabels(GameColor.BLACK));
-
-        // on popup close uncheck the checkbox so that external close (window close button)
-        // also uncheck the checkbox
-        _popupW.setOnHidden(e -> {showVerboseInfo_checkboxW.setSelected(false);});
-        _popupB.setOnHidden(e -> {showVerboseInfo_checkboxB.setSelected(false);});
-
-        // FIXME - windows stay always in front - this does not help
-        _popupW.setAlwaysOnTop(false);
-        _popupB.setAlwaysOnTop(false);
-
-        // move the engine info windows with the main window.
-        _primaryStage.xProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                double offset_X_W = _popupW.getX() - oldValue.doubleValue();
-                double offset_X_B = _popupB.getX() - oldValue.doubleValue();
-                _popupW.setX(newValue.doubleValue()+offset_X_W);
-                _popupB.setX(newValue.doubleValue()+offset_X_B);
-            }
-        });
-        _primaryStage.yProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                double offset_Y_W = _popupW.getY() - oldValue.doubleValue();
-                double offset_Y_B = _popupB.getY() - oldValue.doubleValue();
-                _popupW.setY(newValue.doubleValue()+offset_Y_W);
-                _popupB.setY(newValue.doubleValue()+offset_Y_B);
-            }
-        });
-
-        // bring the correct engine info area to front when engine info tab is selected
-        white_enginetab.setOnSelectionChanged(e -> {
-            if (_primaryStage.isFocused() && white_enginetab.isSelected()) _popupW.toFront();
-            else _popupW.toBack();
-        });
-
-        // show the window below the main window when checkbox is selected
-        showVerboseInfo_checkboxW.setOnAction(e -> {
-            if (showVerboseInfo_checkboxW.isSelected()) {
-
-                _popupW.setTitle("White Engine Info");
-                _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
-                _popupW.setHeight(200);
-                _popupW.setX(_primaryStage.getScene().getWindow().getX());
-                _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
-
-                _popupW.setScene(_infoAreaSceneW);
-                _popupW.show();
-
-            } else {
-                _infoAreaW.clear();
-                _popupW.hide();
-            }
-        });
-
-        // bring the correct engine info area to front when engine info tab is selected
-        black_enginetab.setOnSelectionChanged(e -> {
-            if (_primaryStage.isFocused() && black_enginetab.isSelected()) _popupB.toFront();
-            else _popupB.toBack();
-        });
-
-        // show the window below the main window when checkbox is selected
-        showVerboseInfo_checkboxB.setOnAction(e -> {
-            if (showVerboseInfo_checkboxB.isSelected()) {
-
-                _popupB.setTitle("Black Engine Info");
-                _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
-                _popupB.setHeight(200);
-                _popupB.setX(_primaryStage.getScene().getWindow().getX());
-                _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
-
-                _popupB.setScene(_infoAreaSceneB);
-                _popupB.show();
-
-            } else {
-                _infoAreaB.clear();
-                _popupB.hide();
-            }
-        });
-    }
-
     /**
      * Adds the board panel from the previous Swing UI.
      */
     private void addBoardPanel() {
         _boardPane = new BoardPane(this);
         board_panel_grid.getChildren().add(_boardPane);
-    }
-
-    /**
-     * Adds an updater to the mem label in the status bar
-     */
-    private void addMemLabelUpdater() {
-        Task<Void> dynamicTimeTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                while (true) {
-                    updateMessage(HelperTools.getMBytes(Runtime.getRuntime().freeMemory()) + " MB / "
-                            + HelperTools.getMBytes(Runtime.getRuntime().totalMemory()) + " MB");
-                    try {Thread.sleep(500);} catch (InterruptedException ex) {break;}
-                }
-                return null;
-            }
-        };
-        statusbar_mem_text.textProperty().bind(dynamicTimeTask.messageProperty());
-        Thread t2 = new Thread(dynamicTimeTask);
-        t2.setName("Statusbar Mem Labal Updater");
-        t2.setDaemon(true);
-        t2.start();
     }
 
     /**
@@ -313,6 +203,107 @@ public class JavaFX_GUI_Controller implements Observer {
             }
         }));
 
+    }
+
+    /**
+     * Adds an updater to the mem label in the status bar
+     */
+    private void addMemLabelUpdater() {
+        Task<Void> dynamicTimeTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                while (true) {
+                    updateMessage(HelperTools.getMBytes(Runtime.getRuntime().freeMemory()) + " MB / "
+                            + HelperTools.getMBytes(Runtime.getRuntime().totalMemory()) + " MB");
+                    try {Thread.sleep(500);} catch (InterruptedException ex) {break;}
+                }
+                return null;
+            }
+        };
+        statusbar_mem_text.textProperty().bind(dynamicTimeTask.messageProperty());
+        Thread t2 = new Thread(dynamicTimeTask);
+        t2.setName("Statusbar Mem Labal Updater");
+        t2.setDaemon(true);
+        t2.start();
+    }
+
+    private void addEngineUpdater() {
+
+        // create updater for engine info - the updater has a thread to update the info fields regularly
+        _whiteEngineInfoUpdater = new EngineInfoUpdater(GameColor.WHITE, new EngineInfoLabels(GameColor.WHITE));
+        _blackEngineInfoUpdater = new EngineInfoUpdater(GameColor.BLACK, new EngineInfoLabels(GameColor.BLACK));
+
+        // on popup close uncheck the checkbox so that external close (window close button)
+        // also uncheck the checkbox
+        _popupW.setOnHidden(e -> {showVerboseInfo_checkboxW.setSelected(false);});
+        _popupB.setOnHidden(e -> {showVerboseInfo_checkboxB.setSelected(false);});
+
+        // set the primary window as the owner
+        _popupW.initOwner(_primaryStage);
+        _popupB.initOwner(_primaryStage);
+
+        // move the engine info windows with the main window.
+        _primaryStage.xProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                double offset_X_W = _popupW.getX() - oldValue.doubleValue();
+                double offset_X_B = _popupB.getX() - oldValue.doubleValue();
+                _popupW.setX(newValue.doubleValue()+offset_X_W);
+                _popupB.setX(newValue.doubleValue()+offset_X_B);
+            }
+        });
+        _primaryStage.yProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                double offset_Y_W = _popupW.getY() - oldValue.doubleValue();
+                double offset_Y_B = _popupB.getY() - oldValue.doubleValue();
+                _popupW.setY(newValue.doubleValue()+offset_Y_W);
+                _popupB.setY(newValue.doubleValue()+offset_Y_B);
+            }
+        });
+
+        // bring the correct engine info area to front when engine info tab is selected
+        white_enginetab.setOnSelectionChanged(e -> {
+            if (_primaryStage.isFocused() && white_enginetab.isSelected()) _popupW.toFront();
+        });
+
+        // show the window below the main window when checkbox is selected
+        showVerboseInfo_checkboxW.setOnAction(e -> {
+            showVerboseInfoWhite();
+        });
+
+        // bring the correct engine info area to front when engine info tab is selected
+        black_enginetab.setOnSelectionChanged(e -> {
+            if (_primaryStage.isFocused() && black_enginetab.isSelected()) _popupB.toFront();
+        });
+
+        // show the window below the main window when checkbox is selected
+        showVerboseInfo_checkboxB.setOnAction(e -> {
+            showVerboseInfoBlack();
+        });
+
+        // should the verboseInfo windows be shown from the beginning?
+        // we will call showVerboseInfo... after we created the Stage in the starting class
+        boolean whiteVerboseInfo = Boolean.parseBoolean(
+                JavaFX_GUI_Controller.getWindowState().getProperty("VerboseInfoWhite","false"));
+        boolean blackVerboseInfo = Boolean.parseBoolean(
+                JavaFX_GUI_Controller.getWindowState().getProperty("VerboseInfoBlack","false"));
+        showVerboseInfo_checkboxW.setSelected(whiteVerboseInfo);
+        showVerboseInfo_checkboxB.setSelected(blackVerboseInfo);
+    }
+
+    private void addClockUpdater() {
+        _clockUpdater = new PlayerClockUpdater(
+                whitePlayer_name, white_clock, white_playertype, white_progressbar,
+                blackPlayer_name, black_clock, black_playertype, black_progressbar
+                );
+    }
+
+    private void createBindings() {
+        showLastMove_menu.selectedProperty().bindBidirectional(_showLastMove);
+        showPossibleMoves_menu.selectedProperty().bindBidirectional(_showPossibleMoves);
+        _timedGame.set(_model.isTimedGame());
+        timedGame_menu.selectedProperty().bindBidirectional(_timedGame);
     }
 
     /**
@@ -384,6 +375,44 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
+     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
+     */
+    protected void showVerboseInfoWhite() {
+        if (showVerboseInfo_checkboxW.isSelected()) {
+            _popupW.setTitle("White Engine Info");
+            _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupW.setHeight(200);
+            _popupW.setX(_primaryStage.getScene().getWindow().getX());
+            _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
+            _popupW.setScene(_infoAreaSceneW);
+            _popupW.setMaximized(false);
+            _popupW.show();
+        } else {
+            _infoAreaW.clear();
+            _popupW.hide();
+        }
+    }
+
+    /**
+     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
+     */
+    protected void showVerboseInfoBlack() {
+        if (showVerboseInfo_checkboxB.isSelected()) {
+            _popupB.setTitle("Black Engine Info");
+            _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupB.setHeight(200);
+            _popupB.setX(_primaryStage.getScene().getWindow().getX());
+            _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
+            _popupB.setScene(_infoAreaSceneB);
+            _popupB.setMaximized(false);
+            _popupB.show();
+        } else {
+            _infoAreaB.clear();
+            _popupB.hide();
+        }
+    }
+
+    /**
      * @return true when highlighting last move on the board is activated
      */
     public boolean isShowLastMove() {
@@ -434,7 +463,10 @@ public class JavaFX_GUI_Controller implements Observer {
      * @param s
      */
     private void printToInfo(String s) {
-        _info_panel.printInfo(String.format(s));
+        if (VERBOSE_TO_SYSOUT) {
+            System.out.print(String.format(s));
+        }
+        PlatformUtil.platformRunAndWait(() -> _info_panel.printInfo(String.format(s)));
         //info_panel.setScrollTop(Double.MAX_VALUE);
     }
 
@@ -516,6 +548,7 @@ public class JavaFX_GUI_Controller implements Observer {
         alert.setTitle("Stop currrent gamt");
         alert.setHeaderText("Stop the current game?");
         alert.setContentText("Do you really want to stop the current game?");
+        alert.initOwner(_primaryStage);
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK){
             _model.stopPlayroom();
@@ -563,6 +596,8 @@ public class JavaFX_GUI_Controller implements Observer {
         windowState.setProperty("windowLocationY", String.valueOf(this._primaryStage.getY()));
         windowState.setProperty("windowSizeX", String.valueOf(this._primaryStage.getWidth()));
         windowState.setProperty("windowSizeY", String.valueOf(this._primaryStage.getHeight()));
+        windowState.setProperty("VerboseInfoWhite", String.valueOf(this.showVerboseInfo_checkboxW.isSelected()));
+        windowState.setProperty("VerboseInfoBlack", String.valueOf(this.showVerboseInfo_checkboxB.isSelected()));
         windowState.save();
     }
 
@@ -617,6 +652,7 @@ public class JavaFX_GUI_Controller implements Observer {
             dialog.setTitle("Set Time for "+color+" player");
             dialog.setHeaderText("Time for "+color+" player");
             dialog.setContentText(question);
+            dialog.initOwner(_primaryStage);
             Optional<String> result = dialog.showAndWait();
 
             // User entered value or canceled
@@ -785,25 +821,38 @@ public class JavaFX_GUI_Controller implements Observer {
      */
     private void updateFromPlayroom(Playroom playroom, ModelEvent event) {
         //System.out.println("JavaFX Controller: Update from "+event);
-        printToInfoln("Update from "+event);
+        //printToInfoln("Update from "+event);
 
         // Playroom is playing - game exists
         if (playroom.isPlaying() && playroom.getCurrentGame() != null) {
 
             // -- game is initialized --
             if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
+
                 // clear the board panel
-                Platform.runLater(() -> { _boardPane.resetBoard();});
-                // -- now we want to observe the game --
+                PlatformUtil.platformRunAndWait(() -> {_boardPane.resetBoard();});
+
+                // now we want to observe the game --
                 playroom.getCurrentGame().addObserver(this);
-                // -- there are human players we need to observe them as well to see if they
-                // -- want to have a move
-                if (playroom.getCurrentGame().getPlayerBlack() instanceof HumanPlayer) {
-                    ((Observable) playroom.getCurrentGame().getPlayerBlack()).addObserver(this);
+
+                // observe the players
+                if (playroom.getCurrentGame().getPlayerWhite() instanceof ModelObservable)
+                    ((ModelObservable) playroom.getCurrentGame().getPlayerWhite()).addObserver(this);
+                if (playroom.getCurrentGame().getPlayerBlack() instanceof ModelObservable)
+                    ((ModelObservable) playroom.getCurrentGame().getPlayerBlack()).addObserver(this);
+
+                // observe engines
+                if (playroom.getCurrentGame().getPlayerWhite() instanceof ComputerPlayer) {
+                    if (((ComputerPlayer) playroom.getCurrentGame().getPlayerWhite()).getEngine() instanceof ModelObservable) {
+                        ((ModelObservable) ((ComputerPlayer) playroom.getCurrentGame().getPlayerWhite()).getEngine()).addObserver(this);
+                    }
                 }
-                if (playroom.getCurrentGame().getPlayerWhite() instanceof HumanPlayer) {
-                    ((Observable) playroom.getCurrentGame().getPlayerWhite()).addObserver(this);
+                if (playroom.getCurrentGame().getPlayerBlack() instanceof ComputerPlayer) {
+                    if (((ComputerPlayer) playroom.getCurrentGame().getPlayerBlack()).getEngine() instanceof ModelObservable) {
+                        ((ModelObservable) ((ComputerPlayer) playroom.getCurrentGame().getPlayerBlack()).getEngine()).addObserver(this);
+                    }
                 }
+
                 // -- check if multiple games in a row should be run --
                 if (playroom.getNumberOfGames() > 1) {
                     printToInfoln();
@@ -828,8 +877,7 @@ public class JavaFX_GUI_Controller implements Observer {
                     printToInfoln("");
                 }
             }
-            Platform.runLater(() -> gameOverGuiUpdate(playroom.getCurrentGame(), event));
-            updateFromGame(playroom.getCurrentGame(), event);
+            PlatformUtil.platformRunAndWait(() -> gameOverGuiUpdate(playroom.getCurrentGame(), event));
 
             // Playroom is not playing - game still exists
         } else if (!playroom.isPlaying() && playroom.getCurrentGame() != null) {
@@ -851,12 +899,15 @@ public class JavaFX_GUI_Controller implements Observer {
                     }
                 }
             }
-            updateFromGame(playroom.getCurrentGame(), event);
+            //updateFromGame(playroom.getCurrentGame(), event);
+
             // No game exists
         } else {
-            Platform.runLater(() -> setControlsNoGame());
+            PlatformUtil.platformRunAndWait(() -> setControlsNoGame());
         }
     }
+
+
 
     /**
      * Is called when model Game changed
@@ -867,34 +918,34 @@ public class JavaFX_GUI_Controller implements Observer {
         //System.out.println("JavaFX Controller: Update from "+event);
 
         // -- draw the current board of the current game --
-        Platform.runLater(() -> _boardPane.setAndDrawBoard(game.getCurBoard()));
+        PlatformUtil.platformRunAndWait(() -> {_boardPane.setAndDrawBoard(game.getCurBoard());});
 
         // -- update the move list according to the moves in the current game --
-        //moveList.drawMove(game);
-        Platform.runLater(() -> updateMoveList(game));
+        PlatformUtil.platformRunAndWait(() -> {updateMoveList(game);});
 
         // -- get the current status of the game --
         int status = game.getStatus();
         switch (status) {
             case Game.GAME_INITIALIZED:
-                Platform.runLater(() -> gameInitializedGuiUpdate(game, event));
+                PlatformUtil.platformRunAndWait(() -> gameInitializedGuiUpdate(game, event));
                 break;
 
             case Game.GAME_RUNNING:
-                Platform.runLater(() -> gameRunningGuiUpdate(game, event));
+                PlatformUtil.platformRunAndWait(() -> gameRunningGuiUpdate(game, event));
                 break;
 
             case Game.GAME_OVER:
-                Platform.runLater(() -> gameOverGuiUpdate(game, event));
+                PlatformUtil.platformRunAndWait(() -> gameOverGuiUpdate(game, event));
                 break;
 
             case Game.GAME_PAUSED:
-                Platform.runLater(() -> gamePausedGuiUpdate());
+                PlatformUtil.platformRunAndWait(() -> gamePausedGuiUpdate());
                 break;
 
             case Game.GAME_FINISHED:
-                Platform.runLater(() -> gameFinishedGuiUpdate());
+                PlatformUtil.platformRunAndWait(() -> gameFinishedGuiUpdate());
                 break;
+
             default:
                 break;
         }
@@ -945,6 +996,7 @@ public class JavaFX_GUI_Controller implements Observer {
         // clear move list
         _moveListModel.clear();
         statusbar_status_text.setText("New Game started.");
+
         //if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
         printToInfoln();
         printToInfoln("--- New Game started ------------------");

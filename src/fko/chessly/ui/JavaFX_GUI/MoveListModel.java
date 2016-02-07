@@ -78,7 +78,7 @@ public class MoveListModel {
          * FIXME hack to avoid a INFO message int VirtualFlow.class - bug in JavaFX ?
          */
         final PlatformLogger logger = Logging.getControlsLogger();
-        Level old = logger.level();
+        //Level old = logger.level();
         logger.setLevel(Level.OFF);
 
         // clear the old list

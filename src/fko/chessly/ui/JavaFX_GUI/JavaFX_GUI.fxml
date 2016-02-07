@@ -263,7 +263,7 @@
                         </GridPane>
                         <AnchorPane minWidth="-Infinity" prefHeight="5000.0" prefWidth="250.0">
                            <children>
-                              <TableView fx:id="move_table" minWidth="-Infinity" prefHeight="434.0" prefWidth="210.0" style="-fx-font-size: 10; -fx-font-family: &quot;Lucida Console&quot;;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <TableView fx:id="move_table" prefHeight="434.0" prefWidth="210.0" style="-fx-font-size: 10; -fx-font-family: &quot;Lucida Console&quot;;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <columns>
                                     <TableColumn fx:id="move_table_number" editable="false" maxWidth="-1.0" minWidth="30.0" prefWidth="-1.0" sortable="false" text="#" />
                                     <TableColumn fx:id="move_table_white" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="White Moves" />

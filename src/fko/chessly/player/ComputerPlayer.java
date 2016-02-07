@@ -29,6 +29,7 @@ package fko.chessly.player;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.mvc.ModelEvents.PlayerDependendModelEvent;
 import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.EngineFactory;
 
@@ -94,12 +95,18 @@ public class ComputerPlayer extends AbstractPlayer {
     @Override
     public GameMove getMove() {
         // <ENGINE>
-        return _engine.getNextMove(getCurBoard());
+        setChanged();
+        notifyObservers(new PlayerDependendModelEvent("COMPUTER PLAYER "+getColor()+ " requesting move from engine", this,  SIG_COMPUTERPLAYER_REQUESTING_MOVE_FROM_ENGINE));
+        GameMove nextMove = _engine.getNextMove(getCurBoard());
+        setChanged();
+        notifyObservers(new PlayerDependendModelEvent("COMPUTER PLAYER "+getColor()+ " received move from engine", this,  SIG_COMPUTERPLAYER_RECEIVED_MOVE_FROM_ENGINE));
+        return nextMove;
         // </ENGINE>
     }
 
     /**
      * return the player engine
+     * @return engine
      */
     public Engine getEngine() {
         return _engine;
@@ -124,11 +131,15 @@ public class ComputerPlayer extends AbstractPlayer {
     }
 
     /**
-     * @return
+     * @return _playerStatus
      */
     public PlayerStatusController getPlayerStatus() {
         return _playerStatus;
     }
 
+    /** */
+    public static final int SIG_COMPUTERPLAYER_REQUESTING_MOVE_FROM_ENGINE = 5000;
+    /** */
+    public static final int SIG_COMPUTERPLAYER_RECEIVED_MOVE_FROM_ENGINE = 5010;
 
 }

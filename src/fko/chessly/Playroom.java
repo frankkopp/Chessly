@@ -100,7 +100,7 @@ public class Playroom extends ModelObservable implements Runnable {
     /**
      * Default constructor is private as we are a singleton.
      */
-    protected Playroom() {
+    private Playroom() {
         // empty
     }
 
@@ -212,8 +212,7 @@ public class Playroom extends ModelObservable implements Runnable {
 
         // Tell the views that model has changed --
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM Thread finish",
-                SIG_PLAYROOM_THREAD_END));
+        notifyObservers(new ModelEvent("PLAYROOM Thread finished", SIG_PLAYROOM_THREAD_END));
 
     }
 
@@ -236,8 +235,7 @@ public class Playroom extends ModelObservable implements Runnable {
 
         // Tell the views that model has changed
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM Game created",
-                SIG_PLAYROOM_GAME_CREATED));
+        notifyObservers(new ModelEvent("PLAYROOM Game created", SIG_PLAYROOM_GAME_CREATED));
 
         // Does the actual game playing with the created players and the created game
         playGame(playerBlack, playerWhite);
@@ -260,8 +258,7 @@ public class Playroom extends ModelObservable implements Runnable {
 
         // Tell the views that model has changed
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM Game finished",
-                SIG_PLAYROOM_GAME_FINISHED));
+        notifyObservers(new ModelEvent("PLAYROOM Game finished", SIG_PLAYROOM_GAME_FINISHED));
 
         // clean up player to make it easier for GC
         playerBlack = null;
@@ -318,22 +315,22 @@ public class Playroom extends ModelObservable implements Runnable {
             if (color==GameColor.BLACK) {
                 newPlayer = PlayerFactory.createPlayer(_playerTypeBlack, _namePlayerBlack, GameColor.BLACK);
                 setChanged();
-                notifyObservers(new ModelEvent("PLAYROOM Created player Black",
-                        SIG_PLAYROOM_CREATED_PLAYER_BLACK));
+                notifyObservers(
+                        new ModelEvent("PLAYROOM Created player Black", SIG_PLAYROOM_CREATED_PLAYER_BLACK));
             } else {
                 newPlayer = PlayerFactory.createPlayer(_playerTypeWhite, _namePlayerWhite, GameColor.WHITE);
                 setChanged();
-                notifyObservers(new ModelEvent("PLAYROOM Created player White",
-                        SIG_PLAYROOM_CREATED_PLAYER_WHITE));
+                notifyObservers(
+                        new ModelEvent("PLAYROOM Created player White", SIG_PLAYROOM_CREATED_PLAYER_WHITE));
             }
         } catch (PlayerFactory.PlayerCreationException e) {
             setChanged();
             if (color==GameColor.BLACK) {
-                notifyObservers(new ModelEvent("PLAYROOM Failed to create player Black",
-                        SIG_PLAYROOM_CREATE_PLAYER_BLACK_FAILED));
+                notifyObservers(
+                        new ModelEvent("PLAYROOM Failed to create player Black", SIG_PLAYROOM_CREATE_PLAYER_BLACK_FAILED));
             } else {
-                notifyObservers(new ModelEvent("PLAYROOM Failed to create player White",
-                        SIG_PLAYROOM_CREATE_PLAYER_WHITE_FAILED));
+                notifyObservers(
+                        new ModelEvent("PLAYROOM Failed to create player White", SIG_PLAYROOM_CREATE_PLAYER_WHITE_FAILED));
 
             }
             throw new RuntimeException("Error creating player.",e);
@@ -406,8 +403,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._isTimedGame = boolVal;
         // Tell the views that model has changed --
         this.setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM set_isTimedGame",
-                SIG_PLAYROOM_SET_IS_TIMED_GAME));
+        notifyObservers(new ModelEvent("PLAYROOM set_isTimedGame", SIG_PLAYROOM_SET_IS_TIMED_GAME));
     }
 
     /**
@@ -432,8 +428,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._timeBlack = newTimeBlack;
         // Tell the views that model has changed
         this.setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM set_timeBlack",
-                SIG_PLAYROOM_SET_TIME_BLACK));
+        notifyObservers(new ModelEvent("PLAYROOM set_timeBlack", SIG_PLAYROOM_SET_TIME_BLACK));
     }
 
     /**
@@ -458,8 +453,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._timeWhite = newTimeWhite;
         // Tell the views that model has changed
         this.setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM set_timeWhite",
-                SIG_PLAYROOM_SET_TIME_WHITE));
+        notifyObservers(new ModelEvent("PLAYROOM set_timeWhite", SIG_PLAYROOM_SET_TIME_WHITE));
     }
 
     /**
@@ -486,8 +480,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._currentLevelBlack = newLevelBlack;
         // Tell the views that model has changed
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROMM set_currentLevelBlack",
-                SIG_PLAYROOM_SET_CURRENT_LEVEL_BLACK));
+        notifyObservers(new ModelEvent("PLAYROMM set_currentLevelBlack", SIG_PLAYROOM_SET_CURRENT_LEVEL_BLACK));
     }
 
     /**
@@ -514,8 +507,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._currentLevelWhite = newLevelWhite;
         // Tell the views that model has changed
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROMM set_currentLevelWhite",
-                SIG_PLAYROOM_SET_CURRENT_LEVEL_WHITE));
+        notifyObservers(new ModelEvent("PLAYROMM set_currentLevelWhite", SIG_PLAYROOM_SET_CURRENT_LEVEL_WHITE));
     }
 
     /**
@@ -540,8 +532,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._numberOfGames = newNumberOfGames;
         // Tell the views that model has changed
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROMM set_numberOfGames",
-                SIG_PLAYROOM_SET_NUMBER_OF_GAMES));
+        notifyObservers(new ModelEvent("PLAYROMM set_numberOfGames", SIG_PLAYROOM_SET_NUMBER_OF_GAMES));
     }
 
     /**
@@ -567,8 +558,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._playerTypeBlack = newPlayerTypeBlack;
         // -- tell the views that model has changed --
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM set_playerTypeBlack",
-                SIG_PLAYROOM_SET_PLAYER_TYPE_BLACK));
+        notifyObservers(new ModelEvent("PLAYROOM set_playerTypeBlack", SIG_PLAYROOM_SET_PLAYER_TYPE_BLACK));
     }
 
     /**
@@ -621,8 +611,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._namePlayerBlack = newNameBlackPlayer;
         // -- tell the views that model has changed --
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM set_nameBlackPlayer",
-                SIG_PLAYROOM_SET_NAME_BLACK_PLAYER));
+        notifyObservers(new ModelEvent("PLAYROOM set_nameBlackPlayer", SIG_PLAYROOM_SET_NAME_BLACK_PLAYER));
     }
 
     /**
@@ -647,8 +636,7 @@ public class Playroom extends ModelObservable implements Runnable {
         this._namePlayerWhite = newNameWhitePlayer;
         // -- tell the views that model has changed --
         setChanged();
-        notifyObservers(new ModelEvent("PLAYROOM set_nameWhitePlayer",
-                SIG_PLAYROOM_SET_NAME_WHITE_PLAYER));
+        notifyObservers(new ModelEvent("PLAYROOM set_nameWhitePlayer", SIG_PLAYROOM_SET_NAME_WHITE_PLAYER));
     }
 
     /**

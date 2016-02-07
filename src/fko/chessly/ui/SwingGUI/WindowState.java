@@ -43,6 +43,9 @@ public class WindowState extends java.util.Properties {
     private final static String propertiesFile = '/' + "var/gui/reversi.guid";
     private final static String userDir = System.getProperty("user.dir");
 
+    /**
+     *
+     */
     public WindowState() {
         super();
         String aUserDir = System.getProperty("user.dir");
@@ -67,6 +70,9 @@ public class WindowState extends java.util.Properties {
         }
     }
 
+    /**
+     *
+     */
     public void save() {
         OutputStream out=null;
         try {

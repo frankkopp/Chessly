@@ -30,6 +30,7 @@ import fko.chessly.game.Game;
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameMove;
 import fko.chessly.player.Player;
+import fko.chessly.mvc.ModelObservable;
 
 /**
  * <p>GPL Disclaimer</p>

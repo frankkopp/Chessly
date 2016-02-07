@@ -35,31 +35,6 @@ import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelEvents.ModelEvent;
 
 /**
- * <p>GPL Disclaimer</p>
- * <p>
- * "Chessly by Frank Kopp"
- * Copyright (c) 2003-2015 Frank Kopp
- * mail-to:frank@familie-kopp.de
- *
- * This file is part of "Chessly by Frank Kopp".
- *
- * "Chessly by Frank Kopp" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * "Chessly by Frank Kopp" is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with "Chessly by Frank Kopp"; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * </p>
- *
- * <hr/>
- *
  * A player representing a human usually interacting with a user interface.
  * It provides methods to ask for a move, check if a move is wanted and also a method to receive
  * a move and to give it back to the caller.
@@ -124,7 +99,7 @@ public class HumanPlayer extends AbstractPlayer {
 
         // indicate that we want to get a move
         setChanged();
-        notifyObservers(new ModelEvent("HumanPlayer: wantsMove", SIG_HUMAN_PLAYER_WANTS_MOVE));
+        notifyObservers(new ModelEvent("HUMAN PLAYER requesting move from human (UI)", SIG_HUMAN_PLAYER_WANTS_MOVE));
 
         ModelEvent event = null;
         synchronized (_lock) {
@@ -146,18 +121,18 @@ public class HumanPlayer extends AbstractPlayer {
                 // game is over or stopped
                 if (this.isStopped()) {
                     _move.set(null);
-                    event = new ModelEvent("HumanPlayer: player stopped", SIG_HUMAN_PLAYER_PLAYER_STOPPED);
+                    event = new ModelEvent("HUMAN PLAYER player stopped", SIG_HUMAN_PLAYER_PLAYER_STOPPED);
 
                 } else if (_wantsUndoMove.get()) {
                     _move.set(null);
-                    event = new ModelEvent("HumanPlayer: undoMove", SIG_HUMAN_PLAYER_UNDO_MOVE);
+                    event = new ModelEvent("HUMAN PLAYER requesting UNDO move", SIG_HUMAN_PLAYER_UNDO_MOVE);
 
                 } else if (_isReadyToReturn.get()) {
                     assert _move.get() != null;
-                    event = new ModelEvent("HumanPlayer: hasMove", SIG_HUMAN_PLAYER_HAS_MOVE);
+                    event = new ModelEvent("HUMAN PLAYER received move from human (UI)", SIG_HUMAN_PLAYER_HAS_MOVE);
 
                 } else {
-                    throw new RuntimeException("Human Player: invalid state");
+                    throw new RuntimeException("HUMAN PLAYER invalid state");
                 }
                 _isReadyToReturn.set(true);
                 _wantsMove.set(false);
@@ -214,9 +189,9 @@ public class HumanPlayer extends AbstractPlayer {
     }
 
     // message for the observers
-    public static final int SIG_HUMAN_PLAYER_WANTS_MOVE = 3000;
-    public static final int SIG_HUMAN_PLAYER_HAS_MOVE = 3010;
-    public static final int SIG_HUMAN_PLAYER_UNDO_MOVE = 3015;
-    public static final int SIG_HUMAN_PLAYER_PLAYER_STOPPED = 3020;
+    /** */public static final int SIG_HUMAN_PLAYER_WANTS_MOVE = 3000;
+    /** */public static final int SIG_HUMAN_PLAYER_HAS_MOVE = 3010;
+    /** */public static final int SIG_HUMAN_PLAYER_UNDO_MOVE = 3015;
+    /** */public static final int SIG_HUMAN_PLAYER_PLAYER_STOPPED = 3020;
 
 }
