@@ -42,9 +42,9 @@ public class Configuration {
     /** verbose output at the root level of the iterative search */
     public boolean VERBOSE_ITERATIVE_SEARCH = true;
     /** verbose output in the nega-max recursion */
-    public boolean VERBOSE_ALPHABETA = false;
+    public boolean VERBOSE_ALPHABETA = true;
     /** verbose output when pondering */
-    public boolean VERBOSE_PONDERER = false;
+    public boolean VERBOSE_PONDERER = true;
     /** verbose output for Principal Variation development */
     public boolean VERBOSE_PV = true;
 

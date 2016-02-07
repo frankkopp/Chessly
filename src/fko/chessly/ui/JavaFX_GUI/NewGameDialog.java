@@ -60,11 +60,23 @@ public class NewGameDialog extends Stage {
             Scene scene = new Scene(pane);
             this.setTitle("New Game");
             this.initModality(Modality.WINDOW_MODAL);
-            this.initOwner(JavaFX_GUI.getStage());
+            this.initOwner(JavaFX_GUI.getPrimaryStage());
             this.setScene(scene);
+
+            // TODO: not very nice
+            this.setOnShown((e) -> centerOnPrimaryStage());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Centers this dialog on the center of the primary stage.
+     */
+    private void centerOnPrimaryStage() {
+        Stage stage = JavaFX_GUI.getPrimaryStage();
+        this.setX(stage.getX() + stage.getWidth() / 2 - this.getWidth() / 2);
+        this.setY(stage.getY() + stage.getHeight() / 2 - this.getHeight() / 2);
     }
 }

@@ -129,7 +129,7 @@ public class JavaFX_GUI_Controller implements Observer {
         assertFXids();
 
         // set convenience reference to primary stage
-        _primaryStage = JavaFX_GUI.getStage();
+        _primaryStage = JavaFX_GUI.getPrimaryStage();
 
         // status bar
         statusbar_status_text.setText("JavaFX GUI started");
@@ -150,22 +150,81 @@ public class JavaFX_GUI_Controller implements Observer {
         addEngineUpdater();
 
         // add a updater for the player clocks
-        _clockUpdater = new PlayerClockUpdater(
-                whitePlayer_name, white_clock, white_playertype, white_progressbar,
-                blackPlayer_name, black_clock, black_playertype, black_progressbar
-                );
+        addClockUpdater();
 
         // bind some controls controls
-        showLastMove_menu.selectedProperty().bindBidirectional(_showLastMove);
-        showPossibleMoves_menu.selectedProperty().bindBidirectional(_showPossibleMoves);
-        _timedGame.set(_model.isTimedGame());
-        timedGame_menu.selectedProperty().bindBidirectional(_timedGame);
+        createBindings();
 
         // configure level menu
         configEngineLevel();
 
         // reset the controls to no game
         setControlsNoGame();
+    }
+
+    /**
+     * Adds the board panel from the previous Swing UI.
+     */
+    private void addBoardPanel() {
+        _boardPane = new BoardPane(this);
+        board_panel_grid.getChildren().add(_boardPane);
+    }
+
+    /**
+     * Configures the info_panel
+     */
+    private void configInfoPanel() {
+        _info_panel = new InfoTextArea();
+        infoTab_pane.getChildren().add(_info_panel);
+        AnchorPane.setLeftAnchor(_info_panel, 0.0);
+        AnchorPane.setRightAnchor(_info_panel, 0.0);
+        AnchorPane.setBottomAnchor(_info_panel, 0.0);
+        AnchorPane.setTopAnchor(_info_panel, 0.0);
+
+        printToInfoln();
+        printToInfoln("Java GUI started!");
+    }
+
+    /**
+     * Configures the move_table
+     */
+    private void configMoveList() {
+        move_table_number.setCellValueFactory(cellData -> cellData.getValue().numberProperty());
+        move_table_white.setCellValueFactory(cellData -> cellData.getValue().whiteProperty());
+        move_table_black.setCellValueFactory(cellData -> cellData.getValue().blackProperty());
+        move_table.setItems(_moveListModel.getMoveList());
+        move_table.setStyle("-fx-font-size: 10; -fx-font-family: \"Lucida Console\";");
+        // scroll to last entry
+        move_table.getItems().addListener((ListChangeListener<FullMove>)  (c -> {
+            c.next();
+            final int size = move_table.getItems().size();
+            if (size > 0) {
+                move_table.scrollTo(size - 1);
+            }
+        }));
+
+    }
+
+    /**
+     * Adds an updater to the mem label in the status bar
+     */
+    private void addMemLabelUpdater() {
+        Task<Void> dynamicTimeTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                while (true) {
+                    updateMessage(HelperTools.getMBytes(Runtime.getRuntime().freeMemory()) + " MB / "
+                            + HelperTools.getMBytes(Runtime.getRuntime().totalMemory()) + " MB");
+                    try {Thread.sleep(500);} catch (InterruptedException ex) {break;}
+                }
+                return null;
+            }
+        };
+        statusbar_mem_text.textProperty().bind(dynamicTimeTask.messageProperty());
+        Thread t2 = new Thread(dynamicTimeTask);
+        t2.setName("Statusbar Mem Labal Updater");
+        t2.setDaemon(true);
+        t2.start();
     }
 
     private void addEngineUpdater() {
@@ -233,107 +292,18 @@ public class JavaFX_GUI_Controller implements Observer {
         showVerboseInfo_checkboxB.setSelected(blackVerboseInfo);
     }
 
-    /**
-     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
-     */
-    public void showVerboseInfoWhite() {
-        if (showVerboseInfo_checkboxW.isSelected()) {
-            _popupW.setTitle("White Engine Info");
-            _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
-            _popupW.setHeight(200);
-            _popupW.setX(_primaryStage.getScene().getWindow().getX());
-            _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
-            _popupW.setScene(_infoAreaSceneW);
-            _popupW.setMaximized(false);
-            _popupW.show();
-        } else {
-            _infoAreaW.clear();
-            _popupW.hide();
-        }
+    private void addClockUpdater() {
+        _clockUpdater = new PlayerClockUpdater(
+                whitePlayer_name, white_clock, white_playertype, white_progressbar,
+                blackPlayer_name, black_clock, black_playertype, black_progressbar
+                );
     }
 
-    /**
-     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
-     */
-    public void showVerboseInfoBlack() {
-        if (showVerboseInfo_checkboxB.isSelected()) {
-            _popupB.setTitle("Black Engine Info");
-            _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
-            _popupB.setHeight(200);
-            _popupB.setX(_primaryStage.getScene().getWindow().getX());
-            _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
-            _popupB.setScene(_infoAreaSceneB);
-            _popupB.setMaximized(false);
-            _popupB.show();
-        } else {
-            _infoAreaB.clear();
-            _popupB.hide();
-        }
-    }
-
-    /**
-     * Adds the board panel from the previous Swing UI.
-     */
-    private void addBoardPanel() {
-        _boardPane = new BoardPane(this);
-        board_panel_grid.getChildren().add(_boardPane);
-    }
-
-    /**
-     * Adds an updater to the mem label in the status bar
-     */
-    private void addMemLabelUpdater() {
-        Task<Void> dynamicTimeTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                while (true) {
-                    updateMessage(HelperTools.getMBytes(Runtime.getRuntime().freeMemory()) + " MB / "
-                            + HelperTools.getMBytes(Runtime.getRuntime().totalMemory()) + " MB");
-                    try {Thread.sleep(500);} catch (InterruptedException ex) {break;}
-                }
-                return null;
-            }
-        };
-        statusbar_mem_text.textProperty().bind(dynamicTimeTask.messageProperty());
-        Thread t2 = new Thread(dynamicTimeTask);
-        t2.setName("Statusbar Mem Labal Updater");
-        t2.setDaemon(true);
-        t2.start();
-    }
-
-    /**
-     * Configures the info_panel
-     */
-    private void configInfoPanel() {
-        _info_panel = new InfoTextArea();
-        infoTab_pane.getChildren().add(_info_panel);
-        AnchorPane.setLeftAnchor(_info_panel, 0.0);
-        AnchorPane.setRightAnchor(_info_panel, 0.0);
-        AnchorPane.setBottomAnchor(_info_panel, 0.0);
-        AnchorPane.setTopAnchor(_info_panel, 0.0);
-
-        printToInfoln();
-        printToInfoln("Java GUI started!");
-    }
-
-    /**
-     * Configures the move_table
-     */
-    private void configMoveList() {
-        move_table_number.setCellValueFactory(cellData -> cellData.getValue().numberProperty());
-        move_table_white.setCellValueFactory(cellData -> cellData.getValue().whiteProperty());
-        move_table_black.setCellValueFactory(cellData -> cellData.getValue().blackProperty());
-        move_table.setItems(_moveListModel.getMoveList());
-        move_table.setStyle("-fx-font-size: 10; -fx-font-family: \"Lucida Console\";");
-        // scroll to last entry
-        move_table.getItems().addListener((ListChangeListener<FullMove>)  (c -> {
-            c.next();
-            final int size = move_table.getItems().size();
-            if (size > 0) {
-                move_table.scrollTo(size - 1);
-            }
-        }));
-
+    private void createBindings() {
+        showLastMove_menu.selectedProperty().bindBidirectional(_showLastMove);
+        showPossibleMoves_menu.selectedProperty().bindBidirectional(_showPossibleMoves);
+        _timedGame.set(_model.isTimedGame());
+        timedGame_menu.selectedProperty().bindBidirectional(_timedGame);
     }
 
     /**
@@ -401,6 +371,44 @@ public class JavaFX_GUI_Controller implements Observer {
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
+     */
+    protected void showVerboseInfoWhite() {
+        if (showVerboseInfo_checkboxW.isSelected()) {
+            _popupW.setTitle("White Engine Info");
+            _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupW.setHeight(200);
+            _popupW.setX(_primaryStage.getScene().getWindow().getX());
+            _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
+            _popupW.setScene(_infoAreaSceneW);
+            _popupW.setMaximized(false);
+            _popupW.show();
+        } else {
+            _infoAreaW.clear();
+            _popupW.hide();
+        }
+    }
+
+    /**
+     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
+     */
+    protected void showVerboseInfoBlack() {
+        if (showVerboseInfo_checkboxB.isSelected()) {
+            _popupB.setTitle("Black Engine Info");
+            _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupB.setHeight(200);
+            _popupB.setX(_primaryStage.getScene().getWindow().getX());
+            _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
+            _popupB.setScene(_infoAreaSceneB);
+            _popupB.setMaximized(false);
+            _popupB.show();
+        } else {
+            _infoAreaB.clear();
+            _popupB.hide();
         }
     }
 
@@ -493,7 +501,6 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML
     void newGameDialog_Action(ActionEvent event) {
         NewGameDialog newGameDialog = new NewGameDialog();
-        newGameDialog.initOwner(_primaryStage);
         newGameDialog.showAndWait();
     }
 
@@ -541,6 +548,7 @@ public class JavaFX_GUI_Controller implements Observer {
         alert.setTitle("Stop currrent gamt");
         alert.setHeaderText("Stop the current game?");
         alert.setContentText("Do you really want to stop the current game?");
+        alert.initOwner(_primaryStage);
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK){
             _model.stopPlayroom();
@@ -644,6 +652,7 @@ public class JavaFX_GUI_Controller implements Observer {
             dialog.setTitle("Set Time for "+color+" player");
             dialog.setHeaderText("Time for "+color+" player");
             dialog.setContentText(question);
+            dialog.initOwner(_primaryStage);
             Optional<String> result = dialog.showAndWait();
 
             // User entered value or canceled
@@ -765,7 +774,6 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML
     void aboutDialogOpen_action(ActionEvent event) {
         AboutDialog aboutDialogStage = new AboutDialog();
-        aboutDialogStage.initOwner(_primaryStage);
         aboutDialogStage.showAndWait();
     }
 

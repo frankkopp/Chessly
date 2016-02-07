@@ -27,7 +27,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
     /**
      * The primary stage
      */
-    private static Stage _stage;
+    private static Stage _primaryStage;
 
 
     /**
@@ -62,7 +62,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
     @Override
     public void start(Stage primaryStage) {
 
-        JavaFX_GUI._stage = primaryStage;
+        JavaFX_GUI._primaryStage = primaryStage;
 
         try {
 
@@ -73,9 +73,9 @@ public class JavaFX_GUI extends Application implements UserInterface {
             Scene scene = new Scene(_root,_root.getPrefWidth(),_root.getPrefHeight());
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
-            _stage.setScene(scene);
-            _stage.setMinWidth(740);
-            _stage.setMinHeight(700);
+            _primaryStage.setScene(scene);
+            _primaryStage.setMinWidth(740);
+            _primaryStage.setMinHeight(700);
 
             // get last window position and size
             double windowLocX = Double.parseDouble(
@@ -88,13 +88,13 @@ public class JavaFX_GUI extends Application implements UserInterface {
                     JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY", "700"));
 
             // position and resize the window
-            _stage.setX(windowLocX);
-            _stage.setY(windowLocY);
-            _stage.setWidth(windowSizeX);
-            _stage.setHeight(windowSizeY);
+            _primaryStage.setX(windowLocX);
+            _primaryStage.setY(windowLocY);
+            _primaryStage.setWidth(windowSizeX);
+            _primaryStage.setHeight(windowSizeY);
 
             // now show the window
-            _stage.show();
+            _primaryStage.show();
 
             // try to show the verboseInfoWindows - if checkbox was unchecked nothing will happen
             _controller.showVerboseInfoWhite();
@@ -124,7 +124,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
             } catch (InterruptedException e) {
                 //return;
             }
-        } while (_stage == null || !_stage.isShowing());
+        } while (_primaryStage == null || !_primaryStage.isShowing());
     }
 
     /**
@@ -137,8 +137,8 @@ public class JavaFX_GUI extends Application implements UserInterface {
     /**
      * @return the primary stage which has been stored as a static field
      */
-    public static Stage getStage() {
-        return JavaFX_GUI._stage;
+    public static Stage getPrimaryStage() {
+        return JavaFX_GUI._primaryStage;
     }
 
     /**
