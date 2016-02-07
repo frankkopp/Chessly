@@ -40,13 +40,13 @@ public class Configuration {
     public boolean VERBOSE_TO_SYSOUT = false;
 
     /** verbose output at the root level of the iterative search */
-    public boolean VERBOSE_ITERATIVE_SEARCH = true;
+    public boolean VERBOSE_ITERATIVE_SEARCH = false;
     /** verbose output in the nega-max recursion */
-    public boolean VERBOSE_ALPHABETA = true;
+    public boolean VERBOSE_ALPHABETA = false;
     /** verbose output when pondering */
-    public boolean VERBOSE_PONDERER = true;
+    public boolean VERBOSE_PONDERER = false;
     /** verbose output for Principal Variation development */
-    public boolean VERBOSE_PV = true;
+    public boolean VERBOSE_PV = false;
 
     /**
      * set to true for correct move generation according to PERF tests

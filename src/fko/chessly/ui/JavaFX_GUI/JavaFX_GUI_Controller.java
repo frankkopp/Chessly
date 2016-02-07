@@ -797,7 +797,7 @@ public class JavaFX_GUI_Controller implements Observer {
     @Override
     public void update(Observable model, Object event) {
         //System.out.println("JavaFX Controller: Update from "+event);
-        printToInfoln("Update from "+event);
+        //printToInfoln("Update from "+event);
 
         ModelEvent mevent = (ModelEvent)event;
         // Dispatch the update to the appropriate method
