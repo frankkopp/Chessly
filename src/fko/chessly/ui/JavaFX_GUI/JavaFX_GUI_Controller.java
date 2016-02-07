@@ -207,21 +207,7 @@ public class JavaFX_GUI_Controller implements Observer {
 
         // show the window below the main window when checkbox is selected
         showVerboseInfo_checkboxW.setOnAction(e -> {
-            if (showVerboseInfo_checkboxW.isSelected()) {
-
-                _popupW.setTitle("White Engine Info");
-                _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
-                _popupW.setHeight(200);
-                _popupW.setX(_primaryStage.getScene().getWindow().getX());
-                _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
-
-                _popupW.setScene(_infoAreaSceneW);
-                _popupW.show();
-
-            } else {
-                _infoAreaW.clear();
-                _popupW.hide();
-            }
+            showVerboseInfoWhite();
         });
 
         // bring the correct engine info area to front when engine info tab is selected
@@ -232,22 +218,56 @@ public class JavaFX_GUI_Controller implements Observer {
 
         // show the window below the main window when checkbox is selected
         showVerboseInfo_checkboxB.setOnAction(e -> {
-            if (showVerboseInfo_checkboxB.isSelected()) {
-
-                _popupB.setTitle("Black Engine Info");
-                _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
-                _popupB.setHeight(200);
-                _popupB.setX(_primaryStage.getScene().getWindow().getX());
-                _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
-
-                _popupB.setScene(_infoAreaSceneB);
-                _popupB.show();
-
-            } else {
-                _infoAreaB.clear();
-                _popupB.hide();
-            }
+            showVerboseInfoBlack();
         });
+
+        // should the verboseInfo windows be shown from the beginning?
+        // we will call showVerboseInfo... after we created the Stage in the starting class
+        boolean whiteVerboseInfo = Boolean.parseBoolean(
+                JavaFX_GUI_Controller.getWindowState().getProperty("VerboseInfoWhite","false"));
+        boolean blackVerboseInfo = Boolean.parseBoolean(
+                JavaFX_GUI_Controller.getWindowState().getProperty("VerboseInfoBlack","false"));
+        showVerboseInfo_checkboxW.setSelected(whiteVerboseInfo);
+        showVerboseInfo_checkboxB.setSelected(blackVerboseInfo);
+    }
+
+    /**
+     *
+     */
+    public void showVerboseInfoBlack() {
+        if (showVerboseInfo_checkboxB.isSelected()) {
+
+            _popupB.setTitle("Black Engine Info");
+            _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupB.setHeight(200);
+            _popupB.setX(_primaryStage.getScene().getWindow().getX());
+            _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
+
+            _popupB.setScene(_infoAreaSceneB);
+            _popupB.show();
+
+        } else {
+            _infoAreaB.clear();
+            _popupB.hide();
+        }
+    }
+
+    /**
+     *
+     */
+    public void showVerboseInfoWhite() {
+        if (showVerboseInfo_checkboxW.isSelected()) {
+            _popupW.setTitle("White Engine Info");
+            _popupW.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupW.setHeight(200);
+            _popupW.setX(_primaryStage.getScene().getWindow().getX());
+            _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
+            _popupW.setScene(_infoAreaSceneW);
+            _popupW.show();
+        } else {
+            _infoAreaW.clear();
+            _popupW.hide();
+        }
     }
 
     /**
@@ -563,6 +583,8 @@ public class JavaFX_GUI_Controller implements Observer {
         windowState.setProperty("windowLocationY", String.valueOf(this._primaryStage.getY()));
         windowState.setProperty("windowSizeX", String.valueOf(this._primaryStage.getWidth()));
         windowState.setProperty("windowSizeY", String.valueOf(this._primaryStage.getHeight()));
+        windowState.setProperty("VerboseInfoWhite", String.valueOf(this.showVerboseInfo_checkboxW.isSelected()));
+        windowState.setProperty("VerboseInfoBlack", String.valueOf(this.showVerboseInfo_checkboxB.isSelected()));
         windowState.save();
     }
 

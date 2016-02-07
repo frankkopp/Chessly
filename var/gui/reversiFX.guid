@@ -1,6 +1,8 @@
 # Window state file for Chessly by Frank Kopp
-#Sun Feb 07 01:07:12 CET 2016
-windowLocationY=140.0
-windowLocationX=725.0
+#Sun Feb 07 02:07:11 CET 2016
+VerboseInfoWhite=true
+windowLocationY=23.0
+windowLocationX=1750.0
+VerboseInfoBlack=true
 windowSizeY=821.0
 windowSizeX=806.0
