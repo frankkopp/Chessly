@@ -101,10 +101,10 @@ public class JavaFX_GUI_Controller implements Observer {
     // engine info windows with text areas
     private InfoTextArea _infoAreaW =  new InfoTextArea();;
     private Scene _infoAreaSceneW = new Scene(_infoAreaW);
-    private Stage _popupW = new Stage(StageStyle.UTILITY);
+    private Stage _popupW = new Stage(StageStyle.DECORATED);
     private InfoTextArea _infoAreaB =  new InfoTextArea();;
     private Scene _infoAreaSceneB = new Scene(_infoAreaB);
-    private Stage _popupB = new Stage(StageStyle.UTILITY);
+    private Stage _popupB = new Stage(StageStyle.DECORATED);
 
     // the general info pane
     private InfoTextArea _info_panel;
@@ -202,7 +202,7 @@ public class JavaFX_GUI_Controller implements Observer {
         // bring the correct engine info area to front when engine info tab is selected
         white_enginetab.setOnSelectionChanged(e -> {
             if (_primaryStage.isFocused() && white_enginetab.isSelected()) _popupW.toFront();
-            else _popupW.toBack();
+            //else _popupW.toBack();
         });
 
         // show the window below the main window when checkbox is selected
@@ -213,7 +213,7 @@ public class JavaFX_GUI_Controller implements Observer {
         // bring the correct engine info area to front when engine info tab is selected
         black_enginetab.setOnSelectionChanged(e -> {
             if (_primaryStage.isFocused() && black_enginetab.isSelected()) _popupB.toFront();
-            else _popupB.toBack();
+            //else _popupB.toBack();
         });
 
         // show the window below the main window when checkbox is selected
@@ -232,28 +232,7 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
-     *
-     */
-    public void showVerboseInfoBlack() {
-        if (showVerboseInfo_checkboxB.isSelected()) {
-
-            _popupB.setTitle("Black Engine Info");
-            _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
-            _popupB.setHeight(200);
-            _popupB.setX(_primaryStage.getScene().getWindow().getX());
-            _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
-
-            _popupB.setScene(_infoAreaSceneB);
-            _popupB.show();
-
-        } else {
-            _infoAreaB.clear();
-            _popupB.hide();
-        }
-    }
-
-    /**
-     *
+     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
      */
     public void showVerboseInfoWhite() {
         if (showVerboseInfo_checkboxW.isSelected()) {
@@ -267,6 +246,24 @@ public class JavaFX_GUI_Controller implements Observer {
         } else {
             _infoAreaW.clear();
             _popupW.hide();
+        }
+    }
+
+    /**
+     * Shows the verboseInfoWindow for Black if the showVerboseInfo_checkboxB is selected.
+     */
+    public void showVerboseInfoBlack() {
+        if (showVerboseInfo_checkboxB.isSelected()) {
+            _popupB.setTitle("Black Engine Info");
+            _popupB.setWidth(_primaryStage.getScene().getWindow().getWidth());
+            _popupB.setHeight(200);
+            _popupB.setX(_primaryStage.getScene().getWindow().getX());
+            _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
+            _popupB.setScene(_infoAreaSceneB);
+            _popupB.show();
+        } else {
+            _infoAreaB.clear();
+            _popupB.hide();
         }
     }
 
