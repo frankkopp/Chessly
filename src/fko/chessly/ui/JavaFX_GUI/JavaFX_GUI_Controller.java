@@ -493,6 +493,7 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML
     void newGameDialog_Action(ActionEvent event) {
         NewGameDialog newGameDialog = new NewGameDialog();
+        newGameDialog.initOwner(_primaryStage);
         newGameDialog.showAndWait();
     }
 
@@ -764,6 +765,7 @@ public class JavaFX_GUI_Controller implements Observer {
     @FXML
     void aboutDialogOpen_action(ActionEvent event) {
         AboutDialog aboutDialogStage = new AboutDialog();
+        aboutDialogStage.initOwner(_primaryStage);
         aboutDialogStage.showAndWait();
     }
 
