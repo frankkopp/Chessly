@@ -67,6 +67,8 @@ public class JavaFX_GUI_Controller implements Observer {
     // -- to save and restore the last position of our window
     private static final WindowStateFX windowState = new WindowStateFX();
 
+    private static final boolean VERBOSE_TO_SYSOUT = true;
+
     // reference to the _model (playroom) --
     private Playroom _model;
 
@@ -204,7 +206,6 @@ public class JavaFX_GUI_Controller implements Observer {
         // bring the correct engine info area to front when engine info tab is selected
         white_enginetab.setOnSelectionChanged(e -> {
             if (_primaryStage.isFocused() && white_enginetab.isSelected()) _popupW.toFront();
-            //else _popupW.toBack();
         });
 
         // show the window below the main window when checkbox is selected
@@ -215,7 +216,6 @@ public class JavaFX_GUI_Controller implements Observer {
         // bring the correct engine info area to front when engine info tab is selected
         black_enginetab.setOnSelectionChanged(e -> {
             if (_primaryStage.isFocused() && black_enginetab.isSelected()) _popupB.toFront();
-            //else _popupB.toBack();
         });
 
         // show the window below the main window when checkbox is selected
@@ -455,7 +455,12 @@ public class JavaFX_GUI_Controller implements Observer {
      * @param s
      */
     private void printToInfo(String s) {
-        _info_panel.printInfo(String.format(s));
+        if (VERBOSE_TO_SYSOUT) {
+            System.out.print(String.format(s));
+        }
+        // With Platform-runLater() this has caused an exception in the Platform code - Java Bug?
+        // This is a workaround
+        Platform.runLater(() -> _info_panel.printInfo(String.format(s)));
         //info_panel.setScrollTop(Double.MAX_VALUE);
     }
 

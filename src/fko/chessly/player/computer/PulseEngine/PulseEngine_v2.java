@@ -64,6 +64,7 @@ import fko.chessly.game.pieces.Queen;
 import fko.chessly.game.pieces.Rook;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.mvc.ModelEvents.ModelEvent;
+import fko.chessly.mvc.ModelEvents.PlayerDependendModelEvent;
 import fko.chessly.openingbook.OpeningBook;
 import fko.chessly.openingbook.OpeningBookImpl;
 import fko.chessly.player.AbstractPlayer.PlayerStatusController;
@@ -282,8 +283,9 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         // waits until pondering has finished
         if (_config._USE_PONDERER) stopPondering();
 
+        // notify ui
         setChanged();
-        notifyObservers(new ModelEvent("ENGINE start calculating", 6000));
+        notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" start calculating", _player, SIG_ENGINE_START_CALCULATING));
 
         // Start timer
         _startTime = System.currentTimeMillis();
@@ -352,8 +354,9 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             _timer.cancel();
         }
 
+        // notify ui
         setChanged();
-        notifyObservers(new ModelEvent("ENGINE finished calculating", 6010));
+        notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
 
         if (_config._USE_PONDERER) startPondering();
 
@@ -1711,8 +1714,10 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             // the most likely white move from the last PV
             if (_pv[0] != null && _pv[0].size > 1 && _pv[0].moves[1] != Move.NOMOVE) {
 
-                _statusInfo = "Engine pondering on move " + Move.toString(_pv[0].moves[1])
-                ;
+                _statusInfo = "Engine pondering on move " + Move.toString(_pv[0].moves[1]);
+                // notify ui
+                setChanged();
+                notifyObservers(new PlayerDependendModelEvent("ENGINE start pondering", _player, SIG_ENGINE_START_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Pondering over move %s%n",Move.toString(_pv[0].moves[1]));
                     printInfo(info);
@@ -1725,8 +1730,15 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 // we don't care about the return value (yet) - just filling up the node cache
                 iterativeSearch(_ponderBoard);
 
+                // notify ui
+                setChanged();
+                notifyObservers(new PlayerDependendModelEvent("ENGINE stopped pondering", _player, SIG_ENGINE_FINISHED_PONDERING));
+
             } else {
                 _statusInfo = "Engine waiting.";
+                // notify ui
+                setChanged();
+                notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+ " nothing to ponder - waiting", _player, SIG_ENGINE_NO_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Nothing to ponder%n");
                     printInfo(info);
@@ -1735,4 +1747,14 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         }
     }
 
+    /** */
+    public static final int SIG_ENGINE_START_CALCULATING = 6000;
+    /** */
+    public static final int SIG_ENGINE_FINISHED_CALCULATING = 6010;
+    /** */
+    public static final int SIG_ENGINE_START_PONDERING = 6020;
+    /** */
+    public static final int SIG_ENGINE_FINISHED_PONDERING = 6030;
+    /** */
+    public static final int SIG_ENGINE_NO_PONDERING = 6040;
 }

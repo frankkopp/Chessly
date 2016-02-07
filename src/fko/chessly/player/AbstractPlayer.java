@@ -35,6 +35,7 @@ import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.mvc.ModelEvents.ModelEvent;
+import fko.chessly.mvc.ModelEvents.PlayerDependendModelEvent;
 import fko.chessly.util.StatusController;
 
 /**
@@ -158,7 +159,7 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
             // -- tell the views that model has changed --
             // -- the player thread is actually running now --
             setChanged();
-            notifyObservers(new ModelEvent("PLAYER Thread started",SIG_PLAYER_THREAD_STARTED));
+            notifyObservers(new PlayerDependendModelEvent("PLAYER "+_color+ " Thread started", this, SIG_PLAYER_THREAD_STARTED));
 
             // We want to know what happens in the game
             _game.addObserver(this);
@@ -175,10 +176,10 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
                 // -- startGame thinking --
                 if (_playerStatus.inStatus(Player.THINKING)) {
                     setChanged();
-                    notifyObservers(new ModelEvent("PLAYER requesting move from either human or player", SIG_PLAYER_REQUESTING_MOVE));
+                    notifyObservers(new PlayerDependendModelEvent("PLAYER "+_color+ " requesting move from either human or player", this, SIG_PLAYER_REQUESTING_MOVE));
                     _playerMove = getMove();
                     setChanged();
-                    notifyObservers(new ModelEvent("PLAYER reveicved move from either human or player", SIG_PLAYER_RECEIVED_MOVE));
+                    notifyObservers(new PlayerDependendModelEvent("PLAYER "+_color+ " reveicved move from either human or player", this, SIG_PLAYER_RECEIVED_MOVE));
                     _playerStatus.writeLock().lock();
                     try {
                         if (this._playerMove != null && !_playerStatus.inStatus(Player.STOPPED)) {
@@ -207,7 +208,7 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
             // -- tell the views that model has changed --
             // -- the player thread is actually ended now --
             setChanged();
-            notifyObservers(new ModelEvent("PLAYER Thread finished",SIG_PLAYER_THREAD_FINISHED));
+            notifyObservers(new PlayerDependendModelEvent("PLAYER "+_color+ " Thread finished", this, SIG_PLAYER_THREAD_FINISHED));
         }
 
     }

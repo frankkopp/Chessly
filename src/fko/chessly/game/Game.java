@@ -755,7 +755,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
     public boolean isOverOrStopped() {
         _gameStatus.readLock().lock();
         try {
-            return isOver() || isStopped();
+            return isOver() || isStopped() || isFinished();
         } finally {
             _gameStatus.readLock().unlock();
         }
@@ -802,6 +802,8 @@ public class Game extends ModelObservable implements Runnable, Observer {
                 _gameThread.join();
             } catch (InterruptedException e) {
                 // -- ignore --
+            } catch (NullPointerException e) {
+                // ignore
             }
         }
     }

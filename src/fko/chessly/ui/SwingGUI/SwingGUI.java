@@ -296,6 +296,9 @@ public final class SwingGUI implements UserInterface {
                 gameFinishedGuiUpdate();
                 break;
 
+            default:
+                break;
+
         }
     }
 
@@ -481,6 +484,7 @@ public final class SwingGUI implements UserInterface {
 
     /**
      * shall all possible move be marked in the board display
+     * @param togglePossibleMoves
      */
     public void set_showPossibleMoves(boolean togglePossibleMoves) {
         this._showPossibleMoves = togglePossibleMoves;
