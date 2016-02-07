@@ -41,8 +41,6 @@ import fko.chessly.mvc.ModelEvents.ModelEvent;
  */
 public class ModelObservable extends Observable {
 
-
-
     /* (non-Javadoc)
      * @see java.util.Observable#addObserver(java.util.Observer)
      */

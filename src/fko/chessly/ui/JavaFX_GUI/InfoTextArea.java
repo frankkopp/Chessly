@@ -28,9 +28,6 @@
 package fko.chessly.ui.JavaFX_GUI;
 
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventType;
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -43,7 +40,7 @@ import javafx.scene.text.FontWeight;
  *
  * @author Frank Kopp
  */
-public class InfoTextArea extends TextArea implements ChangeListener<String> {
+public class InfoTextArea extends TextArea {
 
 
     /**
@@ -79,7 +76,6 @@ public class InfoTextArea extends TextArea implements ChangeListener<String> {
         this.setEditable(false);
         Font font = Font.font("Lucida Console", FontWeight.NORMAL, 11);
         this.setFont(font);
-        this.textProperty().addListener(this);
     }
 
     /**
@@ -87,15 +83,12 @@ public class InfoTextArea extends TextArea implements ChangeListener<String> {
      * @param text
      */
     public synchronized void printInfo(String text) {
-        /*
-         *  There seems to be a bug in the text.append which in conjunction
-         *  with deleting text from the start in my listener throws an exception
-         *  This try-catch block simply hides this exception
-         */
-        try {
-            this.appendText(text);
-        } catch (Exception e) {
-            // ignore
+        this.appendText(text);
+
+        // check if the text in the text area is larger than allowed and cut from the start if so
+        int oversize = this.getText().length() - _maxLength;
+        if (oversize > 0) {
+            this.setText(this.getText().substring(oversize+1000));
         }
     }
 
@@ -105,20 +98,6 @@ public class InfoTextArea extends TextArea implements ChangeListener<String> {
      */
     public synchronized void printInfoln(String text) {
         printInfo(String.format("%s%n",text));
-    }
-
-    /**
-     * This listener checks the length of the text of this textarea and cuts away text
-     * from the start if the length of the text is bigger than the allowed size set by
-     * setMaxLength(int)
-     * @see javafx.beans.value.ChangeListener#changed(javafx.beans.value.ObservableValue, java.lang.Object, java.lang.Object)
-     */
-    @Override
-    public synchronized void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        int oversize = this.getText().length() - _maxLength;
-        if (oversize > 0) {
-            this.setText(this.getText().substring(oversize+1000));
-        }
     }
 
     /**

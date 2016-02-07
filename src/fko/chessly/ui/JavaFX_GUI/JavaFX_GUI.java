@@ -1,21 +1,17 @@
 package fko.chessly.ui.JavaFX_GUI;
 
-import java.awt.Dimension;
 import java.util.Observable;
 
 import com.sun.javafx.application.PlatformImpl;
 
 import fko.chessly.Chessly;
 import fko.chessly.ui.UserInterface;
-import fko.chessly.ui.SwingGUI.SwingGUI;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 /**
  * @author Frank
@@ -31,7 +27,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
     /**
      * The primary stage
      */
-    private static Stage _stage;
+    private static Stage _primaryStage;
 
 
     /**
@@ -66,7 +62,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
     @Override
     public void start(Stage primaryStage) {
 
-        JavaFX_GUI._stage = primaryStage;
+        JavaFX_GUI._primaryStage = primaryStage;
 
         try {
 
@@ -76,32 +72,33 @@ public class JavaFX_GUI extends Application implements UserInterface {
 
             Scene scene = new Scene(_root,_root.getPrefWidth(),_root.getPrefHeight());
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-            _stage.setScene(scene);
 
-            _stage.setMinWidth(740);
-            _stage.setMinHeight(700);
+            _primaryStage.setScene(scene);
+            _primaryStage.setMinWidth(740);
+            _primaryStage.setMinHeight(700);
 
-            // -- get last window position and size--
+            // get last window position and size
             double windowLocX = Double.parseDouble(
-                    JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationX") == null
-                    ? "100" : JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationX"));
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationX", "100"));
             double windowLocY = Double.parseDouble(
-                    JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationY") == null
-                    ? "200" : JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationY"));
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationY", "200"));
             double windowSizeX = Double.parseDouble(
-                    JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeX") == null
-                    ? "740" : JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeX"));
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeX", "740"));
             double windowSizeY = Double.parseDouble(
-                    JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY") == null
-                    ? "700" : JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY"));
+                    JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY", "700"));
 
-            // -- position and resize the window  --
-            _stage.setX(windowLocX);
-            _stage.setY(windowLocY);
-            _stage.setWidth(windowSizeX);
-            _stage.setHeight(windowSizeY);
+            // position and resize the window
+            _primaryStage.setX(windowLocX);
+            _primaryStage.setY(windowLocY);
+            _primaryStage.setWidth(windowSizeX);
+            _primaryStage.setHeight(windowSizeY);
 
-            _stage.show();
+            // now show the window
+            _primaryStage.show();
+
+            // try to show the verboseInfoWindows - if checkbox was unchecked nothing will happen
+            _controller.showVerboseInfoWhite();
+            _controller.showVerboseInfoBlack();
 
             // closeAction - close through close action
             scene.getWindow().setOnCloseRequest(event -> {
@@ -127,7 +124,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
             } catch (InterruptedException e) {
                 //return;
             }
-        } while (_stage == null || !_stage.isShowing());
+        } while (_primaryStage == null || !_primaryStage.isShowing());
     }
 
     /**
@@ -140,8 +137,8 @@ public class JavaFX_GUI extends Application implements UserInterface {
     /**
      * @return the primary stage which has been stored as a static field
      */
-    public static Stage getStage() {
-        return JavaFX_GUI._stage;
+    public static Stage getPrimaryStage() {
+        return JavaFX_GUI._primaryStage;
     }
 
     /**

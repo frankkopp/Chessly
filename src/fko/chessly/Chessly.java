@@ -128,7 +128,7 @@ public class Chessly {
      * v1.5 - added JavaFX
      * v2.0 - JavaFX complete (w.i.p.)
      */
-    public static final String VERSION = "v2.0 beta 2";
+    public static final String VERSION = "v2.0 beta 3";
 
     @SuppressWarnings("unused")
     private static Chessly _myChessly = null;
@@ -147,12 +147,13 @@ public class Chessly {
     public static void main(final String[] args) {
 
         CmdLineParser cp = new CmdLineParser();
-        CmdLineParser.Option javafx   = cp.addBooleanOption('x', "javafx"  );
-        CmdLineParser.Option debug    = cp.addBooleanOption('d', "debug"  );
-        CmdLineParser.Option start    = cp.addBooleanOption('s', "start"  );
-        CmdLineParser.Option cache    = cp.addBooleanOption('c', "cache"  );
+        CmdLineParser.Option javafx   = cp.addBooleanOption('x', "javaFX");
+        CmdLineParser.Option javaswing = cp.addBooleanOption('w', "javaSwing");
+        CmdLineParser.Option debug    = cp.addBooleanOption('d', "debug");
+        CmdLineParser.Option start    = cp.addBooleanOption('s', "start");
+        CmdLineParser.Option cache    = cp.addBooleanOption('c', "cache");
         CmdLineParser.Option nocache  = cp.addBooleanOption("nocache");
-        CmdLineParser.Option usage    = cp.addBooleanOption('?', "help"   );
+        CmdLineParser.Option usage    = cp.addBooleanOption('?', "help");
 
         // Parse cmd line args
         try { cp.parse(args); }
@@ -174,7 +175,11 @@ public class Chessly {
         if ((Boolean) cp.getOptionValue(cache)) { changeProperty("engine.cacheEnabled", "true");  }
         if ((Boolean) cp.getOptionValue(nocache)) { changeProperty("engine.cacheEnabled", "false");  }
 
-        if ((Boolean) cp.getOptionValue(javafx)) { changeProperty("ui.class", "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI"); }
+        if ((Boolean) cp.getOptionValue(javafx)) {
+            changeProperty("ui.class", "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI");
+        } else if ((Boolean) cp.getOptionValue(javaswing)) {
+            changeProperty("ui.class", "fko.chessly.ui.SwingGUI.SwingGUI");
+        }
 
         // Now create our singleton instance of Chessly
         _myChessly = new Chessly();
@@ -288,11 +293,13 @@ public class Chessly {
     private static void printUsage() {
         System.out.println();
         System.out.println(
-                "Usage: OptionTest [-d,--debug] [-s,--start] [-c,--cache] [--nocache]\n"
+                "Usage: OptionTest [-x,--javaFX] [-w,--javaSwing] [-d,--debug] [-s,--start] [-c,--cache] [--nocache] \n"
                         +"                  [-?, --help]"
                 );
         System.out.println("Options:");
         System.out.println();
+        System.out.println("-x use JavaFX ui");
+        System.out.println("-w use JavaSwing ui");
         System.out.println("-d debug mode");
         System.out.println("-s start game immediately with default settings");
         System.out.println("-c enables the cache for the engines (cache not implemented)");

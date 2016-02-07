@@ -74,6 +74,7 @@ public class EngineInfoUpdater {
         this._color = color;
         this._engineLabels = engineInfoLabels;
         this._model = Chessly.getPlayroom();
+
         clearAll();
         updateUI();
         _updater = new updateThread();
@@ -175,9 +176,7 @@ public class EngineInfoUpdater {
         if (((ComputerPlayer)player).getEngine() instanceof ObservableEngine) {
             ObservableEngine engine = (ObservableEngine)((ComputerPlayer)player).getEngine();
 
-            // TODO: get pondering info from engine
             _engineLabels.status_label.setText("Status: " + engine.getStatus());
-
 
             // Print verbose or debug info into the info text panel
             String newInfoText = engine.getInfoText();
