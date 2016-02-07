@@ -44,7 +44,7 @@ public class Configuration {
     /** verbose output in the nega-max recursion */
     public boolean VERBOSE_ALPHABETA = false;
     /** verbose output when pondering */
-    public boolean VERBOSE_PONDERER = true;
+    public boolean VERBOSE_PONDERER = false;
     /** verbose output for Principal Variation development */
     public boolean VERBOSE_PV = false;
 
