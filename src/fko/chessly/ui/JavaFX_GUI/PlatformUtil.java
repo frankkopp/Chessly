@@ -75,6 +75,7 @@ public class PlatformUtil {
 
         // wait for the latch
         try {
+            // DEBUG code - should wait forever - the 10sec are just for safety
             if (!latch.await(10000, TimeUnit.MILLISECONDS))
                 throw new RuntimeException("Exeeded latch wait time");
         } catch (InterruptedException e) {
