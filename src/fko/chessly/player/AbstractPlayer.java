@@ -34,6 +34,7 @@ import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelObservable;
+import fko.chessly.mvc.ModelEvents.ModelEvent;
 import fko.chessly.util.StatusController;
 
 /**
@@ -153,6 +154,12 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
     public void run() {
 
         try {
+
+            // -- tell the views that model has changed --
+            // -- the player thread is actually running now --
+            setChanged();
+            notifyObservers(new ModelEvent("PLAYER Thread started",SIG_PLAYER_THREAD_STARTED));
+
             // We want to know what happens in the game
             _game.addObserver(this);
 
@@ -167,7 +174,11 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
                 _playerStatus.waitForState(Player.THINKING);
                 // -- startGame thinking --
                 if (_playerStatus.inStatus(Player.THINKING)) {
+                    setChanged();
+                    notifyObservers(new ModelEvent("PLAYER requesting move from either human or player", SIG_PLAYER_REQUESTING_MOVE));
                     _playerMove = getMove();
+                    setChanged();
+                    notifyObservers(new ModelEvent("PLAYER reveicved move from either human or player", SIG_PLAYER_RECEIVED_MOVE));
                     _playerStatus.writeLock().lock();
                     try {
                         if (this._playerMove != null && !_playerStatus.inStatus(Player.STOPPED)) {
@@ -193,6 +204,10 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
 
         } finally {
             _playerThread = null;
+            // -- tell the views that model has changed --
+            // -- the player thread is actually ended now --
+            setChanged();
+            notifyObservers(new ModelEvent("PLAYER Thread finished",SIG_PLAYER_THREAD_FINISHED));
         }
 
     }
@@ -220,6 +235,9 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
         } finally {
             _playerStatus.writeLock().unlock();
         }
+
+        // -- tell the views that model has changed --
+        setChanged();
 
         // -- wait until we found a move --
         _playerStatus.waitForState(Player.HAS_MOVE);
@@ -422,6 +440,15 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
             }
         }
     }
+
+    /** */
+    public static final int SIG_PLAYER_THREAD_STARTED = 4000;
+    /** */
+    public static final int SIG_PLAYER_THREAD_FINISHED = 4010;
+    /** */
+    public static final int SIG_PLAYER_REQUESTING_MOVE = 4020;
+    /** */
+    public static final int SIG_PLAYER_RECEIVED_MOVE = 4030;
 
 
 }

@@ -287,6 +287,11 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
         // Get the next move
         if (_curBoard.getNextPlayerColor().isBlack()) {
+
+            setChanged();
+            notifyObservers(new PlayerDependendModelEvent(
+                    "GAME waiting for next move from black player", _playerBlack, SIG_GAME_WAITING_FOR_MOVE));
+
             // -- black has next move, ask player for move ---
             _blackClock.startClock();
 
@@ -307,9 +312,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
                         _illegalMove     = nextMove;
                         setChanged();
                         notifyObservers(new PlayerDependendModelEvent(
-                                "GAME nextMove() illegalMove BLACK",
-                                _playerBlack,
-                                SIG_GAME_ILLEGAL_MOVE));
+                                "GAME nextMove() illegalMove BLACK", _playerBlack, SIG_GAME_ILLEGAL_MOVE));
                     }
 
 
@@ -318,7 +321,16 @@ public class Game extends ModelObservable implements Runnable, Observer {
                 }
             }
             _blackClock.stopClock();
+
+            setChanged();
+            notifyObservers(new PlayerDependendModelEvent(
+                    "GAME received move from black player", _playerBlack, SIG_GAME_RECEIVED_MOVE));
+
         } else if (_curBoard.getNextPlayerColor().isWhite()) {
+
+            setChanged();
+            notifyObservers(new PlayerDependendModelEvent(
+                    "GAME waiting for next move from white player", _playerWhite, SIG_GAME_WAITING_FOR_MOVE));
 
             // -- white has next move, ask player for move ---
             _whiteClock.startClock();
@@ -339,9 +351,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
                         _illegalMove = nextMove;
                         setChanged();
                         notifyObservers(new PlayerDependendModelEvent(
-                                "GAME nextMove() illegalMove WHITE",
-                                _playerWhite,
-                                SIG_GAME_ILLEGAL_MOVE));
+                                "GAME nextMove() illegalMove WHITE", _playerWhite, SIG_GAME_ILLEGAL_MOVE));
                     }
 
 
@@ -350,16 +360,15 @@ public class Game extends ModelObservable implements Runnable, Observer {
                 }
             }
             _whiteClock.stopClock();
+
+            setChanged();
+            notifyObservers(new PlayerDependendModelEvent(
+                    "GAME received move from white player", _playerWhite, SIG_GAME_RECEIVED_MOVE));
         }
 
         // -- we have a legal move --> reset illegal move flag --
         _illegalMoveFlag.set(false);
         _illegalMove=null;
-
-        // -- tell the views that model has changed --
-        setChanged();
-        notifyObservers(new ModelEvent("GAME nextMove() got move",
-                SIG_GAME_GOT_MOVE_FROM_PLAYER));
 
         // -- take the move and actually commit it to the game --
         doMove(nextMove);
@@ -419,6 +428,9 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
     }
 
+    /**
+     * @param numberOfHalfmoves
+     */
     public void undoMove(int numberOfHalfmoves) {
         if (!_undoMoveFlag.get() // is not already set
                 && this.isRunning() // game still running?
@@ -572,8 +584,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
             _gameStatus.writeLock().unlock();
         }
         // -- tell the views that model has changed --
-        notifyObservers(new ModelEvent("GAME game over: outOfTime",
-                SIG_GAME_OVER));
+        notifyObservers(new ModelEvent("GAME game over: outOfTime", SIG_GAME_OVER));
     }
 
     /**
@@ -595,8 +606,8 @@ public class Game extends ModelObservable implements Runnable, Observer {
             _gameStatus.writeLock().unlock();
         }
         // -- tell the views that model has changed --
-        notifyObservers(new ModelEvent("GAME pauseGame",
-                SIG_GAME_PAUSE_GAME));
+        setChanged();
+        notifyObservers(new ModelEvent("GAME pauseGame", SIG_GAME_PAUSE_GAME));
 
     }
 
@@ -622,8 +633,8 @@ public class Game extends ModelObservable implements Runnable, Observer {
             _gameStatus.writeLock().unlock();
         }
         // -- tell the views that model has changed --
-        notifyObservers(new ModelEvent("GAME resumeGame",
-                SIG_GAME_RESUME_GAME));
+        setChanged();
+        notifyObservers(new ModelEvent("GAME resumeGame", SIG_GAME_RESUME_GAME));
     }
 
     /**
@@ -1016,20 +1027,21 @@ public class Game extends ModelObservable implements Runnable, Observer {
      */
     public static final int WINNER_WHITE = 1;
 
-    public static final int SIG_GAME_THREAD_STARTED = 2001;
-    public static final int SIG_GAME_THREAD_FINISHED = 2011;
-    public static final int SIG_GAME_RUNNING = 2000;
-    public static final int SIG_GAME_FINISHED = 2010;
-    public static final int SIG_GAME_WANTS_UNDO_MOVE = 2015;
-    public static final int SIG_GAME_UNDO_MOVE = 2020;
-    public static final int SIG_GAME_ILLEGAL_MOVE = 2030;
-    public static final int SIG_GAME_GOT_MOVE_FROM_PLAYER = 2050;
-    public static final int SIG_GAME_MOVE_MADE = 2060;
-    public static final int SIG_GAME_OVER = 2070;
-    public static final int SIG_GAME_STOPPED = 2080;
-    public static final int SIG_GAME_OUT_OF_TIME = 2090;
-    public static final int SIG_GAME_PAUSE_GAME = 2100;
-    public static final int SIG_GAME_RESUME_GAME = 2110;
+    /** */public static final int SIG_GAME_THREAD_STARTED = 2001;
+    /** */public static final int SIG_GAME_THREAD_FINISHED = 2011;
+    /** */public static final int SIG_GAME_RUNNING = 2000;
+    /** */public static final int SIG_GAME_FINISHED = 2010;
+    /** */public static final int SIG_GAME_WANTS_UNDO_MOVE = 2015;
+    /** */public static final int SIG_GAME_UNDO_MOVE = 2020;
+    /** */public static final int SIG_GAME_ILLEGAL_MOVE = 2030;
+    /** */public static final int SIG_GAME_WAITING_FOR_MOVE = 2045;
+    /** */public static final int SIG_GAME_RECEIVED_MOVE = 2050;
+    /** */public static final int SIG_GAME_MOVE_MADE = 2060;
+    /** */public static final int SIG_GAME_OVER = 2070;
+    /** */public static final int SIG_GAME_STOPPED = 2080;
+    /** */public static final int SIG_GAME_OUT_OF_TIME = 2090;
+    /** */public static final int SIG_GAME_PAUSE_GAME = 2100;
+    /** */public static final int SIG_GAME_RESUME_GAME = 2110;
 
 
 }

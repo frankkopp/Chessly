@@ -62,6 +62,8 @@ import fko.chessly.game.pieces.Knight;
 import fko.chessly.game.pieces.Pawn;
 import fko.chessly.game.pieces.Queen;
 import fko.chessly.game.pieces.Rook;
+import fko.chessly.mvc.ModelObservable;
+import fko.chessly.mvc.ModelEvents.ModelEvent;
 import fko.chessly.openingbook.OpeningBook;
 import fko.chessly.openingbook.OpeningBookImpl;
 import fko.chessly.player.AbstractPlayer.PlayerStatusController;
@@ -105,7 +107,7 @@ import fko.chessly.util.HelperTools;
  *
  * @author Frank Kopp, Phokham Nonava
  */
-public class PulseEngine_v2 implements Engine, ObservableEngine {
+public class PulseEngine_v2 extends ModelObservable implements Engine, ObservableEngine {
 
     /**
      * read in the default configuration - change the public fields if necessary
@@ -280,6 +282,9 @@ public class PulseEngine_v2 implements Engine, ObservableEngine {
         // waits until pondering has finished
         if (_config._USE_PONDERER) stopPondering();
 
+        setChanged();
+        notifyObservers(new ModelEvent("ENGINE start calculating", 6000));
+
         // Start timer
         _startTime = System.currentTimeMillis();
 
@@ -346,6 +351,9 @@ public class PulseEngine_v2 implements Engine, ObservableEngine {
         if (_timer != null) {
             _timer.cancel();
         }
+
+        setChanged();
+        notifyObservers(new ModelEvent("ENGINE finished calculating", 6010));
 
         if (_config._USE_PONDERER) startPondering();
 

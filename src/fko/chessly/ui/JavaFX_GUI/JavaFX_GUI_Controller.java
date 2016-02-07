@@ -12,7 +12,9 @@ import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.mvc.ModelObservable;
 import fko.chessly.mvc.ModelEvents.ModelEvent;
+import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.HumanPlayer;
 import fko.chessly.player.PlayerType;
 import fko.chessly.ui.JavaFX_GUI.MoveListModel.FullMove;
@@ -813,18 +815,31 @@ public class JavaFX_GUI_Controller implements Observer {
 
             // -- game is initialized --
             if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
+
                 // clear the board panel
                 Platform.runLater(() -> { _boardPane.resetBoard();});
-                // -- now we want to observe the game --
+
+                // now we want to observe the game --
                 playroom.getCurrentGame().addObserver(this);
-                // -- there are human players we need to observe them as well to see if they
-                // -- want to have a move
-                if (playroom.getCurrentGame().getPlayerBlack() instanceof HumanPlayer) {
-                    ((Observable) playroom.getCurrentGame().getPlayerBlack()).addObserver(this);
+
+                // observe the players
+                if (playroom.getCurrentGame().getPlayerWhite() instanceof ModelObservable)
+                    ((ModelObservable) playroom.getCurrentGame().getPlayerWhite()).addObserver(this);
+                if (playroom.getCurrentGame().getPlayerBlack() instanceof ModelObservable)
+                    ((ModelObservable) playroom.getCurrentGame().getPlayerBlack()).addObserver(this);
+
+                // observe engines
+                if (playroom.getCurrentGame().getPlayerWhite() instanceof ComputerPlayer) {
+                    if (((ComputerPlayer) playroom.getCurrentGame().getPlayerWhite()).getEngine() instanceof ModelObservable) {
+                        ((ModelObservable) ((ComputerPlayer) playroom.getCurrentGame().getPlayerWhite()).getEngine()).addObserver(this);
+                    }
                 }
-                if (playroom.getCurrentGame().getPlayerWhite() instanceof HumanPlayer) {
-                    ((Observable) playroom.getCurrentGame().getPlayerWhite()).addObserver(this);
+                if (playroom.getCurrentGame().getPlayerBlack() instanceof ComputerPlayer) {
+                    if (((ComputerPlayer) playroom.getCurrentGame().getPlayerBlack()).getEngine() instanceof ModelObservable) {
+                        ((ModelObservable) ((ComputerPlayer) playroom.getCurrentGame().getPlayerBlack()).getEngine()).addObserver(this);
+                    }
                 }
+
                 // -- check if multiple games in a row should be run --
                 if (playroom.getNumberOfGames() > 1) {
                     printToInfoln();
@@ -850,7 +865,9 @@ public class JavaFX_GUI_Controller implements Observer {
                 }
             }
             Platform.runLater(() -> gameOverGuiUpdate(playroom.getCurrentGame(), event));
-            updateFromGame(playroom.getCurrentGame(), event);
+
+            // not sure why I had this here - comment out and test
+            //updateFromGame(playroom.getCurrentGame(), event);
 
             // Playroom is not playing - game still exists
         } else if (!playroom.isPlaying() && playroom.getCurrentGame() != null) {
@@ -916,6 +933,7 @@ public class JavaFX_GUI_Controller implements Observer {
             case Game.GAME_FINISHED:
                 Platform.runLater(() -> gameFinishedGuiUpdate());
                 break;
+
             default:
                 break;
         }
