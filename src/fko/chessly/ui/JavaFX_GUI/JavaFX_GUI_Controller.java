@@ -175,9 +175,9 @@ public class JavaFX_GUI_Controller implements Observer {
         _popupW.setOnHidden(e -> {showVerboseInfo_checkboxW.setSelected(false);});
         _popupB.setOnHidden(e -> {showVerboseInfo_checkboxB.setSelected(false);});
 
-        // FIXME - windows stay always in front - this does not help
-        _popupW.setAlwaysOnTop(false);
-        _popupB.setAlwaysOnTop(false);
+        // set the primary window as the owner
+        _popupW.initOwner(_primaryStage);
+        _popupB.initOwner(_primaryStage);
 
         // move the engine info windows with the main window.
         _primaryStage.xProperty().addListener(new ChangeListener<Number>() {
@@ -242,6 +242,7 @@ public class JavaFX_GUI_Controller implements Observer {
             _popupW.setX(_primaryStage.getScene().getWindow().getX());
             _popupW.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight());
             _popupW.setScene(_infoAreaSceneW);
+            _popupW.setMaximized(false);
             _popupW.show();
         } else {
             _infoAreaW.clear();
@@ -260,6 +261,7 @@ public class JavaFX_GUI_Controller implements Observer {
             _popupB.setX(_primaryStage.getScene().getWindow().getX());
             _popupB.setY(_primaryStage.getScene().getWindow().getY()+_primaryStage.getScene().getWindow().getHeight()+_popupW.getHeight());
             _popupB.setScene(_infoAreaSceneB);
+            _popupB.setMaximized(false);
             _popupB.show();
         } else {
             _infoAreaB.clear();
@@ -780,7 +782,7 @@ public class JavaFX_GUI_Controller implements Observer {
     @Override
     public void update(Observable model, Object event) {
         //System.out.println("JavaFX Controller: Update from "+event);
-        //printToInfoln("Update from "+event);
+        printToInfoln("Update from "+event);
 
         ModelEvent mevent = (ModelEvent)event;
         // Dispatch the update to the appropriate method
@@ -804,7 +806,7 @@ public class JavaFX_GUI_Controller implements Observer {
      */
     private void updateFromPlayroom(Playroom playroom, ModelEvent event) {
         //System.out.println("JavaFX Controller: Update from "+event);
-        printToInfoln("Update from "+event);
+        //printToInfoln("Update from "+event);
 
         // Playroom is playing - game exists
         if (playroom.isPlaying() && playroom.getCurrentGame() != null) {

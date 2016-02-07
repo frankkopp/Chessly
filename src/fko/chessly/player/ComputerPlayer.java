@@ -100,6 +100,7 @@ public class ComputerPlayer extends AbstractPlayer {
 
     /**
      * return the player engine
+     * @return engine
      */
     public Engine getEngine() {
         return _engine;
@@ -124,7 +125,7 @@ public class ComputerPlayer extends AbstractPlayer {
     }
 
     /**
-     * @return
+     * @return _playerStatus
      */
     public PlayerStatusController getPlayerStatus() {
         return _playerStatus;

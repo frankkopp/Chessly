@@ -211,6 +211,11 @@ public class Game extends ModelObservable implements Runnable, Observer {
                 throw new UnsupportedOperationException("Direct call of Game.run() is not supported.");
             }
 
+            // -- tell the views that model has changed --
+            // -- the game thread is actually running now --
+            setChanged();
+            notifyObservers(new ModelEvent("GAME Thread started",SIG_GAME_THREAD_STARTED));
+
             _gameStatus.writeLock().lock();
             try {
                 // Set game status to GAME_RUNNING
@@ -230,8 +235,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
             // -- tell the views that model has changed --
             // -- the game thread is actually running now --
             setChanged();
-            notifyObservers(new ModelEvent("GAME Runnning",
-                    SIG_GAME_RUNNING));
+            notifyObservers(new ModelEvent("GAME Runnning",SIG_GAME_RUNNING));
 
             // -- play game --
             while (isRunningOrPaused() && !Thread.interrupted()) {
@@ -247,8 +251,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
             // -- tell the views that model has changed --
             setChanged();
-            notifyObservers(new ModelEvent("GAME stopRunningGame() game stopped()",
-                    SIG_GAME_STOPPED));
+            notifyObservers(new ModelEvent("GAME stopRunningGame() game stopped()", SIG_GAME_STOPPED));
 
             // -- stop clock --
             _blackClock.stopAlarm();
@@ -260,13 +263,17 @@ public class Game extends ModelObservable implements Runnable, Observer {
             // -- tell the views that model has changed --
             // -- the game thread has actually stopped
             setChanged();
-            notifyObservers(new ModelEvent("GAME finished",
-                    SIG_GAME_FINISHED));
+            notifyObservers(new ModelEvent("GAME finished", SIG_GAME_FINISHED));
 
         } finally {
 
             // -- free game thread --
             _gameThread = null;
+
+            // -- tell the views that model has changed --
+            // -- the game thread is actually running now --
+            setChanged();
+            notifyObservers(new ModelEvent("GAME Thread finished",SIG_GAME_THREAD_FINISHED));
         }
 
     }
@@ -791,7 +798,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
     /**
      * Return the reason for the game to be over
      * Check game status with getStatus()
-     * @return int (see Game.GAMEOVER_* contants)
+     * @return int (see Game.GAMEOVER_* constants)
      */
     public int getGameOverCause() {
         return _gameOverCause.getStatus();
@@ -800,12 +807,15 @@ public class Game extends ModelObservable implements Runnable, Observer {
     /**
      * Return the winner if the game is over.
      * Check game status with getStatus()
-     * @return int (see Game.WINNER_* contants)
+     * @return int (see Game.WINNER_* constants)
      */
     public int getGameWinnerStatus() {
         return _gameWinner.getStatus();
     }
 
+    /**
+     * @return board history
+     */
     public List<GameBoard> getBoardHistory() {
         return _boardHistory;
     }
@@ -908,6 +918,9 @@ public class Game extends ModelObservable implements Runnable, Observer {
         return _illegalMove;
     }
 
+    /**
+     * @return true if undoMoveFlag is set
+     */
     public boolean undoMoveFlag() {
         return _undoMoveFlag.get() ;
     }
@@ -1003,6 +1016,8 @@ public class Game extends ModelObservable implements Runnable, Observer {
      */
     public static final int WINNER_WHITE = 1;
 
+    public static final int SIG_GAME_THREAD_STARTED = 2001;
+    public static final int SIG_GAME_THREAD_FINISHED = 2011;
     public static final int SIG_GAME_RUNNING = 2000;
     public static final int SIG_GAME_FINISHED = 2010;
     public static final int SIG_GAME_WANTS_UNDO_MOVE = 2015;
