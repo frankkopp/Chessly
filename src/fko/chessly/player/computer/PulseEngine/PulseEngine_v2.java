@@ -62,7 +62,6 @@ import fko.chessly.game.pieces.Pawn;
 import fko.chessly.game.pieces.Queen;
 import fko.chessly.game.pieces.Rook;
 import fko.chessly.mvc.ModelObservable;
-import fko.chessly.mvc.ModelEvents.ModelEvent;
 import fko.chessly.mvc.ModelEvents.PlayerDependendModelEvent;
 import fko.chessly.openingbook.OpeningBook;
 import fko.chessly.openingbook.OpeningBookImpl;
@@ -78,7 +77,7 @@ import fko.chessly.util.HelperTools;
 /**
  * Implementation of a chess engine originally written by Phokham Nonava.<br/>
  * It uses pseudo classes and int values to represent types instead of proper
- * Java classes - this appraoach is much faster than Java classes!<br/>
+ * Java classes - this approach is much faster than Java classes!<br/>
  * <br/>
  * Features:<br/>
  * <ul>
