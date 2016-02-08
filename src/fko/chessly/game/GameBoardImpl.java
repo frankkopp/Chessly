@@ -27,6 +27,8 @@
 package fko.chessly.game;
 
 import java.util.Arrays;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import fko.chessly.game.pieces.Bishop;
 import fko.chessly.game.pieces.King;

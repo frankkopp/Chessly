@@ -1,4 +1,4 @@
-/*
+/**
  * =============================================================================
  * Pulse
  *
@@ -33,7 +33,6 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
 package fko.chessly.player.computer.PulseEngine;
 
 import static java.lang.Integer.parseInt;
