@@ -92,12 +92,13 @@ public interface GameBoard {
 
     /**
      * Return reference to a piece on a field on col, row
-     * @param GamePosition
+     * @param pos GamePosition
      * @return returns Piece on this Field or null if empty
      */
     GamePiece getPiece(GamePosition pos);
 
     /**
+     * @param color
      * @return the field the white King is currently on
      */
     GamePosition getKingField(GameColor color);
@@ -243,11 +244,38 @@ public interface GameBoard {
      */
     boolean isWithinBoard(GamePosition p);
 
+    /**
+     * @return true if we can capture a pawn via en passant
+     */
     public boolean hasEnPassantCapturable();
+
+
+    /**
+     * @return the GamePosition where we can capture a pawn via en passant
+     */
     public GamePosition getEnPassantCapturable();
+
+
+    /**
+     * 50-moves rule - a game ends remis after 50 move without capture
+     * @return the number of half moves since the last capture
+     */
     public abstract int getHalfmoveClock();
+
+    /**
+     * @return true if the board has not enough material left to actually force a mate position
+     */
     public abstract boolean hasInsufficientMaterial();
+
+    /**
+     * @return true if we have more than 100 halfmoves without a capture
+     */
     public abstract boolean tooManyMovesWithoutCapture();
+
+    /**
+     * @param moves
+     * @return list with only legal moves
+     */
     public abstract GameMoveList filterLegalMovesOnly(GameMoveList moves);
 
 
