@@ -87,6 +87,11 @@ public interface Engine {
      */
     public abstract void setNumberOfThreads(int n);
 
-    public abstract void printInfo(String info);
+    /**
+     * Provide additional information for the UI to collect.
+     * E.g. verbose information etc.
+     * @param info
+     */
+    public abstract void getVerboseInfo(String info);
 
 }

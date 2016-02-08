@@ -46,6 +46,7 @@ public class RandomEngine implements Engine {
      */
     @Override
     public void init(Player player) {
+        // empty
     }
 
     /**
@@ -55,20 +56,12 @@ public class RandomEngine implements Engine {
      */
     @Override
     public GameMove getNextMove(GameBoard board) {
-
-        try {
-            Thread.sleep( 500+(int)(2000 * Math.random()) );
-        } catch (InterruptedException e) {
-            // ignore
-        }
-
         List<GameMove> moves = board.generateMoves();
         if (!moves.isEmpty()) {
             int move = (int) Math.round((moves.size() - 1) * Math.random());
             return moves.get(move);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -82,11 +75,12 @@ public class RandomEngine implements Engine {
 
     @Override
     public void setNumberOfThreads(int n) {
+        // empty
     }
 
 
     @Override
-    public void printInfo(String info) {
+    public void getVerboseInfo(String info) {
     }
 
 

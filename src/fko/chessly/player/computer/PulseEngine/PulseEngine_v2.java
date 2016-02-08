@@ -441,7 +441,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             if (_config.VERBOSE_PV) {
                 for (int i = 0; i < _currentSearchDepth;i++) {
                     String info = String.format("PV(%d) (size=%d): %s%n", i, _pv[i].size, _pv[i]);
-                    printInfo(info);
+                    getVerboseInfo(info);
                 }
                 printInfoln();
             }
@@ -493,7 +493,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         long start = System.currentTimeMillis();
         if (_config.VERBOSE_ITERATIVE_SEARCH) {
             String info = String.format("%nSearching depth (%d)%n", depth);
-            printInfo(info);
+            getVerboseInfo(info);
         }
 
         // ### Iterate through all available root moves
@@ -516,7 +516,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 if (_config.VERBOSE_ITERATIVE_SEARCH) {
                     String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) PVS %s - current best: %s", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                             _rootMoves.size, value, _cv.toString(), _currentBestRootMove);
-                    printInfo(info);
+                    getVerboseInfo(info);
                 }
                 // value > beta - is checked below after undoMove
 
@@ -527,16 +527,16 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (_config.VERBOSE_ITERATIVE_SEARCH) {
                         String info = String.format("%n%2d/%2d depth:%d %2d/%2d (%d) PVSre %s - current best: %s", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                                 _rootMoves.size, value, _cv.toString(), _currentBestRootMove);
-                        printInfo(info);
+                        getVerboseInfo(info);
                     }
                 }
             } else {
                 // no PV null window search
                 value = -negaMax(board, depth - 1, 0, -beta, -alpha, ply + 1, check, _searchMoveGenerators);
                 if (_config.VERBOSE_ITERATIVE_SEARCH) {
-                    if (depth > 1) printInfo(String.format("%n"));
+                    if (depth > 1) getVerboseInfo(String.format("%n"));
                     String info = String.format("%2d/%2d root  (%d) %s - current best: %s", i + 1, _rootMoves.size, value, Move.toString(move), _currentBestRootMove);
-                    printInfo(info);
+                    getVerboseInfo(info);
 
                 }
             }
@@ -552,7 +552,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             if (value > alpha) {
                 if (_config.VERBOSE_ITERATIVE_SEARCH) {
                     String info = String.format("   NEW BEST PV: value(%d) > alpha(%d) %s", value, alpha, _pv[0]);
-                    printInfo(info);
+                    getVerboseInfo(info);
                 }
                 alpha = value;
 
@@ -563,7 +563,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     printInfoln();
                     for (int j = 0; j < depth;j++) {
                         String info = String.format("   PV(%d) (size=%d): %s%n", j, _pv[j].size, _pv[j]);
-                        printInfo(info);
+                        getVerboseInfo(info);
                     }
                     printInfoln();
                 }
@@ -574,7 +574,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
 
             if (_config.VERBOSE_ITERATIVE_SEARCH) {
                 printInfoln();
-                if (depth > 1) printInfo(String.format("%n"));
+                if (depth > 1) getVerboseInfo(String.format("%n"));
             }
 
             // Check for time when time enabled management
@@ -592,7 +592,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             String info = String.format(Locale.GERMANY, "%nBest Move: %s PV: %s", _currentBestRootMove, _pv[0]);
             info += String.format(Locale.GERMANY, "%nDepth %d/%d done. %s nodes (%.4f sec) (%s nps) %n", depth, _currrentExtraSearchDepth,
                     HelperTools.getDigit(nodes), (time / 1000f), HelperTools.getDigit(nps * 1000));
-            printInfo(info);
+            getVerboseInfo(info);
         }
 
     }
@@ -733,7 +733,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                         if (_config.VERBOSE_ALPHABETA) {
                             String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) -> ", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1, moves.size, value);
                             info += String.format("quiescence extension: Current Search is %d, new extra is %d%n", _currentSearchDepth, new_extra);
-                            printInfo(info);
+                            getVerboseInfo(info);
                         }
                     }
                 }
@@ -744,7 +744,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (_config.VERBOSE_ALPHABETA) {
                         String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) PVS %s - current best: %s (%d)", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                                 moves.size, value, _cv.toString(), Move.toString(bestMove), bestValue);
-                        printInfo(info);
+                        getVerboseInfo(info);
                     }
                     // value > beta - is checked below after undoMove
 
@@ -755,7 +755,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                         if (_config.VERBOSE_ALPHABETA) {
                             String info = String.format("%n%2d/%2d depth:%d %2d/%2d (%d) PVSre %s - current best: %s (%d)", _currentMoveNumber, _rootMoves.size, ply + 1,
                                     i + 1, moves.size, value, _cv.toString(), Move.toString(bestMove), bestValue);
-                            printInfo(info);
+                            getVerboseInfo(info);
                         }
                     }
                 } else {
@@ -763,7 +763,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (_config.VERBOSE_ALPHABETA) {
                         String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) %s - current best: %s (%d)", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                                 moves.size, value, _cv.toString(), Move.toString(bestMove), bestValue);
-                        printInfo(info);
+                        getVerboseInfo(info);
                     }
                 }
             }
@@ -779,7 +779,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 if (value > alpha) {
                     if (_config.VERBOSE_ALPHABETA) {
                         String info = String.format(" value (%d) >  alpha(%d) @ Depth: %d ", value, alpha, ply + 1);
-                        printInfo(info);
+                        getVerboseInfo(info);
                     }
                     alpha = value;
                     savePV(move, _pv[ply + 1], _pv[ply]);
@@ -788,7 +788,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (value >= beta) {
                         if (_config.VERBOSE_ALPHABETA) {
                             String info = String.format("%n ==> CUT value (%d) >=  beta(%d) @ Depth: %d ", value, beta, ply);
-                            printInfo(info);
+                            getVerboseInfo(info);
                         }
                         // Extremly influences PERF counter test
                         if (_config._USE_PRUNING && !_config.PERF_TEST) {
@@ -1369,7 +1369,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
      * @param info
      */
     @Override
-    public void printInfo(String info) {
+    public void getVerboseInfo(String info) {
         synchronized (_engineInfoText) {
             _engineInfoText.append(info);
             // out of memory protection if the info is not retrieved
@@ -1380,7 +1380,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     private void printInfoln() {
-        printInfo(String.format("%n"));
+        getVerboseInfo(String.format("%n"));
     }
 
     /**
@@ -1720,7 +1720,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 notifyObservers(new PlayerDependendModelEvent("ENGINE start pondering", _player, SIG_ENGINE_START_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Pondering over move %s%n",Move.toString(_pv[0].moves[1]));
-                    printInfo(info);
+                    getVerboseInfo(info);
                 }
 
                 // Guess the opponents move from last PV
@@ -1741,7 +1741,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+ " nothing to ponder - waiting", _player, SIG_ENGINE_NO_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Nothing to ponder%n");
-                    printInfo(info);
+                    getVerboseInfo(info);
                 }
             }
         }

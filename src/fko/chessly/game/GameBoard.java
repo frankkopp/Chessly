@@ -160,7 +160,7 @@ public interface GameBoard {
      *  - a king or rook had castling rights, but forfeited these after moving. The castling
      *    rights are lost only after the king or rook is moved.
      *
-     * @param the board to check
+     * @param b
      * @return true when the position is identical according to FIDE rules
      */
     boolean hasSamePosition(GameBoard b);
@@ -189,8 +189,7 @@ public interface GameBoard {
 
     /**
      * Check if the field is attacked
-     * @param a_col 1..8
-     * @param a_row 1..8
+     * @param pos
      * @param attackingColor
      * @return true when any other piece can capture on this field in the next move
      */
@@ -213,10 +212,8 @@ public interface GameBoard {
     /**
      * Checks if there is another piece between the from field
      * and the to field along the alowed move path.
-     * @param fromCol 1..8
-     * @param fromRow 1..8
-     * @param toCol 1..8
-     * @param toRow 1..8
+     * @param from
+     * @param to
      * @return true when path is free
      */
     boolean checkForFreePath(GamePosition from, GamePosition to);
@@ -234,30 +231,23 @@ public interface GameBoard {
      * Does NOT check if pawn can capture forward!
      * Does NOT check if the way to the field is blocked!
      * Does NOT check if this is otherwise a legal move (e.g. King moving into Check)
-     * @param fromCol 1..8
-     * @param fromRow 1..8
-     * @param toCol 1..8
-     * @param toRow 1..8
+     * @param from
+     * @param to
      * @return true if to field is empty or occupied by opponent - false otherwise
      */
     boolean canMoveTo(GamePosition from, GamePosition to);
 
     /**
-     * @param col 1..8
-     * @param row 1..8
+     * @param p
      * @return true if still on valid board fields
      */
     boolean isWithinBoard(GamePosition p);
 
     public boolean hasEnPassantCapturable();
     public GamePosition getEnPassantCapturable();
-
     public abstract int getHalfmoveClock();
-
     public abstract boolean hasInsufficientMaterial();
-
     public abstract boolean tooManyMovesWithoutCapture();
-
     public abstract GameMoveList filterLegalMovesOnly(GameMoveList moves);
 
 

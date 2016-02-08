@@ -627,7 +627,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      */
     public void printInfo(String info) {
         if (_engine != null) {
-            _engine.printInfo(info);
+            _engine.getVerboseInfo(info);
         } else {
             System.out.print(info);
         }
