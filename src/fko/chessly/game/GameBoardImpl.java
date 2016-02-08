@@ -1376,7 +1376,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // Standard Start Board
         setupFromFEN(fen);
 
-        // DEBUG
+        // used for debugging
         //setupFromFEN("8/1P6/6k1/8/8/8/p1K5/8 w - - 0 1");
 
         // Test - Mate in 2

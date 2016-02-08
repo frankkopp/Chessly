@@ -556,7 +556,6 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
 
                 savePV(move, _pv[1], _pv[0]); // ply+1 to ply
 
-                // DEBUG code
                 if (_config.VERBOSE_PV) {
                     printInfoln();
                     for (int j = 0; j < depth;j++) {
@@ -716,11 +715,11 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 int new_depth = depth - 1;
                 int new_extra = extra;
 
-                // Check for quiescent search extention
+                // Check for quiescent search extension
                 // if board has check or last move was capture extend the search depth by 1
                 if (_config._USE_QUIESCENCE && !_config.PERF_TEST && new_depth == 0) { // would lead to evaluation in next recursion
                     // was last move check or capture
-                    // TODO: only extend for valueable moves
+                    // TODO: only extend for valuable moves
                     // TODO: Static Exchange Evaluation
                     // TODO: Delta Pruning or Futility Pruning
                     if (!isQuiet(board, check)) {
