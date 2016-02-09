@@ -318,8 +318,6 @@ public class EngineInfoUpdater {
         int halfMoveNumber = game.getCurBoard().getLastHalfMoveNumber();
         GameColor nextColor = game.getNextPlayer().getColor();
 
-        int ponderingOffset = 0;
-
         if (_color.equals(nextColor)) {
             //System.out.println("thinking");
         } else {
