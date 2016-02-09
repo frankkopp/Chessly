@@ -159,7 +159,7 @@ public interface ObservableEngine {
     /**
      * Returns a string explaining the configuration of the engine.
      * E.g. Pruning, PV, Cache,
-     * @return
+     * @return config string
      */
     String getCurConfig();
 

@@ -1193,6 +1193,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     /**
      * Configure and start time keepers
      * @param approxTime
+     * FIXME: Bug - TimeKeeper does not Pause when game paused!
      */
     private void configureTimeControl(long approxTime) {
         // standard limits
@@ -1733,8 +1734,10 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             _doTimeManagement = false;
 
             // the most likely white move from the last PV
-            int ponderMove = _pv[0].moves[1];
-            if (_pv[0] != null && _pv[0].size > 1 && ponderMove != Move.NOMOVE) {
+
+            if (_pv[0] != null && _pv[0].size > 1 && _pv[0].moves[1] != Move.NOMOVE) {
+
+                int ponderMove = _pv[0].moves[1];
 
                 _ponderMove = convertMove(ponderMove);
                 _status.set(ObservableEngine.PONDERING);
