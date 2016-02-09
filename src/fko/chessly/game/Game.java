@@ -43,7 +43,7 @@ import fko.chessly.util.StatusController;
 /**
  * <p>This class handles everything needed to run a Chessly rules compliant game.</p>
  *
- * <p>The game class controls a single game of reversi using mainly a board and 2 players. It also has 2 timers
+ * <p>The game class controls a single game of chess using mainly a board and 2 players. It also has 2 timers
  * for each of the players.</p>
  *
  * <p>A game object can have the one of following states (defined in the Game class as constant fields):<br/>
@@ -58,7 +58,7 @@ import fko.chessly.util.StatusController;
  * When a game is <b>OVER</b> there must be a <b>WINNER</b> or it is a <b>DRAW</b>.
  * </p>
  *
- * <p>A game runs in a seperate thread and must be started (startGame) after creation.</p>
+ * <p>A game runs in a separate thread and must be started (startGame) after creation.</p>
  *
  * <p>A game needs two Players, times for the players if the game is timed.</p>
  *
@@ -110,8 +110,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
      *
      * @throws IllegalArgumentException when invalid arguments has been used.
      */
-    public Game(Player whitePlayer, Player blackPlayer, long timeWhite,
-            long timeBlack, boolean timedGame) {
+    public Game(Player whitePlayer, Player blackPlayer, long timeWhite, long timeBlack, boolean timedGame) {
 
         // Assert parameter
         if (blackPlayer==null || whitePlayer == null) {

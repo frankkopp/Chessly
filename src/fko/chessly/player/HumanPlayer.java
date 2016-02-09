@@ -175,7 +175,6 @@ public class HumanPlayer extends AbstractPlayer {
             _wantsMove.set(false);
             _wantsUndoMove.set(true);
             _isReadyToReturn.set(true);
-            // tell getMove() that we have a move and that is should come back from wait()
             _lock.notifyAll();
         }
     }

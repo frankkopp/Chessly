@@ -92,12 +92,13 @@ public interface GameBoard {
 
     /**
      * Return reference to a piece on a field on col, row
-     * @param GamePosition
+     * @param pos GamePosition
      * @return returns Piece on this Field or null if empty
      */
     GamePiece getPiece(GamePosition pos);
 
     /**
+     * @param color
      * @return the field the white King is currently on
      */
     GamePosition getKingField(GameColor color);
@@ -160,7 +161,7 @@ public interface GameBoard {
      *  - a king or rook had castling rights, but forfeited these after moving. The castling
      *    rights are lost only after the king or rook is moved.
      *
-     * @param the board to check
+     * @param b
      * @return true when the position is identical according to FIDE rules
      */
     boolean hasSamePosition(GameBoard b);
@@ -189,8 +190,7 @@ public interface GameBoard {
 
     /**
      * Check if the field is attacked
-     * @param a_col 1..8
-     * @param a_row 1..8
+     * @param pos
      * @param attackingColor
      * @return true when any other piece can capture on this field in the next move
      */
@@ -213,10 +213,8 @@ public interface GameBoard {
     /**
      * Checks if there is another piece between the from field
      * and the to field along the alowed move path.
-     * @param fromCol 1..8
-     * @param fromRow 1..8
-     * @param toCol 1..8
-     * @param toRow 1..8
+     * @param from
+     * @param to
      * @return true when path is free
      */
     boolean checkForFreePath(GamePosition from, GamePosition to);
@@ -234,30 +232,50 @@ public interface GameBoard {
      * Does NOT check if pawn can capture forward!
      * Does NOT check if the way to the field is blocked!
      * Does NOT check if this is otherwise a legal move (e.g. King moving into Check)
-     * @param fromCol 1..8
-     * @param fromRow 1..8
-     * @param toCol 1..8
-     * @param toRow 1..8
+     * @param from
+     * @param to
      * @return true if to field is empty or occupied by opponent - false otherwise
      */
     boolean canMoveTo(GamePosition from, GamePosition to);
 
     /**
-     * @param col 1..8
-     * @param row 1..8
+     * @param p
      * @return true if still on valid board fields
      */
     boolean isWithinBoard(GamePosition p);
 
+    /**
+     * @return true if we can capture a pawn via en passant
+     */
     public boolean hasEnPassantCapturable();
+
+
+    /**
+     * @return the GamePosition where we can capture a pawn via en passant
+     */
     public GamePosition getEnPassantCapturable();
 
+
+    /**
+     * 50-moves rule - a game ends remis after 50 move without capture
+     * @return the number of half moves since the last capture
+     */
     public abstract int getHalfmoveClock();
 
+    /**
+     * @return true if the board has not enough material left to actually force a mate position
+     */
     public abstract boolean hasInsufficientMaterial();
 
+    /**
+     * @return true if we have more than 100 halfmoves without a capture
+     */
     public abstract boolean tooManyMovesWithoutCapture();
 
+    /**
+     * @param moves
+     * @return list with only legal moves
+     */
     public abstract GameMoveList filterLegalMovesOnly(GameMoveList moves);
 
 

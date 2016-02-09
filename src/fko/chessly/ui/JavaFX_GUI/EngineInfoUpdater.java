@@ -31,10 +31,6 @@ import java.text.DecimalFormat;
 import java.text.Format;
 import java.util.List;
 
-import javax.swing.SwingUtilities;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
-
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.game.Game;
@@ -46,8 +42,6 @@ import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller.EngineInfoLabels;
 import fko.chessly.util.HelperTools;
 import javafx.application.Platform;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
 
 /**
  * This class updates the engine information.
@@ -176,7 +170,7 @@ public class EngineInfoUpdater {
         if (((ComputerPlayer)player).getEngine() instanceof ObservableEngine) {
             ObservableEngine engine = (ObservableEngine)((ComputerPlayer)player).getEngine();
 
-            _engineLabels.status_label.setText("Status: " + engine.getStatus());
+            _engineLabels.status_label.setText("Status: " + engine.getStatusText() +" "+engine.getState()+" "+engine.getPonderMove());
 
             // Print verbose or debug info into the info text panel
             String newInfoText = engine.getInfoText();
@@ -258,7 +252,6 @@ public class EngineInfoUpdater {
         } else {
             clearAll();
         }
-
     }
 
     /**
@@ -316,16 +309,49 @@ public class EngineInfoUpdater {
      * @return String with formatted PV
      * FIXME - wrong when pondering
      */
-    public static String printCurPV(Game game, List<GameMove> list, GameMove maxMove) {
+    public String printCurPV(Game game, List<GameMove> list, GameMove maxMove) {
+
         String s = "";
+
         if (list == null || list.size() == 0) return s;
-        int mn = game.getCurBoard().getNextHalfMoveNumber()+1;
-        for (int i = 0; i < list.size(); ++i) {
-            if (i == 0 || (mn+i)%2 == 0) {
-                s += (int)(Math.ceil((mn+i)/2)) +". ";
+
+        int halfMoveNumber = game.getCurBoard().getLastHalfMoveNumber();
+        GameColor nextColor = game.getNextPlayer().getColor();
+
+        if (_color.equals(nextColor)) {
+            //System.out.println("thinking");
+        } else {
+            //System.out.println("pondering");
+            halfMoveNumber++;
+            nextColor = nextColor.getInverseColor();
+        }
+
+        // engine color
+        int whiteOffset = _color.isWhite() ? 1 : 0;
+
+        // First move in list needs extra attention
+        if (nextColor.isBlack()) {
+            // 3. ... e7-e5
+            s += ((halfMoveNumber+1)>>1)+whiteOffset +". ... "+list.get(0)+" ";
+        } else {
+            // 4. e2-e4
+            s += ((halfMoveNumber+1)>>1)+whiteOffset +". "+list.get(0)+" ";
+        }
+
+        // increase half move number for next move
+        halfMoveNumber++;
+        nextColor = nextColor.getInverseColor();
+
+        // nextColor = _
+        for (int i = 1; i < list.size(); ++i) {
+            // show number before each white move
+            if (nextColor.equals(GameColor.WHITE)) {
+                s += ((halfMoveNumber+i+1)>>1) +". ";
             }
             s += list.get(i)+" ";
+            nextColor = nextColor.getInverseColor();
         }
+
         int value = maxMove.getValue();
         s += "(";
         if (value >= 0) {

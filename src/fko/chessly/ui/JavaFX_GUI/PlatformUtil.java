@@ -30,8 +30,6 @@ package fko.chessly.ui.JavaFX_GUI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-
 import javafx.application.Platform;
 
 /**
@@ -75,9 +73,10 @@ public class PlatformUtil {
 
         // wait for the latch
         try {
-            // DEBUG code - should wait forever - the 10sec are just for safety
-            if (!latch.await(10000, TimeUnit.MILLISECONDS))
-                throw new RuntimeException("Exeeded latch wait time");
+            latch.await();
+            // debugging code - should wait forever - the 10sec are just for safety
+            //            if (!latch.await(10000, TimeUnit.MILLISECONDS))
+            //                throw new RuntimeException("Exeeded latch wait time");
         } catch (InterruptedException e) {
             // ignore
         }
