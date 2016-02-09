@@ -628,7 +628,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         _pv[ply].size = 0;
 
         // Check the repetition table and fifty move rule
-        // FIXME Repetition
+        // FIXME: Repetition
         if (board.hasInsufficientMaterial() || board.halfmoveClock >= 100) { // board.isRepetition() ||
             if (!_config.PERF_TEST) { // influences the counting of nodes according to PERF tests
                 // nodes counter - this is a board evaluation
@@ -1608,6 +1608,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     /**
      * This TimeKeeper class is used to implement a Timer that calls this Timekeeper when a time limit has been
      * reached. This TimeKeeper then sets the time limit reached flags.
+     * FIXME: Does not pause when game is paused
      */
     private class TimeKeeper extends TimerTask {
         private final int _mode;
