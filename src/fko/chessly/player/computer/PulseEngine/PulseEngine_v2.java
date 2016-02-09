@@ -45,6 +45,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import fko.chessly.Chessly;
@@ -195,6 +196,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     private final Semaphore _ponderSemaphore = new Semaphore(1);
     private Board _ponderBoard = null;
     private boolean _isPondering;
+    private GameMove _ponderMove = null;
 
     /*
      * A string holding the current status of the engine for the ui.
@@ -202,6 +204,10 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
      */
     private String _statusInfo;
 
+    /*
+     * Status of the engine for engine observers
+     */
+    private AtomicInteger _status = new AtomicInteger(ObservableEngine.IDLE);
 
     // Constructor ----------------------------------------------
 
@@ -281,6 +287,8 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         // waits until pondering has finished
         if (_config._USE_PONDERER) stopPondering();
 
+        _status.set(ObservableEngine.THINKING);
+
         // notify ui
         setChanged();
         notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" start calculating", _player, SIG_ENGINE_START_CALCULATING));
@@ -355,6 +363,8 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         // notify ui
         setChanged();
         notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
+
+        _status.set(ObservableEngine.IDLE);
 
         if (_config._USE_PONDERER) startPondering();
 
@@ -1574,8 +1584,24 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
      * @see fko.chessly.player.computer.ObservableEngine#getStatus()
      */
     @Override
-    public String getStatus() {
+    public String getStatusText() {
         return _statusInfo;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getState()
+     */
+    @Override
+    public int getState() {
+        return _status.get();
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getPonderMove()
+     */
+    @Override
+    public GameMove getPonderMove() {
+        return _ponderMove;
     }
 
     /**
@@ -1706,22 +1732,23 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             // will be reset to correct value in getNextMove()
             _doTimeManagement = false;
 
-
-
             // the most likely white move from the last PV
-            if (_pv[0] != null && _pv[0].size > 1 && _pv[0].moves[1] != Move.NOMOVE) {
+            int ponderMove = _pv[0].moves[1];
+            if (_pv[0] != null && _pv[0].size > 1 && ponderMove != Move.NOMOVE) {
 
-                _statusInfo = "Engine pondering on move " + Move.toString(_pv[0].moves[1]);
+                _ponderMove = convertMove(ponderMove);
+                _status.set(ObservableEngine.PONDERING);
+                _statusInfo = "Engine pondering on move " + Move.toString(ponderMove);
                 // notify ui
                 setChanged();
                 notifyObservers(new PlayerDependendModelEvent("ENGINE start pondering", _player, SIG_ENGINE_START_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
-                    String info = String.format("Pondering over move %s%n",Move.toString(_pv[0].moves[1]));
+                    String info = String.format("Pondering over move %s%n",Move.toString(ponderMove));
                     getVerboseInfo(info);
                 }
 
                 // Guess the opponents move from last PV
-                _ponderBoard.makeMove(_pv[0].moves[1]);
+                _ponderBoard.makeMove(ponderMove);
                 //Search
                 prepareSearch();
                 // we don't care about the return value (yet) - just filling up the node cache
@@ -1730,9 +1757,14 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 // notify ui
                 setChanged();
                 notifyObservers(new PlayerDependendModelEvent("ENGINE stopped pondering", _player, SIG_ENGINE_FINISHED_PONDERING));
+                _status.set(ObservableEngine.IDLE);
+                _ponderMove = null;
 
             } else {
                 _statusInfo = "Engine waiting.";
+                // this should be redundant
+                _status.set(ObservableEngine.IDLE);
+                _ponderMove = null;
                 // notify ui
                 setChanged();
                 notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+ " nothing to ponder - waiting", _player, SIG_ENGINE_NO_PONDERING));

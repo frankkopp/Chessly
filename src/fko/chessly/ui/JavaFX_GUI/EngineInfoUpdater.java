@@ -170,7 +170,7 @@ public class EngineInfoUpdater {
         if (((ComputerPlayer)player).getEngine() instanceof ObservableEngine) {
             ObservableEngine engine = (ObservableEngine)((ComputerPlayer)player).getEngine();
 
-            _engineLabels.status_label.setText("Status: " + engine.getStatus());
+            _engineLabels.status_label.setText("Status: " + engine.getStatusText() +" "+engine.getState()+" "+engine.getPonderMove());
 
             // Print verbose or debug info into the info text panel
             String newInfoText = engine.getInfoText();
