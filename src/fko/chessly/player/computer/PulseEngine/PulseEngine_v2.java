@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import fko.chessly.Chessly;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameCastling;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveImpl;
@@ -1249,7 +1250,6 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
      * Convert an engine move to a GameMove
      * @param move
      * @return converted Move as GameMove
-     * FIXME - take all info into the GameMove, e.g. capture, castle, etc.
      */
     private static GameMove convertMove(int move) {
         if (move == Move.NOMOVE) return null;
@@ -1257,82 +1257,133 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         int origin = Move.getOriginSquare(move);
         int target = Move.getTargetSquare(move);
         int oPiece = Move.getOriginPiece(move);
+        int tPiece = Move.getTargetPiece(move);
 
         GamePosition _fromField = GamePosition.getGamePosition(Square.getFile(origin) + 1, Square.getRank(origin) + 1);
         GamePosition _toField = GamePosition.getGamePosition(Square.getFile(target) + 1, Square.getRank(target) + 1);
-        GamePiece _pieceMoved;
-        switch (oPiece) {
-            case Piece.WHITE_PAWN:
-                _pieceMoved = Pawn.createPawn(GameColor.WHITE);
-                break;
-            case Piece.WHITE_KNIGHT:
-                _pieceMoved = Knight.createKnight(GameColor.WHITE);
-                break;
-            case Piece.WHITE_BISHOP:
-                _pieceMoved = Bishop.createBishop(GameColor.WHITE);
-                break;
-            case Piece.WHITE_ROOK:
-                _pieceMoved = Rook.createRook(GameColor.WHITE);
-                break;
-            case Piece.WHITE_QUEEN:
-                _pieceMoved = Queen.createQueen(GameColor.WHITE);
-                break;
-            case Piece.WHITE_KING:
-                _pieceMoved = King.createKing(GameColor.WHITE);
-                break;
-            case Piece.BLACK_PAWN:
-                _pieceMoved = Pawn.createPawn(GameColor.BLACK);
-                break;
-            case Piece.BLACK_KNIGHT:
-                _pieceMoved = Knight.createKnight(GameColor.BLACK);
-                break;
-            case Piece.BLACK_BISHOP:
-                _pieceMoved = Bishop.createBishop(GameColor.BLACK);
-                break;
-            case Piece.BLACK_ROOK:
-                _pieceMoved = Rook.createRook(GameColor.BLACK);
-                break;
-            case Piece.BLACK_QUEEN:
-                _pieceMoved = Queen.createQueen(GameColor.BLACK);
-                break;
-            case Piece.BLACK_KING:
-                _pieceMoved = King.createKing(GameColor.BLACK);
-                break;
-            case Piece.NOPIECE:
-            default:
-                throw new RuntimeException("Can't convert from Move to GameMove. Invalid oPiece");
-        }
+        GamePiece _pieceMoved = convertPieceToGamePiece(oPiece);
 
         GameMove gameMove = new GameMoveImpl(_fromField, _toField, _pieceMoved);
 
         int type = Move.getType(move);
 
-        if (type == MoveType.PAWNPROMOTION) {
-            int promotionPiece = Move.getPromotion(move);
-            int promotionType = Move.getType(promotionPiece);
-            assert (PieceType.isValidPromotion(promotionType));
-            GameColor color = Piece.getColor(oPiece) == Color.WHITE ? GameColor.WHITE : GameColor.BLACK;
-            GamePiece pp;
-            switch (promotionType) {
-                case PieceType.QUEEN:
-                    pp = Queen.createQueen(color);
-                    break;
-                case PieceType.ROOK:
-                    pp = Rook.createRook(color);
-                    break;
-                case PieceType.BISHOP:
-                    pp = Bishop.createBishop(color);
-                    break;
-                case PieceType.KNIGHT:
-                    pp = Knight.createKnight(color);
-                    break;
-                default:
-                    throw new RuntimeException("Invalid PieceType for Promotion during convert from Move to GameMove");
-            }
-            gameMove.setPromotedTo(pp);
+        switch (type) {
+            case MoveType.NORMAL:
+                break;
+
+            case MoveType.CAPTURE:
+                gameMove.setCapturedPiece(convertPieceToGamePiece(tPiece));
+                break;
+
+            case MoveType.PAWNDOUBLE:
+                break;
+
+            case MoveType.PAWNPROMOTION:
+                int promotionPiece = Move.getPromotion(move);
+                int promotionType = Move.getType(promotionPiece);
+                assert (PieceType.isValidPromotion(promotionType));
+                GameColor color = Piece.getColor(oPiece) == Color.WHITE ? GameColor.WHITE : GameColor.BLACK;
+                GamePiece pp;
+                switch (promotionType) {
+                    case PieceType.QUEEN:
+                        pp = Queen.createQueen(color);
+                        break;
+                    case PieceType.ROOK:
+                        pp = Rook.createRook(color);
+                        break;
+                    case PieceType.BISHOP:
+                        pp = Bishop.createBishop(color);
+                        break;
+                    case PieceType.KNIGHT:
+                        pp = Knight.createKnight(color);
+                        break;
+                    default:
+                        throw new RuntimeException("Invalid PieceType for Promotion during convert from Move to GameMove");
+                }
+                gameMove.setPromotedTo(pp);
+                break;
+
+            case MoveType.ENPASSANT:
+                gameMove.setCapturedPiece(convertPieceToGamePiece(tPiece));
+                break;
+
+            case MoveType.CASTLING:
+                //TODO move to gameMove Castling info
+                if (oPiece == Piece.WHITE_KING) {
+                    if (Square.getFile(target) == 7) {
+                        // king side
+                        gameMove.setCastlingType(GameCastling.WHITE_KINGSIDE);
+                    } else if (Square.getFile(target) == 3) {
+                        // queen side
+                        gameMove.setCastlingType(GameCastling.WHITE_QUEENSIDE);
+                    }
+                } else if (oPiece == Piece.BLACK_KING) {
+                    if (Square.getFile(target) == 7) {
+                        // king side
+                        gameMove.setCastlingType(GameCastling.BLACK_KINGSIDE);
+                    } else if (Square.getFile(target) == 3) {
+                        // queen side
+                        gameMove.setCastlingType(GameCastling.BLACK_QUEENSIDE);
+                    }
+                }
+
+                break;
+
+            default:
+                break;
         }
 
         return gameMove;
+    }
+
+    /**
+     * @param oPiece
+     * @return
+     */
+    private static GamePiece convertPieceToGamePiece(int oPiece) {
+        GamePiece _convertedPiece;
+        switch (oPiece) {
+            case Piece.WHITE_PAWN:
+                _convertedPiece = Pawn.createPawn(GameColor.WHITE);
+                break;
+            case Piece.WHITE_KNIGHT:
+                _convertedPiece = Knight.createKnight(GameColor.WHITE);
+                break;
+            case Piece.WHITE_BISHOP:
+                _convertedPiece = Bishop.createBishop(GameColor.WHITE);
+                break;
+            case Piece.WHITE_ROOK:
+                _convertedPiece = Rook.createRook(GameColor.WHITE);
+                break;
+            case Piece.WHITE_QUEEN:
+                _convertedPiece = Queen.createQueen(GameColor.WHITE);
+                break;
+            case Piece.WHITE_KING:
+                _convertedPiece = King.createKing(GameColor.WHITE);
+                break;
+            case Piece.BLACK_PAWN:
+                _convertedPiece = Pawn.createPawn(GameColor.BLACK);
+                break;
+            case Piece.BLACK_KNIGHT:
+                _convertedPiece = Knight.createKnight(GameColor.BLACK);
+                break;
+            case Piece.BLACK_BISHOP:
+                _convertedPiece = Bishop.createBishop(GameColor.BLACK);
+                break;
+            case Piece.BLACK_ROOK:
+                _convertedPiece = Rook.createRook(GameColor.BLACK);
+                break;
+            case Piece.BLACK_QUEEN:
+                _convertedPiece = Queen.createQueen(GameColor.BLACK);
+                break;
+            case Piece.BLACK_KING:
+                _convertedPiece = King.createKing(GameColor.BLACK);
+                break;
+            case Piece.NOPIECE:
+            default:
+                throw new RuntimeException("Can't convert from Move to GameMove. Invalid oPiece");
+        }
+        return _convertedPiece;
     }
 
     /**
@@ -1789,6 +1840,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     public static final int SIG_ENGINE_START_PONDERING = 6020;
     /** */
     public static final int SIG_ENGINE_FINISHED_PONDERING = 6030;
+
     /** */
     public static final int SIG_ENGINE_NO_PONDERING = 6040;
 }

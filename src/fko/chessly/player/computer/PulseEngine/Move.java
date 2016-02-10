@@ -308,7 +308,7 @@ final class Move {
     }
 
     /**
-     *
+     * Returns a string showing the move.
      * @param move
      * @return string representing the move
      */
