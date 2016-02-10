@@ -918,8 +918,8 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         // only way to determine mates is to check one ply deeper
         if (check) { return false; }
 
-        // Possible improvemnts
-        // Stalemate Check
+        // Possible improvements
+        // Stale mate Check
         // Winning Capture (weaker Piece captures stronger piece)
 
         // Any Capture
@@ -959,7 +959,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
 
         MoveList moves = null;
 
-        // When not using quiescence extention checks it is necessary to check for moves
+        // When not using quiescence extension checks it is necessary to check for moves
         // here otherwise we will overlook checkmates and stalemates at the last depth
         if (!_config._USE_QUIESCENCE) {
             // check for check, mate and stalemate

@@ -310,7 +310,7 @@ final class Move {
     /**
      *
      * @param move
-     * @return
+     * @return string representing the move
      */
     public static String toString(int move) {
 
