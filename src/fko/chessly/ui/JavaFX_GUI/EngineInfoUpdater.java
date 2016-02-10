@@ -217,12 +217,12 @@ public class EngineInfoUpdater {
             final int curNodeCacheSize = engine.getCurNodeCacheSize();
             _engineLabels.ncSize_label.setText(numberFormat.format(curNodeCacheSize));
 
-            // -- show the numer of nodes in the cache --
+            // -- show the number of nodes in the cache --
             final int curNodesInCache = engine.getCurNodesInCache();
             int percent = (int)(100.F * curNodesInCache / curNodeCacheSize);
             _engineLabels.ncUse_label.setText(numberFormat.format(curNodesInCache)+" ("+percent+"%)");
 
-            // -- show the number of cache hits ans misses so far --
+            // -- show the number of cache hits and misses so far --
             long cachehits = engine.getNodeCacheHits();
             long cachemisses = engine.getNodeCacheMisses();
             percent = (int) (100.0F * ((float) cachehits / (float) (cachehits + cachemisses)));
@@ -238,7 +238,7 @@ public class EngineInfoUpdater {
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             _engineLabels.bcUse_label.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");
 
-            // -- show the number of cache hits ans misses so far --
+            // -- show the number of cache hits and misses so far --
             cachehits = engine.getBoardCacheHits();
             cachemisses = engine.getBoardCacheMisses();
             percent = (int) (100.0F * ((float) cachehits / (float) (cachehits + cachemisses)));
