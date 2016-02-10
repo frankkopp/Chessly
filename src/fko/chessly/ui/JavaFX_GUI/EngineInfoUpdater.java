@@ -396,7 +396,7 @@ public class EngineInfoUpdater {
                 // white is always full= half/2 +1
                 s.append(((halfMoveNumber+i)/2)+1 + ". ");
             }
-            s.append(list.get(i)+" ");
+            s.append(list.get(i).toString()+" ");
             nextColor = nextColor.getInverseColor();
         }
 

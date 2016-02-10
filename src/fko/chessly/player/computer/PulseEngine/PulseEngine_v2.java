@@ -1248,7 +1248,8 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     /**
      * Convert an engine move to a GameMove
      * @param move
-     * @return
+     * @return converted Move as GameMove
+     * FIXME - take all info into the GameMove, e.g. capture, castle, etc.
      */
     private static GameMove convertMove(int move) {
         if (move == Move.NOMOVE) return null;
@@ -1351,7 +1352,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     /**
-     * Prints the current Principle Variation in human readyble form.
+     * Prints the current Principle Variation in human readable form.
      * @param convertedBoard
      * @return
      */
