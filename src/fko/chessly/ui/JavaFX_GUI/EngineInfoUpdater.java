@@ -38,6 +38,7 @@ import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
+import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller.EngineInfoLabels;
 import fko.chessly.util.HelperTools;
@@ -170,14 +171,14 @@ public class EngineInfoUpdater {
         if (((ComputerPlayer)player).getEngine() instanceof ObservableEngine) {
             ObservableEngine engine = (ObservableEngine)((ComputerPlayer)player).getEngine();
 
-            _engineLabels.status_label.setText("Status: " + engine.getStatusText() +" "+engine.getState()+" "+engine.getPonderMove());
+            _engineLabels.status_label.setText("Status: " + engine.getStatusText());
 
             // Print verbose or debug info into the info text panel
             String newInfoText = engine.getInfoText();
             if (!newInfoText.isEmpty() && _engineLabels.infoArea.isVisible()) _engineLabels.infoArea.printInfo(newInfoText);
 
             // PV label
-            _engineLabels.pv_label.setText(printCurPV(game, engine.getPV(), engine.getMaxValueMove()));
+            _engineLabels.pv_label.setText(printCurPV(game, player));
 
             // -- current move in calculation --
             if (engine.getCurMove() != null) {
@@ -191,9 +192,7 @@ public class EngineInfoUpdater {
 
             // -- current calculated value for the best move so far --
             if (engine.getMaxValueMove() != null) {
-                engineShowCurValue(
-                        engine.getMaxValueMove()
-                        );
+                engineShowCurValue(engine.getMaxValueMove());
             }
 
             // -- current search depth --
@@ -218,12 +217,12 @@ public class EngineInfoUpdater {
             final int curNodeCacheSize = engine.getCurNodeCacheSize();
             _engineLabels.ncSize_label.setText(numberFormat.format(curNodeCacheSize));
 
-            // -- show the numer of nodes in the cache --
+            // -- show the number of nodes in the cache --
             final int curNodesInCache = engine.getCurNodesInCache();
             int percent = (int)(100.F * curNodesInCache / curNodeCacheSize);
             _engineLabels.ncUse_label.setText(numberFormat.format(curNodesInCache)+" ("+percent+"%)");
 
-            // -- show the number of cache hits ans misses so far --
+            // -- show the number of cache hits and misses so far --
             long cachehits = engine.getNodeCacheHits();
             long cachemisses = engine.getNodeCacheMisses();
             percent = (int) (100.0F * ((float) cachehits / (float) (cachehits + cachemisses)));
@@ -239,7 +238,7 @@ public class EngineInfoUpdater {
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             _engineLabels.bcUse_label.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");
 
-            // -- show the number of cache hits ans misses so far --
+            // -- show the number of cache hits and misses so far --
             cachehits = engine.getBoardCacheHits();
             cachemisses = engine.getBoardCacheMisses();
             percent = (int) (100.0F * ((float) cachehits / (float) (cachehits + cachemisses)));
@@ -303,62 +302,107 @@ public class EngineInfoUpdater {
     }
 
     /**
+     * Creates a correctly formatted PV string.
      * @param game
-     * @param list
-     * @param maxMove
+     * @param player
      * @return String with formatted PV
-     * FIXME - wrong when pondering
      */
-    public String printCurPV(Game game, List<GameMove> list, GameMove maxMove) {
+    public String printCurPV(Game game, Player player ) {
 
-        String s = "";
+        // get the engine and the PV list
+        ObservableEngine engine = (ObservableEngine) ((ComputerPlayer) player).getEngine();
+        List<GameMove> list = engine.getPV();
 
-        if (list == null || list.size() == 0) return s;
+        // PV list should not be empty
+        if (list == null || list.size() == 0) return "";
 
-        int halfMoveNumber = game.getCurBoard().getLastHalfMoveNumber();
-        GameColor nextColor = game.getNextPlayer().getColor();
+        StringBuilder s = new StringBuilder();
 
-        if (_color.equals(nextColor)) {
-            //System.out.println("thinking");
-        } else {
-            //System.out.println("pondering");
-            halfMoveNumber++;
-            nextColor = nextColor.getInverseColor();
-        }
+        // get some info directly from the engine - doesn't matter if they change afterwards
+        GameMove ponderMove = engine.getPonderMove();
+        int engineState = engine.getState();
 
-        // engine color
-        int whiteOffset = _color.isWhite() ? 1 : 0;
+        // last move made
+        int halfMoveNumber = game.getCurBoard().getNextHalfMoveNumber();
+        GameColor nextColor = _color.getInverseColor();
 
-        // First move in list needs extra attention
-        if (nextColor.isBlack()) {
-            // 3. ... e7-e5
-            s += ((halfMoveNumber+1)>>1)+whiteOffset +". ... "+list.get(0)+" ";
-        } else {
-            // 4. e2-e4
-            s += ((halfMoveNumber+1)>>1)+whiteOffset +". "+list.get(0)+" ";
-        }
+        // are we watching white or black
+        if (_color.isWhite()) { // we are white
+            switch (engineState) {
+                case ObservableEngine.THINKING:
+                    // here white has next move
 
-        // increase half move number for next move
-        halfMoveNumber++;
-        nextColor = nextColor.getInverseColor();
+                    // white is always full= half/2 +1
+                    s.append(((halfMoveNumber/2)+1) +". "+list.get(0)+" ");
+                    // used up first move from list
+                    list.remove(0);
 
-        // nextColor = _
-        for (int i = 1; i < list.size(); ++i) {
-            // show number before each white move
-            if (nextColor.equals(GameColor.WHITE)) {
-                s += ((halfMoveNumber+i+1)>>1) +". ";
+                    // increase halfmovenumber and change side
+                    halfMoveNumber += 1;
+                    nextColor = GameColor.BLACK;
+
+                    break;
+
+                case ObservableEngine.PONDERING:
+                    // here black has next move
+
+                    // black is always full= half/2
+                    s.append("Pondering: "+((halfMoveNumber)/2) +". ..."+ponderMove+" ");
+
+                    // increase halfmovenumber and change side
+                    halfMoveNumber += 1;
+                    nextColor = GameColor.WHITE;
+
+                    break;
+
+                default:
+                    break;
             }
-            s += list.get(i)+" ";
+
+        } else { // we are black
+            switch (engineState) {
+                case ObservableEngine.THINKING:
+                    // here black has next move
+
+                    // black is always full= half/2
+                    s.append((halfMoveNumber/2) +". ... "+list.get(0)+" ");
+                    list.remove(0);
+
+                    // increase halfmovenumber and change side
+                    halfMoveNumber += 1;
+                    nextColor = GameColor.WHITE;
+
+                    break;
+
+                case ObservableEngine.PONDERING:
+                    // here white has next move
+
+                    // white is always full= half/2 +1
+                    s.append("Pondering: "+((halfMoveNumber/2)+1) +". "+ponderMove+" ");
+
+                    // increase halfmovenumber and change side
+                    halfMoveNumber += 1;
+                    nextColor = GameColor.BLACK;
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        for (int i = 0; i < list.size(); ++i) {
+            if (nextColor.equals(GameColor.WHITE)) {
+                // white is always full= half/2 +1
+                s.append(((halfMoveNumber+i)/2)+1 + ". ");
+            }
+            s.append(list.get(i).toString()+" ");
             nextColor = nextColor.getInverseColor();
         }
 
-        int value = maxMove.getValue();
-        s += "(";
-        if (value >= 0) {
-            s += "+";
-        }
-        s += value + ")";
-        return s;
+        s.append(printCurValue(engine.getMaxValueMove()));
+
+        return s.toString();
     }
 
     /**

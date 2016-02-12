@@ -29,7 +29,7 @@ package fko.chessly.game;
 /**
  * @author fkopp
  */
-enum GameCastling {
+public enum GameCastling {
 
     WHITE_KINGSIDE(0),
     WHITE_QUEENSIDE(1),

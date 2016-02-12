@@ -19,7 +19,6 @@ import fko.chessly.player.HumanPlayer;
 import fko.chessly.player.PlayerType;
 import fko.chessly.ui.JavaFX_GUI.MoveListModel.FullMove;
 import fko.chessly.util.HelperTools;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;

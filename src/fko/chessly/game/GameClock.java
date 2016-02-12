@@ -34,7 +34,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * A simple clock for timed reversi games<br/>
+ * A simple clock for timed chess games<br/>
  *
  * @author Frank Kopp (frank@familie-kopp.de)
  */
@@ -85,22 +85,22 @@ public class GameClock extends Observable {
      * Creates a clock with given alarm settings.
      * @param name
      * @param alarmTime in milliseconds
-     * @param o
+     * @param observer
      */
-    public GameClock(String name, long alarmTime, Observer o) {
+    public GameClock(String name, long alarmTime, Observer observer) {
         this._playerName = name;
         this._alarmTime = alarmTime;
-        this.addObserver(o);
+        this.addObserver(observer);
     }
 
     /**
      * Sets an alarm and changes status object to given state
      * @param time in milliseconds
-     * @param o
+     * @param observer
      */
-    public synchronized void setAlarm(long time, Observer o) {
+    public synchronized void setAlarm(long time, Observer observer) {
         this._alarmTime = time;
-        this.addObserver(o);
+        this.addObserver(observer);
     }
 
 
