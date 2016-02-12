@@ -1308,7 +1308,6 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 break;
 
             case MoveType.CASTLING:
-                //TODO move to gameMove Castling info
                 if (oPiece == Piece.WHITE_KING) {
                     if (Square.getFile(target) == 7) {
                         // king side
@@ -1326,7 +1325,6 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                         gameMove.setCastlingType(GameCastling.BLACK_QUEENSIDE);
                     }
                 }
-
                 break;
 
             default:
@@ -1776,8 +1774,8 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
 
         /**
          * This method starts the actual pondering. It deactivates time management
-         * and uses the best oppentents move from the last Principal Variation.
-         * It currently only fills the caches (node cche, board cache).
+         * and uses the best opponents move from the last Principal Variation.
+         * It currently only fills the caches (node cache, board cache).
          * TODO: Improve this
          */
         private void doPondering() {
@@ -1840,7 +1838,6 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     public static final int SIG_ENGINE_START_PONDERING = 6020;
     /** */
     public static final int SIG_ENGINE_FINISHED_PONDERING = 6030;
-
     /** */
     public static final int SIG_ENGINE_NO_PONDERING = 6040;
 }
