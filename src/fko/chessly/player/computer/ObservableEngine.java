@@ -30,6 +30,10 @@ import java.util.List;
 
 import fko.chessly.game.GameMove;
 
+/**
+ * @author fkopp
+ *
+ */
 public interface ObservableEngine {
 
     /**
@@ -155,7 +159,7 @@ public interface ObservableEngine {
     /**
      * Returns a string explaining the configuration of the engine.
      * E.g. Pruning, PV, Cache,
-     * @return
+     * @return config string
      */
     String getCurConfig();
 
@@ -175,5 +179,27 @@ public interface ObservableEngine {
      * Returns status info about the engine,
      * @return status string to display as engine status
      */
-    String getStatus();
+    String getStatusText();
+
+    // -- possible states of a engine --
+    /** Status when the engine is not doing anything */
+    public static final int IDLE = 0;
+    /** Status when the engine is calculating the next move */
+    public static final int THINKING = 1;
+    /** Status when the engine is pondering over an opponents possible move */
+    public static final int PONDERING = 2;
+
+    /**
+     * Returns the current state of the engine as
+     * defined in the Engine interface
+     * WAITING | THINKING | PONDERING
+     * @return status one of Engine.WAITING | Engine.THINKING | Engine.PONDERING
+     */
+    public int getState();
+
+    /**
+     * Return the current pondering move.
+     * @return the move currently used for pondering - null if not pondering
+     */
+    public GameMove getPonderMove();
 }

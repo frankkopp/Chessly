@@ -44,6 +44,7 @@ public class AdamEngine implements Engine {
      */
     @Override
     public void init(Player player) {
+        // empty
     }
 
     /**
@@ -67,10 +68,12 @@ public class AdamEngine implements Engine {
 
     @Override
     public void setNumberOfThreads(int n) {
+        // empty
     }
 
     @Override
-    public void printInfo(String info) {
+    public void getVerboseInfo(String info) {
+        // empty
     }
 
 }

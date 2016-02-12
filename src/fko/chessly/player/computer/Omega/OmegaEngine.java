@@ -76,7 +76,7 @@ public class OmegaEngine implements Engine {
     }
 
     @Override
-    public void printInfo(String info) {
+    public void getVerboseInfo(String info) {
     }
 
 }

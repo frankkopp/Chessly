@@ -75,7 +75,7 @@ public class MoveListModel {
     public void updateList(GameMoveList moves) {
 
         /*
-         * FIXME hack to avoid a INFO message int VirtualFlow.class - bug in JavaFX ?
+         * TODO: hack to avoid a INFO message int VirtualFlow.class - bug in JavaFX ?
          */
         final PlatformLogger logger = Logging.getControlsLogger();
         //Level old = logger.level();

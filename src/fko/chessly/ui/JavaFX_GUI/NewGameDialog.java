@@ -44,9 +44,6 @@ public class NewGameDialog extends Stage {
     /**
      * Creates a new window (stage) in form of the NewGameDialog.
      * This creates the window. Needs to be display with
-     *
-     * TODO: Complete AboutDoalog
-     *
      */
     public NewGameDialog() {
         super();

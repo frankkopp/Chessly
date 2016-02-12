@@ -50,8 +50,11 @@ import fko.chessly.ui.UserInterface;
 /**
  * Graphical User Interface for the Chessly game.
  *
+ * This UI will not be maintained any longer. Any new features will end up in the JavaFX UI.
+ *
  * @author Frank Kopp (frank@familie-kopp.de)
  */
+@Deprecated
 public final class SwingGUI implements UserInterface {
 
     // -- the MVC controller handles all user input --

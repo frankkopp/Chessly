@@ -375,12 +375,6 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
     public String toString() {
         StringBuilder s = new StringBuilder();
 
-        // number and side
-        // if (_pieceMoved != null &&
-        // _pieceMoved.getColor().equals(GameColor.BLACK)) { // white move
-        // s.append("  --  ");
-        // }
-
         // castling
         if (_pieceMoved instanceof King && _fromField.x - _toField.x == 2)
             s.append("O-O-O"); // queen side
@@ -395,9 +389,6 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
             // "moves to"="-" or "captured at"="x"
             if (_pieceCaptured != null) {
                 s.append("x");
-                // piece letter or nothing for pawn
-                // if (_pieceCaptured != null && !(_pieceCaptured instanceof
-                // Pawn)) s.append(_pieceCaptured.toNotationString());
             } else {
                 s.append("-");
             }

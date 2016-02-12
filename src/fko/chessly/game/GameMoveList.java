@@ -28,19 +28,30 @@ package fko.chessly.game;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class GameMoveList extends ArrayList<GameMove> {
 
     private static final long serialVersionUID = 324138104775502009L;
 
+    /**
+     * Constructor
+     */
     public GameMoveList() {
         super();
     }
 
+    /**
+     * @param c
+     */
     public GameMoveList(Collection<? extends GameMove> c) {
         super(c);
     }
 
+    /**
+     * @param initialCapacity
+     */
     public GameMoveList(int initialCapacity) {
         super(initialCapacity);
     }
@@ -59,11 +70,17 @@ public class GameMoveList extends ArrayList<GameMove> {
 
     }
 
+    /**
+     * @return return last item in list
+     */
     public GameMove getLast() {
         if (this.size() <= 0) return null;
         return this.get(this.size()-1);
     }
 
+    /**
+     * @return removes the last item
+     */
     public GameMove removeLast() {
         if (this.size() <= 0) return null;
         return this.remove(this.size()-1);

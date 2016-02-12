@@ -308,9 +308,9 @@ final class Move {
     }
 
     /**
-     *
+     * Returns a string showing the move.
      * @param move
-     * @return
+     * @return string representing the move
      */
     public static String toString(int move) {
 

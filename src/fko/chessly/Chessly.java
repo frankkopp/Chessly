@@ -106,12 +106,9 @@ import fko.chessly.util.CmdLineParser;
  * <p>
  * <b>Todo List:</b>
  * <ul>
- * <li>DONE: Drag&Drop move in UI
- * <li>DONE: Pondering</li>
  * <li>TODO: Show DRAW Reason</li>
  * <li>TODO: Force Move - break thinking<</li>
  * <li>TODO: Select Engine via menu</li>
- * <li>TODO: Refactor SwingGUI - See book Java Swing - use Actions, etc.<br/>
  * <li>TODO: Introduce resource bundles - multi language</li>
  * <li>TODO: Help text for usage and information</li>
  * </ul>
