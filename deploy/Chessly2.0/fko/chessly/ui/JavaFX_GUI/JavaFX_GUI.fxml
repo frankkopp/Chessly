@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane fx:id="rootPanel" minHeight="560.0" minWidth="740.0" prefHeight="720.0" prefWidth="740.0" style="-fx-background-color: #eeeeee; -fx-border-color: #000000; -fx-border-width: 2; -fx-background-radius: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller">
+   <top>
+      <VBox minHeight="65.0" BorderPane.alignment="CENTER">
+         <children>
+            <MenuBar maxHeight="-Infinity" minHeight="30.0" minWidth="-Infinity" prefHeight="30.0">
+              <menus>
+                <Menu fx:id="menu_game" mnemonicParsing="false" text="Game">
+                  <items>
+                        <MenuItem fx:id="newGame_menu" mnemonicParsing="false" onAction="#newGameDialog_Action" text="New Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <MenuItem fx:id="stopGame_menu" disable="true" mnemonicParsing="false" onAction="#stopGame_action" text="Stop Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <MenuItem fx:id="pauseGame_menu" disable="true" mnemonicParsing="false" onAction="#pauseGame_action" text="Pause Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                        <MenuItem fx:id="resumeGame_menu" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume Game" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                    <MenuItem fx:id="close_menu" mnemonicParsing="false" onAction="#close_action" text="Close">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                  </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="G" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                </Menu>
+                <Menu fx:id="menu_moves" mnemonicParsing="false" text="Moves">
+                  <items>
+                    <MenuItem fx:id="undoMove_menu" disable="true" mnemonicParsing="false" onAction="#undoMove_action" text="Undo Last Move">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
+                  </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="M" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                </Menu>
+                  <Menu fx:id="menu_level" mnemonicParsing="false" text="Level">
+                    <items>
+                        <CheckMenuItem fx:id="timedGame_menu" mnemonicParsing="false" onAction="#timedGame_action" selected="true" text="Timed Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="T" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </CheckMenuItem>
+                        <MenuItem fx:id="timeWhite_menu" mnemonicParsing="false" onAction="#timeWhite_action" text="Time White...">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
+                      <MenuItem fx:id="timeBlack_menu" mnemonicParsing="false" onAction="#timeBlack_action" text="Time Black">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <Menu mnemonicParsing="false" text="Level White">
+                          <items>
+                              <RadioMenuItem fx:id="levelWhite2" mnemonicParsing="false" onAction="#setLevelAction" text="2">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="levelWhite" />
+                                 </toggleGroup></RadioMenuItem>
+                              <RadioMenuItem fx:id="levelWhite4" mnemonicParsing="false" onAction="#setLevelAction" text="4" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite6" mnemonicParsing="false" onAction="#setLevelAction" text="6" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite8" mnemonicParsing="false" onAction="#setLevelAction" text="8" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite10" mnemonicParsing="false" onAction="#setLevelAction" text="10" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhite20" mnemonicParsing="false" onAction="#setLevelAction" text="20" toggleGroup="$levelWhite" />
+                              <RadioMenuItem fx:id="levelWhiteMax" mnemonicParsing="false" onAction="#setLevelAction" text="Max" toggleGroup="$levelWhite" />
+                          </items>
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                           </accelerator>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Level Black...">
+                          <items>
+                              <RadioMenuItem fx:id="levelBlack2" mnemonicParsing="false" onAction="#setLevelAction" text="2">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="levelBlack" />
+                                 </toggleGroup></RadioMenuItem>
+                              <RadioMenuItem fx:id="levelBlack4" mnemonicParsing="false" onAction="#setLevelAction" text="4" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack6" mnemonicParsing="false" onAction="#setLevelAction" text="6" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack8" mnemonicParsing="false" onAction="#setLevelAction" text="8" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack10" mnemonicParsing="false" onAction="#setLevelAction" text="10" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlack20" mnemonicParsing="false" onAction="#setLevelAction" text="20" toggleGroup="$levelBlack" />
+                              <RadioMenuItem fx:id="levelBlackMax" mnemonicParsing="false" onAction="#setLevelAction" text="Max" toggleGroup="$levelBlack" />
+                          </items>
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                           </accelerator>
+                        </Menu>
+                    </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="L" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </Menu>
+                  <Menu fx:id="menu_board" mnemonicParsing="false" text="Board">
+                    <items>
+                      <MenuItem fx:id="flip_menu" mnemonicParsing="false" onAction="#flipButton_action" text="Flip Board">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
+                        <CheckMenuItem fx:id="showLastMove_menu" mnemonicParsing="false" onAction="#showLastMove_action" selected="true" text="Show Last Move">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="L" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </CheckMenuItem>
+                        <CheckMenuItem fx:id="showPossibleMoves_menu" mnemonicParsing="false" onAction="#showPossibleMoves_action" selected="true" text="Show Posible Moves">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="V" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </CheckMenuItem>
+                    </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="B" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </Menu>
+                <Menu fx:id="menu_help" mnemonicParsing="false" text="?">
+                  <items>
+                    <MenuItem fx:id="about_menu" mnemonicParsing="false" onAction="#aboutDialogOpen_action" text="About" />
+                  </items>
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="H" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <ToolBar maxHeight="-Infinity" minHeight="35.0" prefHeight="35.0">
+              <items>
+                <Button fx:id="newGame_button" mnemonicParsing="false" onAction="#newGameDialog_Action" text="New" />
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <Button fx:id="stopGame_button" disable="true" mnemonicParsing="false" onAction="#stopGame_action" text="Stop" />
+                  <Button fx:id="pauseGame_button" disable="true" mnemonicParsing="false" onAction="#pauseGame_action" text="Pause" />
+                  <Button fx:id="resumeGame_button" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume" />
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <Button fx:id="undoMove_button" disable="true" mnemonicParsing="false" onAction="#undoMove_action" text="Undo" />
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <Button fx:id="flip_button" mnemonicParsing="false" onAction="#flipButton_action" text="Flip" />
+              </items>
+            </ToolBar>
+         </children>
+      </VBox>
+   </top>
+   <bottom>
+      <AnchorPane maxHeight="25.0" minHeight="25.0" prefHeight="25.0" style="-fx-background-color: #cccccc; -fx-border-color: #000000; -fx-border-width: 1 0 0 0;" BorderPane.alignment="CENTER">
+         <children>
+            <GridPane gridLinesVisible="true" maxHeight="25.0" minHeight="25.0" prefHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" percentWidth="25.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" percentWidth="60.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label fx:id="statusbar_copyright_test" text="(c) Frank Kopp 2016">
+                     <GridPane.margin>
+                        <Insets left="5.0" />
+                     </GridPane.margin>
+                     <font>
+                        <Font name="Arial" size="11.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="statusbar_status_text" text="Game Status: Game running, White is thinking" GridPane.columnIndex="1">
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                     <GridPane.margin>
+                        <Insets left="5.0" right="5.0" />
+                     </GridPane.margin>
+                     <font>
+                        <Font size="11.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="statusbar_mem_text" text="? MB / ? MB" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                     <GridPane.margin>
+                        <Insets right="5.0" />
+                     </GridPane.margin>
+                     <font>
+                        <Font name="Arial" size="11.0" />
+                     </font>
+                  </Label>
+               </children>
+            </GridPane>
+         </children>
+      </AnchorPane>
+   </bottom>
+   <center>
+      <SplitPane dividerPositions="0.77" minHeight="580.0" orientation="VERTICAL" BorderPane.alignment="CENTER">
+        <items>
+            <GridPane fx:id="board_panel_grid">
+               <children>
+                  <VBox alignment="TOP_CENTER" GridPane.columnIndex="1">
+                     <children>
+                        <GridPane alignment="CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="110.0" prefWidth="250.0">
+                           <children>
+                              <Label fx:id="whitePlayer_name" alignment="CENTER" prefHeight="15.0" prefWidth="134.0" text="White Player">
+                                 <font>
+                                    <Font name="Arial" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="blackPlayer_name" alignment="CENTER" prefHeight="17.0" prefWidth="144.0" text="Black Player" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
+                                 <font>
+                                    <Font name="Arial" size="13.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="white_clock" alignment="CENTER" prefHeight="25.0" prefWidth="128.0" text="00:00:00" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font name="Arial" size="21.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="black_clock" alignment="CENTER" prefHeight="25.0" prefWidth="131.0" text="00:00:00" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font name="Arial" size="21.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="white_playertype" alignment="CENTER" prefHeight="15.0" prefWidth="127.0" text="Engine" GridPane.rowIndex="2">
+                                 <font>
+                                    <Font name="Arial" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="black_playertype" alignment="CENTER" prefHeight="17.0" prefWidth="141.0" text="Human" GridPane.columnIndex="1" GridPane.rowIndex="2" HBox.hgrow="NEVER">
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin>
+                                 <font>
+                                    <Font name="Arial" size="12.0" />
+                                 </font>
+                              </Label>
+                              <ProgressBar fx:id="white_progressbar" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="15.0" prefWidth="200.0" GridPane.rowIndex="3" />
+                              <ProgressBar fx:id="black_progressbar" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="15.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                        <AnchorPane minWidth="-Infinity" prefHeight="5000.0" prefWidth="250.0">
+                           <children>
+                              <TableView fx:id="move_table" prefHeight="434.0" prefWidth="210.0" style="-fx-font-size: 10; -fx-font-family: &quot;Lucida Console&quot;;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <columns>
+                                    <TableColumn fx:id="move_table_number" editable="false" maxWidth="-1.0" minWidth="30.0" prefWidth="-1.0" sortable="false" text="#" />
+                                    <TableColumn fx:id="move_table_white" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="White Moves" />
+                                    <TableColumn fx:id="move_table_black" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="Black Moves" />
+                                 </columns>
+                              </TableView>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </VBox>
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="256.0" minWidth="256.0" prefWidth="256.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+            </GridPane>
+            <TabPane fx:id="tab_pane" maxHeight="145.0" minHeight="145.0" rotateGraphic="false" tabClosingPolicy="UNAVAILABLE">
+              <tabs>
+                <Tab fx:id="info_tab" closable="false" text="Info">
+                     <content>
+                        <AnchorPane fx:id="infoTab_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                     </content>
+                  </Tab>
+                <Tab fx:id="white_enginetab" closable="false" text="White: Engine &lt;THINKING&gt;">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="78.0" minWidth="78.0" prefWidth="78.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="70.0" minWidth="70.0" prefWidth="70.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="70.0" minWidth="70.0" prefWidth="70.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label fx:id="pv_labelW" prefHeight="17.0" prefWidth="760.0" text="1. e2-e4 e7e-5 2. Ng1-f3 Nb2-c6 (+0)" GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.hgrow="ALWAYS">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="config_labelW" prefHeight="17.0" prefWidth="701.0" text="Configuration: P, MDP, PV, Q, NC, BC, OB" GridPane.columnSpan="4" GridPane.rowIndex="5">
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                    </Label>
+                                    <CheckBox fx:id="showVerboseInfo_checkboxW" alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" text="Show Verbose Info" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                       </GridPane.margin>
+                                    </CheckBox>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="Move:" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="44.0" prefHeight="17.0" prefWidth="174.0" text="Best:" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="Depth:" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="Time:" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="73.0" prefHeight="17.0" prefWidth="174.0" text="Nodes:" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="131.0" prefHeight="17.0" prefWidth="174.0" text="NonQuiet:" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="102.0" prefHeight="17.0" prefWidth="174.0" text="Boards:" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="44.0" prefHeight="17.0" prefWidth="174.0" text="Speed (N/s):" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Size:" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Misses:" GridPane.columnIndex="4" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Hits:" GridPane.columnIndex="4" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Use:" GridPane.columnIndex="4" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Size" GridPane.columnIndex="6" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Misses:" GridPane.columnIndex="6" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Hits:" GridPane.columnIndex="6" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Use:" GridPane.columnIndex="6" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="currentMove_labelW" prefHeight="17.0" prefWidth="174.0" text="e2-e4 (4/20)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="time_labelW" prefHeight="17.0" prefWidth="174.0" text="00:00:09:14" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="depth_labelW" prefHeight="17.0" prefWidth="174.0" text="6/8" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bestMove_labelW" prefHeight="17.0" prefWidth="174.0" text="e2-e4 (+0)" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="nodes_labelW" prefHeight="17.0" prefWidth="174.0" text="800.500" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncMisses_labelW" prefHeight="17.0" prefWidth="174.0" text="333.000 (81%)" GridPane.columnIndex="5" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncHits_labelW" prefHeight="17.0" prefWidth="174.0" text="65.000 (19%)" GridPane.columnIndex="5" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncUse_labelW" prefHeight="17.0" prefWidth="174.0" text="599.567 (35%)" GridPane.columnIndex="5" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncSize_labelW" prefHeight="17.0" prefWidth="174.0" text="1.677.721" GridPane.columnIndex="5" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="nonQuiet_labelW" prefHeight="17.0" prefWidth="174.0" text="56.678" GridPane.columnIndex="3" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="boards_labelW" prefHeight="17.0" prefWidth="174.0" text="1.100.555" GridPane.columnIndex="3" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="speed_labelW" prefHeight="17.0" prefWidth="174.0" text="1.050.200" GridPane.columnIndex="3" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcSize_labelW" prefHeight="17.0" prefWidth="174.0" text="2.796.202" GridPane.columnIndex="7" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcMisses_labelW" prefHeight="17.0" prefWidth="174.0" text="700.000 (65%)" GridPane.columnIndex="7" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcHits_labelW" prefHeight="17.0" prefWidth="174.0" text="400.000 (35%)" GridPane.columnIndex="7" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcUse_labelW" prefHeight="17.0" prefWidth="174.0" text="1.100.000 (45%)" GridPane.columnIndex="7" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="status_labelW" prefHeight="17.0" prefWidth="319.0" text="Status: Thinking" GridPane.columnIndex="3" GridPane.columnSpan="3" GridPane.rowIndex="5">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="PV:">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                 </children>
+                              </GridPane>
+                           </children></AnchorPane>
+                  </content>
+                </Tab>
+                <Tab fx:id="black_enginetab" closable="false" text="Black: Human &lt;WAITING&gt;">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <Label fx:id="pv_labelB" prefHeight="17.0" prefWidth="760.0" text="1. e2-e4 e7e-5 2. Ng1-f3 Nb2-c6 (+0)" GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.hgrow="ALWAYS">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="config_labelB" prefHeight="17.0" prefWidth="701.0" text="Configuration: P, MDP, PV, Q, NC, BC, OB" GridPane.columnSpan="4" GridPane.rowIndex="5">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <CheckBox fx:id="showVerboseInfo_checkboxB" alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" text="Show Verbose Info" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="10.0" right="10.0" />
+                                       </GridPane.margin>
+                                    </CheckBox>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="Move:" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="44.0" prefHeight="17.0" prefWidth="174.0" text="Best:" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="Depth:" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="Time:" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="73.0" prefHeight="17.0" prefWidth="174.0" text="Nodes:" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="131.0" prefHeight="17.0" prefWidth="174.0" text="NonQuiet:" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="102.0" prefHeight="17.0" prefWidth="174.0" text="Boards:" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label layoutX="15.0" layoutY="44.0" prefHeight="17.0" prefWidth="174.0" text="Speed (N/s):" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Size:" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Misses:" GridPane.columnIndex="4" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Hits:" GridPane.columnIndex="4" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="NC Use:" GridPane.columnIndex="4" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Size" GridPane.columnIndex="6" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Misses:" GridPane.columnIndex="6" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Hits:" GridPane.columnIndex="6" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="BC Use:" GridPane.columnIndex="6" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="currentMove_labelB" prefHeight="17.0" prefWidth="174.0" text="e2-e4 (4/20)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="time_labelB" prefHeight="17.0" prefWidth="174.0" text="00:00:09:14" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="depth_labelB" prefHeight="17.0" prefWidth="174.0" text="6/8" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bestMove_labelB" prefHeight="17.0" prefWidth="174.0" text="e2-e4 (+0)" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="nodes_labelB" prefHeight="17.0" prefWidth="174.0" text="800.500" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncMisses_labelB" prefHeight="17.0" prefWidth="174.0" text="333.000 (81%)" GridPane.columnIndex="5" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncHits_labelB" prefHeight="17.0" prefWidth="174.0" text="65.000 (19%)" GridPane.columnIndex="5" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncUse_labelB" prefHeight="17.0" prefWidth="174.0" text="599.567 (35%)" GridPane.columnIndex="5" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="ncSize_labelB" prefHeight="17.0" prefWidth="174.0" text="1.677.721" GridPane.columnIndex="5" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="nonQuiet_labelB" prefHeight="17.0" prefWidth="174.0" text="56.678" GridPane.columnIndex="3" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="boards_labelB" prefHeight="17.0" prefWidth="174.0" text="1.100.555" GridPane.columnIndex="3" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="speed_labelB" prefHeight="17.0" prefWidth="174.0" text="1.050.200" GridPane.columnIndex="3" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcSize_labelB" prefHeight="17.0" prefWidth="174.0" text="2.796.202" GridPane.columnIndex="7" GridPane.rowIndex="1">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcMisses_labelB" prefHeight="17.0" prefWidth="174.0" text="700.000 (65%)" GridPane.columnIndex="7" GridPane.rowIndex="4">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcHits_labelB" prefHeight="17.0" prefWidth="174.0" text="400.000 (35%)" GridPane.columnIndex="7" GridPane.rowIndex="3">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="bcUse_labelB" prefHeight="17.0" prefWidth="174.0" text="1.100.000 (45%)" GridPane.columnIndex="7" GridPane.rowIndex="2">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label fx:id="status_labelB" prefHeight="17.0" prefWidth="319.0" text="Status: Pondering on e2-e4" GridPane.columnIndex="3" GridPane.columnSpan="3" GridPane.rowIndex="5">
+                                       <font>
+                                          <Font name="Arial" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                    <Label prefHeight="17.0" prefWidth="174.0" text="PV:">
+                                       <font>
+                                          <Font name="Arial Bold" size="11.0" />
+                                       </font>
+                                       <GridPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </GridPane.margin>
+                                    </Label>
+                                 </children>
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="78.0" minWidth="78.0" prefWidth="78.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="70.0" minWidth="70.0" prefWidth="70.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="70.0" minWidth="70.0" prefWidth="70.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                 </rowConstraints>
+                              </GridPane>
+                           </children></AnchorPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+        </items>
+      </SplitPane>
+   </center>
+</BorderPane>
