@@ -1,3 +1,29 @@
+/**
+ * The MIT License (MIT)
+ *
+ * "Chessly by Frank Kopp"
+ *
+ * mail-to:frank@familie-kopp.de
+ *
+ * Copyright (c) 2016 Frank Kopp
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 package fko.chessly.ui.JavaFX_GUI;
 
 import java.net.URL;
@@ -54,6 +80,15 @@ import javafx.stage.StageStyle;
 
 /**
  * Main Controller for the Chessly JavaFX user interface.
+ * It actually builds the complete UI when <code>initialize</code> is
+ * called. It received all fields from the FXML file which were injected with
+ * values by the FXML loader. It takes care of all user input by defining
+ * actions which are called by the UI and which were declared in the FXML file.
+ * This controller is also defined as an observer to the model and receives
+ * all updates the model shares via <code>notifyObservers(...)</code>.
+ * The <code>update</code> and <code>updateFrom</code> methods will then update the ui
+ * based on the changes in the model. It is important that the the update of the ui
+ * will happen via <code>Platform.runLater()</code> so they happen in the FX thread.
  *
  * @author Frank
  */
@@ -784,10 +819,16 @@ public class JavaFX_GUI_Controller implements Observer {
     /**
      * Is called whenever the model has changes. Needs to update the GUI accordingly.
      *
+     * The update itself need to be done in the FX thread (FAT) so it will be called via
+     * <code>Platfrom.runLater()</code>. To make the caller wait for the ui to be updated
+     * before the method returns we can use <code>PlatformUtil.platformRunAndWait()</code>.
+     *
      * This method is called whenever the observed object is changed. An
      * application calls an <tt>Observable</tt> object's
      * <code>notifyObservers</code> method to have all the object's
      * observers notified of the change.
+     *
+     * @see PlatformUtil#platformRunAndWait(Runnable)
      *
      * @param model   the observable object.
      * @param event   an argument passed to the <code>notifyObservers</code>
@@ -814,7 +855,14 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
-     * Is called when model Playroom changed
+     * Is called when model Playroom changed.
+     *
+     * The update itself need to be done in the FX thread (FAT) so it will be called via
+     * <code>Platfrom.runLater()</code>. To make the caller wait for the ui to be updated
+     * before the method returns we can use <code>PlatformUtil.platformRunAndWait()</code>.
+     *
+     * @see PlatformUtil#platformRunAndWait(Runnable)
+     *
      * @param playroom
      * @param event
      */
@@ -909,7 +957,14 @@ public class JavaFX_GUI_Controller implements Observer {
 
 
     /**
-     * Is called when model Game changed
+     * Is called when model Game changed.
+     *
+     * The update itself need to be done in the FX thread (FAT) so it will be called via
+     * <code>Platfrom.runLater()</code>. To make the caller wait for the ui to be updated
+     * before the method returns we can use <code>PlatformUtil.platformRunAndWait()</code>.
+     *
+     * @see PlatformUtil#platformRunAndWait(Runnable)
+     *
      * @param game
      * @param event
      */
@@ -951,7 +1006,14 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
-     * Is called when model Human Player changed
+     * Is called when model Human Player changed.
+     *
+     * The update itself need to be done in the FX thread (FAT) so it will be called via
+     * <code>Platfrom.runLater()</code>. To make the caller wait for the ui to be updated
+     * before the method returns we can use <code>PlatformUtil.platformRunAndWait()</code>.
+     *
+     * @see PlatformUtil#platformRunAndWait(Runnable)
+     *
      * @param hp
      * @param event
      */
@@ -1089,7 +1151,8 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
-     * Resets the controls when game is over and also print game info
+     * Resets the controls when game is over and also print game over info.
+     *
      * @param game
      * @param event
      */
@@ -1261,7 +1324,7 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
-     * Helper class to gove the engineInfoUpdater access to all the labels from the FXML
+     * Helper class to give the engineInfoUpdater access to all the labels from the FXML
      */
     class EngineInfoLabels {
 

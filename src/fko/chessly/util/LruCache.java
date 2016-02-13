@@ -40,7 +40,6 @@ import java.util.Map;
  *
  * @author Frank Kopp (frank@familie-kopp.de)
  */
-@SuppressWarnings("rawtypes")
 public class LruCache extends LinkedHashMap {
 
     private static final long serialVersionUID = 3444887473076226523L;

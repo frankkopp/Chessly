@@ -662,7 +662,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         // as fen notation
         String position;
-        // how often did this postion occur in the opening book
+        // how often did this position occur in the opening book
         int occurenceCounter = 0;
         // list of moves to subsequential positions
         ArrayList<GameMove> moves = new ArrayList<GameMove>(5);

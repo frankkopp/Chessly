@@ -38,27 +38,24 @@ import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
-import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller.EngineInfoLabels;
 import fko.chessly.util.HelperTools;
 import javafx.application.Platform;
 
 /**
- * This class updates the engine information.
+ * This class updates the engine information by using a thread that call <code>updateUI()</code>
+ * regularly. <code>updateUI()</code> then determines which player is active and calls
+ * <code>updateUI(Game, Player)</code> which reads informations from the model to update the view.
  *
  * @author fkopp
  */
 public class EngineInfoUpdater {
 
     private final Playroom _model;
-
     private final Thread _updater;
-
     private final EngineInfoLabels _engineLabels;
-
     private GameColor _color;
-
     private static final Format numberFormat = new DecimalFormat();
 
     /**
@@ -74,40 +71,6 @@ public class EngineInfoUpdater {
         updateUI();
         _updater = new updateThread();
         _updater.start();
-    }
-
-    /**
-     * Clears all field including tab label
-     */
-    private void clearAll() {
-        _engineLabels.engineTab.setText("Engine Info: "+_color.toString());
-        clear();
-
-    }
-
-    /**
-     * clears all fields but not tab label
-     */
-    private void clear() {
-        _engineLabels.pv_label.setText("");
-        _engineLabels.currentMove_label.setText("");
-        _engineLabels.bestMove_label.setText("");
-        _engineLabels.depth_label.setText("");
-        _engineLabels.time_label.setText("");
-        _engineLabels.nodes_label.setText("");
-        _engineLabels.speed_label.setText("");
-        _engineLabels.boards_label.setText("");
-        _engineLabels.nonQuiet_label.setText("");
-        _engineLabels.ncSize_label.setText("");
-        _engineLabels.ncUse_label.setText("");
-        _engineLabels.ncHits_label.setText("");
-        _engineLabels.ncMisses_label.setText("");
-        _engineLabels.bcSize_label.setText("");
-        _engineLabels.bcUse_label.setText("");
-        _engineLabels.bcHits_label.setText("");
-        _engineLabels.bcMisses_label.setText("");
-        _engineLabels.config_label.setText("Configuration: ");
-        _engineLabels.status_label.setText("Status: ");
     }
 
     /**
@@ -251,6 +214,40 @@ public class EngineInfoUpdater {
         } else {
             clearAll();
         }
+    }
+
+    /**
+     * Clears all field including tab label
+     */
+    private void clearAll() {
+        _engineLabels.engineTab.setText("Engine Info: "+_color.toString());
+        clear();
+
+    }
+
+    /**
+     * clears all fields but not tab label
+     */
+    private void clear() {
+        _engineLabels.pv_label.setText("");
+        _engineLabels.currentMove_label.setText("");
+        _engineLabels.bestMove_label.setText("");
+        _engineLabels.depth_label.setText("");
+        _engineLabels.time_label.setText("");
+        _engineLabels.nodes_label.setText("");
+        _engineLabels.speed_label.setText("");
+        _engineLabels.boards_label.setText("");
+        _engineLabels.nonQuiet_label.setText("");
+        _engineLabels.ncSize_label.setText("");
+        _engineLabels.ncUse_label.setText("");
+        _engineLabels.ncHits_label.setText("");
+        _engineLabels.ncMisses_label.setText("");
+        _engineLabels.bcSize_label.setText("");
+        _engineLabels.bcUse_label.setText("");
+        _engineLabels.bcHits_label.setText("");
+        _engineLabels.bcMisses_label.setText("");
+        _engineLabels.config_label.setText("Configuration: ");
+        _engineLabels.status_label.setText("Status: ");
     }
 
     /**
