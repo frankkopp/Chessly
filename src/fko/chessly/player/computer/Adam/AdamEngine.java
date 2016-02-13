@@ -71,9 +71,4 @@ public class AdamEngine implements Engine {
         // empty
     }
 
-    @Override
-    public void getVerboseInfo(String info) {
-        // empty
-    }
-
 }

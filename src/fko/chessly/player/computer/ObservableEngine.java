@@ -202,4 +202,11 @@ public interface ObservableEngine {
      * @return the move currently used for pondering - null if not pondering
      */
     public GameMove getPonderMove();
+
+    /**
+     * Provide additional information for the UI to collect.
+     * E.g. verbose information etc.
+     * @param info
+     */
+    public void getVerboseInfo(String info);
 }

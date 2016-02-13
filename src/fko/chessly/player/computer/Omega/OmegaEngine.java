@@ -75,8 +75,4 @@ public class OmegaEngine implements Engine {
         return board.generateMoves().get(0);
     }
 
-    @Override
-    public void getVerboseInfo(String info) {
-    }
-
 }
