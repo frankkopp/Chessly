@@ -16,27 +16,27 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 import java.security.SecureRandom;
 
 final class Random {
 
-  private static final SecureRandom random = new SecureRandom();
+    private static final SecureRandom random = new SecureRandom();
 
-  private Random() {
-  }
-
-  static long next() {
-    byte[] bytes = new byte[16];
-    random.nextBytes(bytes);
-
-    long hash = 0;
-    for (int i = 0; i < bytes.length; ++i) {
-      hash ^= ((long) (bytes[i] & 0xFF)) << ((i * 8) % 64);
+    private Random() {
     }
 
-    return hash;
-  }
+    static long next() {
+        byte[] bytes = new byte[16];
+        random.nextBytes(bytes);
+
+        long hash = 0;
+        for (int i = 0; i < bytes.length; ++i) {
+            hash ^= ((long) (bytes[i] & 0xFF)) << ((i * 8) % 64);
+        }
+
+        return hash;
+    }
 
 }

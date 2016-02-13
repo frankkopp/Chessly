@@ -16,35 +16,35 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 final class GamePhase {
 
-  /**
-   * Represents no game phase
-   */
-  static final int NOGAMEPHASE = -5;
+    /**
+     * Represents no game phase
+     */
+    static final int NOGAMEPHASE = -5;
 
-  /**
-   * GamePhase values
-   */
-  static final int OPENING = 0;
-  static final int MIDDLE = 1;
-  static final int ENDGAME = 2;
+    /**
+     * GamePhase values
+     */
+    static final int OPENING = 0;
+    static final int MIDDLE = 1;
+    static final int ENDGAME = 2;
 
-  /**
-   * GamePhase array
-   */
-  static final int[] values = {
-      OPENING,
-      MIDDLE,
-      ENDGAME
-  };
+    /**
+     * GamePhase array
+     */
+    static final int[] values = {
+            OPENING,
+            MIDDLE,
+            ENDGAME
+    };
 
-  /**
-   * IntGamePhase cannot be instantiated.
-   */
-  private GamePhase() {
-  }
+    /**
+     * IntGamePhase cannot be instantiated.
+     */
+    private GamePhase() {
+    }
 
 }

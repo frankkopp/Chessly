@@ -16,20 +16,20 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 final class File {
 
-  static final int a = 0;
-  static final int b = 1;
-  static final int c = 2;
-  static final int d = 3;
-  static final int e = 4;
-  static final int f = 5;
-  static final int g = 6;
-  static final int h = 7;
+    static final int a = 0;
+    static final int b = 1;
+    static final int c = 2;
+    static final int d = 3;
+    static final int e = 4;
+    static final int f = 5;
+    static final int g = 6;
+    static final int h = 7;
 
-  private File() {
-  }
+    private File() {
+    }
 
 }

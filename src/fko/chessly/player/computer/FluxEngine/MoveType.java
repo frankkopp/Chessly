@@ -16,37 +16,37 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 final class MoveType {
 
-  static final int MASK = 0x7;
+    static final int MASK = 0x7;
 
-  static final int NORMAL = 0;
-  static final int PAWNDOUBLE = 1;
-  static final int PAWNPROMOTION = 2;
-  static final int ENPASSANT = 3;
-  static final int CASTLING = 4;
-  static final int NOMOVETYPE = 5;
+    static final int NORMAL = 0;
+    static final int PAWNDOUBLE = 1;
+    static final int PAWNPROMOTION = 2;
+    static final int ENPASSANT = 3;
+    static final int CASTLING = 4;
+    static final int NOMOVETYPE = 5;
 
-  static final int[] values = {
-      NORMAL, PAWNDOUBLE, PAWNPROMOTION, ENPASSANT, CASTLING
-  };
+    static final int[] values = {
+            NORMAL, PAWNDOUBLE, PAWNPROMOTION, ENPASSANT, CASTLING
+    };
 
-  private MoveType() {
-  }
-
-  static boolean isValid(int movetype) {
-    switch (movetype) {
-      case NORMAL:
-      case PAWNDOUBLE:
-      case PAWNPROMOTION:
-      case ENPASSANT:
-      case CASTLING:
-        return true;
-      default:
-        return false;
+    private MoveType() {
     }
-  }
+
+    static boolean isValid(int movetype) {
+        switch (movetype) {
+            case NORMAL:
+            case PAWNDOUBLE:
+            case PAWNPROMOTION:
+            case ENPASSANT:
+            case CASTLING:
+                return true;
+            default:
+                return false;
+        }
+    }
 
 }

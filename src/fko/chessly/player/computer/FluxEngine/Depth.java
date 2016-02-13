@@ -16,21 +16,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 final class Depth {
 
-  static final int MAX_PLY = 256;
-  static final int MAX_DEPTH = 128;
-  static final int MIN_DEPTH = -MAX_DEPTH;
+    static final int MAX_PLY = 256;
+    static final int MAX_DEPTH = 128;
+    static final int MIN_DEPTH = -MAX_DEPTH;
 
-  static final int NODEPTH = -MAX_PLY;
+    static final int NODEPTH = -MAX_PLY;
 
-  private Depth() {
-  }
+    private Depth() {
+    }
 
-  static boolean isValid(int depth) {
-    return MIN_DEPTH <= depth && depth <= MAX_PLY;
-  }
+    static boolean isValid(int depth) {
+        return MIN_DEPTH <= depth && depth <= MAX_PLY;
+    }
 
 }

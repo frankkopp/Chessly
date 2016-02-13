@@ -43,10 +43,6 @@ public class testJavaFX_GUI {
     @Test
     public void test() {
 
-        UserInterface app = new JavaFX_GUI();
-
-        JavaFX_GUI.main(null);
-
     }
 
 }

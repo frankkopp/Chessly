@@ -16,43 +16,41 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
-
-import com.fluxchess.jcpi.models.GenericScore;
+package fko.chessly.player.computer.FluxEngine;
 
 final class Bound {
 
-  static final int EXACT = 0;
-  static final int UPPER = 1;
-  static final int LOWER = 2;
-  static final int NOBOUND = 3;
+    static final int EXACT = 0;
+    static final int UPPER = 1;
+    static final int LOWER = 2;
+    static final int NOBOUND = 3;
 
-  static final int[] values = {
-      EXACT, UPPER, LOWER
-  };
+    static final int[] values = {
+            EXACT, UPPER, LOWER
+    };
 
-  private static final GenericScore[] toGenericScore = {
-      GenericScore.EXACT, GenericScore.ALPHA, GenericScore.BETA
-  };
+    /*    private static final GenericScore[] toGenericScore = {
+            GenericScore.EXACT, GenericScore.ALPHA, GenericScore.BETA
+    };*/
 
-  private Bound() {
-  }
-
-  static boolean isValid(int bound) {
-    switch (bound) {
-      case EXACT:
-      case UPPER:
-      case LOWER:
-        return true;
-      default:
-        return false;
+    private Bound() {
     }
-  }
 
-  static GenericScore toGenericScore(int bound) {
-    assert isValid(bound);
+    static boolean isValid(int bound) {
+        switch (bound) {
+            case EXACT:
+            case UPPER:
+            case LOWER:
+                return true;
+            default:
+                return false;
+        }
+    }
 
-    return toGenericScore[bound];
-  }
+    /*    static GenericScore toGenericScore(int bound) {
+        assert isValid(bound);
+
+        return toGenericScore[bound];
+    }*/
 
 }
