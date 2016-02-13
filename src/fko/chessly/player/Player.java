@@ -111,7 +111,7 @@ public interface Player extends Runnable {
     GameMove getMove();
 
     /**
-     * @return if is waitung
+     * @return if is waiting
      */
     boolean isWaiting();
 

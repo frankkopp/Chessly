@@ -82,8 +82,8 @@ public class StatusController {
 
     // A ReadWriteLock for better locking options than synchronize
     private final ReentrantReadWriteLock _rwLock = new ReentrantReadWriteLock();
-    private final Lock 					 _readLock = _rwLock.readLock();
-    private final Lock 					 _writeLock = _rwLock.writeLock();
+    private final Lock _readLock = _rwLock.readLock();
+    private final Lock _writeLock = _rwLock.writeLock();
 
     /**
      * Default constructor
