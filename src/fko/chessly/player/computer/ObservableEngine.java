@@ -32,9 +32,8 @@ import fko.chessly.game.GameMove;
 
 /**
  * @author fkopp
- *
  */
-public interface ObservableEngine {
+public interface ObservableEngine extends Engine {
 
     /**
      * return the number of possible moves for the current move

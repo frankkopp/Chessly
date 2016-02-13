@@ -108,7 +108,7 @@ import fko.chessly.util.HelperTools;
  *
  * @author Frank Kopp, Phokham Nonava
  */
-public class PulseEngine_v2 extends ModelObservable implements Engine, ObservableEngine {
+public class PulseEngine_v2 extends ModelObservable implements ObservableEngine {
 
     /**
      * read in the default configuration - change the public fields if necessary

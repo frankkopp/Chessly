@@ -62,6 +62,7 @@ import fko.chessly.game.IllegalMoveException;
 import fko.chessly.game.InvalidMoveException;
 import fko.chessly.game.NotationHelper;
 import fko.chessly.player.computer.Engine;
+import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.util.HelperTools;
 
 /**
@@ -85,7 +86,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      */
     private Map<String, OpeningBook_Entry> bookMap = Collections.synchronizedMap(new HashMap<String, OpeningBook_Entry>(10000));
 
-    private Engine _engine;
+    private ObservableEngine _engine;
     private Path _path;
     private boolean _isInitialized = false;
 
@@ -94,21 +95,42 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     private Object _counterLock = new Object();
 
     /**
-     * Constructor
+     * Constructor for non ObservableEngine
      * @param engine
      */
     public OpeningBookImpl(Engine engine) {
+        _engine = null;
+        _path = FileSystems.getDefault().getPath(_config._folderPath, _config._fileNamePlain);
+    }
+
+    /**
+     * Constructor for ObservableEngine
+     * @param engine
+     */
+    public OpeningBookImpl(ObservableEngine engine) {
         _engine = engine;
         _path = FileSystems.getDefault().getPath(_config._folderPath, _config._fileNamePlain);
     }
 
     /**
-     * Constructor
+     * Constructor for non ObservableEngine
      * @param engine
      * @param pathToOpeningBook
      * @param mode
      */
     public OpeningBookImpl(Engine engine, Path pathToOpeningBook, Mode mode) {
+        _engine = null;
+        _path = pathToOpeningBook;
+        _config._mode = mode;
+    }
+
+    /**
+     * Constructor for ObservableEngine
+     * @param engine
+     * @param pathToOpeningBook
+     * @param mode
+     */
+    public OpeningBookImpl(ObservableEngine engine, Path pathToOpeningBook, Mode mode) {
         _engine = engine;
         _path = pathToOpeningBook;
         _config._mode = mode;
