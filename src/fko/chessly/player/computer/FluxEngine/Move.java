@@ -132,22 +132,25 @@ final class Move {
 
         GameMove gameMove = new GameMoveImpl(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.convertPiecetoGamePiece(pieceMoved));
 
-        // FIXME: Check if we need to extend the conversion to the move type.
-        /*        switch (type) {
+        switch (type) {
             case MoveType.NORMAL:
                 if (pieceCaptured != Piece.NOPIECE) {
                     gameMove.setCapturedPiece(Piece.convertPiecetoGamePiece(pieceCaptured));
                 }
-
+                break;
             case MoveType.PAWNDOUBLE:
+                break;
             case MoveType.ENPASSANT:
+                break;
             case MoveType.CASTLING:
-                return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end));
+                break;
             case MoveType.PAWNPROMOTION:
-                return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
+                gameMove.setPromotedTo(Piece.convertPiecetoGamePiece(Move.getPromotion(move)));
+                break;
+                //return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
             default:
                 throw new IllegalArgumentException();
-        }*/
+        }
 
         return gameMove;
 

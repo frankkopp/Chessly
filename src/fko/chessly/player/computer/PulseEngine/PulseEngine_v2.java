@@ -334,6 +334,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
 
         GameMove move = null;
 
+
         if (_config._USE_BOOK && !_config.PERF_TEST) {
             final GameMove bookMove = _openingBook.getBookMove(board.toFENString());
             if (bookMove != null) {

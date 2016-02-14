@@ -175,7 +175,7 @@ public class GamePosition implements Serializable {
      * pregenerated GamePosition objects.
      *
      * @param s
-     * @return
+     * @return the game position from the string s
      */
     public static GamePosition getGamePosition(String s) {
         if (!s.matches("[a-h][1-8]")) throw new IllegalArgumentException("Not a valid move string: " + s);
@@ -215,15 +215,16 @@ public class GamePosition implements Serializable {
 
     /**
      * @param c
-     * @return
+     * @return true if this is the promotion row for color c
      */
-    @SuppressWarnings("fallthrough")
     public boolean isPromotionRow(GameColor c) {
         switch (c) {
             case WHITE:
                 if (this.getFile() == 8) return true;
+                return false;
             case BLACK:
                 if (this.getFile() == 1) return true;
+                return false;
             default:
                 throw new IllegalArgumentException("Invalid Color");
         }

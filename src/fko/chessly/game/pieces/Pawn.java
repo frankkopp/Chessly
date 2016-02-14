@@ -114,8 +114,7 @@
 
          if (!capturingOnly) {
              // allow 1 field forward
-             forwardOneField(board, fromPos, legalMoves, pawnColor, direction,
-                     promotionRow);
+             forwardOneField(board, fromPos, legalMoves, pawnColor, direction, promotionRow);
 
              // if on base line allow 2 fields
              forwardTwoFields(board, fromPos, legalMoves, direction, pawnBase);
