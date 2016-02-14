@@ -36,7 +36,7 @@ import fko.chessly.game.pieces.Pawn;
  * <p>A class representing a move in a Chessly game.</p>
  * <p>It also contains a value for this move if already calculated.</p>
  * <p>A move can only have a meaningful value when it is related to a actual board.</p>
- * <p>A Move object also holds all informaion to undo a move restore the last board.
+ * <p>A Move object also holds all information to undo a move and restore the last board.
  * This needs to include castling rights, en passant moves, etc.</p>
  *
  * @author Frank Kopp (frank@familie-kopp.de)
@@ -73,10 +73,9 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
      *
      * @param _fromField
      * @param _toField
-     * @param _pieveMoved
+     * @param _pieceMoved
      */
-    public GameMoveImpl(GamePosition _fromField, GamePosition _toField,
-            GamePiece _pieceMoved) {
+    public GameMoveImpl(GamePosition _fromField, GamePosition _toField, GamePiece _pieceMoved) {
         this._fromField = _fromField;
         this._toField = _toField;
         this._pieceMoved = _pieceMoved;
@@ -342,9 +341,9 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
         StringBuilder s = new StringBuilder();
 
         // castling
-        if (_pieceMoved instanceof King && _fromField.x - _toField.x == 2)
+        if (_pieceMoved instanceof King && _fromField.getFile() - _toField.getFile() == 2)
             s.append("O-O-O"); // queen side
-        else if (_pieceMoved instanceof King && _fromField.x - _toField.x == -2)
+        else if (_pieceMoved instanceof King && _fromField.getFile() - _toField.getFile() == -2)
             s.append("O-O"); // king side
         else {
             // piece letter or nothing for pawn
@@ -376,9 +375,9 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
         StringBuilder s = new StringBuilder();
 
         // castling
-        if (_pieceMoved instanceof King && _fromField.x - _toField.x == 2)
+        if (_pieceMoved instanceof King && _fromField.getFile() - _toField.getFile() == 2)
             s.append("O-O-O"); // queen side
-        else if (_pieceMoved instanceof King && _fromField.x - _toField.x == -2)
+        else if (_pieceMoved instanceof King && _fromField.getFile() - _toField.getFile() == -2)
             s.append("O-O"); // king side
         else {
             // piece letter or nothing for pawn

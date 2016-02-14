@@ -88,7 +88,7 @@ public class PulseEngine_Test {
         GameMove move = _playerWhite.getNextMove(_myBoard);
 
         System.out.println();
-        System.out.println(_myBoard.toFEN());
+        System.out.println(_myBoard.toFENString());
         System.out.format("Move: %s%n", move);
 
     }

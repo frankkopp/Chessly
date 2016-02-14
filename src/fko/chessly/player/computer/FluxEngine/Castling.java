@@ -33,10 +33,32 @@ final class Castling {
      */
     static final int ARRAY_DIMENSION = 16;
 
+    static final int[] values = {
+            WHITE_KINGSIDE,
+            WHITE_QUEENSIDE,
+            BLACK_KINGSIDE,
+            BLACK_QUEENSIDE
+    };
+
     /**
      * IntCastling cannot be instantiated.
      */
     private Castling() {
+    }
+
+    static public String toChar(int castling) {
+        switch (castling) {
+            case WHITE_KINGSIDE:
+                return "K";
+            case WHITE_QUEENSIDE:
+                return "Q";
+            case BLACK_KINGSIDE:
+                return "k";
+            case BLACK_QUEENSIDE:
+                return "q";
+            default:
+                return "-";
+        }
     }
 
 }

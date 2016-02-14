@@ -28,8 +28,37 @@ final class File {
     static final int f = 5;
     static final int g = 6;
     static final int h = 7;
+    static final int NOFILE = 8;
+
+    static final int[] values = { a, b, c, d, e, f, g, h };
+
+    static final String[] chars = { "a", "b", "c", "d", "e", "f", "g", "h" };
 
     private File() {
     }
 
+    static boolean isValid(int file) {
+        switch (file) {
+            case a:
+            case b:
+            case c:
+            case d:
+            case e:
+            case f:
+            case g:
+            case h:
+                return true;
+            case NOFILE:
+            default:
+                return false;
+        }
+    }
+
+    public static String toChar(int file) {
+        if (!isValid(file))
+            throw new IllegalArgumentException();
+        return chars[file];
+    }
+
 }
+

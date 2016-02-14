@@ -346,13 +346,13 @@ public class BoardPane extends Pane {
 
         if (lastMove != null && _controller != null && _controller.isShowLastMove() ) {
             // from field
-            int fromFile = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getFromField().x : DIM - lastMove.getFromField().x+1;
-            int fromRank = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getFromField().y : DIM - lastMove.getFromField().y+1;
+            int fromFile = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getFromField().getFile() : DIM - lastMove.getFromField().getFile()+1;
+            int fromRank = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getFromField().getRank() : DIM - lastMove.getFromField().getRank()+1;
             //markField(fromFile, fromRank, _lastMoveColor);
 
             // to field
-            int toFile = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
-            int toRank = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
+            int toFile = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().getFile() : DIM - lastMove.getToField().getFile()+1;
+            int toRank = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().getRank() : DIM - lastMove.getToField().getRank()+1;
             markField(toFile, toRank, _lastMoveColor);
 
             // line from source field to target field
@@ -381,8 +381,8 @@ public class BoardPane extends Pane {
 
             List<GameMove> moves = curBoard.getPiece(_selectedFromField).getLegalMovesForPiece(curBoard, _selectedFromField, false);
             moves.forEach(curMove -> {
-                int file = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
-                int rank = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
+                int file = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().getFile() : DIM - curMove.getToField().getFile()+1;
+                int rank = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().getRank() : DIM - curMove.getToField().getRank()+1;
                 markField(file, rank, _possibleMoveColor);
             });
         }
@@ -396,8 +396,8 @@ public class BoardPane extends Pane {
         if (curBoard != null && curBoard.hasCheck()) {
             GamePosition king;
             king = curBoard.getKingField(curBoard.getNextPlayerColor());
-            int file = _currentOrientation == orientation.WHITE_SOUTH ? king.x : DIM - king.x+1;
-            int rank = _currentOrientation == orientation.WHITE_SOUTH ? king.y : DIM - king.y+1;
+            int file = _currentOrientation == orientation.WHITE_SOUTH ? king.getFile() : DIM - king.getFile()+1;
+            int rank = _currentOrientation == orientation.WHITE_SOUTH ? king.getRank() : DIM - king.getRank()+1;
             markField(file, rank, _checkColor);
         }
     }
@@ -409,8 +409,8 @@ public class BoardPane extends Pane {
     private void markCurrentSelectedFromField(GameBoard curBoard) {
         //_selectedFromField = GamePosition.getGamePosition("e2");
         if (curBoard !=null && _selectedFromField != null) {
-            int file = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
-            int rank = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
+            int file = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.getFile() : DIM - _selectedFromField.getFile()+1;
+            int rank = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.getRank() : DIM - _selectedFromField.getRank()+1;
             markField(file, rank, _selectedMoveColor);
         }
     }
@@ -492,15 +492,15 @@ public class BoardPane extends Pane {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == buttonTypeOne){
-            return Queen.createQueen(color);
+            return Queen.create(color);
         } else if (result.get() == buttonTypeTwo) {
-            return Rook.createRook(color);
+            return Rook.create(color);
         } else if (result.get() == buttonTypeThree) {
-            return Bishop.createBishop(color);
+            return Bishop.create(color);
         } else if (result.get() == buttonTypeFour) {
-            return Knight.createKnight(color);
+            return Knight.create(color);
         } else {
-            return Queen.createQueen(color);
+            return Queen.create(color);
         }
     }
 
@@ -779,10 +779,10 @@ public class BoardPane extends Pane {
 
         // pawn promotion
         if (fromPiece instanceof Pawn) {
-            if (fromPiece.isWhite() && _selectedFromField.y == 7 && toField.y == 8) {
+            if (fromPiece.isWhite() && _selectedFromField.getRank() == 7 && toField.getRank() == 8) {
                 // Promotion
                 m.setPromotedTo(promotionDialog(GameColor.WHITE));
-            } else if (fromPiece.isBlack() && _selectedFromField.y == 2 && toField.y == 1) {
+            } else if (fromPiece.isBlack() && _selectedFromField.getRank() == 2 && toField.getRank() == 1) {
                 // Promotion
                 m.setPromotedTo(promotionDialog(GameColor.BLACK));
             }

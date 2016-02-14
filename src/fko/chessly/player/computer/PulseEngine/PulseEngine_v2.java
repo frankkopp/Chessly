@@ -335,7 +335,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
         GameMove move = null;
 
         if (_config._USE_BOOK && !_config.PERF_TEST) {
-            final GameMove bookMove = _openingBook.getBookMove(board.toFEN());
+            final GameMove bookMove = _openingBook.getBookMove(board.toFENString());
             if (bookMove != null) {
                 move = bookMove;
             }
@@ -1286,16 +1286,16 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
                 GamePiece pp;
                 switch (promotionType) {
                     case PieceType.QUEEN:
-                        pp = Queen.createQueen(color);
+                        pp = Queen.create(color);
                         break;
                     case PieceType.ROOK:
-                        pp = Rook.createRook(color);
+                        pp = Rook.create(color);
                         break;
                     case PieceType.BISHOP:
-                        pp = Bishop.createBishop(color);
+                        pp = Bishop.create(color);
                         break;
                     case PieceType.KNIGHT:
-                        pp = Knight.createKnight(color);
+                        pp = Knight.create(color);
                         break;
                     default:
                         throw new RuntimeException("Invalid PieceType for Promotion during convert from Move to GameMove");
@@ -1342,40 +1342,40 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
         GamePiece _convertedPiece;
         switch (oPiece) {
             case Piece.WHITE_PAWN:
-                _convertedPiece = Pawn.createPawn(GameColor.WHITE);
+                _convertedPiece = Pawn.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_KNIGHT:
-                _convertedPiece = Knight.createKnight(GameColor.WHITE);
+                _convertedPiece = Knight.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_BISHOP:
-                _convertedPiece = Bishop.createBishop(GameColor.WHITE);
+                _convertedPiece = Bishop.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_ROOK:
-                _convertedPiece = Rook.createRook(GameColor.WHITE);
+                _convertedPiece = Rook.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_QUEEN:
-                _convertedPiece = Queen.createQueen(GameColor.WHITE);
+                _convertedPiece = Queen.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_KING:
-                _convertedPiece = King.createKing(GameColor.WHITE);
+                _convertedPiece = King.create(GameColor.WHITE);
                 break;
             case Piece.BLACK_PAWN:
-                _convertedPiece = Pawn.createPawn(GameColor.BLACK);
+                _convertedPiece = Pawn.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_KNIGHT:
-                _convertedPiece = Knight.createKnight(GameColor.BLACK);
+                _convertedPiece = Knight.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_BISHOP:
-                _convertedPiece = Bishop.createBishop(GameColor.BLACK);
+                _convertedPiece = Bishop.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_ROOK:
-                _convertedPiece = Rook.createRook(GameColor.BLACK);
+                _convertedPiece = Rook.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_QUEEN:
-                _convertedPiece = Queen.createQueen(GameColor.BLACK);
+                _convertedPiece = Queen.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_KING:
-                _convertedPiece = King.createKing(GameColor.BLACK);
+                _convertedPiece = King.create(GameColor.BLACK);
                 break;
             case Piece.NOPIECE:
             default:

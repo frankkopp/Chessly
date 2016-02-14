@@ -18,11 +18,13 @@
  */
 package fko.chessly.player.computer.FluxEngine;
 
-import com.fluxchess.jcpi.models.*;
+import java.util.Random;
 
 import fko.chessly.game.GameBoard;
-
-import java.util.Random;
+import fko.chessly.game.GameBoardImpl;
+import fko.chessly.game.GameColor;
+import fko.chessly.game.GamePiece;
+import fko.chessly.game.GamePosition;
 
 final class Position {
 
@@ -118,8 +120,8 @@ final class Position {
         int halfMoveClockHistory = 0;
         int enPassantHistory = 0;
         int captureSquareHistory = 0;
-        final int[] positionValueOpening = new int[Color.ARRAY_DIMENSION];
-        final int[] positionValueEndgame = new int[Color.ARRAY_DIMENSION];
+        final int[] positionValueOpeningHistory = new int[Color.ARRAY_DIMENSION];
+        final int[] positionValueEndgameHistory = new int[Color.ARRAY_DIMENSION];
 
         State() {
             clear();
@@ -132,8 +134,8 @@ final class Position {
             this.enPassantHistory = 0;
             this.captureSquareHistory = 0;
             for (int color : Color.values) {
-                this.positionValueOpening[color] = 0;
-                this.positionValueEndgame[color] = 0;
+                this.positionValueOpeningHistory[color] = 0;
+                this.positionValueEndgameHistory[color] = 0;
             }
         }
     }
@@ -169,9 +171,12 @@ final class Position {
     /**
      * Creates a new board.
      *
-     * @param newBoard the board to setup our own board.
+     * @param oldBoard the board to setup our own board.
      */
-    Position(GameBoard newBoard) {
+    Position(GameBoard oldBoard) {
+        if (oldBoard == null)
+            throw new NullPointerException("Parameter oldBoard may not be null");
+
         // Initialize the position lists
         for (int color : Color.values) {
             pawnList[color] = new PositionList();
@@ -206,52 +211,71 @@ final class Position {
         for (int position : Square.values) {
             board[position] = Piece.NOPIECE;
 
-            GenericPiece genericPiece = newBoard.getPiece(Square.valueOfIntPosition(position));
-            if (genericPiece != null) {
-                int piece = Piece.createPiece(Piece.valueOfChessman(genericPiece.chessman), Color.valueOfColor(genericPiece.color));
+            GamePosition valueOfIntPosition = Square.valueOfIntPosition(position);
+            GamePiece gamePiece = oldBoard.getPiece(valueOfIntPosition);
+
+            if (gamePiece != null) {
+                int piece = Piece.createPiece(Piece.valueOfChessman(gamePiece.getType()),
+                        Color.valueOfColor(gamePiece.getColor()));
                 put(piece, position, true);
             }
         }
 
         // Initialize en passant
-        if (newBoard.getEnPassant() != null) {
-            this.enPassantSquare = Square.valueOfPosition(newBoard.getEnPassant());
-            this.zobristCode ^= zobristEnPassant[Square.valueOfPosition(newBoard.getEnPassant())];
+        if (oldBoard.hasEnPassantCapturable()) {
+            assert oldBoard.getEnPassantCapturable() != null : "en passant capturable is null although board signals to have one";
+            this.enPassantSquare = Square.valueOfPosition(oldBoard.getEnPassantCapturable());
+            this.zobristCode ^= zobristEnPassant[Square.valueOfPosition(oldBoard.getEnPassantCapturable())];
         }
 
         // Initialize castling
         castling = 0;
-        if (newBoard.getCastling(GenericColor.WHITE, GenericCastling.KINGSIDE) != null) {
+        //if (oldBoard.getCastling(GenericColor.WHITE, GenericCastling.KINGSIDE) != null) {
+        if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
             castling |= Castling.WHITE_KINGSIDE;
             this.zobristCode ^= zobristCastling[Castling.WHITE_KINGSIDE];
         }
-        if (newBoard.getCastling(GenericColor.WHITE, GenericCastling.QUEENSIDE) != null) {
+        //if (oldBoard.getCastling(GenericColor.WHITE, GenericCastling.QUEENSIDE) != null) {
+        if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
             castling |= Castling.WHITE_QUEENSIDE;
             this.zobristCode ^= zobristCastling[Castling.WHITE_QUEENSIDE];
         }
-        if (newBoard.getCastling(GenericColor.BLACK, GenericCastling.KINGSIDE) != null) {
+        //if (oldBoard.getCastling(GameColor.BLACK) != null) {
+        if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
             castling |= Castling.BLACK_KINGSIDE;
             this.zobristCode ^= zobristCastling[Castling.BLACK_KINGSIDE];
         }
-        if (newBoard.getCastling(GenericColor.BLACK, GenericCastling.QUEENSIDE) != null) {
+        //if (oldBoard.getCastling(GameColor.BLACK) != null) {
+        if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
             castling |= Castling.BLACK_QUEENSIDE;
             this.zobristCode ^= zobristCastling[Castling.BLACK_QUEENSIDE];
         }
 
         // Initialize the active color
-        if (this.activeColor != Color.valueOfColor(newBoard.getActiveColor())) {
-            this.activeColor = Color.valueOfColor(newBoard.getActiveColor());
+        if (this.activeColor != Color.valueOfColor(oldBoard.getNextPlayerColor())) {
+            this.activeColor = Color.valueOfColor(oldBoard.getNextPlayerColor());
             this.zobristCode ^= zobristActiveColor;
             this.pawnZobristCode ^= zobristActiveColor;
         }
 
         // Initialize the half move clock
-        assert newBoard.getHalfMoveClock() >= 0;
-        this.halfMoveClock = newBoard.getHalfMoveClock();
+        assert oldBoard.getHalfmoveClock() >= 0;
+        this.halfMoveClock = oldBoard.getHalfmoveClock();
 
         // Initialize the full move number
-        assert newBoard.getFullMoveNumber() > 0;
-        setFullMoveNumber(newBoard.getFullMoveNumber());
+        final int nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
+        assert nextHalfMoveNumber > 0;
+        setHalfMoveNumber(nextHalfMoveNumber);
+    }
+
+    /**
+     * Returns the GameBoard.
+     *
+     * @return the GameBoard.
+     */
+    GameBoard convertToGameBoard() {
+        GameBoard newBoard = new GameBoardImpl(this.toFENString());
+        return newBoard;
     }
 
     /**
@@ -455,115 +479,25 @@ final class Position {
     }
 
     /**
-     * Returns the GenericBoard.
-     *
-     * @return the GenericBoard.
-     */
-    GameBoard getBoard() {
-        GameBoard newBoard = new GameBoardImpl();
-
-        // Set chessmen
-        for (GenericColor color : GenericColor.values()) {
-            int intColor = Color.valueOfColor(color);
-
-            for (int index = 0; index < pawnList[intColor].size; index++) {
-                int intPosition = pawnList[intColor].position[index];
-                assert intPosition != Square.NOPOSITION;
-                assert Piece.getChessman(board[intPosition]) == PieceType.PAWN;
-                assert Piece.getColor(board[intPosition]) == intColor;
-
-                GenericPosition position = Square.valueOfIntPosition(intPosition);
-                newBoard.setPiece(GenericPiece.valueOf(color, GenericChessman.PAWN), position);
-            }
-
-            for (int index = 0; index < knightList[intColor].size; index++) {
-                int intPosition = knightList[intColor].position[index];
-                assert intPosition != Square.NOPOSITION;
-                assert Piece.getChessman(board[intPosition]) == PieceType.KNIGHT;
-                assert Piece.getColor(board[intPosition]) == intColor;
-
-                GenericPosition position = Square.valueOfIntPosition(intPosition);
-                newBoard.setPiece(GenericPiece.valueOf(color, GenericChessman.KNIGHT), position);
-            }
-
-            for (int index = 0; index < bishopList[intColor].size; index++) {
-                int intPosition = bishopList[intColor].position[index];
-                assert intPosition != Square.NOPOSITION;
-                assert Piece.getChessman(board[intPosition]) == PieceType.BISHOP;
-                assert Piece.getColor(board[intPosition]) == intColor;
-
-                GenericPosition position = Square.valueOfIntPosition(intPosition);
-                newBoard.setPiece(GenericPiece.valueOf(color, GenericChessman.BISHOP), position);
-            }
-
-            for (int index = 0; index < rookList[intColor].size; index++) {
-                int intPosition = rookList[intColor].position[index];
-                assert intPosition != Square.NOPOSITION;
-                assert Piece.getChessman(board[intPosition]) == PieceType.ROOK;
-                assert Piece.getColor(board[intPosition]) == intColor;
-
-                GenericPosition position = Square.valueOfIntPosition(intPosition);
-                newBoard.setPiece(GenericPiece.valueOf(color, GenericChessman.ROOK), position);
-            }
-
-            for (int index = 0; index < queenList[intColor].size; index++) {
-                int intPosition = queenList[intColor].position[index];
-                assert intPosition != Square.NOPOSITION;
-                assert Piece.getChessman(board[intPosition]) == PieceType.QUEEN;
-                assert Piece.getColor(board[intPosition]) == intColor;
-
-                GenericPosition position = Square.valueOfIntPosition(intPosition);
-                newBoard.setPiece(GenericPiece.valueOf(color, GenericChessman.QUEEN), position);
-            }
-
-            assert kingList[intColor].size == 1;
-            int intPosition = kingList[intColor].position[0];
-            assert intPosition != Square.NOPOSITION;
-            assert Piece.getChessman(board[intPosition]) == PieceType.KING;
-            assert Piece.getColor(board[intPosition]) == intColor;
-
-            GenericPosition position = Square.valueOfIntPosition(intPosition);
-            newBoard.setPiece(GenericPiece.valueOf(color, GenericChessman.KING), position);
-        }
-
-        // Set active color
-        newBoard.setActiveColor(Color.valueOfIntColor(this.activeColor));
-
-        // Set castling
-        if ((castling & Castling.WHITE_KINGSIDE) != 0) {
-            newBoard.setCastling(GenericColor.WHITE, GenericCastling.KINGSIDE, GenericFile.Fh);
-        }
-        if ((castling & Castling.WHITE_QUEENSIDE) != 0) {
-            newBoard.setCastling(GenericColor.WHITE, GenericCastling.QUEENSIDE, GenericFile.Fa);
-        }
-        if ((castling & Castling.BLACK_KINGSIDE) != 0) {
-            newBoard.setCastling(GenericColor.BLACK, GenericCastling.KINGSIDE, GenericFile.Fh);
-        }
-        if ((castling & Castling.BLACK_QUEENSIDE) != 0) {
-            newBoard.setCastling(GenericColor.BLACK, GenericCastling.QUEENSIDE, GenericFile.Fa);
-        }
-
-        // Set en passant
-        if (this.enPassantSquare != Square.NOPOSITION) {
-            newBoard.setEnPassant(Square.valueOfIntPosition(this.enPassantSquare));
-        }
-
-        // Set half move clock
-        newBoard.setHalfMoveClock(this.halfMoveClock);
-
-        // Set full move number
-        newBoard.setFullMoveNumber(getFullMoveNumber());
-
-        return newBoard;
-    }
-
-    /**
      * Returns the full move number.
      *
      * @return the full move number.
      */
     int getFullMoveNumber() {
-        return this.halfMoveNumber / 2;
+        return (this.halfMoveNumber+1)/2;
+        // not sure why the old code used this - this is either wrong
+        // or the halfMoveNumber used in this code starts at 2
+        //return this.halfMoveNumber / 2;
+    }
+
+    /**
+     * Sets the half move number.
+     *
+     * @param fullMoveNumber the full move number.
+     */
+    private void setHalfMoveNumber(int halfMoveNumber) {
+        assert halfMoveNumber > 0;
+        this.halfMoveNumber = halfMoveNumber;
     }
 
     /**
@@ -571,14 +505,22 @@ final class Position {
      *
      * @param fullMoveNumber the full move number.
      */
+    /*
     private void setFullMoveNumber(int fullMoveNumber) {
         assert fullMoveNumber > 0;
 
         this.halfMoveNumber = fullMoveNumber * 2;
-        if (this.activeColor == Color.valueOfColor(GenericColor.BLACK)) {
-            this.halfMoveNumber++;
+        if (this.activeColor == Color.valueOfColor(GameColor.WHITE)) {
+            this.halfMoveNumber--;
         }
+        // not sure why the old code used this - this is either wrong
+        // or the halfMoveNumber used in this code starts at 2
+        //this.halfMoveNumber = fullMoveNumber * 2;
+        //if (this.activeColor == Color.valueOfColor(GameColor.BLACK)) {
+        //    this.halfMoveNumber++;
+        //}
     }
+     */
 
     /**
      * Returns the game phase.
@@ -715,9 +657,8 @@ final class Position {
             if (attacker != Piece.NOPIECE) {
                 int attackerColor = Piece.getColor(attacker);
                 return kingColor != attackerColor && canSliderPseudoAttack(attacker, end, myKingPosition);
-            } else {
-                end -= delta;
             }
+            end -= delta;
         }
 
         return false;
@@ -1091,8 +1032,8 @@ final class Position {
         currentStackEntry.enPassantHistory = this.enPassantSquare;
         currentStackEntry.captureSquareHistory = this.captureSquare;
         for (int color : Color.values) {
-            currentStackEntry.positionValueOpening[color] = positionValueOpening[color];
-            currentStackEntry.positionValueEndgame[color] = positionValueEndgame[color];
+            currentStackEntry.positionValueOpeningHistory[color] = positionValueOpening[color];
+            currentStackEntry.positionValueEndgameHistory[color] = positionValueEndgame[color];
         }
 
         // Update stack size
@@ -1166,8 +1107,8 @@ final class Position {
         this.enPassantSquare = currentStackEntry.enPassantHistory;
         this.captureSquare = currentStackEntry.captureSquareHistory;
         for (int color : Color.values) {
-            positionValueOpening[color] = currentStackEntry.positionValueOpening[color];
-            positionValueEndgame[color] = currentStackEntry.positionValueEndgame[color];
+            positionValueOpening[color] = currentStackEntry.positionValueOpeningHistory[color];
+            positionValueEndgame[color] = currentStackEntry.positionValueEndgameHistory[color];
         }
 
         switch (type) {
@@ -1412,7 +1353,7 @@ final class Position {
         int pawnColor = Piece.getColor(pawn);
 
         assert Piece.getChessman(pawn) == PieceType.PAWN;
-        assert (startPosition >>> 4 == 1 && pawnColor == Color.WHITE) || (startPosition >>> 4 == 6 && pawnColor == Color.BLACK) : getBoard().toString() + ":" + Move.toString(move);
+        assert (startPosition >>> 4 == 1 && pawnColor == Color.WHITE) || (startPosition >>> 4 == 6 && pawnColor == Color.BLACK) : convertToGameBoard().toString() + ":" + Move.toString(move);
         assert (endPosition >>> 4 == 3 && pawnColor == Color.WHITE) || (endPosition >>> 4 == 4 && pawnColor == Color.BLACK);
         assert Math.abs(startPosition - endPosition) == 32;
 
@@ -1619,8 +1560,8 @@ final class Position {
         currentStackEntry.enPassantHistory = this.enPassantSquare;
         currentStackEntry.captureSquareHistory = this.captureSquare;
         for (int color : Color.values) {
-            currentStackEntry.positionValueOpening[color] = positionValueOpening[color];
-            currentStackEntry.positionValueEndgame[color] = positionValueEndgame[color];
+            currentStackEntry.positionValueOpeningHistory[color] = positionValueOpening[color];
+            currentStackEntry.positionValueEndgameHistory[color] = positionValueEndgame[color];
         }
 
         // Update stack size
@@ -1677,14 +1618,171 @@ final class Position {
         this.enPassantSquare = currentStackEntry.enPassantHistory;
         this.captureSquare = currentStackEntry.captureSquareHistory;
         for (int color : Color.values) {
-            positionValueOpening[color] = currentStackEntry.positionValueOpening[color];
-            positionValueEndgame[color] = currentStackEntry.positionValueEndgame[color];
+            positionValueOpening[color] = currentStackEntry.positionValueOpeningHistory[color];
+            positionValueEndgame[color] = currentStackEntry.positionValueEndgameHistory[color];
         }
     }
 
     @Override
     public String toString() {
-        return getBoard().toString();
+        return toBoardString();
     }
+
+    /**
+     * Returns the FEN notation of this position as a String.
+     *
+     * @return Visual board as String
+     */
+    public String toFENString() {
+        String fen = "";
+        for (int rank = 8; rank >= 1; rank--) {
+            int emptySquares = 0;
+            for (int file = 1; file <= 8; file++) {
+                GamePosition gamePosition = GamePosition.getGamePosition(file, rank);
+                final int valueOfPosition = Square.valueOfPosition(gamePosition);
+                final int piece = board[valueOfPosition];
+                if (piece == Piece.NOPIECE) {
+                    emptySquares++;
+                } else {
+                    if (emptySquares > 0) {
+                        fen += emptySquares;
+                        emptySquares = 0;
+                    }
+                    fen += Piece.convertPiecetoGamePiece(piece).toString();
+                }
+            }
+            if (emptySquares > 0) {
+                fen += emptySquares;
+            }
+            if (rank > 1) {
+                fen += '/';
+            }
+        }
+        fen += ' ';
+        // Color
+        fen += Color.toChar(activeColor);
+        fen += ' ';
+        // Castling
+        boolean castlingAvailable = false;
+        for (int castlingType : Castling.values) {
+            if ((Position.castling & castlingType) != 0) {
+                fen += Castling.toChar(castlingType);
+                castlingAvailable = true;
+            }
+        }
+        if (!castlingAvailable) {
+            fen += '-';
+        }
+        fen += ' ';
+        // En passant
+        if (this.enPassantSquare != Square.NOPOSITION) {
+            fen += Square.toString(this.enPassantSquare);
+        } else {
+            fen += '-';
+        }
+        fen += ' ';
+        // Half move clock
+        fen += this.halfMoveClock;
+        fen += ' ';
+        // Full move number
+        fen += this.getFullMoveNumber();
+        return fen;
+    }
+
+    /**
+     * Prints a visual board as a string.
+     *
+     * @return Visual board as String
+     */
+    public String toBoardString() {
+        StringBuilder boardString = new StringBuilder((8 << 2 + 5) * 8);
+
+        // backwards as highest row is on top
+        for (int rank = 8; rank >= 1; rank--) {
+            // upper border
+            boardString.append("    -"); // 4 * space
+            for (int col = 8; col >= 1; col--) {
+                boardString.append("----"); // dim * -
+            }
+            boardString.append("\n");
+            // row number
+            boardString.append(' ').append(Integer.toString(rank)).append(": |");
+            // fields
+            for (int file = 1; file <= 8; file++) {
+                GamePosition gamePosition = GamePosition.getGamePosition(file, rank);
+                final int valueOfPosition = Square.valueOfPosition(gamePosition);
+                final int p = board[valueOfPosition];
+                if (Piece.isValidChessman(p)) {
+                    final String pieceString = Piece.convertPiecetoGamePiece(p).toString();
+                    boardString.append(" ").append(pieceString)
+                    .append(" |");
+                } else {
+                    boardString.append("   |");
+                }
+            }
+            boardString.append("\n");
+        }
+        // lower border
+        boardString.append("    -");
+        for (int file = 8; file >= 1; file--) {
+            boardString.append("----");
+        }
+        boardString.append("\n");
+        // file numbers
+        boardString.append("     ");
+        for (int file = 1; file <= 8; file++) {
+            final int position = Square.getPosition(file, 1);
+            final int squareFile = Square.getFile(position);
+            final String fileChar = File.toChar(squareFile);
+            boardString
+            .append(' ')
+            .append(fileChar)
+            .append("  ");
+        }
+        boardString.append("\n\n");
+
+        // Castling
+        boardString.append("Castling: ");
+        boolean castlingAvailable = false;
+        for (int castlingType : Castling.values) {
+            if ((Position.castling & castlingType) != 0) {
+                boardString.append(Castling.toChar(castlingType));
+                castlingAvailable = true;
+            }
+        }
+        if (!castlingAvailable) {
+            boardString.append('-');
+        }
+        boardString.append("\n");
+
+
+        // En passant
+        boardString.append("En passant: ");
+        if (this.enPassantSquare != Square.NOPOSITION) {
+            boardString.append(Square.toString(this.enPassantSquare));
+        } else {
+            boardString.append('-');
+        }
+        boardString.append("\n");
+
+        boardString.append("Half Move Clock: "+this.halfMoveClock+"\n");
+
+        boardString.append("Move number: "+this.getFullMoveNumber()+"\n");
+
+        boardString.append("\n\n");
+
+        /*        boardString.append(this);
+        boardString.append("\n");
+        boardString.append("Last Move: "
+                + Move.toString(moveHistory.lastMove()));
+        boardString.append("\n");
+        boardString.append("White Material: " + material[Color.WHITE]
+                + " Black material: " + material[Color.BLACK]);
+        boardString.append("\n");
+        boardString.append("Hash Key: " + zobristKey);*/
+
+        return boardString.toString();
+    }
+
 
 }

@@ -738,16 +738,16 @@ final class Board {
     /**
      * Initializes from a Board interface.
      *
-     * @param oldboard
+     * @param oldBoard
      */
-    private void initFromGameBoard(GameBoard oldboard) {
-        if (oldboard == null)
+    private void initFromGameBoard(GameBoard oldBoard) {
+        if (oldBoard == null)
             throw new NullPointerException("Parameter oldBoard may not be null");
 
         // -- copy fields --
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
-                fko.chessly.game.GamePiece p = oldboard.getPiece(file + 1,
+                fko.chessly.game.GamePiece p = oldBoard.getPiece(file + 1,
                         rank + 1);
                 if (p != null) {
                     switch (p.getColor()) {
@@ -809,53 +809,53 @@ final class Board {
         }
 
         // next player
-        activeColor = oldboard.getNextPlayerColor() == GameColor.WHITE ? Color.WHITE : Color.BLACK;
+        activeColor = oldBoard.getNextPlayerColor() == GameColor.WHITE ? Color.WHITE : Color.BLACK;
 
         // -- copy castling flags
-        if (oldboard.isCastlingKingSideAllowed(GameColor.WHITE)) {
+        if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
             castlingRights[Castling.WHITE_KINGSIDE] = File.h;
         } else {
             castlingRights[Castling.WHITE_KINGSIDE] = File.NOFILE;
         }
-        if (oldboard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
+        if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
             castlingRights[Castling.WHITE_QUEENSIDE] = File.a;
         } else {
             castlingRights[Castling.WHITE_QUEENSIDE] = File.NOFILE;
         }
-        if (oldboard.isCastlingKingSideAllowed(GameColor.BLACK)) {
+        if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
             castlingRights[Castling.BLACK_KINGSIDE] = File.h;
         } else {
             castlingRights[Castling.BLACK_KINGSIDE] = File.NOFILE;
         }
-        if (oldboard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
+        if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
             castlingRights[Castling.BLACK_QUEENSIDE] = File.a;
         } else {
             castlingRights[Castling.BLACK_QUEENSIDE] = File.NOFILE;
         }
 
         // en passant flag
-        GamePosition ep = oldboard.getEnPassantCapturable();
+        GamePosition ep = oldBoard.getEnPassantCapturable();
         if (ep != null) {
-            enPassantSquare = Square.valueOf(ep.y - 1, ep.x - 1);
+            enPassantSquare = Square.valueOf(ep.getRank() - 1, ep.getFile() - 1);
         }
 
         // halfmove clock
-        halfmoveClock = oldboard.getHalfmoveClock();
+        halfmoveClock = oldBoard.getHalfmoveClock();
 
         // halfmove number
-        halfmoveNumber = oldboard.getLastHalfMoveNumber() + 2;
+        halfmoveNumber = oldBoard.getLastHalfMoveNumber() + 2;
 
         // -- copy move history --
         // this._moveHistory = oldBoard.getMoveHistory();
-        List<GameMove> oldHisotry = oldboard.getMoveHistory();
+        List<GameMove> oldHisotry = oldBoard.getMoveHistory();
         for (GameMove m : oldHisotry) {
             // originSquare
-            int originSquare = Square.valueOf(m.getFromField().y - 1,
-                    m.getFromField().x - 1);
+            int originSquare = Square.valueOf(m.getFromField().getRank() - 1,
+                    m.getFromField().getFile() - 1);
             assert Square.isValid(originSquare);
             // targetSquare
-            int targetSquare = Square.valueOf(m.getToField().y - 1,
-                    m.getToField().x - 1);
+            int targetSquare = Square.valueOf(m.getToField().getRank() - 1,
+                    m.getToField().getFile() - 1);
             assert Square.isValid(targetSquare);
             // originPiece
             int color = m.getMovedPiece().getColor().isWhite() ? Color.WHITE

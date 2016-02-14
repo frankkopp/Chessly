@@ -84,7 +84,9 @@ public abstract class PieceAbstractImpl implements GamePiece, Serializable {
 
     @Override
     public String toString() {
-        return _color.toChar() + _pieceType.toChar();
+        if (_color.isWhite())
+            return _pieceType.toChar().toUpperCase();
+        return _pieceType.toChar().toLowerCase();
     }
 
     @Override
@@ -129,8 +131,8 @@ public abstract class PieceAbstractImpl implements GamePiece, Serializable {
         for (int i = 0; i < deltas.length; i++) {
             int col_inc = deltas[i][0];
             int row_inc = deltas[i][1];
-            int new_col = pos.x + col_inc;
-            int new_row = pos.y + row_inc;
+            int new_col = pos.getFile() + col_inc;
+            int new_row = pos.getRank() + row_inc;
             GamePosition newPos = GamePosition.getGamePosition(new_col, new_row);
 
             // traverse and find legal moves

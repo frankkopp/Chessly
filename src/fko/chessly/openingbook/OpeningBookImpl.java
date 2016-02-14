@@ -421,7 +421,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
             // remember last position
             GameBoard lastPosition = new GameBoardImpl(currentPosition);
-            String lastFen = lastPosition.toFEN();
+            String lastFen = lastPosition.toFENString();
 
             // try to make move
             try {
@@ -436,7 +436,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
             // we have successfully made the move
             // get fen notation from position
-            String currentFen = currentPosition.toFEN();
+            String currentFen = currentPosition.toFENString();
 
             addToBook(item, bookMove, lastFen, currentFen);
 
@@ -496,7 +496,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         // remember last position
         GameBoard lastPosition = new GameBoardImpl(currentPosition);
-        String lastFen = lastPosition.toFEN();
+        String lastFen = lastPosition.toFENString();
 
         // try to make move
         try {
@@ -511,7 +511,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         // we have successfully made the move
         // get fen notation from position
-        String currentFen = currentPosition.toFEN();
+        String currentFen = currentPosition.toFENString();
 
         addToBook(item, bookMove, lastFen, currentFen);
         return true;

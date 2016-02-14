@@ -48,16 +48,15 @@
  */
 package fko.chessly.player.computer.FluxEngine;
 
-import java.util.List;
-
+import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
+import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.Engine;
-import fko.chessly.player.computer.ObservableEngine;
 
 /**
  * This class wraps the Flux engine code into a Chessly Engine.
@@ -71,6 +70,8 @@ public class FluxEngine extends ModelObservable implements Engine {
     private TranspositionTable transpositionTable;
     private Position board = null;
     private final int[] timeTable = new int[Depth.MAX_PLY + 1];
+    private GameColor _activeColor;
+    private Game _game;
 
     /**
      * Constructor
@@ -89,10 +90,14 @@ public class FluxEngine extends ModelObservable implements Engine {
      */
     @Override
     public void init(Player player) {
+
+        _activeColor = player.getColor();
+        assert (_activeColor.isWhite() || _activeColor.isBlack());
+
         initializeTranspositionTable();
 
         // Create a new search
-        this.search = new Search(new GameBoardImpl(), this.transpositionTable, this.timeTable);
+        this.search = new Search(new Position(new GameBoardImpl()), this.transpositionTable, this.timeTable);
 
     }
 
@@ -106,50 +111,58 @@ public class FluxEngine extends ModelObservable implements Engine {
      * @see fko.chessly.player.computer.Engine#getNextMove(fko.chessly.game.GameBoard)
      */
     @Override
-    public GameMove getNextMove(GameBoard board) {
+    public GameMove getNextMove(GameBoard gameBoard) {
+        assert(gameBoard!=null);
 
-        // FIXME getNextMove
-        /*        if (this.board != null) {
+        this.board = new Position(gameBoard);
+
+        if (this.board != null) {
             if (this.search.isStopped()) {
-              // Create a new search
-              this.search = new Search(getProtocol(), this.board, this.transpositionTable, this.timeTable);
+                // Create a new search
+                this.search = new Search(this.board, this.transpositionTable, this.timeTable);
 
-              // Set all search parameters
-              if (command.getDepth() != null && command.getDepth() > 0) {
-                this.search.setSearchDepth(command.getDepth());
-              }
-              if (command.getNodes() != null && command.getNodes() > 0) {
-                this.search.setSearchNodes(command.getNodes());
-              }
-              if (command.getMoveTime() != null && command.getMoveTime() > 0) {
-                this.search.setSearchTime(command.getMoveTime());
-              }
-              for (GenericColor side : GenericColor.values()) {
-                if (command.getClock(side) != null && command.getClock(side) > 0) {
-                  this.search.setSearchClock(Color.valueOfColor(side), command.getClock(side));
-                }
-                if (command.getClockIncrement(side) != null && command.getClockIncrement(side) > 0) {
-                  this.search.setSearchClockIncrement(Color.valueOfColor(side), command.getClockIncrement(side));
-                }
-              }
-              if (command.getMovesToGo() != null && command.getMovesToGo() > 0) {
-                this.search.setSearchMovesToGo(command.getMovesToGo());
-              }
-              if (command.getInfinite()) {
-                this.search.setSearchInfinite();
-              }
-              if (command.getPonder()) {
-                this.search.setSearchPonder();
-              }
-              if (command.getSearchMoveList() != null) {
-                this.search.setSearchMoveList(command.getSearchMoveList());
-              }
+                // Set search parameters from current Game
 
-              // Go...
-              this.search.start();
-              this.board = null;
+                // set the max search depth from the level in game
+                if (_activeColor.isWhite()) {
+                    this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
+                } else {
+                    this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
+                }
+
+                // set the search time - unlimited for non timed game
+                if (_game.isTimedGame()) {
+                    final long whiteTimeLeft = _game.getWhiteTime() - _game.getWhiteClock().getTime();
+                    this.search.setSearchClock(Color.WHITE, whiteTimeLeft);
+                    this.search.setSearchClockIncrement(Color.WHITE, 0); // not used
+                    final long blackTimeLeft = _game.getBlackTime() - _game.getBlackClock().getTime();
+                    this.search.setSearchClock(Color.BLACK, blackTimeLeft);
+                    this.search.setSearchClockIncrement(Color.BLACK, 0); // not used
+                } else {
+                    // we do not use this yet - we only use level
+                    this.search.setSearchTime(Long.MAX_VALUE);
+                }
+
+                /*
+                if (command.getMovesToGo() != null && command.getMovesToGo() > 0) {
+                    this.search.setSearchMovesToGo(command.getMovesToGo());
+                }
+                if (command.getInfinite()) {
+                    this.search.setSearchInfinite();
+                }
+                if (command.getPonder()) {
+                    this.search.setSearchPonder();
+                }
+                if (command.getSearchMoveList() != null) {
+                    this.search.setSearchMoveList(command.getSearchMoveList());
+                }
+                 */
+
+                // Go...
+                this.search.start();
+                this.board = null;
             }
-        }*/
+        }
 
         return null;
     }
@@ -159,8 +172,7 @@ public class FluxEngine extends ModelObservable implements Engine {
      */
     @Override
     public void setGame(Game game) {
-        // TODO Auto-generated method stub
-
+        _game = game;
     }
 
     /* (non-Javadoc)
@@ -168,8 +180,7 @@ public class FluxEngine extends ModelObservable implements Engine {
      */
     @Override
     public void setNumberOfThreads(int n) {
-        // TODO Auto-generated method stub
-
+        // ignore
     }
 
     /**********************************

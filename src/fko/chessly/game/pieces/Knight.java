@@ -50,7 +50,7 @@ public class Knight extends PieceAbstractImpl implements GamePiece, Serializable
      * @param color
      * @return Knight object
      */
-    public static Knight createKnight(GameColor color) {
+    public static Knight create(GameColor color) {
         return color==GameColor.WHITE ? white : black;
     }
 
@@ -77,8 +77,8 @@ public class Knight extends PieceAbstractImpl implements GamePiece, Serializable
         for (int i = 0; i < GamePiece.knightAttackVectors.length; i++) {
             int col_inc = GamePiece.knightAttackVectors[i][0];
             int row_inc = GamePiece.knightAttackVectors[i][1];
-            int new_col = pos.x + col_inc;
-            int new_row = pos.y + row_inc;
+            int new_col = pos.getFile() + col_inc;
+            int new_row = pos.getRank() + row_inc;
             GamePosition newPos = GamePosition.getGamePosition(new_col, new_row);
 
             if (board.canMoveTo(pos, newPos)) {

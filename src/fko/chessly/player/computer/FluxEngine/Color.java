@@ -111,6 +111,19 @@ final class Color {
         return color ^ MASK;
     }
 
+    static char toChar(int color) {
+        switch (color) {
+            case WHITE:
+                return 'w';
+            case BLACK:
+                return 'b';
+            case NOCOLOR:
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+
     static boolean isValidColor(int color) {
         for (int colorValue : values) {
             if (color == colorValue) {

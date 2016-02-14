@@ -144,8 +144,13 @@ final class Square {
     static int valueOfPosition(GamePosition position) {
         assert position != null;
 
-        int file = position.x; // Arrays.asList(GenericFile.values()).indexOf(position.file);
-        int rank = position.y; // Arrays.asList(GenericRank.values()).indexOf(position.rank);
+        int file = position.getFile(); // Arrays.asList(GenericFile.values()).indexOf(position.file);
+        int rank = position.getRank(); // Arrays.asList(GenericRank.values()).indexOf(position.rank);
+
+        // index starts with 0
+        // file and rank start with 1
+        // decrease
+        rank--; file--;
 
         return rank * 16 + file;
     }
@@ -157,14 +162,29 @@ final class Square {
      * @return the GenericPosition.
      */
     static GamePosition valueOfIntPosition(int position) {
-        assert (position & 0x88) == 0;
+        assert isValid(position);
 
-        return GamePosition.getGamePosition(position % 16, position >>> 4);
+        return GamePosition.getGamePosition((position % 16) +1, (position >>> 4) +1);
 
         /*        GenericFile file = GenericFile.values()[position % 16];
         GenericRank rank = GenericRank.values()[position >>> 4];
 
         return GenericPosition.valueOf(file, rank);*/
+    }
+
+    /**
+     * Returns the position based on rank and file
+     *
+     * @param file
+     * @param rank
+     * @return
+     */
+    static int getPosition(int file, int rank) {
+        // index starts with 0
+        // file and rank start with 1
+        // decrease
+        rank--; file--;
+        return rank * 16 + file;
     }
 
     /**
@@ -212,6 +232,15 @@ final class Square {
         }
 
         return rank;
+    }
+
+    static boolean isValid(int square) {
+        return (square & 0x88) == 0;
+    }
+
+    static String toString(int square) {
+        assert isValid(square);
+        return ""+File.toChar(Square.getFile(square))+(getRank(square)+1);
     }
 
 }

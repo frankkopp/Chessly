@@ -18,12 +18,9 @@
  */
 package fko.chessly.player.computer.FluxEngine;
 
-import com.fluxchess.jcpi.models.GenericFile;
-import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.GenericRank;
-
+import fko.chessly.game.GameCastling;
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveImpl;
 
 /**
  * This class represents a move as a int value. The fields are represented by
@@ -78,7 +75,88 @@ final class Move {
     }
 
     /**
+     * Returns the IntMove from the CommandMove.
+     *
+     * @param move  the CommandMove.
+     * @param board the Hex88Board.
+     * @return the IntMove.
+     */
+    static int convertMove(GameMove move, Position board) {
+        assert move != null;
+        assert board != null;
+
+        if (move.getPromotedTo() != null) {
+            //if (isPawnPromotion(move, board)) {
+            /*
+            int promotion;
+            if (move.promotion == null) {
+                promotion = PieceType.QUEEN;
+            } else {
+                promotion = Piece.valueOfChessman(move.promotion);
+            }
+             */
+            int promotion = Piece.valueOfChessman(move.getPromotedTo().getType());
+            return createMove(MoveType.PAWNPROMOTION, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], promotion);
+
+        } else if (move.isEnPassantNextMovePossible()) {
+            //} else if (isPawnDouble(move, board)) {
+            return createMove(MoveType.PAWNDOUBLE, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
+
+        } else if (move.getWasEnPassantCapture()) {
+            //} else if (isEnPassant(move, board)) {
+            return createMove(MoveType.ENPASSANT, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getEnPassantCapturePosition())], Piece.NOPIECE);
+
+        } else if (move.getCastlingType() != GameCastling.NOCASTLING) {
+            //} else if (isCastling(move, board)) {
+            return createMove(MoveType.CASTLING, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
+
+        } else {
+            return createMove(MoveType.NORMAL, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], Piece.NOPIECE);
+        }
+    }
+
+    /**
+     * Returns the GameMove from the move.
+     *
+     * @param move the move.
+     * @return the CommandMove.
+     */
+    static GameMove toGameMove(int move) {
+        assert move != NOMOVE;
+
+        final int type = getType(move);
+        final int start = getStart(move);
+        final int end = getEnd(move);
+        final int pieceMoved = getChessmanPiece(move);
+        final int pieceCaptured = getTargetPiece(move);
+
+        GameMove gameMove = new GameMoveImpl(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.convertPiecetoGamePiece(pieceMoved));
+
+        // FIXME: Check if we need to extend the conversion to the move type.
+        /*        switch (type) {
+            case MoveType.NORMAL:
+                if (pieceCaptured != Piece.NOPIECE) {
+                    gameMove.setCapturedPiece(Piece.convertPiecetoGamePiece(pieceCaptured));
+                }
+
+            case MoveType.PAWNDOUBLE:
+            case MoveType.ENPASSANT:
+            case MoveType.CASTLING:
+                return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end));
+            case MoveType.PAWNPROMOTION:
+                return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
+            default:
+                throw new IllegalArgumentException();
+        }*/
+
+        return gameMove;
+
+    }
+
+    /**
      * Get the IntMove.
+     *
+     * FIXME: Why does a move not have a color?
      *
      * @param type      the type.
      * @param start     the start position.
@@ -382,36 +460,7 @@ final class Move {
     return type;
     }
 
-    /**
-     * Returns the IntMove from the CommandMove.
-     *
-     * @param move  the CommandMove.
-     * @param board the Hex88Board.
-     * @return the IntMove.
-     */
-    static int convertMove(GameMove move, Position board) {
-        assert move != null;
-        assert board != null;
 
-        if (isPawnPromotion(move, board)) {
-            int promotion;
-            if (move.promotion == null) {
-                // TODO: maybe better throw IllegalArgumentException()
-                promotion = PieceType.QUEEN;
-            } else {
-                promotion = Piece.valueOfChessman(move.promotion);
-            }
-            return createMove(MoveType.PAWNPROMOTION, Square.valueOfPosition(move.from), Square.valueOfPosition(move.to), Position.board[Square.valueOfPosition(move.from)], Position.board[Square.valueOfPosition(move.to)], promotion);
-        } else if (isPawnDouble(move, board)) {
-            return createMove(MoveType.PAWNDOUBLE, Square.valueOfPosition(move.from), Square.valueOfPosition(move.to), Position.board[Square.valueOfPosition(move.from)], Piece.NOPIECE, Piece.NOPIECE);
-        } else if (isEnPassant(move, board)) {
-            return createMove(MoveType.ENPASSANT, Square.valueOfPosition(move.from), Square.valueOfPosition(move.to), Position.board[Square.valueOfPosition(move.from)], Position.board[Square.valueOfPosition(GenericPosition.valueOf(move.to.file, move.from.rank))], Piece.NOPIECE);
-        } else if (isCastling(move, board)) {
-            return createMove(MoveType.CASTLING, Square.valueOfPosition(move.from), Square.valueOfPosition(move.to), Position.board[Square.valueOfPosition(move.from)], Piece.NOPIECE, Piece.NOPIECE);
-        } else {
-            return createMove(MoveType.NORMAL, Square.valueOfPosition(move.from), Square.valueOfPosition(move.to), Position.board[Square.valueOfPosition(move.from)], Position.board[Square.valueOfPosition(move.to)], Piece.NOPIECE);
-        }
-    }
 
     /**
      * Returns whether the CommandMove is a pawn promotion move.
@@ -420,11 +469,11 @@ final class Move {
      * @param board the Hex88Board.
      * @return true if the CommandMove is a pawn promotion, false otherwise.
      */
-    private static boolean isPawnPromotion(GameMove move, Position board) {
+    /*    private static boolean isPawnPromotion(GameMove move, Position board) {
         assert move != null;
         assert board != null;
 
-        int position = Square.valueOfPosition(move.from);
+        int position = Square.valueOfPosition(move.getFromField());
 
         int piece = Position.board[position];
         if (piece != Piece.NOPIECE) {
@@ -435,7 +484,7 @@ final class Move {
         }
 
         return false;
-    }
+    }*/
 
     /**
      * Returns whether the CommandMove is a pawn double advance move.
@@ -444,22 +493,22 @@ final class Move {
      * @param board the Hex88Board.
      * @return true if the CommandMove is a pawn double advance, false otherwise.
      */
-    private static boolean isPawnDouble(GameMove move, Position board) {
+    /*    private static boolean isPawnDouble(GameMove move, Position board) {
         assert move != null;
         assert board != null;
 
-        int position = Square.valueOfPosition(move.from);
+        int position = Square.valueOfPosition(move.getFromField());
 
         int piece = Position.board[position];
         if (piece != Piece.NOPIECE) {
-            if ((piece == Piece.WHITE_PAWN && move.from.rank == GenericRank.R2 && move.to.rank == GenericRank.R4)
-                    || (piece == Piece.BLACK_PAWN && move.from.rank == GenericRank.R7 && move.to.rank == GenericRank.R5)) {
+            if ((piece == Piece.WHITE_PAWN && move.getFromField().getRank() == Rank.r2+1 && move.getToField().getRank() == Rank.r4+1)
+                    || (piece == Piece.BLACK_PAWN && move.getFromField().getRank() == Rank.r7+1 && move.getToField().getRank() == Rank.r5+1)) {
                 return true;
             }
         }
 
         return false;
-    }
+    }*/
 
     /**
      * Returns whether the CommandMove is a en passant move.
@@ -468,7 +517,7 @@ final class Move {
      * @param board the Hex88Board.
      * @return true if the CommandMove is a en passant move, false otherwise.
      */
-    private static boolean isEnPassant(GameMove move, Position board) {
+    /*    private static boolean isEnPassant(GameMove move, Position board) {
         assert move != null;
         assert board != null;
 
@@ -489,7 +538,7 @@ final class Move {
         }
 
         return false;
-    }
+    }*/
 
     /**
      * Returns whether the CommandMove is a castling move.
@@ -498,7 +547,7 @@ final class Move {
      * @param board the Hex88Board.
      * @return true if the CommandMove is a castling move, false otherwise.
      */
-    private static boolean isCastling(GameMove move, Position board) {
+    /*    private static boolean isCastling(GameMove move, Position board) {
         assert move != null;
         assert board != null;
 
@@ -536,34 +585,132 @@ final class Move {
         }
 
         return false;
-    }
+    }*/
 
     /**
-     * Returns the CommandMove from the move.
+     * Returns whether the CommandMove is a pawn promotion move.
      *
-     * @param move the move.
-     * @return the CommandMove.
+     * @param move  the CommandMove.
+     * @param board the Hex88Board.
+     * @return true if the CommandMove is a pawn promotion, false otherwise.
      */
-    static GameMove toCommandMove(int move) {
-        assert move != NOMOVE;
+    /*    private static boolean isPawnPromotion(GameMove move, Position board) {
+        assert move != null;
+        assert board != null;
 
-        int type = getType(move);
-        int start = getStart(move);
-        int end = getEnd(move);
+        int position = Square.valueOfPosition(move.getFromField());
 
-        switch (type) {
-            case MoveType.NORMAL:
-            case MoveType.PAWNDOUBLE:
-            case MoveType.ENPASSANT:
-            case MoveType.CASTLING:
-                return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end));
-            case MoveType.PAWNPROMOTION:
-                return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
-            default:
-                throw new IllegalArgumentException();
+        int piece = Position.board[position];
+        if (piece != Piece.NOPIECE) {
+            if ((piece == Piece.WHITE_PAWN && move.from.rank == GenericRank.R7 && move.to.rank == GenericRank.R8)
+                    || (piece == Piece.BLACK_PAWN && move.from.rank == GenericRank.R2 && move.to.rank == GenericRank.R1)) {
+                return true;
+            }
         }
 
-    }
+        return false;
+    }*/
+
+    /**
+     * Returns whether the CommandMove is a pawn double advance move.
+     *
+     * @param move  the CommandMove.
+     * @param board the Hex88Board.
+     * @return true if the CommandMove is a pawn double advance, false otherwise.
+     */
+    /*    private static boolean isPawnDouble(GameMove move, Position board) {
+        assert move != null;
+        assert board != null;
+
+        int position = Square.valueOfPosition(move.getFromField());
+
+        int piece = Position.board[position];
+        if (piece != Piece.NOPIECE) {
+            if ((piece == Piece.WHITE_PAWN && move.getFromField().getRank() == Rank.r2+1 && move.getToField().getRank() == Rank.r4+1)
+                    || (piece == Piece.BLACK_PAWN && move.getFromField().getRank() == Rank.r7+1 && move.getToField().getRank() == Rank.r5+1)) {
+                return true;
+            }
+        }
+
+        return false;
+    }*/
+
+    /**
+     * Returns whether the CommandMove is a en passant move.
+     *
+     * @param move  the CommandMove.
+     * @param board the Hex88Board.
+     * @return true if the CommandMove is a en passant move, false otherwise.
+     */
+    /*    private static boolean isEnPassant(GameMove move, Position board) {
+        assert move != null;
+        assert board != null;
+
+        int position = Square.valueOfPosition(move.from);
+        GenericPosition targetPosition = GenericPosition.valueOf(move.to.file, move.from.rank);
+        int targetIntPosition = Square.valueOfPosition(targetPosition);
+
+        int piece = Position.board[position];
+        int target = Position.board[targetIntPosition];
+        if (piece != Piece.NOPIECE && target != Piece.NOPIECE) {
+            if (Piece.getChessman(piece) == PieceType.PAWN && Piece.getChessman(target) == PieceType.PAWN) {
+                if (Piece.getColor(piece) == Piece.getColorOpposite(target)) {
+                    if (board.enPassantSquare == Square.valueOfPosition(move.to)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }*/
+
+    /**
+     * Returns whether the CommandMove is a castling move.
+     *
+     * @param move  the CommandMove.
+     * @param board the Hex88Board.
+     * @return true if the CommandMove is a castling move, false otherwise.
+     */
+    /*    private static boolean isCastling(GameMove move, Position board) {
+        assert move != null;
+        assert board != null;
+
+        int position = Square.valueOfPosition(move.from);
+
+        int piece = Position.board[position];
+        if (piece != Piece.NOPIECE) {
+            if (Piece.getChessman(piece) == PieceType.KING) {
+                if (move.from.file == GenericFile.Fe
+                        && move.from.rank == GenericRank.R1
+                        && move.to.file == GenericFile.Fg
+                        && move.to.rank == GenericRank.R1) {
+                    // Castling WHITE kingside.
+                    return true;
+                } else if (move.from.file == GenericFile.Fe
+                        && move.from.rank == GenericRank.R1
+                        && move.to.file == GenericFile.Fc
+                        && move.to.rank == GenericRank.R1) {
+                    // Castling WHITE queenside.
+                    return true;
+                } else if (move.from.file == GenericFile.Fe
+                        && move.from.rank == GenericRank.R8
+                        && move.to.file == GenericFile.Fg
+                        && move.to.rank == GenericRank.R8) {
+                    // Castling BLACK kingside.
+                    return true;
+                } else if (move.from.file == GenericFile.Fe
+                        && move.from.rank == GenericRank.R8
+                        && move.to.file == GenericFile.Fc
+                        && move.to.rank == GenericRank.R8) {
+                    // Castling BLACK queenside.
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }*/
 
     static String toString(int move) {
         String string = "<";
@@ -597,7 +744,7 @@ final class Move {
         }
 
         string += ", ";
-        string += toCommandMove(move).toString();
+        string += toGameMove(move).toString();
 
         if (getTarget(move) != Piece.NOPIECE) {
             string += ", (";

@@ -135,13 +135,13 @@ final class Search implements Runnable {
         }
     }
 
-    Search(GameBoard newBoard, TranspositionTable newTranspositionTable, int[] timeTable) {
+    Search(Position newBoard, TranspositionTable newTranspositionTable, int[] timeTable) {
         assert newBoard != null;
         assert newTranspositionTable != null;
 
         this.analyzeMode = Configuration.analyzeMode;
 
-        board = convertGameBoardToPosition(newBoard);
+        board = newBoard;
         this.myColor = board.activeColor;
 
         this.transpositionTable = newTranspositionTable;
@@ -157,15 +157,6 @@ final class Search implements Runnable {
         this.timeTable = timeTable;
 
         multiPvMap.clear();
-    }
-
-    /**
-     * @param newBoard
-     * @return
-     */
-    private Position convertGameBoardToPosition(GameBoard newBoard) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -733,7 +724,7 @@ final class Search implements Runnable {
 
             // Update the information if we evaluate a new move.
             currentMoveNumber++;
-            sendInformationMove(Move.toCommandMove(move), currentMoveNumber);
+            sendInformationMove(Move.toGameMove(move), currentMoveNumber);
 
             // Extension
             int newDepth = getNewDepth(depth, move, isSingleReply, false);
@@ -786,10 +777,10 @@ final class Search implements Runnable {
 
             // Add pv to list
             List<GameMove> commandMoveList = new ArrayList<>();
-            commandMoveList.add(Move.toCommandMove(move));
+            commandMoveList.add(Move.toGameMove(move));
             for (int i = pvList[height + 1].head; i < pvList[height + 1].tail; i++) {
                 commandMoveList.add(Move
-                        .toCommandMove(pvList[height + 1].moves[i]));
+                        .toGameMove(pvList[height + 1].moves[i]));
             }
             PrincipalVariation pv = new PrincipalVariation(currentMoveNumber,
                     value, moveType, sortValue, commandMoveList, currentDepth,
@@ -1168,7 +1159,7 @@ final class Search implements Runnable {
                         && !isDangerousMove(move)) {
                     assert !board.isCheckingMove(move);
                     assert Move.getType(move) != MoveType.PAWNPROMOTION
-                            : board.getBoard() + ", " + Move.toString(move);
+                            : board.convertToGameBoard() + ", " + Move.toString(move);
 
                     if (evalValue == Value.INFINITY) {
                         // Store evaluation
@@ -1206,7 +1197,7 @@ final class Search implements Runnable {
                         && !isDangerousMove(move)) {
                     assert !board.isCheckingMove(move);
                     assert Move.getType(move) != MoveType.PAWNPROMOTION
-                            : board.getBoard() + ", " + Move.toString(move);
+                            : board.convertToGameBoard() + ", " + Move.toString(move);
 
                     if (evalValue == Value.INFINITY) {
                         // Store evaluation
@@ -1246,7 +1237,7 @@ final class Search implements Runnable {
                         && !isDangerousMove(move)) {
                     assert !board.isCheckingMove(move);
                     assert Move.getType(move) != MoveType.PAWNPROMOTION
-                            : board.getBoard() + ", " + Move.toString(move);
+                            : board.convertToGameBoard() + ", " + Move.toString(move);
 
                     newDepth--;
                     reduced = true;
@@ -1470,7 +1461,7 @@ final class Search implements Runnable {
                         && !isDangerousMove(move)) {
                     assert Move.getTarget(move) != Piece.NOPIECE;
                     assert Move.getType(move) != MoveType.PAWNPROMOTION
-                            : board.getBoard() + ", " + Move.toString(move);
+                            : board.convertToGameBoard() + ", " + Move.toString(move);
 
                     int value = evalValue + FUTILITY_QUIESCENTMARGIN;
 

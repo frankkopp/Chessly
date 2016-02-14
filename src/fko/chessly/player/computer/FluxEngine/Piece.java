@@ -18,7 +18,15 @@
  */
 package fko.chessly.player.computer.FluxEngine;
 
-import com.fluxchess.jcpi.models.GenericChessman;
+import fko.chessly.game.GameColor;
+import fko.chessly.game.GamePiece;
+import fko.chessly.game.GamePieceType;
+import fko.chessly.game.pieces.Bishop;
+import fko.chessly.game.pieces.King;
+import fko.chessly.game.pieces.Knight;
+import fko.chessly.game.pieces.Pawn;
+import fko.chessly.game.pieces.Queen;
+import fko.chessly.game.pieces.Rook;
 
 /**
  * This class represents a chessman as a int value. The fields are
@@ -102,13 +110,13 @@ final class Piece {
     /**
      * Returns the chessman value of the GenericChessman.
      *
-     * @param chessman the GenericChessman.
+     * @param piecetype the GamePiece.
      * @return the chessman value.
      */
-    static int valueOfChessman(GenericChessman chessman) {
-        assert chessman != null;
+    static int valueOfChessman(GamePieceType piecetype) {
+        assert piecetype != null;
 
-        switch (chessman) {
+        switch (piecetype) {
             case PAWN:
                 return PieceType.PAWN;
             case KNIGHT:
@@ -122,7 +130,7 @@ final class Piece {
             case KING:
                 return PieceType.KING;
             default:
-                assert false : chessman;
+                assert false : piecetype;
             break;
         }
 
@@ -130,27 +138,67 @@ final class Piece {
     }
 
     /**
-     * Returns the GenericChessman of the chessman value.
+     * Returns the GamePieceType of the chessman value.
      *
      * @param chessman the IntChessman value.
      * @return the GenericChessman.
      */
-    static GamePiece valueOfIntChessman(int chessman) {
+    static GamePieceType valueOfIntChessman(int chessman) {
         assert chessman != NOPIECE;
 
         switch (chessman) {
             case PieceType.PAWN:
-                return GenericChessman.PAWN;
+                return GamePieceType.PAWN;
             case PieceType.KNIGHT:
-                return GenericChessman.KNIGHT;
+                return GamePieceType.KNIGHT;
             case PieceType.BISHOP:
-                return GenericChessman.BISHOP;
+                return GamePieceType.BISHOP;
             case PieceType.ROOK:
-                return GenericChessman.ROOK;
+                return GamePieceType.ROOK;
             case PieceType.QUEEN:
-                return GenericChessman.QUEEN;
+                return GamePieceType.QUEEN;
             case PieceType.KING:
-                return GenericChessman.KING;
+                return GamePieceType.KING;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+
+    /**
+     * Returns the GamePieceType of the chessman value.
+     *
+     * @param piece the IntChessman value.
+     * @return the GenericChessman.
+     */
+    static GamePiece convertPiecetoGamePiece(int piece) {
+        assert piece != NOPIECE;
+
+        switch (piece) {
+            case Piece.WHITE_PAWN:
+                return Pawn.create(GameColor.WHITE);
+            case Piece.WHITE_KNIGHT:
+                return Knight.create(GameColor.WHITE);
+            case Piece.WHITE_BISHOP:
+                return Bishop.create(GameColor.WHITE);
+            case Piece.WHITE_ROOK:
+                return Rook.create(GameColor.WHITE);
+            case Piece.WHITE_QUEEN:
+                return Queen.create(GameColor.WHITE);
+            case Piece.WHITE_KING:
+                return King.create(GameColor.WHITE);
+            case Piece.BLACK_PAWN:
+                return Pawn.create(GameColor.BLACK);
+            case Piece.BLACK_KNIGHT:
+                return Knight.create(GameColor.BLACK);
+            case Piece.BLACK_BISHOP:
+                return Bishop.create(GameColor.BLACK);
+            case Piece.BLACK_ROOK:
+                return Rook.create(GameColor.BLACK);
+            case Piece.BLACK_QUEEN:
+                return Queen.create(GameColor.BLACK);
+            case Piece.BLACK_KING:
+                return King.create(GameColor.BLACK);
             default:
                 throw new IllegalArgumentException();
         }
@@ -268,24 +316,24 @@ final class Piece {
     static int getValueFromPiece(int piece) {
         assert piece != NOPIECE;
 
-        int chessman = (piece & CHESSMAN_MASK) >>> CHESSMAN_SHIFT;
+        int chessman = ((piece & CHESSMAN_MASK) >>> CHESSMAN_SHIFT);
 
-    switch (chessman) {
-        case PieceType.PAWN:
-            return VALUE_PAWN;
-        case PieceType.KNIGHT:
-            return VALUE_KNIGHT;
-        case PieceType.BISHOP:
-            return VALUE_BISHOP;
-        case PieceType.ROOK:
-            return VALUE_ROOK;
-        case PieceType.QUEEN:
-            return VALUE_QUEEN;
-        case PieceType.KING:
-            return VALUE_KING;
-        default:
-            throw new IllegalArgumentException();
-    }
+        switch (chessman) {
+            case PieceType.PAWN:
+                return VALUE_PAWN;
+            case PieceType.KNIGHT:
+                return VALUE_KNIGHT;
+            case PieceType.BISHOP:
+                return VALUE_BISHOP;
+            case PieceType.ROOK:
+                return VALUE_ROOK;
+            case PieceType.QUEEN:
+                return VALUE_QUEEN;
+            case PieceType.KING:
+                return VALUE_KING;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     /**
@@ -333,7 +381,7 @@ final class Piece {
     }
 
     static boolean isValidChessman(int chessman) {
-        for (int chessmanValue : PieceType.values) {
+        for (int chessmanValue : Piece.pieceValues) {
             if (chessman == chessmanValue) {
                 return true;
             }
@@ -341,5 +389,6 @@ final class Piece {
 
         return false;
     }
+
 
 }

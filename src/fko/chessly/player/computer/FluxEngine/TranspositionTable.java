@@ -203,7 +203,7 @@ final class TranspositionTable {
                 || currentEntry.move == Move.NOMOVE) {
             return moveList;
         } else {
-            moveList.add(Move.toCommandMove(currentEntry.move));
+            moveList.add(Move.toGameMove(currentEntry.move));
 
             board.makeMove(currentEntry.move);
             List<GameMove> newMoveList = getMoveList(board, depth - 1, moveList);

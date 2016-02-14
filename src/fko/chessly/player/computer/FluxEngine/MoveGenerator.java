@@ -227,7 +227,7 @@ final class MoveGenerator {
                         break;
                     case GEN_BADCAPTURE:
                         assert isLegal(move);
-                        assert !isGoodCapture(move) : board.getBoard().toString() + ", " + Move.toCommandMove(move).toString();
+                        assert !isGoodCapture(move) : board.convertToGameBoard().toString() + ", " + Move.toGameMove(move).toString();
                         break;
                     case GEN_EVASION:
                         assert isLegal(move);
@@ -249,7 +249,7 @@ final class MoveGenerator {
                         if (See.seeMove(move, Move.getChessmanColor(move)) < 0) {
                             continue;
                         }
-                        assert board.isCheckingMove(move) : board.getBoard().toString() + ", " + Move.toCommandMove(move).toString();
+                        assert board.isCheckingMove(move) : board.convertToGameBoard().toString() + ", " + Move.toGameMove(move).toString();
                         break;
                     case GEN_END:
                         assert false : stateList[generator[generatorHistory].statePosition];
@@ -433,7 +433,7 @@ final class MoveGenerator {
                         }
                         break;
                     default:
-                        assert false : Move.toCommandMove(move);
+                        assert false : Move.toGameMove(move);
                     break;
                 }
                 break;

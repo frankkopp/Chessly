@@ -94,11 +94,11 @@ public class NotationHelper {
             // Piece
             String pieceLetter = matcher.group(1);
             switch (pieceLetter) {
-                case "N": piece = Knight.createKnight(color); break;
-                case "B": piece = Bishop.createBishop(color); break;
-                case "R": piece = Rook.createRook(color); break;
-                case "Q": piece = Queen.createQueen(color); break;
-                case "K": piece = King.createKing(color); break;
+                case "N": piece = Knight.create(color); break;
+                case "B": piece = Bishop.create(color); break;
+                case "R": piece = Rook.create(color); break;
+                case "Q": piece = Queen.create(color); break;
+                case "K": piece = King.create(color); break;
                 default:
                     InvalidMoveException e = new InvalidMoveException("SAN Syntax not valid - expected KQRBN");
                     ////System.err.println(e.toString());
@@ -114,16 +114,16 @@ public class NotationHelper {
             matcher.matches();
 
             // Piece
-            piece = Pawn.createPawn(color);
+            piece = Pawn.create(color);
 
             // Promotion
             String promotionLetter = matcher.group(6);
             if (!promotionLetter.isEmpty()) {
                 switch (promotionLetter) {
-                    case "N": promotedPiece = Knight.createKnight(color); break;
-                    case "B": promotedPiece = Bishop.createBishop(color); break;
-                    case "R": promotedPiece = Rook.createRook(color); break;
-                    case "Q": promotedPiece = Queen.createQueen(color); break;
+                    case "N": promotedPiece = Knight.create(color); break;
+                    case "B": promotedPiece = Bishop.create(color); break;
+                    case "R": promotedPiece = Rook.create(color); break;
+                    case "Q": promotedPiece = Queen.create(color); break;
                     default:
                         InvalidMoveException e = new InvalidMoveException("SAN Syntax not valid - expected KQRBN");
                         //System.err.println(e.toString());
@@ -140,7 +140,7 @@ public class NotationHelper {
             matcher.matches();
 
             // set giece
-            piece = King.createKing(color);
+            piece = King.create(color);
 
             // castling
             GameCastling castling = GameCastling.NOCASTLING;
@@ -229,11 +229,11 @@ public class NotationHelper {
                             matchingMoves.add(m);
                         }
                     } else if (!fromRank.isEmpty()) {
-                        if (m.getFromField().y == Integer.parseInt(fromRank)) {
+                        if (m.getFromField().getRank() == Integer.parseInt(fromRank)) {
                             matchingMoves.add(m);
                         }
                     } else if (!fromFile.isEmpty()) {
-                        if (GamePosition.getColString(m.getFromField().x).equals(fromFile)) {
+                        if (GamePosition.getColString(m.getFromField().getFile()).equals(fromFile)) {
                             matchingMoves.add(m);
                         }
                     } else {
@@ -286,8 +286,9 @@ public class NotationHelper {
      * Creates a move from a simple fromto notation.
      * E.g. e2e4 or e2-e4
      * @param board
-     * @param item
-     * @return
+     * @param origNotation
+     * @return GameMove
+     * @throws InvalidMoveException
      */
     public static GameMove createNewMoveFromSimpleNotation(GameBoard board, String origNotation)
             throws InvalidMoveException {
@@ -328,10 +329,10 @@ public class NotationHelper {
         String promotionLetter = matcher.group(3);
         if (promotionLetter.isEmpty()) promotionLetter = "Q";
         switch (promotionLetter) {
-            case "N": promotedPiece = Knight.createKnight(color); break;
-            case "B": promotedPiece = Bishop.createBishop(color); break;
-            case "R": promotedPiece = Rook.createRook(color); break;
-            case "Q": promotedPiece = Queen.createQueen(color); break;
+            case "N": promotedPiece = Knight.create(color); break;
+            case "B": promotedPiece = Bishop.create(color); break;
+            case "R": promotedPiece = Rook.create(color); break;
+            case "Q": promotedPiece = Queen.create(color); break;
             default:
                 InvalidMoveException e = new InvalidMoveException("SAN Syntax not valid - expected KQRBN");
                 //System.err.println(e.toString());

@@ -36,7 +36,7 @@ public class OpeningBookImpl_Test {
         System.out.format("Testing Book...");
         GameBoard currentBoard = new GameBoardImpl(NotationHelper.StandardBoardFEN);
         GameMove bookMove = null;
-        while ((bookMove = book.getBookMove(currentBoard.toFEN())) != null) {
+        while ((bookMove = book.getBookMove(currentBoard.toFENString())) != null) {
             //System.out.format("%s ==> %s%n",currentBoard.toFEN(),bookMove);
             currentBoard.makeMove(bookMove);
         }

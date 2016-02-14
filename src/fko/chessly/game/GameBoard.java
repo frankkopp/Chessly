@@ -80,7 +80,7 @@ public interface GameBoard {
      * Can be used to save or exchange a position.
      * @return String representing the board's position as defined by FEN
      */
-    String toFEN();
+    String toFENString();
 
     /**
      * Return reference to a piece on a field on col, row

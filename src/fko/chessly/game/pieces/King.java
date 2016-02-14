@@ -29,6 +29,7 @@ package fko.chessly.game.pieces;
 import java.io.Serializable;
 
 import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameCastling;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMoveImpl;
 import fko.chessly.game.GameMoveList;
@@ -54,7 +55,7 @@ public class King extends PieceAbstractImpl implements GamePiece, Serializable {
      * @param color
      * @return A reference to a King object of the given color.
      */
-    public static King createKing(GameColor color) {
+    public static King create(GameColor color) {
         return color==GameColor.WHITE ? white : black;
     }
 
@@ -72,8 +73,8 @@ public class King extends PieceAbstractImpl implements GamePiece, Serializable {
 
         // -- check occupied by own piece or off board
         for (int i = 0; i < 8; i++) {
-            GamePosition newPos = GamePosition.getGamePosition(fromPos.x
-                    + clockwiseLookup[i][0], fromPos.y + clockwiseLookup[i][1]);
+            GamePosition newPos = GamePosition.getGamePosition(fromPos.getFile()
+                    + clockwiseLookup[i][0], fromPos.getRank() + clockwiseLookup[i][1]);
             if (board.canMoveTo(fromPos, newPos)) {
                 final GamePiece toField = board.getPiece(newPos);
                 if (!capturingOnly || (capturingOnly && toField != null)) {
@@ -86,29 +87,41 @@ public class King extends PieceAbstractImpl implements GamePiece, Serializable {
             // -- check for castling
             if (board.isCastlingKingSideAllowed(board.getPiece(fromPos)
                     .getColor())
-                    && board.checkForFreePath(fromPos, GamePosition.getGamePosition(8, fromPos.y)) // no piece in between rking and rook
+                    && board.checkForFreePath(fromPos, GamePosition.getGamePosition(8, fromPos.getRank())) // no piece in between rking and rook
                     && !board.isFieldControlledBy(fromPos, this.getColor()
                             .getInverseColor()) // king not in check
-                    && !board.isFieldControlledBy(GamePosition.getGamePosition(fromPos.x + 1, fromPos.y), this.getColor()
+                    && !board.isFieldControlledBy(GamePosition.getGamePosition(fromPos.getFile() + 1, fromPos.getRank()), this.getColor()
                             .getInverseColor()) // kings path not in check
                     && !board.isFieldControlledBy(
-                            GamePosition.getGamePosition(7, fromPos.y), this.getColor()
+                            GamePosition.getGamePosition(7, fromPos.getRank()), this.getColor()
                             .getInverseColor()) // kings target not in
                     // check
                     ) {
-                allMoves.add(new GameMoveImpl(fromPos, GamePosition.getGamePosition(7, fromPos.y), this));
+                final GameMoveImpl m = new GameMoveImpl(fromPos, GamePosition.getGamePosition(7, fromPos.getRank()), this);
+                if (this.isWhite()) {
+                    m.setCastlingType(GameCastling.WHITE_KINGSIDE);
+                } else {
+                    m.setCastlingType(GameCastling.BLACK_KINGSIDE);
+                }
+                allMoves.add(m);
             }
             if (board.isCastlingQueenSideAllowed(board.getPiece(fromPos)
                     .getColor())
-                    && board.checkForFreePath(fromPos, GamePosition.getGamePosition(1, fromPos.y))
+                    && board.checkForFreePath(fromPos, GamePosition.getGamePosition(1, fromPos.getRank()))
                     && !board.isFieldControlledBy(fromPos, this.getColor()
                             .getInverseColor())
-                    && !board.isFieldControlledBy(GamePosition.getGamePosition(fromPos.x - 1, fromPos.y), this.getColor()
+                    && !board.isFieldControlledBy(GamePosition.getGamePosition(fromPos.getFile() - 1, fromPos.getRank()), this.getColor()
                             .getInverseColor())
                     && !board.isFieldControlledBy(
-                            GamePosition.getGamePosition(3, fromPos.y), this.getColor()
+                            GamePosition.getGamePosition(3, fromPos.getRank()), this.getColor()
                             .getInverseColor())) {
-                allMoves.add(new GameMoveImpl(fromPos, GamePosition.getGamePosition(3, fromPos.y), this));
+                final GameMoveImpl m = new GameMoveImpl(fromPos, GamePosition.getGamePosition(3, fromPos.getRank()), this);
+                if (this.isWhite()) {
+                    m.setCastlingType(GameCastling.WHITE_QUEENSIDE);
+                } else {
+                    m.setCastlingType(GameCastling.BLACK_QUEENSIDE);
+                }
+                allMoves.add(m);
             }
         }
         return allMoves;
