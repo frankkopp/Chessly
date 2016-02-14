@@ -496,36 +496,36 @@ public class EngineInfoPanel extends JPanel {
             String newInfoText = engine.getInfoText();
             if (!newInfoText.isEmpty()) _infoPanel5.printInfo(newInfoText);
 
-            curPV.setText(printCurPV(game, engine.getPV(), engine.getMaxValueMove()));
+            curPV.setText(printCurPV(game, engine.getCurrentPV(), engine.getCurrentMaxValueMove()));
 
             // -- current move in calculation --
-            if (engine.getCurMove() != null) {
+            if (engine.getCurrentMove() != null) {
                 engineShowCurMove(
                         game.getCurBoard().getNextHalfMoveNumber(),
-                        engine.getCurMove(),
-                        engine.getCurMoveNumber(),
+                        engine.getCurrentMove(),
+                        engine.getCurrentMoveNumber(),
                         engine.getNumberOfMoves()
                         );
             }
 
             // -- current calculated value for the best move so far --
-            if (engine.getMaxValueMove() != null) {
+            if (engine.getCurrentMaxValueMove() != null) {
                 engineShowCurValue(
-                        engine.getMaxValueMove()
+                        engine.getCurrentMaxValueMove()
                         );
             }
 
             // -- current search depth --
-            curDepth.setText(engine.getCurSearchDepth()+"/"+engine.getCurExtraSearchDepth());
+            curDepth.setText(engine.getCurrentSearchDepth()+"/"+engine.getCurrentMaxSearchDepth());
 
             // -- current number of checked nodes --
             curNodes.setText(numberFormat.format(engine.getNodesChecked()) + " N");
 
             // -- current number of nodes per second --
-            curSpeed.setText(numberFormat.format(engine.getCurNodesPerSecond()) + " N/s");
+            curSpeed.setText(numberFormat.format(engine.getCurrentNodesPerSecond()) + " N/s");
 
             // -- current time used for the move --
-            engineShowCurTime(engine.getCurUsedTime());
+            engineShowCurTime(engine.getCurrentUsedTime());
 
             // -- show the number of boards analysed so far --
             curBoards.setText(numberFormat.format(engine.getBoardsChecked()) + " B");

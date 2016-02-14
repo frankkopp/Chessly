@@ -45,31 +45,31 @@ public interface ObservableEngine extends Engine {
      * return the current move number
      * @return int
      */
-    int getCurMoveNumber();
+    int getCurrentMoveNumber();
 
     /**
      * returns the current move in calculation
      * @return Move
      */
-    GameMove getCurMove();
+    GameMove getCurrentMove();
 
     /**
      * return the current best move
      * @return Move
      */
-    GameMove getMaxValueMove();
+    GameMove getCurrentMaxValueMove();
 
     /**
      * returns the current depth in the search tree (without non-quite extra depth)
      * @return int
      */
-    int getCurSearchDepth();
+    int getCurrentSearchDepth();
 
     /**
      * returns the current depth in the search tree (with non-quite extra depth)
      * @return int
      */
-    int getCurExtraSearchDepth();
+    int getCurrentMaxSearchDepth();
 
     /**
      * return the number of nodes checked so far
@@ -81,13 +81,13 @@ public interface ObservableEngine extends Engine {
      * returns the number of nodes per second for the current calculation
      * @return int
      */
-    int getCurNodesPerSecond();
+    long getCurrentNodesPerSecond();
 
     /**
      * returns the used time for the current move
      * @return long
      */
-    long getCurUsedTime();
+    long getCurrentUsedTime();
 
     /**
      * return the number of boards analysed so far
@@ -165,7 +165,7 @@ public interface ObservableEngine extends Engine {
     /**
      * @return Principal Variation
      */
-    public abstract List<GameMove> getPV();
+    public abstract List<GameMove> getCurrentPV();
 
     /**
      * Returns a string from the engine which should be displayed
@@ -207,5 +207,5 @@ public interface ObservableEngine extends Engine {
      * E.g. verbose information etc.
      * @param info
      */
-    public void getVerboseInfo(String info);
+    public void printVerboseInfo(String info);
 }

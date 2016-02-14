@@ -144,31 +144,31 @@ public class EngineInfoUpdater {
             _engineLabels.pv_label.setText(printCurPV(game, player));
 
             // -- current move in calculation --
-            if (engine.getCurMove() != null) {
+            if (engine.getCurrentMove() != null) {
                 engineShowCurMove(
                         game.getCurBoard().getNextHalfMoveNumber(),
-                        engine.getCurMove(),
-                        engine.getCurMoveNumber(),
+                        engine.getCurrentMove(),
+                        engine.getCurrentMoveNumber(),
                         engine.getNumberOfMoves()
                         );
             }
 
             // -- current calculated value for the best move so far --
-            if (engine.getMaxValueMove() != null) {
-                engineShowCurValue(engine.getMaxValueMove());
+            if (engine.getCurrentMaxValueMove() != null) {
+                engineShowCurValue(engine.getCurrentMaxValueMove());
             }
 
             // -- current search depth --
-            _engineLabels.depth_label.setText(engine.getCurSearchDepth()+"/"+engine.getCurExtraSearchDepth());
+            _engineLabels.depth_label.setText(engine.getCurrentSearchDepth()+"/"+engine.getCurrentMaxSearchDepth());
 
             // -- current time used for the move --
-            engineShowCurTime(engine.getCurUsedTime());
+            engineShowCurTime(engine.getCurrentUsedTime());
 
             // -- current number of checked nodes --
             _engineLabels.nodes_label.setText(numberFormat.format(engine.getNodesChecked()) + " N");
 
             // -- current number of nodes per second --
-            _engineLabels.speed_label.setText(numberFormat.format(engine.getCurNodesPerSecond()) + " N/s");
+            _engineLabels.speed_label.setText(numberFormat.format(engine.getCurrentNodesPerSecond()) + " N/s");
 
             // -- show the number of boards analyzed so far --
             _engineLabels.boards_label.setText(numberFormat.format(engine.getBoardsChecked()) + " B");
@@ -303,12 +303,14 @@ public class EngineInfoUpdater {
      * @param game
      * @param player
      * @return String with formatted PV
+     *
+     * FIXME: fix the numbering
      */
     public String printCurPV(Game game, Player player ) {
 
         // get the engine and the PV list
         ObservableEngine engine = (ObservableEngine) ((ComputerPlayer) player).getEngine();
-        List<GameMove> list = engine.getPV();
+        List<GameMove> list = engine.getCurrentPV();
 
         // PV list should not be empty
         if (list == null || list.size() == 0) return "";
@@ -397,7 +399,7 @@ public class EngineInfoUpdater {
             nextColor = nextColor.getInverseColor();
         }
 
-        s.append(printCurValue(engine.getMaxValueMove()));
+        s.append(printCurValue(engine.getCurrentMaxValueMove()));
 
         return s.toString();
     }

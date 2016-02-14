@@ -48,6 +48,7 @@
  */
 package fko.chessly.player.computer.FluxEngine;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import fko.chessly.Playroom;
@@ -59,6 +60,7 @@ import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.Engine;
+import fko.chessly.player.computer.ObservableEngine;
 
 /**
  * This class wraps the Flux engine code into a Chessly Engine.
@@ -66,7 +68,7 @@ import fko.chessly.player.computer.Engine;
  * @author fkopp
  *
  */
-public class FluxEngine extends ModelObservable implements Engine {
+public class FluxEngine extends ModelObservable implements ObservableEngine {
 
     private Search search;
     private TranspositionTable transpositionTable;
@@ -76,7 +78,7 @@ public class FluxEngine extends ModelObservable implements Engine {
     private Game _game;
 
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
-    private GameMove _bestMove = null;;
+    private GameMove _bestMove = null;
 
     /**
      * Constructor
@@ -216,9 +218,320 @@ public class FluxEngine extends ModelObservable implements Engine {
         return this._activeColor;
     }
 
+
+
+
     /**********************************
      * ObservableEngine interface
      **********************************/
+
+
+    private GameMove _currentMove = null;;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentMove()
+     * */
+    @Override
+    public GameMove getCurrentMove() {
+        return _currentMove;
+    }
+    /**
+     * @param currentMove the currentMove to set
+     */
+    public void setCurrentMove(GameMove currentMove) {
+        this._currentMove = currentMove;
+    }
+
+    private int _currentMoveNumber = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentMoveNumber()
+     */
+    @Override
+    public int getCurrentMoveNumber() {
+        return _currentMoveNumber;
+    }
+    /**
+     * @param currentMoveNumber the currentMoveNumber to set
+     */
+    public void setCurrentMoveNumber(int currentMoveNumber) {
+        this._currentMoveNumber = currentMoveNumber;
+    }
+
+    private int _numberOfMoves = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getNumberOfMoves()
+     */
+    @Override
+    public int getNumberOfMoves() {
+        return _numberOfMoves;
+    }
+    /**
+     * @param numberOfMoves the getNumberOfMoves to set
+     */
+    public void setNumberOfMoves(int numberOfMoves) {
+        this._numberOfMoves = numberOfMoves;
+    }
+
+    private int _currentSearchDepth = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentSearchDepth()
+     */
+    @Override
+    public int getCurrentSearchDepth() {
+        return _currentSearchDepth;
+    }
+    /**
+     * @param currentSearchDepth the currentSearchDepth to set
+     */
+    public void setCurrentSearchDepth(int currentSearchDepth) {
+        this._currentSearchDepth = currentSearchDepth;
+    }
+
+    private int _currentMaxSearchDepth = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentMaxSearchDepth()
+     */
+    @Override
+    public int getCurrentMaxSearchDepth() {
+        return _currentMaxSearchDepth;
+    }
+    /**
+     * @param currentMaxSearchDepth the currentMaxSearchDepth to set
+     */
+    public void setCurrentMaxSearchDepth(int currentMaxSearchDepth) {
+        this._currentMaxSearchDepth = currentMaxSearchDepth;
+    }
+
+    private long _currentNodesPerSecond = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentNodesPerSecond()
+     */
+    @Override
+    public long getCurrentNodesPerSecond() {
+        return _currentNodesPerSecond;
+    }
+    /**
+     * @param currentNPS the currentNodesPerSecond to set
+     */
+    public void setCurrentNodesPerSecond(long currentNPS) {
+        this._currentNodesPerSecond = currentNPS;
+    }
+
+    private long _currentUsedTime = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentUsedTime()
+     */
+    @Override
+    public long getCurrentUsedTime() {
+        return _currentUsedTime;
+    }
+    /**
+     * @param currentUsedTime the currentUsedTime to set
+     */
+    public void setCurrentUsedTime(long currentUsedTime) {
+        this._currentUsedTime = currentUsedTime;
+    }
+
+    private long _totalNodes = 0;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getNodesChecked()
+     */
+    @Override
+    public long getNodesChecked() {
+        return _totalNodes;
+    }
+    /**
+     * @param totalNodes the totalNodes to set
+     */
+    public void setNodesChecked(long totalNodes) {
+        this._totalNodes = totalNodes;
+    }
+
+    private List<GameMove> _currentPV = null;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentPV()
+     */
+    @Override
+    public List<GameMove> getCurrentPV() {
+        return _currentPV;
+    }
+    /**
+     * @param currentPV the currentPV to set
+     */
+    public void setCurrentPV(List<GameMove> currentPV) {
+        this._currentPV = currentPV;
+    }
+
+    private GameMove _currentMaxValueMove = null;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentMaxValueMove()
+     */
+    @Override
+    public GameMove getCurrentMaxValueMove() {
+        return _currentMaxValueMove;
+    }
+    /**
+     * @param currentMaxValueMove the currentMaxValueMove to set
+     */
+    public void setCurrentMaxValueMove(GameMove currentMaxValueMove) {
+        this._currentMaxValueMove = currentMaxValueMove;
+    }
+
+
+
+
+
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getPonderMove()
+     */
+    @Override
+    public GameMove getPonderMove() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getBoardsChecked()
+     */
+    @Override
+    public long getBoardsChecked() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getBoardsNonQuiet()
+     */
+    @Override
+    public long getBoardsNonQuiet() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurNodeCacheSize()
+     */
+    @Override
+    public int getCurNodeCacheSize() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurNodesInCache()
+     */
+    @Override
+    public int getCurNodesInCache() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getNodeCacheHits()
+     */
+    @Override
+    public long getNodeCacheHits() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getNodeCacheMisses()
+     */
+    @Override
+    public long getNodeCacheMisses() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardCacheSize()
+     */
+    @Override
+    public int getCurBoardCacheSize() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
+     */
+    @Override
+    public int getCurBoardsInCache() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheHits()
+     */
+    @Override
+    public long getBoardCacheHits() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheMisses()
+     */
+    @Override
+    public long getBoardCacheMisses() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurNumberOfThreads()
+     */
+    @Override
+    public int getCurNumberOfThreads() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurConfig()
+     */
+    @Override
+    public String getCurConfig() {
+        // TODO Auto-generated method stub
+        return "N/A";
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getInfoText()
+     */
+    @Override
+    public String getInfoText() {
+        // TODO Auto-generated method stub
+        return "";
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getStatusText()
+     */
+    @Override
+    public String getStatusText() {
+        // TODO Auto-generated method stub
+        return "N/A";
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getState()
+     */
+    @Override
+    public int getState() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getVerboseInfo(java.lang.String)
+     */
+    @Override
+    public void printVerboseInfo(String info) {
+        // TODO Auto-generated method stub
+    }
 
 
 }
