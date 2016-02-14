@@ -48,6 +48,8 @@
  */
 package fko.chessly.player.computer.FluxEngine;
 
+import java.util.concurrent.CountDownLatch;
+
 import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameBoard;
@@ -73,12 +75,14 @@ public class FluxEngine extends ModelObservable implements Engine {
     private GameColor _activeColor;
     private Game _game;
 
+    private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
+    private GameMove _bestMove = null;;
+
     /**
      * Constructor
      */
     public FluxEngine() {
         super();
-
     }
 
     /**********************************
@@ -97,7 +101,7 @@ public class FluxEngine extends ModelObservable implements Engine {
         initializeTranspositionTable();
 
         // Create a new search
-        this.search = new Search(new Position(new GameBoardImpl()), this.transpositionTable, this.timeTable);
+        this.search = new Search(this, new Position(new GameBoardImpl()), this.transpositionTable, this.timeTable);
 
     }
 
@@ -119,16 +123,9 @@ public class FluxEngine extends ModelObservable implements Engine {
         if (this.board != null) {
             if (this.search.isStopped()) {
                 // Create a new search
-                this.search = new Search(this.board, this.transpositionTable, this.timeTable);
+                this.search = new Search(this, this.board, this.transpositionTable, this.timeTable);
 
                 // Set search parameters from current Game
-
-                // set the max search depth from the level in game
-                if (_activeColor.isWhite()) {
-                    this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
-                } else {
-                    this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
-                }
 
                 // set the search time - unlimited for non timed game
                 if (_game.isTimedGame()) {
@@ -139,8 +136,12 @@ public class FluxEngine extends ModelObservable implements Engine {
                     this.search.setSearchClock(Color.BLACK, blackTimeLeft);
                     this.search.setSearchClockIncrement(Color.BLACK, 0); // not used
                 } else {
-                    // we do not use this yet - we only use level
-                    this.search.setSearchTime(Long.MAX_VALUE);
+                    // set the max search depth from the level in game
+                    if (_activeColor.isWhite()) {
+                        this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
+                    } else {
+                        this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
+                    }
                 }
 
                 /*
@@ -158,13 +159,24 @@ public class FluxEngine extends ModelObservable implements Engine {
                 }
                  */
 
+                // set the latch to wait for the result
+                _waitForMoveLatch = new CountDownLatch(1);
+
                 // Go...
                 this.search.start();
                 this.board = null;
             }
         }
 
-        return null;
+        // wait for the result to come in
+        try {
+            _waitForMoveLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return _bestMove;
     }
 
     /**
@@ -175,12 +187,33 @@ public class FluxEngine extends ModelObservable implements Engine {
         _game = game;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.Engine#setNumberOfThreads(int)
      */
     @Override
     public void setNumberOfThreads(int n) {
         // ignore
+    }
+
+    /**********************************
+     * FluxEngine methods
+     **********************************/
+
+    /**
+     * @param gameMove
+     */
+    public void storeResult(GameMove gameMove) {
+        _bestMove = gameMove;
+        // result received - release the latch
+        _waitForMoveLatch.countDown();
+
+    }
+
+    /**
+     * @return the activeColor
+     */
+    public GameColor getActiveColor() {
+        return this._activeColor;
     }
 
     /**********************************

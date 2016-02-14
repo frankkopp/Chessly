@@ -104,9 +104,9 @@ public class Game extends ModelObservable implements Runnable, Observer {
      * Creates a new game object with given players
      * @param whitePlayer
      * @param blackPlayer
-     * @param timeWhite
-     * @param timeBlack
-     * @param timedGame
+     * @param timeWhite in milliseconds
+     * @param timeBlack in milliseconds
+     * @param timedGame true if game should have time control
      *
      * @throws IllegalArgumentException when invalid arguments has been used.
      */

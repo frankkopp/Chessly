@@ -56,7 +56,7 @@ final class Search implements Runnable {
 
     // Objects
     //private final IProtocol protocol;
-    private final Thread thread = new Thread(this);
+    private final Thread thread = new Thread(this, "FluxEngine");
     private final Semaphore semaphore = new Semaphore(0);
 
     // Search control
@@ -106,6 +106,9 @@ final class Search implements Runnable {
     private int currentMoveNumber = 0;
     private GameMove currentMove = null;
 
+    // back reference to FluxEngine to send move to
+    private FluxEngine _fluxengine;
+
     private static final class Result {
         int bestMove = Move.NOMOVE;
         int ponderMove = Move.NOMOVE;
@@ -135,9 +138,13 @@ final class Search implements Runnable {
         }
     }
 
-    Search(Position newBoard, TranspositionTable newTranspositionTable, int[] timeTable) {
+    Search(FluxEngine backreference, Position newBoard, TranspositionTable newTranspositionTable, int[] timeTable) {
         assert newBoard != null;
         assert newTranspositionTable != null;
+
+        _fluxengine = backreference;
+
+        thread.setName("FluxEngineSearch "+_fluxengine.getActiveColor().toString());
 
         this.analyzeMode = Configuration.analyzeMode;
 
@@ -189,15 +196,18 @@ final class Search implements Runnable {
         // Send the result
         if (moveResult.bestMove != Move.NOMOVE) {
             if (moveResult.ponderMove != Move.NOMOVE) {
-                /*                protocol.send(new ProtocolBestMoveCommand(Move
+                _fluxengine.storeResult(Move.toGameMove(moveResult.bestMove));
+                /* protocol.send(new ProtocolBestMoveCommand(Move
                         .toCommandMove(moveResult.bestMove), Move
                         .toCommandMove(moveResult.ponderMove)));*/
             } else {
-                /*                protocol.send(new ProtocolBestMoveCommand(Move
+                _fluxengine.storeResult(Move.toGameMove(moveResult.bestMove));
+                /* protocol.send(new ProtocolBestMoveCommand(Move
                         .toCommandMove(moveResult.bestMove), null));*/
             }
         } else {
-            /*            protocol.send(new ProtocolBestMoveCommand(null, null));*/
+            _fluxengine.storeResult(null);
+            /* protocol.send(new ProtocolBestMoveCommand(null, null));*/
         }
 
         // Cleanup manually
@@ -326,7 +336,7 @@ final class Search implements Runnable {
     private void startTimer() {
         // Only start timer if we have a hard time limit
         if (this.searchTimeHard > 0) {
-            this.timer = new Timer(true);
+            this.timer = new Timer(thread.getName()+" Timer hard:"+searchTimeHard, true);
             this.timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
