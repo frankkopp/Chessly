@@ -534,11 +534,11 @@ public class EngineInfoPanel extends JPanel {
             curNonQuiet.setText(numberFormat.format(engine.getTotalNonQuietBoards()) + " NB");
 
             // -- show the current capacity of the node cache --
-            final int curNodeCacheSize = engine.getCurNodeCacheSize();
+            final int curNodeCacheSize = engine.getCurrentNodeCacheSize();
             curCacheSize.setText(numberFormat.format(curNodeCacheSize));
 
             // -- show the numer of nodes in the cache --
-            final int curNodesInCache = engine.getCurNodesInCache();
+            final int curNodesInCache = engine.getCurrentNodesInCache();
             int percent = (int)(100.F * curNodesInCache / curNodeCacheSize);
             curCacheUse.setText(numberFormat.format(curNodesInCache)+" ("+percent+"%)");
 
@@ -550,7 +550,7 @@ public class EngineInfoPanel extends JPanel {
             curCacheHits.setText(numberFormat.format(cachehits) + " (" + percent + "%)");
 
             // -- show the current capacity of the board cache --
-            final int curBoardCacheSize2 = engine.getCurBoardCacheSize();
+            final int curBoardCacheSize2 = engine.getCurrentBoardCacheSize();
             curBoardCacheSize.setText(numberFormat.format(curBoardCacheSize2));
 
             // -- show the number of boards in the cache --

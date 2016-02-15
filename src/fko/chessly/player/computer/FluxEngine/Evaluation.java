@@ -19,6 +19,7 @@
 package fko.chessly.player.computer.FluxEngine;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
 
 final class Evaluation {
 
@@ -116,8 +117,23 @@ final class Evaluation {
     private static final int[] drawFactor = new int[Color.ARRAY_DIMENSION];
 
     // The hash tables
-    private final EvaluationTable evaluationTable = new EvaluationTable(1024 * 1024);
-    private final PawnTable pawnHashtable = new PawnTable(1024 * 1024);
+    private final EvaluationTable evaluationTable;
+    private final PawnTable pawnHashtable;
+
+    // Cache statistics
+    private final AtomicLong _boardCacheHits = new AtomicLong(0);
+    private final AtomicLong _boardCacheMisses = new AtomicLong(0);
+
+    /**
+     * Construct the Evaluation object
+     */
+    public Evaluation() {
+        // initialize hash tables
+        int numberOfEntries = Configuration.evaluationTableSize * 1024 * 1024 / EvaluationTable.ENTRYSIZE;
+        evaluationTable = new EvaluationTable(numberOfEntries);
+        numberOfEntries = Configuration.pawnTableSize * 1024 * 1024 / PawnTable.ENTRYSIZE;
+        pawnHashtable = new PawnTable(1024 * 1024);
+    }
 
     /**
      * Prints the evaluation of the board.
@@ -229,8 +245,10 @@ final class Evaluation {
         if (Configuration.useEvaluationTable) {
             EvaluationTable.EvaluationTableEntry entry = this.evaluationTable.get(board.zobristCode);
             if (entry != null) {
+                _boardCacheHits.getAndIncrement();
                 return entry.evaluation;
             }
+            _boardCacheMisses.getAndIncrement();
         }
 
         // Initialize
@@ -1664,4 +1682,24 @@ final class Evaluation {
         return penalty;
     }
 
+    /**
+     * @return the evaluationTable
+     */
+    protected EvaluationTable getEvaluationTable() {
+        return this.evaluationTable;
+    }
+
+    /**
+     * @return the boardsCacheHit
+     */
+    protected long getBoardCacheHits() {
+        return this._boardCacheHits.get();
+    }
+
+    /**
+     * @return the boardsCacheMiss
+     */
+    protected long getBoardCacheMisses() {
+        return this._boardCacheMisses.get();
+    }
 }

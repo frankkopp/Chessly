@@ -57,8 +57,10 @@ import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.player.Player;
+import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.FluxEngine.Search.Result;
 
@@ -70,8 +72,8 @@ import fko.chessly.player.computer.FluxEngine.Search.Result;
  */
 public class FluxEngine extends ModelObservable implements ObservableEngine {
 
-    private Search search;
-    private TranspositionTable transpositionTable;
+    private Search _search;
+    private TranspositionTable _transpositionTable;
     private Position board = null;
     private final int[] timeTable = new int[Depth.MAX_PLY + 1];
     private GameColor _activeColor;
@@ -79,6 +81,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
 
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
     private Result _moveResult;
+    private int _engineState = ObservableEngine.IDLE;
 
     /**
      * Constructor
@@ -103,13 +106,13 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         initializeTranspositionTable();
 
         // Create a new search
-        this.search = new Search(this, new Position(new GameBoardImpl()), this.transpositionTable, this.timeTable);
+        this._search = new Search(this, new Position(new GameBoardImpl()), this._transpositionTable, this.timeTable);
 
     }
 
     private void initializeTranspositionTable() {
         int numberOfEntries = Configuration.transpositionTableSize * 1024 * 1024 / TranspositionTable.ENTRYSIZE;
-        transpositionTable = new TranspositionTable(numberOfEntries);
+        _transpositionTable = new TranspositionTable(numberOfEntries);
         Runtime.getRuntime().gc();
     }
 
@@ -120,29 +123,33 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     public GameMove getNextMove(GameBoard gameBoard) {
         assert(gameBoard!=null);
 
+        _moveResult = null;
+
+        _engineState  = ObservableEngine.THINKING;
+
         this.board = new Position(gameBoard);
 
         if (this.board != null) {
-            if (this.search.isStopped()) {
+            if (this._search.isStopped()) {
                 // Create a new search
-                this.search = new Search(this, this.board, this.transpositionTable, this.timeTable);
+                this._search = new Search(this, this.board, this._transpositionTable, this.timeTable);
 
                 // Set search parameters from current Game
 
                 // set the search time - unlimited for non timed game
                 if (_game.isTimedGame()) {
                     final long whiteTimeLeft = _game.getWhiteTime() - _game.getWhiteClock().getTime();
-                    this.search.setSearchClock(Color.WHITE, whiteTimeLeft);
-                    this.search.setSearchClockIncrement(Color.WHITE, 0); // not used
+                    this._search.setSearchClock(Color.WHITE, whiteTimeLeft);
+                    this._search.setSearchClockIncrement(Color.WHITE, 0); // not used
                     final long blackTimeLeft = _game.getBlackTime() - _game.getBlackClock().getTime();
-                    this.search.setSearchClock(Color.BLACK, blackTimeLeft);
-                    this.search.setSearchClockIncrement(Color.BLACK, 0); // not used
+                    this._search.setSearchClock(Color.BLACK, blackTimeLeft);
+                    this._search.setSearchClockIncrement(Color.BLACK, 0); // not used
                 } else {
                     // set the max search depth from the level in game
                     if (_activeColor.isWhite()) {
-                        this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
+                        this._search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
                     } else {
-                        this.search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
+                        this._search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
                     }
                 }
 
@@ -165,7 +172,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
                 _waitForMoveLatch = new CountDownLatch(1);
 
                 // Go...
-                this.search.start();
+                this._search.start();
                 this.board = null;
             }
         }
@@ -178,9 +185,14 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
             return null;
         }
 
-        final GameMove bestGameMove = Move.toGameMove(_moveResult.bestMove);
-        bestGameMove.setValue(_moveResult.resultValue);
-        return bestGameMove;
+        _engineState  = ObservableEngine.IDLE;
+
+        if (_moveResult != null) {
+            final GameMove bestGameMove = Move.toGameMove(_moveResult.bestMove);
+            bestGameMove.setValue(_moveResult.resultValue);
+            return bestGameMove;
+        }
+        return null;
     }
 
     /**
@@ -384,11 +396,18 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
 
     private List<GameMove> _currentPV = null;
     /**
+     * Get the current PV as a GameMoveList.
+     * @return copy of the PV list as a GameMoveList
+     *
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentPV()
      */
     @Override
-    public List<GameMove> getCurrentPV() {
-        return _currentPV;
+    public GameMoveList getCurrentPV() {
+        if (_currentPV == null) {
+            return new GameMoveList();
+        }
+        // make a copy so we can change as we like
+        return new GameMoveList(_currentPV);
     }
     /**
      * @param currentPV the currentPV to set
@@ -418,82 +437,72 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public GameMove getPonderMove() {
-        // TODO Auto-generated method stub
-        return null;
+        if (_moveResult==null || _moveResult.ponderMove == Move.NOMOVE) return null;
+        return Move.toGameMove(_moveResult.ponderMove);
     }
 
-
-
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getCurNodeCacheSize()
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentNodeCacheSize()
      */
     @Override
-    public int getCurNodeCacheSize() {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getCurrentNodeCacheSize() {
+        return Configuration.useTranspositionTable ? _transpositionTable.getSize() : 0;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurNodesInCache()
      */
     @Override
-    public int getCurNodesInCache() {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getCurrentNodesInCache() {
+        return Configuration.useTranspositionTable ? _transpositionTable.getNumberOfEntries() : 0;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getNodeCacheHits()
      */
     @Override
     public long getNodeCacheHits() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _search.getNodeCacheHits();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getNodeCacheMisses()
      */
     @Override
     public long getNodeCacheMisses() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _search.getNodeCacheMisses();
     }
 
     /* (non-Javadoc)
      * @see fko.chessly.player.computer.ObservableEngine#getCurBoardCacheSize()
      */
     @Override
-    public int getCurBoardCacheSize() {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getCurrentBoardCacheSize() {
+        return _search.getCurrentBoardCacheSize();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
      */
     @Override
     public int getCurBoardsInCache() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _search.getCurBoardsInCache();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheHits()
      */
     @Override
     public long getBoardCacheHits() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _search.getBoardCacheHits();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheMisses()
      */
     @Override
     public long getBoardCacheMisses() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _search.getBoardCacheMisses();
     }
 
     /* (non-Javadoc)
@@ -519,17 +528,15 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public String getStatusText() {
-        // TODO Auto-generated method stub
         return "N/A";
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getState()
      */
     @Override
     public int getState() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _engineState;
     }
 
     /** Will store the VERBOSE info until the EngineWatcher collects it. */

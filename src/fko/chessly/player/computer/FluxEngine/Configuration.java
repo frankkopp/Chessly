@@ -60,9 +60,15 @@ final class Configuration {
     static int showPvNumber = defaultShowPvNumber;
     //    static final SpinnerOption multiPVOption = Options.newMultiPVOption(showPvNumber, 1, 256);
 
-    static final int defaultTranspositionTableSize = 16;
+    static final int defaultTranspositionTableSize = 32;
     static int transpositionTableSize = defaultTranspositionTableSize;
     //    static final SpinnerOption hashOption = Options.newHashOption(transpositionTableSize, 4, 256);
+
+    static final int defaultEvaluationTableSize = 32;
+    static int evaluationTableSize = defaultEvaluationTableSize;
+
+    static final int defaultPawnTableSize = 16;
+    static int pawnTableSize = defaultPawnTableSize;
 
     //    static final ButtonOption clearHashOption = new ButtonOption("Clear Hash");
 

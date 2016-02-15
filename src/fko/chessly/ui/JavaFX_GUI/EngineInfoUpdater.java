@@ -36,6 +36,7 @@ import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.ObservableEngine;
@@ -177,11 +178,11 @@ public class EngineInfoUpdater {
             _engineLabels.nonQuiet_label.setText(numberFormat.format(engine.getTotalNonQuietBoards()) + " NB");
 
             // -- show the current capacity of the node cache --
-            final int curNodeCacheSize = engine.getCurNodeCacheSize();
+            final int curNodeCacheSize = engine.getCurrentNodeCacheSize();
             _engineLabels.ncSize_label.setText(numberFormat.format(curNodeCacheSize));
 
             // -- show the number of nodes in the cache --
-            final int curNodesInCache = engine.getCurNodesInCache();
+            final int curNodesInCache = engine.getCurrentNodesInCache();
             int percent = (int)(100.F * curNodesInCache / curNodeCacheSize);
             _engineLabels.ncUse_label.setText(numberFormat.format(curNodesInCache)+" ("+percent+"%)");
 
@@ -193,7 +194,7 @@ public class EngineInfoUpdater {
             _engineLabels.ncMisses_label.setText(numberFormat.format(cachemisses));
 
             // -- show the current capacity of the board cache --
-            final int curBoardCacheSize2 = engine.getCurBoardCacheSize();
+            final int curBoardCacheSize2 = engine.getCurrentBoardCacheSize();
             _engineLabels.bcSize_label.setText(numberFormat.format(curBoardCacheSize2));
 
             // -- show the number of boards in the cache --
@@ -310,10 +311,12 @@ public class EngineInfoUpdater {
 
         // get the engine and the PV list
         ObservableEngine engine = (ObservableEngine) ((ComputerPlayer) player).getEngine();
-        List<GameMove> list = engine.getCurrentPV();
 
-        // PV list should not be empty
-        if (list == null || list.size() == 0) return "";
+        // retrieve copy of PV list
+        GameMoveList list = engine.getCurrentPV();
+        if (list == null || list.isEmpty()) {
+            return "";
+        }
 
         StringBuilder s = new StringBuilder();
 
@@ -328,6 +331,7 @@ public class EngineInfoUpdater {
         // are we watching white or black
         if (_color.isWhite()) { // we are white
             switch (engineState) {
+                case ObservableEngine.IDLE:
                 case ObservableEngine.THINKING:
                     // here white has next move
 

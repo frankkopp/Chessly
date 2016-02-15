@@ -39,8 +39,6 @@ import static java.lang.Integer.parseInt;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,6 +53,7 @@ import fko.chessly.game.GameCastling;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveImpl;
+import fko.chessly.game.GameMoveList;
 import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePosition;
 import fko.chessly.game.pieces.Bishop;
@@ -70,7 +69,6 @@ import fko.chessly.openingbook.OpeningBookImpl;
 import fko.chessly.player.AbstractPlayer.PlayerStatusController;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
-import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.PulseEngine.MoveList.Entry;
 import fko.chessly.player.computer.PulseEngine.MoveList.MoveVariation;
@@ -1501,9 +1499,9 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public List<GameMove> getCurrentPV() {
+    public GameMoveList getCurrentPV() {
         int size = _pv[0] != null ? _pv[0].size : 0;
-        List<GameMove> l = new ArrayList<GameMove>(size);
+        GameMoveList l = new GameMoveList(size);
         if (size == 0) return l;
         for (int i = 0; i < size; i++) {
             if (_pv[0] != null) {
@@ -1567,12 +1565,12 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public int getCurNodeCacheSize() {
+    public int getCurrentNodeCacheSize() {
         return _cacheEnabled && _config._USE_NODE_CACHE ? _transpositionTable.getSize() : 0;
     }
 
     @Override
-    public int getCurNodesInCache() {
+    public int getCurrentNodesInCache() {
         return _cacheEnabled && _config._USE_NODE_CACHE ? _transpositionTable.getNumberOfEntries() : 0;
     }
 
@@ -1587,7 +1585,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public int getCurBoardCacheSize() {
+    public int getCurrentBoardCacheSize() {
         return _cacheEnabled && _config._USE_BOARD_CACHE ? _evaluationTable.getSize() : 0;
     }
 

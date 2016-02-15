@@ -29,6 +29,7 @@ package fko.chessly.player.computer;
 import java.util.List;
 
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 
 /**
  * @author fkopp
@@ -117,13 +118,13 @@ public interface ObservableEngine extends Engine {
      * return the current cache size
      * @return int
      */
-    int getCurNodeCacheSize();
+    int getCurrentNodeCacheSize();
 
     /**
      * return the current number of boards in cache
      * @return int
      */
-    int getCurNodesInCache();
+    int getCurrentNodesInCache();
 
     /**
      * return the number of cache hits so far
@@ -141,7 +142,7 @@ public interface ObservableEngine extends Engine {
      * return the current cache size
      * @return int
      */
-    int getCurBoardCacheSize();
+    int getCurrentBoardCacheSize();
 
     /**
      * return the current number of boards in cache
@@ -163,9 +164,11 @@ public interface ObservableEngine extends Engine {
     String getCurConfig();
 
     /**
-     * @return Principal Variation
+     * Get the current PV as a GameMoveList.
+     *
+     * @return Copy of Principal Variation list as GameMoveList
      */
-    public abstract List<GameMove> getCurrentPV();
+    public abstract GameMoveList getCurrentPV();
 
     /**
      * Returns a string from the engine which should be displayed

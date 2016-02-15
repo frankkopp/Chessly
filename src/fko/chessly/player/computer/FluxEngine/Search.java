@@ -25,6 +25,7 @@ import java.util.PriorityQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveList;
@@ -109,6 +110,10 @@ final class Search implements Runnable {
 
     // back reference to FluxEngine to send move to
     private FluxEngine _fluxengine;
+
+    // Cache statistics
+    private final AtomicLong _nodeCacheHits = new AtomicLong(0);
+    private final AtomicLong _nodeCacheMisses = new AtomicLong(0);
 
     static final class Result {
         int bestMove = Move.NOMOVE;
@@ -198,17 +203,11 @@ final class Search implements Runnable {
         if (moveResult.bestMove != Move.NOMOVE) {
             if (moveResult.ponderMove != Move.NOMOVE) {
                 _fluxengine.storeResult(moveResult);
-                /* protocol.send(new ProtocolBestMoveCommand(Move
-                        .toCommandMove(moveResult.bestMove), Move
-                        .toCommandMove(moveResult.ponderMove)));*/
             } else {
                 _fluxengine.storeResult(moveResult);
-                /* protocol.send(new ProtocolBestMoveCommand(Move
-                        .toCommandMove(moveResult.bestMove), null));*/
             }
         } else {
             _fluxengine.storeResult(null);
-            /* protocol.send(new ProtocolBestMoveCommand(null, null));*/
         }
 
         // Cleanup manually
@@ -406,12 +405,10 @@ final class Search implements Runnable {
         int transpositionValue = 0;
         int transpositionType = Bound.NOBOUND;
         if (Configuration.useTranspositionTable) {
-            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable
-                    .get(_board.zobristCode);
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
             if (entry != null) {
-                List<GameMove> moveList = this._transpositionTable
-                        .getMoveList(_board, entry.depth,
-                                new ArrayList<GameMove>());
+                _nodeCacheHits.getAndIncrement();
+                List<GameMove> moveList = this._transpositionTable.getMoveList(_board, entry.depth, new ArrayList<GameMove>());
                 if (moveList.size() != 0) {
                     pv = new PrincipalVariation(1, entry.getValue(0),
                             entry.type, entry.getValue(0), moveList,
@@ -421,6 +418,8 @@ final class Search implements Runnable {
                 transpositionDepth = entry.depth;
                 transpositionValue = entry.getValue(0);
                 transpositionType = entry.type;
+            } else {
+                _nodeCacheMisses.getAndIncrement();
             }
         }
 
@@ -890,15 +889,17 @@ final class Search implements Runnable {
         moveResult.moveNumber = currentMoveNumber;
 
         if (Configuration.useTranspositionTable) {
-            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable
-                    .get(_board.zobristCode);
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
             if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
                 for (int i = rootMoveList.head; i < rootMoveList.tail; i++) {
                     if (rootMoveList.moves[i] == entry.move) {
                         rootMoveList.values[i] = Value.INFINITY;
                         break;
                     }
                 }
+            } else {
+                _nodeCacheMisses.getAndIncrement();
             }
         }
 
@@ -951,9 +952,9 @@ final class Search implements Runnable {
         int transpositionMove = Move.NOMOVE;
         boolean mateThreat = false;
         if (Configuration.useTranspositionTable) {
-            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable
-                    .get(_board.zobristCode);
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
             if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
                 transpositionMove = entry.move;
                 mateThreat = entry.mateThreat;
 
@@ -979,6 +980,8 @@ final class Search implements Runnable {
                             break;
                     }
                 }
+            } else {
+                _nodeCacheMisses.getAndIncrement();
             }
         }
 
@@ -1388,6 +1391,7 @@ final class Search implements Runnable {
         if (Configuration.useTranspositionTable && useTranspositionTable) {
             TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
             if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
                 assert entry.depth >= checkingDepth;
                 int value = entry.getValue(height);
                 int type = entry.type;
@@ -1409,6 +1413,8 @@ final class Search implements Runnable {
                         assert false;
                         break;
                 }
+            } else {
+                _nodeCacheMisses.getAndIncrement();
             }
         }
 
@@ -1563,6 +1569,7 @@ final class Search implements Runnable {
      * @param mateThreat whether we have a mate threat.
      * @return the new possibly extended search depth.
      */
+    @SuppressWarnings("static-method")
     private int getNewDepth(int depth, int move, boolean isSingleReply, boolean mateThreat) {
         int newDepth = depth - 1;
 
@@ -1798,4 +1805,31 @@ final class Search implements Runnable {
         return currentNps;
     }
 
+    public long getNodeCacheHits() {
+        return _nodeCacheHits.get();
+    }
+
+    public long getNodeCacheMisses() {
+        return _nodeCacheMisses.get();
+    }
+
+    public int getCurrentBoardCacheSize() {
+        if (_evaluation == null || _evaluation.getEvaluationTable() == null) return 0;
+        return _evaluation.getEvaluationTable().getSize();
+    }
+
+    public int getCurBoardsInCache() {
+        if (_evaluation == null || _evaluation.getEvaluationTable() == null) return 0;
+        return _evaluation.getEvaluationTable().getNumberOfEntries();
+    }
+
+    public long getBoardCacheHits() {
+        if (_evaluation == null) return 0;
+        return _evaluation.getBoardCacheHits();
+    }
+
+    public long getBoardCacheMisses() {
+        if (_evaluation == null) return 0;
+        return _evaluation.getBoardCacheMisses();
+    }
 }

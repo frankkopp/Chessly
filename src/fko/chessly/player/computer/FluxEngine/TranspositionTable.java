@@ -28,58 +28,27 @@ final class TranspositionTable {
     static final int ENTRYSIZE = 44;
 
     private final int size;
+    private int numberOfEntries;
+
+    /**
+     * @return the size
+     */
+    public int getSize() {
+        return this.size;
+    }
+
+    /**
+     * @return the numberOfEntries
+     */
+    public int getNumberOfEntries() {
+        return this.numberOfEntries;
+    }
 
     // Entry
     private final TranspositionTableEntry[] entry;
 
     // Age
     private int currentAge = 0;
-
-    static final class TranspositionTableEntry {
-        long zobristCode = 0;
-        int age = -1;
-        int depth = -1;
-        private int value = -Value.INFINITY;
-        int type = Bound.NOBOUND;
-        int move = Move.NOMOVE;
-        boolean mateThreat = false;
-
-        TranspositionTableEntry() {
-        }
-
-        void clear() {
-            this.zobristCode = 0;
-            this.age = -1;
-            this.depth = -1;
-            this.value = -Value.INFINITY;
-            this.type = Bound.NOBOUND;
-            this.move = Move.NOMOVE;
-            this.mateThreat = false;
-        }
-
-        int getValue(int height) {
-            int value = this.value;
-            if (value < -Value.CHECKMATE_THRESHOLD) {
-                value += height;
-            } else if (value > Value.CHECKMATE_THRESHOLD) {
-                value -= height;
-            }
-
-            return value;
-        }
-
-        void setValue(int value, int height) {
-            // Normalize mate values
-            if (value < -Value.CHECKMATE_THRESHOLD) {
-                value -= height;
-            } else if (value > Value.CHECKMATE_THRESHOLD) {
-                value += height;
-            }
-            assert value <= Value.CHECKMATE || value >= -Value.CHECKMATE;
-
-            this.value = value;
-        }
-    }
 
     /**
      * Creates a new TranspositionTable.
@@ -90,6 +59,7 @@ final class TranspositionTable {
         assert newSize >= 1;
 
         this.size = newSize;
+        this.numberOfEntries = 0;
 
         // Initialize entry
         this.entry = new TranspositionTableEntry[newSize];
@@ -105,10 +75,10 @@ final class TranspositionTable {
      */
     void clear() {
         this.currentAge = 0;
-
         for (TranspositionTableEntry anEntry : this.entry) {
             anEntry.clear();
         }
+        this.numberOfEntries = 0;
     }
 
     /**
@@ -145,8 +115,9 @@ final class TranspositionTable {
             currentEntry.type = type;
             currentEntry.move = move;
             currentEntry.mateThreat = mateThreat;
+            this.numberOfEntries++;
         } else if (currentEntry.zobristCode == zobristCode) {
-            // The same zobrist key already exists
+            // The same zobrist key already exists - update
             if (depth >= currentEntry.depth && move != Move.NOMOVE) {
                 currentEntry.depth = depth;
                 currentEntry.setValue(value, height);
@@ -178,9 +149,8 @@ final class TranspositionTable {
 
         if (currentEntry.zobristCode == zobristCode && currentEntry.age == this.currentAge) {
             return currentEntry;
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -202,14 +172,58 @@ final class TranspositionTable {
                 || depth == 0
                 || currentEntry.move == Move.NOMOVE) {
             return moveList;
-        } else {
-            moveList.add(Move.toGameMove(currentEntry.move));
+        }
 
-            board.makeMove(currentEntry.move);
-            List<GameMove> newMoveList = getMoveList(board, depth - 1, moveList);
-            board.undoMove(currentEntry.move);
+        moveList.add(Move.toGameMove(currentEntry.move));
 
-            return newMoveList;
+        board.makeMove(currentEntry.move);
+        List<GameMove> newMoveList = getMoveList(board, depth - 1, moveList);
+        board.undoMove(currentEntry.move);
+
+        return newMoveList;
+    }
+
+    static final class TranspositionTableEntry {
+        long zobristCode = 0;
+        int age = -1;
+        int depth = -1;
+        private int value = -Value.INFINITY;
+        int type = Bound.NOBOUND;
+        int move = Move.NOMOVE;
+        boolean mateThreat = false;
+
+        TranspositionTableEntry() {
+        }
+
+        void clear() {
+            this.zobristCode = 0;
+            this.age = -1;
+            this.depth = -1;
+            this.value = -Value.INFINITY;
+            this.type = Bound.NOBOUND;
+            this.move = Move.NOMOVE;
+            this.mateThreat = false;
+        }
+
+        int getValue(int height) {
+            int val = this.value;
+            if (val < -Value.CHECKMATE_THRESHOLD) {
+                val += height;
+            } else if (val > Value.CHECKMATE_THRESHOLD) {
+                val -= height;
+            }
+            return val;
+        }
+
+        void setValue(int value, int height) {
+            // Normalize mate values
+            if (value < -Value.CHECKMATE_THRESHOLD) {
+                value -= height;
+            } else if (value > Value.CHECKMATE_THRESHOLD) {
+                value += height;
+            }
+            assert value <= Value.CHECKMATE || value >= -Value.CHECKMATE;
+            this.value = value;
         }
     }
 

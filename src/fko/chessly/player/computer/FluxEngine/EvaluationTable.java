@@ -24,6 +24,21 @@ final class EvaluationTable {
     static final int ENTRYSIZE = 28;
 
     private final int size;
+    private int numberOfEntries;
+
+    /**
+     * @return the size
+     */
+    public int getSize() {
+        return this.size;
+    }
+
+    /**
+     * @return the numberOfEntries
+     */
+    public int getNumberOfEntries() {
+        return this.numberOfEntries;
+    }
 
     private final EvaluationTableEntry[] entry;
 
@@ -40,6 +55,7 @@ final class EvaluationTable {
         assert newSize >= 1;
 
         this.size = newSize;
+        this.numberOfEntries = 0;
 
         // Initialize entry
         this.entry = new EvaluationTableEntry[newSize];
@@ -56,8 +72,13 @@ final class EvaluationTable {
      */
     void put(long newZobristCode, int newEvaluation) {
         int position = (int) (newZobristCode % this.size);
+
         EvaluationTableEntry currentEntry = this.entry[position];
 
+        if (currentEntry.zobristCode == 0) {
+            // new entry
+            numberOfEntries++;
+        }
         currentEntry.zobristCode = newZobristCode;
         currentEntry.evaluation = newEvaluation;
     }
@@ -70,13 +91,13 @@ final class EvaluationTable {
      */
     EvaluationTableEntry get(long newZobristCode) {
         int position = (int) (newZobristCode % this.size);
+
         EvaluationTableEntry currentEntry = this.entry[position];
 
         if (currentEntry.zobristCode == newZobristCode) {
             return currentEntry;
-        } else {
-            return null;
         }
+        return null;
     }
 
 }
