@@ -20,6 +20,10 @@ package fko.chessly.player.computer.FluxEngine;
 
 final class Configuration {
 
+    // Verbose
+    /** If set to true this object will produce info output to System.out */
+    static boolean VERBOSE_TO_SYSOUT = true;
+
     // Search
     static boolean useAspirationWindows = true;
     static boolean useInternalIterativeDeepening = true;

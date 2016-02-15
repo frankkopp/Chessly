@@ -59,8 +59,8 @@ import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.player.Player;
-import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
+import fko.chessly.player.computer.FluxEngine.Search.Result;
 
 /**
  * This class wraps the Flux engine code into a Chessly Engine.
@@ -78,7 +78,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     private Game _game;
 
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
-    private GameMove _bestMove = null;
+    private Result _moveResult;
 
     /**
      * Constructor
@@ -174,11 +174,13 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         try {
             _waitForMoveLatch.await();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
 
-        return _bestMove;
+        final GameMove bestGameMove = Move.toGameMove(_moveResult.bestMove);
+        bestGameMove.setValue(_moveResult.resultValue);
+        return bestGameMove;
     }
 
     /**
@@ -202,10 +204,10 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
      **********************************/
 
     /**
-     * @param gameMove
+     * @param moveResult
      */
-    public void storeResult(GameMove gameMove) {
-        _bestMove = gameMove;
+    public void storeResult(Result moveResult) {
+        _moveResult = moveResult;
         // result received - release the latch
         _waitForMoveLatch.countDown();
 
@@ -333,18 +335,52 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
 
     private long _totalNodes = 0;
     /**
-     * @see fko.chessly.player.computer.ObservableEngine#getNodesChecked()
+     * @see fko.chessly.player.computer.ObservableEngine#getTotalNodes()
      */
     @Override
-    public long getNodesChecked() {
+    public long getTotalNodes() {
         return _totalNodes;
     }
     /**
      * @param totalNodes the totalNodes to set
      */
-    public void setNodesChecked(long totalNodes) {
+    public void setTotalNodes(long totalNodes) {
         this._totalNodes = totalNodes;
     }
+
+    private long _totalBoards = 0;
+
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getTotalBoards()
+     */
+    @Override
+    public long getTotalBoards() {
+        return _totalBoards;
+    }
+    /**
+     * @param totalBoards the totalBoards to set
+     */
+    public void setTotalBoards(long totalBoards) {
+        this._totalBoards = totalBoards;
+    }
+
+    private long _totalNonQuietBoards = 0;;
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getTotalNonQuietBoards()
+     */
+    @Override
+    public long getTotalNonQuietBoards() {
+        return _totalNonQuietBoards;
+    }
+    /**
+     * @param totalNonQuietBoards the totalNonQuietBoards to set
+     */
+    public void setTotalNonQuietBoards(long totalNonQuietBoards) {
+        this._totalNonQuietBoards = totalNonQuietBoards;
+    }
+
+
+
 
     private List<GameMove> _currentPV = null;
     /**
@@ -362,6 +398,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     }
 
     private GameMove _currentMaxValueMove = null;
+
     /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentMaxValueMove()
      */
@@ -376,11 +413,6 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         this._currentMaxValueMove = currentMaxValueMove;
     }
 
-
-
-
-
-
     /* (non-Javadoc)
      * @see fko.chessly.player.computer.ObservableEngine#getPonderMove()
      */
@@ -390,23 +422,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getBoardsChecked()
-     */
-    @Override
-    public long getBoardsChecked() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getBoardsNonQuiet()
-     */
-    @Override
-    public long getBoardsNonQuiet() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
 
     /* (non-Javadoc)
      * @see fko.chessly.player.computer.ObservableEngine#getCurNodeCacheSize()
@@ -499,15 +515,6 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     }
 
     /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getInfoText()
-     */
-    @Override
-    public String getInfoText() {
-        // TODO Auto-generated method stub
-        return "";
-    }
-
-    /* (non-Javadoc)
      * @see fko.chessly.player.computer.ObservableEngine#getStatusText()
      */
     @Override
@@ -525,12 +532,44 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getVerboseInfo(java.lang.String)
+    /** Will store the VERBOSE info until the EngineWatcher collects it. */
+    private static final int _engineInfoTextMaxSize = 10000;
+    private final StringBuilder _engineInfoText = new StringBuilder(_engineInfoTextMaxSize);
+    /**
+     * Provide additional information for the UI to collect.
+     * E.g. verbose information etc.
+     * Size is limit to avoid out of memory.
+     * @param info
      */
     @Override
     public void printVerboseInfo(String info) {
-        // TODO Auto-generated method stub
+        synchronized (_engineInfoText) {
+            _engineInfoText.append(info);
+            // out of memory protection if the info is not retrieved
+            int oversize = _engineInfoText.length() - _engineInfoTextMaxSize;
+            if (oversize > 0) _engineInfoText.delete(0, oversize);
+        }
+        if (Configuration.VERBOSE_TO_SYSOUT) System.out.print(info);
+    }
+
+    /**
+     * The UI can collect additional text to display. E.g. verbose output.
+     * The info will be deleted after collection.
+     * The info buffer is limited and older entries will be deleted every time
+     * new info is added an the maximum size is exceeded.
+     */
+    @Override
+    public String getInfoText() {
+        String s;
+        synchronized (_engineInfoText) {
+            s = _engineInfoText.toString();
+            _engineInfoText.setLength(0);
+        }
+        return s;
+    }
+
+    private void printInfoln() {
+        printVerboseInfo(String.format("%n"));
     }
 
 

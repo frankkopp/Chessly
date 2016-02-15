@@ -75,7 +75,7 @@ public interface ObservableEngine extends Engine {
      * return the number of nodes checked so far
      * @return int
      */
-    long getNodesChecked();
+    long getTotalNodes();
 
     /**
      * returns the number of nodes per second for the current calculation
@@ -93,13 +93,13 @@ public interface ObservableEngine extends Engine {
      * return the number of boards analysed so far
      * @return int
      */
-    long getBoardsChecked();
+    long getTotalBoards();
 
     /**
      * return the number of non-quiet boards found so far
      * @return int
      */
-    long getBoardsNonQuiet();
+    long getTotalNonQuietBoards();
 
     /**
      * return the number of cache hits so far

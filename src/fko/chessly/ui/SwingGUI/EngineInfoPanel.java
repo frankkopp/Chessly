@@ -519,7 +519,7 @@ public class EngineInfoPanel extends JPanel {
             curDepth.setText(engine.getCurrentSearchDepth()+"/"+engine.getCurrentMaxSearchDepth());
 
             // -- current number of checked nodes --
-            curNodes.setText(numberFormat.format(engine.getNodesChecked()) + " N");
+            curNodes.setText(numberFormat.format(engine.getTotalNodes()) + " N");
 
             // -- current number of nodes per second --
             curSpeed.setText(numberFormat.format(engine.getCurrentNodesPerSecond()) + " N/s");
@@ -528,10 +528,10 @@ public class EngineInfoPanel extends JPanel {
             engineShowCurTime(engine.getCurrentUsedTime());
 
             // -- show the number of boards analysed so far --
-            curBoards.setText(numberFormat.format(engine.getBoardsChecked()) + " B");
+            curBoards.setText(numberFormat.format(engine.getTotalBoards()) + " B");
 
             // -- show the number of non-quiet boards found so far --
-            curNonQuiet.setText(numberFormat.format(engine.getBoardsNonQuiet()) + " NB");
+            curNonQuiet.setText(numberFormat.format(engine.getTotalNonQuietBoards()) + " NB");
 
             // -- show the current capacity of the node cache --
             final int curNodeCacheSize = engine.getCurNodeCacheSize();

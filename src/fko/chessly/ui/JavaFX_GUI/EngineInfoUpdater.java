@@ -165,16 +165,16 @@ public class EngineInfoUpdater {
             engineShowCurTime(engine.getCurrentUsedTime());
 
             // -- current number of checked nodes --
-            _engineLabels.nodes_label.setText(numberFormat.format(engine.getNodesChecked()) + " N");
+            _engineLabels.nodes_label.setText(numberFormat.format(engine.getTotalNodes()) + " N");
 
             // -- current number of nodes per second --
             _engineLabels.speed_label.setText(numberFormat.format(engine.getCurrentNodesPerSecond()) + " N/s");
 
             // -- show the number of boards analyzed so far --
-            _engineLabels.boards_label.setText(numberFormat.format(engine.getBoardsChecked()) + " B");
+            _engineLabels.boards_label.setText(numberFormat.format(engine.getTotalBoards()) + " B");
 
             // -- show the number of non-quiet boards found so far --
-            _engineLabels.nonQuiet_label.setText(numberFormat.format(engine.getBoardsNonQuiet()) + " NB");
+            _engineLabels.nonQuiet_label.setText(numberFormat.format(engine.getTotalNonQuietBoards()) + " NB");
 
             // -- show the current capacity of the node cache --
             final int curNodeCacheSize = engine.getCurNodeCacheSize();

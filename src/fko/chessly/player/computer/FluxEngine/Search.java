@@ -27,6 +27,7 @@ import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 
 final class Search implements Runnable {
 
@@ -100,14 +101,16 @@ final class Search implements Runnable {
     private int _currentMaxDepth = 0;
     private long _totalTimeStart = 0;
     private long _currentTimeStart = 0;
-    private long _totalNodes = 0;
     private int _currentMoveNumber = 0;
     private GameMove _currentMove = null;
+    private long _totalNodes = 0;
+    private long _totalBoards = 0;
+    private int _totalNonQuietBoards = 0;
 
     // back reference to FluxEngine to send move to
     private FluxEngine _fluxengine;
 
-    private static final class Result {
+    static final class Result {
         int bestMove = Move.NOMOVE;
         int ponderMove = Move.NOMOVE;
         int value = Bound.NOBOUND;
@@ -194,12 +197,12 @@ final class Search implements Runnable {
         // Send the result
         if (moveResult.bestMove != Move.NOMOVE) {
             if (moveResult.ponderMove != Move.NOMOVE) {
-                _fluxengine.storeResult(Move.toGameMove(moveResult.bestMove));
+                _fluxengine.storeResult(moveResult);
                 /* protocol.send(new ProtocolBestMoveCommand(Move
                         .toCommandMove(moveResult.bestMove), Move
                         .toCommandMove(moveResult.ponderMove)));*/
             } else {
-                _fluxengine.storeResult(Move.toGameMove(moveResult.bestMove));
+                _fluxengine.storeResult(moveResult);
                 /* protocol.send(new ProtocolBestMoveCommand(Move
                         .toCommandMove(moveResult.bestMove), null));*/
             }
@@ -709,7 +712,7 @@ final class Search implements Runnable {
 
         // Abort conditions
         if ((this._stopped && this._canStop) || height == Depth.MAX_PLY) {
-            return this._evaluation.evaluate(_board);
+            return evaluateBoard();
         }
 
         // Initialize
@@ -917,7 +920,7 @@ final class Search implements Runnable {
 
         // Abort conditions
         if ((this._stopped && this._canStop) || ply == Depth.MAX_PLY) {
-            return this._evaluation.evaluate(_board);
+            return evaluateBoard();
         }
 
         // Check the repetition table and fifty move rule
@@ -992,7 +995,7 @@ final class Search implements Runnable {
         if (Configuration.useNullMovePruning) {
             if (!pvNode && depth >= NULLMOVE_DEPTH && doNull && !isCheck
                     && !mateThreat && _board.getGamePhase() != GamePhase.ENDGAME
-                    && (evalValue = this._evaluation.evaluate(_board)) >= beta) {
+                    && (evalValue = evaluateBoard()) >= beta) {
                 // Depth reduction
                 int newDepth = depth - 1 - NULLMOVE_REDUCTION;
 
@@ -1170,7 +1173,7 @@ final class Search implements Runnable {
 
                     if (evalValue == Value.INFINITY) {
                         // Store evaluation
-                        evalValue = this._evaluation.evaluate(_board);
+                        evalValue = evaluateBoard();
                     }
                     int value = evalValue + FUTILITY_PREFRONTIERMARGIN;
 
@@ -1208,7 +1211,7 @@ final class Search implements Runnable {
 
                     if (evalValue == Value.INFINITY) {
                         // Store evaluation
-                        evalValue = this._evaluation.evaluate(_board);
+                        evalValue = evaluateBoard();
                     }
                     int value = evalValue + FUTILITY_FRONTIERMARGIN;
 
@@ -1354,7 +1357,7 @@ final class Search implements Runnable {
 
         // Abort conditions
         if ((this._stopped && this._canStop) || height == Depth.MAX_PLY) {
-            return this._evaluation.evaluate(_board);
+            return evaluateBoard();
         }
 
         // Check the repetition table and fifty move rule
@@ -1422,7 +1425,7 @@ final class Search implements Runnable {
 
         if (!isCheck) {
             // Stand pat
-            int value = this._evaluation.evaluate(_board);
+            int value = evaluateBoard();
 
             // Store evaluation
             evalValue = value;
@@ -1489,6 +1492,9 @@ final class Search implements Runnable {
             // Do move
             _board.makeMove(move);
 
+            // count non quiet boards
+            _totalNonQuietBoards++;
+
             // Recurse into Quiescent
             int value = -quiescent(checkingDepth - 1, -beta, -alpha,
                     height + 1, pvNode, false);
@@ -1538,6 +1544,14 @@ final class Search implements Runnable {
         }
 
         return bestValue;
+    }
+
+    /**
+     * @return evaluation of current board
+     */
+    private int evaluateBoard() {
+        _totalBoards++;
+        return this._evaluation.evaluate(_board);
     }
 
     /**
@@ -1683,15 +1697,9 @@ final class Search implements Runnable {
      */
     private void sendInformationRefutations(List<GameMove> refutationList) {
         assert refutationList != null;
-        /*
-        // Safety guard: Reduce output pollution
-        long currentTimeDelta = System.currentTimeMillis()- this.totalTimeStart;
-        if (currentTimeDelta >= 1000) {
-            ProtocolInformationCommand command = new ProtocolInformationCommand();
-            command.setRefutationList(refutationList);
-            this.protocol.send(command);
-        }
-         */
+        // show refutation list in info text area of the ui or sysout
+        GameMoveList gml = new GameMoveList(refutationList);
+        _fluxengine.printVerboseInfo(String.format("%s%n", gml.toString()));
     }
 
     /**
@@ -1710,7 +1718,9 @@ final class Search implements Runnable {
         _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
         _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
         _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
-        _fluxengine.setNodesChecked(_totalNodes);
+        _fluxengine.setTotalNodes(_totalNodes);
+        _fluxengine.setTotalBoards(_totalBoards);
+        _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
         if (_currentMove != null) {
             _fluxengine.setCurrentMove(_currentMove);
             _fluxengine.setCurrentMoveNumber(_currentMoveNumber);
@@ -1725,7 +1735,9 @@ final class Search implements Runnable {
         _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
         _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
         _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
-        _fluxengine.setNodesChecked(_totalNodes);
+        _fluxengine.setTotalNodes(_totalNodes);
+        _fluxengine.setTotalBoards(_totalBoards);
+        _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
     }
 
     /**
@@ -1739,23 +1751,13 @@ final class Search implements Runnable {
             _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
             _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
             _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
-            _fluxengine.setNodesChecked(_totalNodes);
-
+            _fluxengine.setTotalNodes(_totalNodes);
+            _fluxengine.setTotalBoards(_totalBoards);
+            _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
             _fluxengine.setCurrentPV(pv.pv);
             final GameMove currentBestMove = pv.pv.get(0);
             currentBestMove.setValue(pv.value);
             _fluxengine.setCurrentMaxValueMove(currentBestMove);
-            /*
-            ProtocolInformationCommand command = new ProtocolInformationCommand();
-            command.setCentipawns(pv.value);
-            command.setValue(Bound.toGenericScore(pv.type));
-            command.setMoveList(pv.pv);
-            if (Configuration.showPvNumber > 1) {
-                command.setPvNumber(pvNumber);
-            }
-
-            this.protocol.send(command);
-             */
         }
     }
 
@@ -1774,8 +1776,9 @@ final class Search implements Runnable {
             _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
             _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
             _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
-            _fluxengine.setNodesChecked(_totalNodes);
-
+            _fluxengine.setTotalNodes(_totalNodes);
+            _fluxengine.setTotalBoards(_totalBoards);
+            _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
             _fluxengine.setCurrentPV(pv.pv);
             final GameMove currentBestMove = pv.pv.get(0);
             currentBestMove.setValue(pv.value);

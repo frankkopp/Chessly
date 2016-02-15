@@ -1443,7 +1443,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     /**
-     * The UI can collect additional text to display. E.g. verboae output.
+     * The UI can collect additional text to display. E.g. verbose output.
      * The info will be deleted after collection.
      * The info buffer is limited and older entries will be deleted every time
      * new info is added an the maximum size is exceeded.
@@ -1458,7 +1458,6 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
         return s;
     }
 
-
     /**
      * Not used in this engine.
      * @see fko.chessly.player.computer.Engine#setNumberOfThreads(int)
@@ -1469,7 +1468,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     /**
-     * @return PlayerStatusController of the durrent player
+     * @return PlayerStatusController of the current player
      */
     public PlayerStatusController getPlayerStatus() {
         return _player.getPlayerStatus();
@@ -1525,7 +1524,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public long getNodesChecked() {
+    public long getTotalNodes() {
         return _nodesVisited.get();
     }
 
@@ -1548,12 +1547,12 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public long getBoardsChecked() {
+    public long getTotalBoards() {
         return _boardsEvaluated.get();
     }
 
     @Override
-    public long getBoardsNonQuiet() {
+    public long getTotalNonQuietBoards() {
         return _boardsNonQuiet.get();
     }
 
@@ -1640,7 +1639,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
         return _statusInfo;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getState()
      */
     @Override
