@@ -144,7 +144,7 @@ final class Search implements Runnable {
         }
     }
 
-    Search(FluxEngine backreference, Position newBoard, TranspositionTable newTranspositionTable, int[] timeTable) {
+    Search(FluxEngine backreference, Position newBoard, TranspositionTable newTranspositionTable, EvaluationTable evaluationTable, int[] timeTable) {
         assert newBoard != null;
         assert newTranspositionTable != null;
 
@@ -161,6 +161,7 @@ final class Search implements Runnable {
         if (this._analyzeMode) {
             this._transpositionTable.increaseAge();
         }
+        this._evaluationTable = evaluationTable;
         _killerTable = new KillerTable();
         _historyTable = new HistoryTable();
 
@@ -1552,12 +1553,33 @@ final class Search implements Runnable {
         return bestValue;
     }
 
+    private final EvaluationTable _evaluationTable;
+    // Cache statistics
+    private final AtomicLong _boardCacheHits = new AtomicLong(0);
+    private final AtomicLong _boardCacheMisses = new AtomicLong(0);
+
     /**
      * @return evaluation of current board
      */
     private int evaluateBoard() {
         _totalBoards++;
-        return this._evaluation.evaluate(_board);
+        // Check the evaluation table
+        if (Configuration.useEvaluationTable) {
+            EvaluationTable.EvaluationTableEntry entry = this._evaluationTable.get(_board.zobristCode);
+            if (entry != null) {
+                _boardCacheHits.getAndIncrement();
+                return entry.evaluation;
+            }
+            _boardCacheMisses.getAndIncrement();
+        }
+        int result = this._evaluation.evaluate(_board);
+
+        // Store the result and return
+        if (Configuration.useEvaluationTable) {
+            this._evaluationTable.put(_board.zobristCode, result);
+        }
+
+        return result;
     }
 
     /**
@@ -1814,22 +1836,20 @@ final class Search implements Runnable {
     }
 
     public int getCurrentBoardCacheSize() {
-        if (_evaluation == null || _evaluation.getEvaluationTable() == null) return 0;
-        return _evaluation.getEvaluationTable().getSize();
+        if (_evaluationTable == null) return 0;
+        return _evaluationTable.getSize();
     }
 
     public int getCurBoardsInCache() {
-        if (_evaluation == null || _evaluation.getEvaluationTable() == null) return 0;
-        return _evaluation.getEvaluationTable().getNumberOfEntries();
+        if (_evaluationTable == null) return 0;
+        return _evaluationTable.getNumberOfEntries();
     }
 
     public long getBoardCacheHits() {
-        if (_evaluation == null) return 0;
-        return _evaluation.getBoardCacheHits();
+        return _boardCacheHits.get();
     }
 
     public long getBoardCacheMisses() {
-        if (_evaluation == null) return 0;
-        return _evaluation.getBoardCacheMisses();
+        return _boardCacheMisses.get();
     }
 }

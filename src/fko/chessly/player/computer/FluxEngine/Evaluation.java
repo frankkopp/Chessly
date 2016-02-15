@@ -19,7 +19,6 @@
 package fko.chessly.player.computer.FluxEngine;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicLong;
 
 final class Evaluation {
 
@@ -117,22 +116,15 @@ final class Evaluation {
     private static final int[] drawFactor = new int[Color.ARRAY_DIMENSION];
 
     // The hash tables
-    private final EvaluationTable evaluationTable;
     private final PawnTable pawnHashtable;
-
-    // Cache statistics
-    private final AtomicLong _boardCacheHits = new AtomicLong(0);
-    private final AtomicLong _boardCacheMisses = new AtomicLong(0);
 
     /**
      * Construct the Evaluation object
      */
     public Evaluation() {
         // initialize hash tables
-        int numberOfEntries = Configuration.evaluationTableSize * 1024 * 1024 / EvaluationTable.ENTRYSIZE;
-        evaluationTable = new EvaluationTable(numberOfEntries);
-        numberOfEntries = Configuration.pawnTableSize * 1024 * 1024 / PawnTable.ENTRYSIZE;
-        pawnHashtable = new PawnTable(1024 * 1024);
+        int numberOfEntries = Configuration.pawnTableSize * 1024 * 1024 / PawnTable.ENTRYSIZE;
+        pawnHashtable = new PawnTable(numberOfEntries);
     }
 
     /**
@@ -240,16 +232,6 @@ final class Evaluation {
      */
     int evaluate(Position board) {
         assert board != null;
-
-        // Check the evaluation table
-        if (Configuration.useEvaluationTable) {
-            EvaluationTable.EvaluationTableEntry entry = this.evaluationTable.get(board.zobristCode);
-            if (entry != null) {
-                _boardCacheHits.getAndIncrement();
-                return entry.evaluation;
-            }
-            _boardCacheMisses.getAndIncrement();
-        }
 
         // Initialize
         for (int color : Color.values) {
@@ -393,11 +375,6 @@ final class Evaluation {
             total = -Value.CHECKMATE_THRESHOLD;
         } else if (total > Value.CHECKMATE_THRESHOLD) {
             total = Value.CHECKMATE_THRESHOLD;
-        }
-
-        // Store the result and return
-        if (Configuration.useEvaluationTable) {
-            this.evaluationTable.put(board.zobristCode, total);
         }
 
         return total;
@@ -1682,24 +1659,4 @@ final class Evaluation {
         return penalty;
     }
 
-    /**
-     * @return the evaluationTable
-     */
-    protected EvaluationTable getEvaluationTable() {
-        return this.evaluationTable;
-    }
-
-    /**
-     * @return the boardsCacheHit
-     */
-    protected long getBoardCacheHits() {
-        return this._boardCacheHits.get();
-    }
-
-    /**
-     * @return the boardsCacheMiss
-     */
-    protected long getBoardCacheMisses() {
-        return this._boardCacheMisses.get();
-    }
 }

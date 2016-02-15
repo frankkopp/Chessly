@@ -64,10 +64,10 @@ final class Configuration {
     static int transpositionTableSize = defaultTranspositionTableSize;
     //    static final SpinnerOption hashOption = Options.newHashOption(transpositionTableSize, 4, 256);
 
-    static final int defaultEvaluationTableSize = 32;
+    static final int defaultEvaluationTableSize = 16;
     static int evaluationTableSize = defaultEvaluationTableSize;
 
-    static final int defaultPawnTableSize = 16;
+    static final int defaultPawnTableSize = 4;
     static int pawnTableSize = defaultPawnTableSize;
 
     //    static final ButtonOption clearHashOption = new ButtonOption("Clear Hash");

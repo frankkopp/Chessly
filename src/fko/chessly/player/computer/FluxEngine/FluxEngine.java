@@ -74,6 +74,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
 
     private Search _search;
     private TranspositionTable _transpositionTable;
+    private EvaluationTable _evaluationTable;
     private Position board = null;
     private final int[] timeTable = new int[Depth.MAX_PLY + 1];
     private GameColor _activeColor;
@@ -82,6 +83,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
     private Result _moveResult;
     private int _engineState = ObservableEngine.IDLE;
+
 
     /**
      * Constructor
@@ -106,13 +108,15 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         initializeTranspositionTable();
 
         // Create a new search
-        this._search = new Search(this, new Position(new GameBoardImpl()), this._transpositionTable, this.timeTable);
+        this._search = new Search(this, new Position(new GameBoardImpl()), this._transpositionTable, this._evaluationTable, this.timeTable);
 
     }
 
     private void initializeTranspositionTable() {
         int numberOfEntries = Configuration.transpositionTableSize * 1024 * 1024 / TranspositionTable.ENTRYSIZE;
         _transpositionTable = new TranspositionTable(numberOfEntries);
+        numberOfEntries = Configuration.evaluationTableSize * 1024 * 1024 / EvaluationTable.ENTRYSIZE;
+        _evaluationTable = new EvaluationTable(numberOfEntries);
         Runtime.getRuntime().gc();
     }
 
@@ -132,7 +136,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         if (this.board != null) {
             if (this._search.isStopped()) {
                 // Create a new search
-                this._search = new Search(this, this.board, this._transpositionTable, this.timeTable);
+                this._search = new Search(this, this.board, this._transpositionTable, this._evaluationTable, this.timeTable);
 
                 // Set search parameters from current Game
 
