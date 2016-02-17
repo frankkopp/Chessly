@@ -566,7 +566,7 @@ public class EngineInfoPanel extends JPanel {
             curBoardCacheHits.setText(numberFormat.format(cachehits) + " (" + percent + "%)");
 
             // -- show the number of threads currently used/configured
-            curThreads.setText(numberFormat.format(engine.getCurNumberOfThreads()));
+            curThreads.setText(numberFormat.format(engine.getCurrentNumberOfThreads()));
 
             // -- show the current config as string
             curConfig.setText(engine.getCurConfig());

@@ -438,9 +438,8 @@ final class Evaluation {
                                                         if ((chessman != Piece.NOPIECE && Piece.getColor(chessman) == enemyColor) || (enemyAttackTable[end] & BIT_MINOR) != 0) {
                                                             drawFactor[myColor] = 1;
                                                             break;
-                                                        } else {
-                                                            end += delta;
                                                         }
+                                                        end += delta;
                                                     }
                                                 }
                                             }
@@ -462,9 +461,8 @@ final class Evaluation {
                                                         if ((chessman != Piece.NOPIECE && Piece.getColor(chessman) == enemyColor) || (enemyAttackTable[end] & BIT_MINOR) != 0) {
                                                             drawFactor[myColor] = 1;
                                                             break;
-                                                        } else {
-                                                            end += delta;
                                                         }
+                                                        end += delta;
                                                     }
                                                 }
                                             }
@@ -675,7 +673,7 @@ final class Evaluation {
         assert myColor != Color.NOCOLOR;
 
         // Initialize
-        int[] total = totalKnight[myColor];
+        int[] mytotal = totalKnight[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyAttackTable = attackTable[enemyColor];
         PositionList myKnightList = Position.knightList[myColor];
@@ -705,13 +703,13 @@ final class Evaluation {
             }
 
             // Evaluate mobility
-            total[TOTAL_OPENING] += EVAL_KNIGHT_MOBILITYFACTOR_OPENING * allMobility;
-            total[TOTAL_ENDGAME] += EVAL_KNIGHT_MOBILITYFACTOR_ENDGAME * allMobility;
+            mytotal[TOTAL_OPENING] += EVAL_KNIGHT_MOBILITYFACTOR_OPENING * allMobility;
+            mytotal[TOTAL_ENDGAME] += EVAL_KNIGHT_MOBILITYFACTOR_ENDGAME * allMobility;
 
             // Evaluate safety
             if ((enemyAttackTable[knightPosition] & BIT_PAWN) == 0) {
-                total[TOTAL_OPENING] += EVAL_KNIGHT_SAFETY;
-                total[TOTAL_ENDGAME] += EVAL_KNIGHT_SAFETY;
+                mytotal[TOTAL_OPENING] += EVAL_KNIGHT_SAFETY;
+                mytotal[TOTAL_ENDGAME] += EVAL_KNIGHT_SAFETY;
             }
         }
     }
@@ -721,7 +719,7 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalBishop[myColor];
+        int[] mytotal = totalBishop[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyAttackTable = attackTable[enemyColor];
         PositionList myBishopList = Position.bishopList[myColor];
@@ -753,20 +751,20 @@ final class Evaluation {
             }
 
             // Evaluate mobility
-            total[TOTAL_OPENING] += EVAL_BISHOP_MOBILITYFACTOR_OPENING * allMobility;
-            total[TOTAL_ENDGAME] += EVAL_BISHOP_MOBILITYFACTOR_ENDGAME * allMobility;
+            mytotal[TOTAL_OPENING] += EVAL_BISHOP_MOBILITYFACTOR_OPENING * allMobility;
+            mytotal[TOTAL_ENDGAME] += EVAL_BISHOP_MOBILITYFACTOR_ENDGAME * allMobility;
 
             // Evaluate safety
             if ((enemyAttackTable[bishopPosition] & BIT_PAWN) == 0) {
-                total[TOTAL_OPENING] += EVAL_BISHOP_SAFETY;
-                total[TOTAL_ENDGAME] += EVAL_BISHOP_SAFETY;
+                mytotal[TOTAL_OPENING] += EVAL_BISHOP_SAFETY;
+                mytotal[TOTAL_ENDGAME] += EVAL_BISHOP_SAFETY;
             }
         }
 
         // Evaluate bishop pair
         if (myBishopList.size >= 2) {
-            total[TOTAL_OPENING] += EVAL_BISHOP_PAIR;
-            total[TOTAL_ENDGAME] += EVAL_BISHOP_PAIR;
+            mytotal[TOTAL_OPENING] += EVAL_BISHOP_PAIR;
+            mytotal[TOTAL_ENDGAME] += EVAL_BISHOP_PAIR;
         }
     }
 
@@ -775,7 +773,7 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalRook[myColor];
+        int[] mytotal = totalRook[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyAttackTable = attackTable[enemyColor];
         byte[] myPawnTable = pawnTable[myColor];
@@ -814,14 +812,14 @@ final class Evaluation {
             }
 
             // Evaluate mobility
-            total[TOTAL_OPENING] += EVAL_ROOK_MOBILITYFACTOR_OPENING * allMobility;
-            total[TOTAL_ENDGAME] += EVAL_ROOK_MOBILITYFACTOR_ENDGAME * allMobility;
+            mytotal[TOTAL_OPENING] += EVAL_ROOK_MOBILITYFACTOR_OPENING * allMobility;
+            mytotal[TOTAL_ENDGAME] += EVAL_ROOK_MOBILITYFACTOR_ENDGAME * allMobility;
 
             // Evaluate safety
             if ((enemyAttackTable[rookPosition] & BIT_PAWN) == 0
                     && (enemyAttackTable[rookPosition] & BIT_MINOR) == 0) {
-                total[TOTAL_OPENING] += EVAL_ROOK_SAFETY;
-                total[TOTAL_ENDGAME] += EVAL_ROOK_SAFETY;
+                mytotal[TOTAL_OPENING] += EVAL_ROOK_SAFETY;
+                mytotal[TOTAL_ENDGAME] += EVAL_ROOK_SAFETY;
             }
 
             // Evaluate open file
@@ -836,14 +834,14 @@ final class Evaluation {
                 int kingFile = Square.getFile(kingPosition);
                 int delta = Math.abs(kingFile - rookFile);
                 if (delta <= 1) {
-                    total[TOTAL_OPENING] += EVAL_ROOK_NEARKINGFILE;
+                    mytotal[TOTAL_OPENING] += EVAL_ROOK_NEARKINGFILE;
                     if (delta == 0) {
-                        total[TOTAL_OPENING] += EVAL_ROOK_NEARKINGFILE;
+                        mytotal[TOTAL_OPENING] += EVAL_ROOK_NEARKINGFILE;
                     }
                 }
             }
-            total[TOTAL_OPENING] += totalOpenFile;
-            total[TOTAL_ENDGAME] += totalOpenFile;
+            mytotal[TOTAL_OPENING] += totalOpenFile;
+            mytotal[TOTAL_ENDGAME] += totalOpenFile;
 
             // Evaluate 7th rank
             int seventhRank = 6;
@@ -866,16 +864,16 @@ final class Evaluation {
                 }
                 if (enemyPawnExists || kingRank == eighthRank) {
                     totalRook7th++;
-                    total[TOTAL_OPENING] += EVAL_ROOK_SEVENTHRANK_OPENING;
-                    total[TOTAL_ENDGAME] += EVAL_ROOK_SEVENTHRANK_ENDGAME;
+                    mytotal[TOTAL_OPENING] += EVAL_ROOK_SEVENTHRANK_OPENING;
+                    mytotal[TOTAL_ENDGAME] += EVAL_ROOK_SEVENTHRANK_ENDGAME;
                 }
             }
         }
 
         // Check whether we have both rooks on the 7th rank
         if (totalRook7th == 2) {
-            total[TOTAL_OPENING] += EVAL_ROOK_SEVENTHRANK_BONUS;
-            total[TOTAL_ENDGAME] += EVAL_ROOK_SEVENTHRANK_BONUS;
+            mytotal[TOTAL_OPENING] += EVAL_ROOK_SEVENTHRANK_BONUS;
+            mytotal[TOTAL_ENDGAME] += EVAL_ROOK_SEVENTHRANK_BONUS;
         }
     }
 
@@ -884,7 +882,7 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalQueen[myColor];
+        int[] mytotal = totalQueen[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyAttackTable = attackTable[enemyColor];
         byte[] enemyPawnTable = pawnTable[enemyColor];
@@ -918,15 +916,15 @@ final class Evaluation {
             }
 
             // Evaluate mobility
-            total[TOTAL_OPENING] += EVAL_QUEEN_MOBILITYFACTOR_OPENING * allMobility;
-            total[TOTAL_ENDGAME] += EVAL_QUEEN_MOBILITYFACTOR_ENDGAME * allMobility;
+            mytotal[TOTAL_OPENING] += EVAL_QUEEN_MOBILITYFACTOR_OPENING * allMobility;
+            mytotal[TOTAL_ENDGAME] += EVAL_QUEEN_MOBILITYFACTOR_ENDGAME * allMobility;
 
             // Evaluate safety
             if ((enemyAttackTable[queenPosition] & BIT_PAWN) == 0
                     && (enemyAttackTable[queenPosition] & BIT_MINOR) == 0
                     && (enemyAttackTable[queenPosition] & BIT_ROOK) == 0) {
-                total[TOTAL_OPENING] += EVAL_QUEEN_SAFETY;
-                total[TOTAL_ENDGAME] += EVAL_QUEEN_SAFETY;
+                mytotal[TOTAL_OPENING] += EVAL_QUEEN_SAFETY;
+                mytotal[TOTAL_ENDGAME] += EVAL_QUEEN_SAFETY;
             }
 
             // Evaluate 7th rank
@@ -949,8 +947,8 @@ final class Evaluation {
                     }
                 }
                 if (enemyPawnExists || kingRank == eighthRank) {
-                    total[TOTAL_OPENING] += EVAL_QUEEN_SEVENTHRANK_OPENING;
-                    total[TOTAL_ENDGAME] += EVAL_QUEEN_SEVENTHRANK_ENDGAME;
+                    mytotal[TOTAL_OPENING] += EVAL_QUEEN_SEVENTHRANK_OPENING;
+                    mytotal[TOTAL_ENDGAME] += EVAL_QUEEN_SEVENTHRANK_ENDGAME;
                 }
             }
         }
@@ -961,7 +959,7 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalKing[myColor];
+        int[] mytotal = totalKing[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyAttackTable = attackTable[enemyColor];
         PositionList myKingList = Position.kingList[myColor];
@@ -1098,7 +1096,7 @@ final class Evaluation {
         int kingSafety = (KING_ATTACK_PATTERN[(flag >>> 3) & MASK_ATTACKERS] * EVAL_KING_ATTACK * KING_ATTACK_EVAL[attackCount]) / 256;
         assert kingSafety >= 0 && kingSafety <= 8 * EVAL_KING_ATTACK;
 
-        total[TOTAL_OPENING] -= kingSafety;
+        mytotal[TOTAL_OPENING] -= kingSafety;
 
         int castlingPositionKingside = Square.WHITE_CASTLING_KINGSIDE;
         int castlingPositionQueenside = Square.WHITE_CASTLING_QUEENSIDE;
@@ -1126,7 +1124,7 @@ final class Evaluation {
 
         int pawnShieldPenalty = (positionPenalty + castlingPenalty) / 2;
 
-        total[TOTAL_OPENING] -= pawnShieldPenalty;
+        mytotal[TOTAL_OPENING] -= pawnShieldPenalty;
     }
 
     private static void evaluatePawnStructure(int myColor, int enemyColor, Position board) {
@@ -1134,7 +1132,7 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalPawnStructure[myColor];
+        int[] mytotal = totalPawnStructure[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyAttackTable = attackTable[enemyColor];
         byte[] myPawnTable = pawnTable[myColor];
@@ -1149,14 +1147,14 @@ final class Evaluation {
 
             // Doubled pawns
             if (myPawnTable[tableFile] != pawnRank) {
-                total[TOTAL_OPENING] -= EVAL_PAWN_DOUBLED_OPENING;
-                total[TOTAL_ENDGAME] -= EVAL_PAWN_DOUBLED_ENDGAME;
+                mytotal[TOTAL_OPENING] -= EVAL_PAWN_DOUBLED_OPENING;
+                mytotal[TOTAL_ENDGAME] -= EVAL_PAWN_DOUBLED_ENDGAME;
             }
 
             // Isolated pawn
             if (myPawnTable[tableFile - 1] == 0 && myPawnTable[tableFile + 1] == 0) {
-                total[TOTAL_OPENING] -= EVAL_PAWN_ISOLATED_OPENING;
-                total[TOTAL_ENDGAME] -= EVAL_PAWN_ISOLATED_ENDGAME;
+                mytotal[TOTAL_OPENING] -= EVAL_PAWN_ISOLATED_OPENING;
+                mytotal[TOTAL_ENDGAME] -= EVAL_PAWN_ISOLATED_ENDGAME;
             }
 
             // Backward pawn
@@ -1213,8 +1211,8 @@ final class Evaluation {
                     }
 
                     if (backward) {
-                        total[TOTAL_OPENING] -= EVAL_PAWN_BACKWARD_OPENING;
-                        total[TOTAL_ENDGAME] -= EVAL_PAWN_BACKWARD_ENDGAME;
+                        mytotal[TOTAL_OPENING] -= EVAL_PAWN_BACKWARD_OPENING;
+                        mytotal[TOTAL_ENDGAME] -= EVAL_PAWN_BACKWARD_ENDGAME;
                     }
                 }
             }
@@ -1226,7 +1224,7 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalPawnPasser[myColor];
+        int[] mytotal = totalPawnPasser[myColor];
         byte[] myAttackTable = attackTable[myColor];
         byte[] enemyPawnTable = pawnTable[enemyColor];
         PositionList myPawnList = Position.pawnList[myColor];
@@ -1310,7 +1308,7 @@ final class Evaluation {
                 }
 
                 // Evaluate opening value
-                total[TOTAL_OPENING] += EVAL_PAWN_PASSER_OPENING_MIN + ((EVAL_PAWN_PASSER_OPENING_MAX - EVAL_PAWN_PASSER_OPENING_MIN) * bonus) / EVAL_PAWN_PASSER_MAXBONUS;
+                mytotal[TOTAL_OPENING] += EVAL_PAWN_PASSER_OPENING_MIN + ((EVAL_PAWN_PASSER_OPENING_MAX - EVAL_PAWN_PASSER_OPENING_MIN) * bonus) / EVAL_PAWN_PASSER_MAXBONUS;
 
                 // Evaluate endgame value
                 int endgameMax = EVAL_PAWN_PASSER_ENDGAME_MAX;
@@ -1413,9 +1411,9 @@ final class Evaluation {
                 }
 
                 // Evaluate endgame value
-                total[TOTAL_ENDGAME] += EVAL_PAWN_PASSER_ENDGAME_MIN;
+                mytotal[TOTAL_ENDGAME] += EVAL_PAWN_PASSER_ENDGAME_MIN;
                 if (endgameMax - EVAL_PAWN_PASSER_ENDGAME_MIN > 0) {
-                    total[TOTAL_ENDGAME] += ((endgameMax - EVAL_PAWN_PASSER_ENDGAME_MIN) * bonus) / EVAL_PAWN_PASSER_MAXBONUS;
+                    mytotal[TOTAL_ENDGAME] += ((endgameMax - EVAL_PAWN_PASSER_ENDGAME_MIN) * bonus) / EVAL_PAWN_PASSER_MAXBONUS;
                 }
             }
         }
@@ -1426,66 +1424,66 @@ final class Evaluation {
         assert board != null;
 
         // Initialize
-        int[] total = totalPatterns[myColor];
+        int[] mytotal = totalPatterns[myColor];
 
         if (myColor == Color.WHITE) {
             // Trapped white bishop
             if (Position.board[Square.a7] == Piece.WHITE_BISHOP
                     && Position.board[Square.b6] == Piece.BLACK_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
                 if (Position.board[Square.c7] == Piece.BLACK_PAWN) {
-                    total[TOTAL_OPENING] -= 50;
-                    total[TOTAL_ENDGAME] -= 50;
+                    mytotal[TOTAL_OPENING] -= 50;
+                    mytotal[TOTAL_ENDGAME] -= 50;
                 }
             }
             if (Position.board[Square.b8] == Piece.WHITE_BISHOP
                     && Position.board[Square.c7] == Piece.BLACK_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
             }
             if (Position.board[Square.h7] == Piece.WHITE_BISHOP
                     && Position.board[Square.g6] == Piece.BLACK_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
                 if (Position.board[Square.f7] == Piece.BLACK_PAWN) {
-                    total[TOTAL_OPENING] -= 50;
-                    total[TOTAL_ENDGAME] -= 50;
+                    mytotal[TOTAL_OPENING] -= 50;
+                    mytotal[TOTAL_ENDGAME] -= 50;
                 }
             }
             if (Position.board[Square.g8] == Piece.WHITE_BISHOP
                     && Position.board[Square.f7] == Piece.BLACK_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
             }
             if (Position.board[Square.a6] == Piece.WHITE_BISHOP
                     && Position.board[Square.b5] == Piece.BLACK_PAWN) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
             if (Position.board[Square.h6] == Piece.WHITE_BISHOP
                     && Position.board[Square.g5] == Piece.BLACK_PAWN) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
 
             // Blocked center pawn
             if (Position.board[Square.d2] == Piece.WHITE_PAWN
                     && Position.board[Square.d3] != Piece.NOPIECE) {
-                total[TOTAL_OPENING] -= 20;
-                total[TOTAL_ENDGAME] -= 20;
+                mytotal[TOTAL_OPENING] -= 20;
+                mytotal[TOTAL_ENDGAME] -= 20;
                 if (Position.board[Square.c1] == Piece.WHITE_BISHOP) {
-                    total[TOTAL_OPENING] -= 30;
-                    total[TOTAL_ENDGAME] -= 30;
+                    mytotal[TOTAL_OPENING] -= 30;
+                    mytotal[TOTAL_ENDGAME] -= 30;
                 }
             }
             if (Position.board[Square.e2] == Piece.WHITE_PAWN
                     && Position.board[Square.e3] != Piece.NOPIECE) {
-                total[TOTAL_OPENING] -= 20;
-                total[TOTAL_ENDGAME] -= 20;
+                mytotal[TOTAL_OPENING] -= 20;
+                mytotal[TOTAL_ENDGAME] -= 20;
                 if (Position.board[Square.f1] == Piece.WHITE_BISHOP) {
-                    total[TOTAL_OPENING] -= 30;
-                    total[TOTAL_ENDGAME] -= 30;
+                    mytotal[TOTAL_OPENING] -= 30;
+                    mytotal[TOTAL_ENDGAME] -= 30;
                 }
             }
 
@@ -1495,16 +1493,16 @@ final class Evaluation {
                     && (Position.board[Square.a1] == Piece.WHITE_ROOK
                     || Position.board[Square.a2] == Piece.WHITE_ROOK
                     || Position.board[Square.b1] == Piece.WHITE_ROOK)) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
             if ((Position.board[Square.f1] == Piece.WHITE_KING
                     || Position.board[Square.g1] == Piece.WHITE_KING)
                     && (Position.board[Square.h1] == Piece.WHITE_ROOK
                     || Position.board[Square.h2] == Piece.WHITE_ROOK
                     || Position.board[Square.g1] == Piece.WHITE_ROOK)) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
         } else {
             assert myColor == Color.BLACK;
@@ -1512,60 +1510,60 @@ final class Evaluation {
             // Trapped black bishop
             if (Position.board[Square.a2] == Piece.BLACK_BISHOP
                     && Position.board[Square.b3] == Piece.WHITE_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
                 if (Position.board[Square.c2] == Piece.WHITE_PAWN) {
-                    total[TOTAL_OPENING] -= 50;
-                    total[TOTAL_ENDGAME] -= 50;
+                    mytotal[TOTAL_OPENING] -= 50;
+                    mytotal[TOTAL_ENDGAME] -= 50;
                 }
             }
             if (Position.board[Square.b1] == Piece.BLACK_BISHOP
                     && Position.board[Square.c2] == Piece.WHITE_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
             }
             if (Position.board[Square.h2] == Piece.BLACK_BISHOP
                     && Position.board[Square.g3] == Piece.WHITE_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
                 if (Position.board[Square.f2] == Piece.WHITE_PAWN) {
-                    total[TOTAL_OPENING] -= 50;
-                    total[TOTAL_ENDGAME] -= 50;
+                    mytotal[TOTAL_OPENING] -= 50;
+                    mytotal[TOTAL_ENDGAME] -= 50;
                 }
             }
             if (Position.board[Square.g1] == Piece.BLACK_BISHOP
                     && Position.board[Square.f2] == Piece.WHITE_PAWN) {
-                total[TOTAL_OPENING] -= 100;
-                total[TOTAL_ENDGAME] -= 100;
+                mytotal[TOTAL_OPENING] -= 100;
+                mytotal[TOTAL_ENDGAME] -= 100;
             }
             if (Position.board[Square.a3] == Piece.BLACK_BISHOP
                     && Position.board[Square.b4] == Piece.WHITE_PAWN) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
             if (Position.board[Square.h3] == Piece.BLACK_BISHOP
                     && Position.board[Square.g4] == Piece.WHITE_PAWN) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
 
             // Blocked center pawn
             if (Position.board[Square.d7] == Piece.BLACK_PAWN
                     && Position.board[Square.d6] != Piece.NOPIECE) {
-                total[TOTAL_OPENING] -= 20;
-                total[TOTAL_ENDGAME] -= 20;
+                mytotal[TOTAL_OPENING] -= 20;
+                mytotal[TOTAL_ENDGAME] -= 20;
                 if (Position.board[Square.c8] == Piece.BLACK_BISHOP) {
-                    total[TOTAL_OPENING] -= 30;
-                    total[TOTAL_ENDGAME] -= 30;
+                    mytotal[TOTAL_OPENING] -= 30;
+                    mytotal[TOTAL_ENDGAME] -= 30;
                 }
             }
             if (Position.board[Square.e7] == Piece.BLACK_PAWN
                     && Position.board[Square.e6] != Piece.NOPIECE) {
-                total[TOTAL_OPENING] -= 20;
-                total[TOTAL_ENDGAME] -= 20;
+                mytotal[TOTAL_OPENING] -= 20;
+                mytotal[TOTAL_ENDGAME] -= 20;
                 if (Position.board[Square.f8] == Piece.BLACK_BISHOP) {
-                    total[TOTAL_OPENING] -= 30;
-                    total[TOTAL_ENDGAME] -= 30;
+                    mytotal[TOTAL_OPENING] -= 30;
+                    mytotal[TOTAL_ENDGAME] -= 30;
                 }
             }
 
@@ -1575,16 +1573,16 @@ final class Evaluation {
                     && (Position.board[Square.a8] == Piece.BLACK_ROOK
                     || Position.board[Square.a7] == Piece.BLACK_ROOK
                     || Position.board[Square.b8] == Piece.BLACK_ROOK)) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
             if ((Position.board[Square.f8] == Piece.BLACK_KING
                     || Position.board[Square.g8] == Piece.BLACK_KING)
                     && (Position.board[Square.h8] == Piece.BLACK_ROOK
                     || Position.board[Square.h7] == Piece.BLACK_ROOK
                     || Position.board[Square.g8] == Piece.BLACK_ROOK)) {
-                total[TOTAL_OPENING] -= 50;
-                total[TOTAL_ENDGAME] -= 50;
+                mytotal[TOTAL_OPENING] -= 50;
+                mytotal[TOTAL_ENDGAME] -= 50;
             }
         }
     }

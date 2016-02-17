@@ -1595,7 +1595,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public int getCurNumberOfThreads() {
+    public int getCurrentNumberOfThreads() {
         return 1;
     }
 

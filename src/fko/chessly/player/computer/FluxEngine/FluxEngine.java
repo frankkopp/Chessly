@@ -60,7 +60,6 @@ import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveList;
 import fko.chessly.mvc.ModelObservable;
 import fko.chessly.player.Player;
-import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.FluxEngine.Search.Result;
 
@@ -83,6 +82,8 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
     private Result _moveResult;
     private int _engineState = ObservableEngine.IDLE;
+    private String _statusInfo = "Flux Engine ready!";
+    private GameMove _ponderMove;
 
 
     /**
@@ -112,14 +113,6 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
 
     }
 
-    private void initializeTranspositionTable() {
-        int numberOfEntries = Configuration.transpositionTableSize * 1024 * 1024 / TranspositionTable.ENTRYSIZE;
-        _transpositionTable = new TranspositionTable(numberOfEntries);
-        numberOfEntries = Configuration.evaluationTableSize * 1024 * 1024 / EvaluationTable.ENTRYSIZE;
-        _evaluationTable = new EvaluationTable(numberOfEntries);
-        Runtime.getRuntime().gc();
-    }
-
     /**
      * @see fko.chessly.player.computer.Engine#getNextMove(fko.chessly.game.GameBoard)
      */
@@ -127,58 +120,112 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     public GameMove getNextMove(GameBoard gameBoard) {
         assert(gameBoard!=null);
 
-        _moveResult = null;
+        // TODO: use opening book
 
-        _engineState  = ObservableEngine.THINKING;
 
-        this.board = new Position(gameBoard);
+        // PONDERING OR CALCULATING
+        System.out.println("MOVE "+gameBoard.getLastMove()+" PONDER "+_ponderMove);
+        if (_ponderMove != null && gameBoard.getLastMove().equals(_ponderMove)) {
+            // ponderhit - continue  search
 
-        if (this.board != null) {
-            if (this._search.isStopped()) {
-                // Create a new search
-                this._search = new Search(this, this.board, this._transpositionTable, this._evaluationTable, this.timeTable);
+            System.out.println("PONDERHIT");
+            _engineState  = ObservableEngine.THINKING;
+            _statusInfo = "Engine continue calculating.";
 
-                // Set search parameters from current Game
+            // set latch to have the search wait
+            _waitForMoveLatch = new CountDownLatch(1);
 
-                // set the search time - unlimited for non timed game
-                if (_game.isTimedGame()) {
-                    final long whiteTimeLeft = _game.getWhiteTime() - _game.getWhiteClock().getTime();
-                    this._search.setSearchClock(Color.WHITE, whiteTimeLeft);
-                    this._search.setSearchClockIncrement(Color.WHITE, 0); // not used
-                    final long blackTimeLeft = _game.getBlackTime() - _game.getBlackClock().getTime();
-                    this._search.setSearchClock(Color.BLACK, blackTimeLeft);
-                    this._search.setSearchClockIncrement(Color.BLACK, 0); // not used
-                } else {
-                    // set the max search depth from the level in game
-                    if (_activeColor.isWhite()) {
-                        this._search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
-                    } else {
-                        this._search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
-                    }
-                }
+            this._search.ponderhit();
+            searchBestMove(gameBoard);
 
-                /*
-                if (command.getMovesToGo() != null && command.getMovesToGo() > 0) {
-                    this.search.setSearchMovesToGo(command.getMovesToGo());
-                }
-                if (command.getInfinite()) {
-                    this.search.setSearchInfinite();
-                }
-                if (command.getPonder()) {
-                    this.search.setSearchPonder();
-                }
-                if (command.getSearchMoveList() != null) {
-                    this.search.setSearchMoveList(command.getSearchMoveList());
-                }
-                 */
+            _engineState  = ObservableEngine.IDLE;
+            _statusInfo = "Engine waiting.";
 
-                // set the latch to wait for the result
-                _waitForMoveLatch = new CountDownLatch(1);
+        } else {
+            // no ponderhit - stop ponder search and start normal search
 
-                // Go...
-                this._search.start();
-                this.board = null;
+            System.out.println("WASTEDTIME");
+            _search.stop();
+            _ponderMove = null;
+            _engineState  = ObservableEngine.THINKING;
+            _statusInfo = "Engine calculating.";
+            // normal search
+            searchBestMove(gameBoard);
+            _engineState  = ObservableEngine.IDLE;
+            _statusInfo = "Engine waiting.";
+
+        }
+
+        // RESULT EXPECTED
+        if (_moveResult != null) {
+            final GameMove bestGameMove = Move.toGameMove(_moveResult.bestMove);
+            bestGameMove.setValue(_moveResult.resultValue);
+
+            // TODO: do pondering - start pondering
+            if (_moveResult != null && _moveResult.ponderMove != Move.NOMOVE) {
+                _ponderMove = Move.toGameMove(_moveResult.ponderMove);
+                System.out.println("PONDER about: "+Move.toGameMove(_moveResult.ponderMove));
+                _engineState  = ObservableEngine.PONDERING;
+                _statusInfo = "Engine pondering.";
+                // ponder search
+                // make best move
+                assert gameBoard.isLegalMove(bestGameMove);
+                gameBoard.makeMove(bestGameMove);
+                // make ponder move
+                assert gameBoard.isLegalMove(_ponderMove);
+                gameBoard.makeMove(_ponderMove);
+                searchBestMove(gameBoard);
+            } else {
+                _ponderMove = null;
+                System.out.println("Nothing to ponder about");
             }
+
+            _moveResult = null;
+
+            return bestGameMove;
+        }
+        return null;
+    }
+
+    /**
+     * @param gameBoard
+     */
+    private void searchBestMove(GameBoard gameBoard) {
+
+        if (this._search.isStopped()) {
+
+            this.board = new Position(gameBoard);
+
+            // Create a new search
+            this._search = new Search(this, this.board, this._transpositionTable, this._evaluationTable, this.timeTable);
+
+            // Set search parameters from current Game
+            if (_game.isTimedGame()) {
+                final long whiteTimeLeft = _game.getWhiteTime() - _game.getWhiteClock().getTime();
+                this._search.setSearchClock(Color.WHITE, whiteTimeLeft);
+                this._search.setSearchClockIncrement(Color.WHITE, 0); // not used
+                final long blackTimeLeft = _game.getBlackTime() - _game.getBlackClock().getTime();
+                this._search.setSearchClock(Color.BLACK, blackTimeLeft);
+                this._search.setSearchClockIncrement(Color.BLACK, 0); // not used
+            } else {
+                // set the max search depth from the level in game
+                if (_activeColor.isWhite()) {
+                    this._search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelWhite());
+                } else {
+                    this._search.setSearchDepth(Playroom.getInstance().getCurrentEngineLevelBlack());
+                }
+            }
+
+            if (_ponderMove != null) {
+                this._search.setSearchPonder();
+            } else {
+                // set latch only if not pondering
+                _waitForMoveLatch = new CountDownLatch(1);
+            }
+
+            // Go...
+            this._search.start();
+            this.board = null;
         }
 
         // wait for the result to come in
@@ -186,17 +233,8 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
             _waitForMoveLatch.await();
         } catch (InterruptedException e) {
             //e.printStackTrace();
-            return null;
+            //return null;
         }
-
-        _engineState  = ObservableEngine.IDLE;
-
-        if (_moveResult != null) {
-            final GameMove bestGameMove = Move.toGameMove(_moveResult.bestMove);
-            bestGameMove.setValue(_moveResult.resultValue);
-            return bestGameMove;
-        }
-        return null;
     }
 
     /**
@@ -234,6 +272,17 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
      */
     public GameColor getActiveColor() {
         return this._activeColor;
+    }
+
+
+
+
+    private void initializeTranspositionTable() {
+        int numberOfEntries = Configuration.transpositionTableSize * 1024 * 1024 / TranspositionTable.ENTRYSIZE;
+        _transpositionTable = new TranspositionTable(numberOfEntries);
+        numberOfEntries = Configuration.evaluationTableSize * 1024 * 1024 / EvaluationTable.ENTRYSIZE;
+        _evaluationTable = new EvaluationTable(numberOfEntries);
+        Runtime.getRuntime().gc();
     }
 
 
@@ -395,9 +444,6 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         this._totalNonQuietBoards = totalNonQuietBoards;
     }
 
-
-
-
     private List<GameMove> _currentPV = null;
     /**
      * Get the current PV as a GameMoveList.
@@ -436,13 +482,12 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         this._currentMaxValueMove = currentMaxValueMove;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getPonderMove()
      */
     @Override
     public GameMove getPonderMove() {
-        if (_moveResult==null || _moveResult.ponderMove == Move.NOMOVE) return null;
-        return Move.toGameMove(_moveResult.ponderMove);
+        return _ponderMove;
     }
 
     /**
@@ -454,7 +499,7 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     }
 
     /**
-     * @see fko.chessly.player.computer.ObservableEngine#getCurNodesInCache()
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentNodesInCache()
      */
     @Override
     public int getCurrentNodesInCache() {
@@ -513,26 +558,24 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
      * @see fko.chessly.player.computer.ObservableEngine#getCurNumberOfThreads()
      */
     @Override
-    public int getCurNumberOfThreads() {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getCurrentNumberOfThreads() {
+        return 1;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurConfig()
      */
     @Override
     public String getCurConfig() {
-        // TODO Auto-generated method stub
-        return "N/A";
+        return "Flux Engine";
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getStatusText()
      */
     @Override
     public String getStatusText() {
-        return "N/A";
+        return _statusInfo;
     }
 
     /**
@@ -577,10 +620,6 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
             _engineInfoText.setLength(0);
         }
         return s;
-    }
-
-    private void printInfoln() {
-        printVerboseInfo(String.format("%n"));
     }
 
 

@@ -101,7 +101,6 @@ final class Search implements Runnable {
     private int _currentDepth = 1;
     private int _currentMaxDepth = 0;
     private long _totalTimeStart = 0;
-    private long _currentTimeStart = 0;
     private int _currentMoveNumber = 0;
     private GameMove _currentMove = null;
     private long _totalNodes = 0;
@@ -192,7 +191,6 @@ final class Search implements Runnable {
         this._semaphore.release();
 
         _totalTimeStart = System.currentTimeMillis();
-        _currentTimeStart = _totalTimeStart;
         Result moveResult = getBestMove();
 
         // Cancel the timer
@@ -237,6 +235,13 @@ final class Search implements Runnable {
         }
     }
 
+    /**
+     * This is called by the Game (or the FluxEngine) to signal that the
+     * guessed opponents move has been actually made by the opponent and
+     * that we should simply continue to think about this move until we have used up
+     * the time for this move - altogether the calculation time will be
+     * the ponder time plus the regular move time - so usually a deeper search!
+     */
     void ponderhit() {
         // Enable time management
         this._doTimeManagement = true;

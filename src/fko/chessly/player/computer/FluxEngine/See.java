@@ -300,16 +300,15 @@ final class See {
     private static boolean shiftAttacker(List list) {
         if (list.size == 0) {
             return false;
-        } else {
-            // Shift all other attackers
-            for (int i = 0; i < list.size - 1; i++) {
-                list.chessman[i] = list.chessman[i + 1];
-                list.position[i] = list.position[i + 1];
-            }
-            list.size--;
-
-            return true;
         }
+        // Shift all other attackers
+        for (int i = 0; i < list.size - 1; i++) {
+            list.chessman[i] = list.chessman[i + 1];
+            list.position[i] = list.position[i + 1];
+        }
+        list.size--;
+
+        return true;
     }
 
     private static void addAttacker(List list, int attacker, int attackerPosition, boolean hasHiddenAttacker) {

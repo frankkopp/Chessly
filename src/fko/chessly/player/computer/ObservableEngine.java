@@ -154,7 +154,7 @@ public interface ObservableEngine extends Engine {
      * Returns the configured number of threads to use
      * @return number of threads
      */
-    int getCurNumberOfThreads();
+    int getCurrentNumberOfThreads();
 
     /**
      * Returns a string explaining the configuration of the engine.
