@@ -122,7 +122,6 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
 
         // TODO: use opening book
 
-
         // PONDERING OR CALCULATING
         System.out.println("MOVE "+gameBoard.getLastMove()+" PONDER "+_ponderMove);
         if (_ponderMove != null && gameBoard.getLastMove().equals(_ponderMove)) {
