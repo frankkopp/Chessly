@@ -26,7 +26,7 @@ import fko.chessly.game.GameColor;
 import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePosition;
 
-final class Position {
+class Position {
 
     /**
      * The size of the 0x88 board
@@ -57,19 +57,19 @@ final class Position {
     private static final long[] zobristEnPassant = new long[BOARDSIZE];
 
     //## BEGIN 0x88 Board Representation
-    static final int[] board = new int[BOARDSIZE];
+    final int[] board = new int[BOARDSIZE];
     //## ENDOF 0x88 Board Representation
 
     // The chessman lists.
-    static final PositionList[] pawnList = new PositionList[Color.ARRAY_DIMENSION];
-    static final PositionList[] knightList = new PositionList[Color.ARRAY_DIMENSION];
-    static final PositionList[] bishopList = new PositionList[Color.ARRAY_DIMENSION];
-    static final PositionList[] rookList = new PositionList[Color.ARRAY_DIMENSION];
-    static final PositionList[] queenList = new PositionList[Color.ARRAY_DIMENSION];
-    static final PositionList[] kingList = new PositionList[Color.ARRAY_DIMENSION];
+    final PositionList[] pawnList = new PositionList[Color.ARRAY_DIMENSION];
+    final PositionList[] knightList = new PositionList[Color.ARRAY_DIMENSION];
+    final PositionList[] bishopList = new PositionList[Color.ARRAY_DIMENSION];
+    final PositionList[] rookList = new PositionList[Color.ARRAY_DIMENSION];
+    final PositionList[] queenList = new PositionList[Color.ARRAY_DIMENSION];
+    final PositionList[] kingList = new PositionList[Color.ARRAY_DIMENSION];
 
     // Board stack
-    private static final State[] states = new State[STACKSIZE];
+    private final State[] states = new State[STACKSIZE];
     private int statesSize = 0;
 
     // Zobrist code
@@ -82,13 +82,13 @@ final class Position {
     int enPassantSquare = Square.NOPOSITION;
 
     // Castling
-    static int castling;
-    private static final int[] castlingHistory = new int[STACKSIZE];
+    int castling;
+    private final int[] castlingHistory = new int[STACKSIZE];
     private int castlingHistorySize = 0;
 
     // Capture
     int captureSquare = Square.NOPOSITION;
-    private static final int[] captureHistory = new int[STACKSIZE];
+    private final int[] captureHistory = new int[STACKSIZE];
     private int captureHistorySize = 0;
 
     // Half move clock
@@ -101,18 +101,18 @@ final class Position {
     int activeColor = Color.WHITE;
 
     // The material value and counter. We always keep the values current.
-    static final int[] materialValue = new int[Color.ARRAY_DIMENSION];
-    static final int[] materialCount = new int[Color.ARRAY_DIMENSION];
-    static final int[] materialCountAll = new int[Color.ARRAY_DIMENSION];
+    final int[] materialValue = new int[Color.ARRAY_DIMENSION];
+    final int[] materialCount = new int[Color.ARRAY_DIMENSION];
+    final int[] materialCountAll = new int[Color.ARRAY_DIMENSION];
 
     // The positional values. We always keep the values current.
-    static final int[] positionValueOpening = new int[Color.ARRAY_DIMENSION];
-    static final int[] positionValueEndgame = new int[Color.ARRAY_DIMENSION];
+    final int[] positionValueOpening = new int[Color.ARRAY_DIMENSION];
+    final int[] positionValueEndgame = new int[Color.ARRAY_DIMENSION];
 
     // Attack
-    private static final Attack[][] attackHistory = new Attack[STACKSIZE + 1][Color.ARRAY_DIMENSION];
+    private final Attack[][] attackHistory = new Attack[STACKSIZE + 1][Color.ARRAY_DIMENSION];
     private int attackHistorySize = 0;
-    private static final Attack tempAttack = new Attack();
+    private final Attack tempAttack = new Attack();
 
     private static final class State {
         long zobristHistory = 0;
@@ -163,9 +163,6 @@ final class Position {
             zobristEnPassant[i] = Math.abs(random.nextLong());
         }
 
-        for (int i = 0; i < states.length; i++) {
-            states[i] = new State();
-        }
     }
 
     /**
@@ -176,6 +173,11 @@ final class Position {
     Position(GameBoard oldBoard) {
         if (oldBoard == null)
             throw new NullPointerException("Parameter oldBoard may not be null");
+
+        // initialize states
+        for (int i = 0; i < states.length; i++) {
+            states[i] = new State();
+        }
 
         // Initialize the position lists
         for (int color : Color.values) {
@@ -1665,7 +1667,7 @@ final class Position {
         // Castling
         boolean castlingAvailable = false;
         for (int castlingType : Castling.values) {
-            if ((Position.castling & castlingType) != 0) {
+            if ((this.castling & castlingType) != 0) {
                 fen += Castling.toChar(castlingType);
                 castlingAvailable = true;
             }
@@ -1745,7 +1747,7 @@ final class Position {
         boardString.append("Castling: ");
         boolean castlingAvailable = false;
         for (int castlingType : Castling.values) {
-            if ((Position.castling & castlingType) != 0) {
+            if ((this.castling & castlingType) != 0) {
                 boardString.append(Castling.toChar(castlingType));
                 castlingAvailable = true;
             }

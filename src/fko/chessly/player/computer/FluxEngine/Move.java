@@ -96,22 +96,22 @@ final class Move {
             }
              */
             int promotion = Piece.valueOfChessman(move.getPromotedTo().getType());
-            return createMove(MoveType.PAWNPROMOTION, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], promotion);
+            return createMove(MoveType.PAWNPROMOTION, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), board.board[Square.valueOfPosition(move.getFromField())], board.board[Square.valueOfPosition(move.getToField())], promotion);
 
         } else if (move.isEnPassantNextMovePossible()) {
             //} else if (isPawnDouble(move, board)) {
-            return createMove(MoveType.PAWNDOUBLE, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
+            return createMove(MoveType.PAWNDOUBLE, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), board.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
 
         } else if (move.getWasEnPassantCapture()) {
             //} else if (isEnPassant(move, board)) {
-            return createMove(MoveType.ENPASSANT, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getEnPassantCapturePosition())], Piece.NOPIECE);
+            return createMove(MoveType.ENPASSANT, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), board.board[Square.valueOfPosition(move.getFromField())], board.board[Square.valueOfPosition(move.getEnPassantCapturePosition())], Piece.NOPIECE);
 
         } else if (move.getCastlingType() != GameCastling.NOCASTLING) {
             //} else if (isCastling(move, board)) {
-            return createMove(MoveType.CASTLING, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
+            return createMove(MoveType.CASTLING, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), board.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
 
         } else {
-            return createMove(MoveType.NORMAL, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], Piece.NOPIECE);
+            return createMove(MoveType.NORMAL, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), board.board[Square.valueOfPosition(move.getFromField())], board.board[Square.valueOfPosition(move.getToField())], Piece.NOPIECE);
         }
     }
 

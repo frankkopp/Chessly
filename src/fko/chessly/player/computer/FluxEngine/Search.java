@@ -1633,8 +1633,8 @@ final class Search implements Runnable {
         }
 
         // Extend another ply if we enter a pawn endgame
-        if (Position.materialCount[_board.activeColor] == 0
-                && Position.materialCount[Color.switchColor(_board.activeColor)] == 1
+        if (_board.materialCount[_board.activeColor] == 0
+                && _board.materialCount[Color.switchColor(_board.activeColor)] == 1
                 && Move.getTarget(move) != Piece.NOPIECE
                 && Move.getTarget(move) != PieceType.PAWN) {
             newDepth++;

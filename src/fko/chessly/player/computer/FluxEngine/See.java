@@ -23,7 +23,7 @@ package fko.chessly.player.computer.FluxEngine;
  */
 final class See {
 
-    private static Position board = null;
+    private static Position _myPosition = null;
     private static final List[] chessmanList = new List[Color.ARRAY_DIMENSION];
 
     private static final class List {
@@ -38,7 +38,7 @@ final class See {
     }
 
     See(Position newBoard) {
-        board = newBoard;
+        _myPosition = newBoard;
         chessmanList[Color.WHITE] = new List();
         chessmanList[Color.BLACK] = new List();
     }
@@ -166,35 +166,35 @@ final class See {
             assert myColor == Color.WHITE;
         }
         int pawnPosition = targetPosition - sign * 15;
-        if ((pawnPosition & 0x88) == 0 && Position.board[pawnPosition] == pawn) {
+        if ((pawnPosition & 0x88) == 0 && _myPosition.board[pawnPosition] == pawn) {
             list.chessman[list.size] = pawn;
             list.position[list.size] = pawnPosition;
             list.size++;
         }
         pawnPosition = targetPosition - sign * 17;
-        if ((pawnPosition & 0x88) == 0 && Position.board[pawnPosition] == pawn) {
+        if ((pawnPosition & 0x88) == 0 && _myPosition.board[pawnPosition] == pawn) {
             list.chessman[list.size] = pawn;
             list.position[list.size] = pawnPosition;
             list.size++;
         }
 
         // Knight attacks
-        PositionList tempPositionList = Position.knightList[myColor];
+        PositionList tempPositionList = _myPosition.knightList[myColor];
         for (int i = 0; i < tempPositionList.size; i++) {
             int position = tempPositionList.position[i];
-            if (board.canAttack(PieceType.KNIGHT, myColor, position, targetPosition)) {
-                list.chessman[list.size] = Position.board[position];
+            if (_myPosition.canAttack(PieceType.KNIGHT, myColor, position, targetPosition)) {
+                list.chessman[list.size] = _myPosition.board[position];
                 list.position[list.size] = position;
                 list.size++;
             }
         }
 
         // Bishop attacks
-        tempPositionList = Position.bishopList[myColor];
+        tempPositionList = _myPosition.bishopList[myColor];
         for (int i = 0; i < tempPositionList.size; i++) {
             int position = tempPositionList.position[i];
-            if (board.canAttack(PieceType.BISHOP, myColor, position, targetPosition)) {
-                int bishop = Position.board[position];
+            if (_myPosition.canAttack(PieceType.BISHOP, myColor, position, targetPosition)) {
+                int bishop = _myPosition.board[position];
                 if (hasHiddenAttacker(position, targetPosition)) {
                     addAttacker(list, bishop, position, true);
                 } else {
@@ -204,11 +204,11 @@ final class See {
         }
 
         // Rook attacks
-        tempPositionList = Position.rookList[myColor];
+        tempPositionList = _myPosition.rookList[myColor];
         for (int i = 0; i < tempPositionList.size; i++) {
             int position = tempPositionList.position[i];
-            if (board.canAttack(PieceType.ROOK, myColor, position, targetPosition)) {
-                int rook = Position.board[position];
+            if (_myPosition.canAttack(PieceType.ROOK, myColor, position, targetPosition)) {
+                int rook = _myPosition.board[position];
                 if (hasHiddenAttacker(position, targetPosition)) {
                     addAttacker(list, rook, position, true);
                 } else {
@@ -218,11 +218,11 @@ final class See {
         }
 
         // Queen attacks
-        tempPositionList = Position.queenList[myColor];
+        tempPositionList = _myPosition.queenList[myColor];
         for (int i = 0; i < tempPositionList.size; i++) {
             int position = tempPositionList.position[i];
-            if (board.canAttack(PieceType.QUEEN, myColor, position, targetPosition)) {
-                int queen = Position.board[position];
+            if (_myPosition.canAttack(PieceType.QUEEN, myColor, position, targetPosition)) {
+                int queen = _myPosition.board[position];
                 if (hasHiddenAttacker(position, targetPosition)) {
                     addAttacker(list, queen, position, true);
                 } else {
@@ -232,10 +232,10 @@ final class See {
         }
 
         // King attacks
-        assert Position.kingList[myColor].size == 1;
-        int position = Position.kingList[myColor].position[0];
-        if (board.canAttack(PieceType.KING, myColor, position, targetPosition)) {
-            list.chessman[list.size] = Position.board[position];
+        assert _myPosition.kingList[myColor].size == 1;
+        int position = _myPosition.kingList[myColor].position[0];
+        if (_myPosition.canAttack(PieceType.KING, myColor, position, targetPosition)) {
+            list.chessman[list.size] = _myPosition.board[position];
             list.position[list.size] = position;
             list.size++;
         }
@@ -254,11 +254,11 @@ final class See {
         // Find the hidden attacker
         int attackerPosition = chessmanPosition + delta;
         while ((attackerPosition & 0x88) == 0) {
-            int attacker = Position.board[attackerPosition];
+            int attacker = _myPosition.board[attackerPosition];
             if (attacker == Piece.NOPIECE) {
                 attackerPosition += delta;
             } else {
-                if (board.canSliderPseudoAttack(attacker, attackerPosition, targetPosition)) {
+                if (_myPosition.canSliderPseudoAttack(attacker, attackerPosition, targetPosition)) {
                     if (hasHiddenAttacker(attackerPosition, targetPosition)) {
                         addAttacker(chessmanList[Piece.getColor(attacker)], attacker, attackerPosition, true);
                     } else {
@@ -283,11 +283,11 @@ final class See {
         // Find the hidden attacker
         int end = chessmanPosition + delta;
         while ((end & 0x88) == 0) {
-            int chessman = Position.board[end];
+            int chessman = _myPosition.board[end];
             if (chessman == Piece.NOPIECE) {
                 end += delta;
             } else {
-                if (board.canSliderPseudoAttack(chessman, end, targetPosition)) {
+                if (_myPosition.canSliderPseudoAttack(chessman, end, targetPosition)) {
                     return true;
                 }
                 break;

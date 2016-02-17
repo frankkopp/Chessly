@@ -20,6 +20,9 @@ package fko.chessly.player.computer.FluxEngine;
 
 import com.fluxchess.jcpi.models.GenericBoard;
 import com.fluxchess.jcpi.models.IllegalNotationException;
+
+import fko.chessly.game.GameBoard;
+
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -34,9 +37,9 @@ public class MoveGeneratorTest {
     @Test
     public void testSpecialPerft() {
         // Setup a new board from fen
-        GenericBoard board;
+        GameBoard board;
         try {
-            board = new GenericBoard("1k6/8/8/5pP1/4K1P1/8/8/8 w - f6");
+            board = new GameBoard("1k6/8/8/5pP1/4K1P1/8/8/8 w - f6");
             Position testBoard = new Position(board);
             new See(testBoard);
 
@@ -63,7 +66,7 @@ public class MoveGeneratorTest {
                     String[] tokens = line.split(";");
 
                     // Setup a new board from fen
-                    GenericBoard board = new GenericBoard(tokens[0].trim());
+                    GameBoard board = new GameBoard(tokens[0].trim());
 
                     if (tokens.length > i) {
                         String[] data = tokens[i].trim().split(" ");
