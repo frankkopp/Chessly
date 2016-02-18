@@ -107,19 +107,21 @@ final class Evaluation {
     private static final int[][] totalPawnStructure = new int[Color.ARRAY_DIMENSION][2];
     private static final int[][] totalPawnPasser = new int[Color.ARRAY_DIMENSION][2];
     private static final int[][] totalPatterns = new int[Color.ARRAY_DIMENSION][2];
-    private static int totalOpening = 0;
-    private static int totalEndgame = 0;
-    private static int total = 0;
+
+    private int totalOpening = 0;
+    private int totalEndgame = 0;
+    private int total = 0;
 
     // Draw values
     private static final int DRAW_FACTOR = 16;
-    private static final int[] drawFactor = new int[Color.ARRAY_DIMENSION];
+    private final int[] drawFactor = new int[Color.ARRAY_DIMENSION];
 
     // The hash tables
     private final PawnTable pawnHashtable;
 
     // my Position
     private Position _myPosition;
+    private See _see;
 
     /**
      * Construct the Evaluation object
@@ -134,6 +136,7 @@ final class Evaluation {
      * Prints the evaluation of the board.
      */
     void print(Position board) {
+        _see = new See(board);
         evaluate(board);
 
         int myColor = board.activeColor;
@@ -360,12 +363,12 @@ final class Evaluation {
         // This allows us to make a smooth transition from the opening to the
         // ending
         int phase = (myMaterialValue + enemyMaterialValue) / 2;
-        if (phase > board.GAMEPHASE_OPENING_VALUE) {
+        if (phase > Position.GAMEPHASE_OPENING_VALUE) {
             phase = PHASE_INTERVAL;
-        } else if (phase < board.GAMEPHASE_ENDGAME_VALUE) {
+        } else if (phase < Position.GAMEPHASE_ENDGAME_VALUE) {
             phase = 0;
         } else {
-            phase -= board.GAMEPHASE_ENDGAME_VALUE;
+            phase -= Position.GAMEPHASE_ENDGAME_VALUE;
         }
         total = (totalOpening * phase + totalEndgame * (PHASE_INTERVAL - phase)) / PHASE_INTERVAL;
 
@@ -403,7 +406,7 @@ final class Evaluation {
         return myMaterialValue;
     }
 
-    private static void evaluateDraw(Position board) {
+    private  void evaluateDraw(Position board) {
         for (int myColor : Color.values) {
             int enemyColor = Color.switchColor(myColor);
             byte[] enemyAttackTable = attackTable[enemyColor];
@@ -674,7 +677,7 @@ final class Evaluation {
         }
     }
 
-    private static void evaluateKnight(int myColor, int enemyColor, Position board) {
+    private  void evaluateKnight(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
 
         // Initialize
@@ -719,7 +722,7 @@ final class Evaluation {
         }
     }
 
-    private static void evaluateBishop(int myColor, int enemyColor, Position board) {
+    private  void evaluateBishop(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
 
@@ -773,7 +776,7 @@ final class Evaluation {
         }
     }
 
-    private static void evaluateRook(int myColor, int enemyColor, Position board) {
+    private  void evaluateRook(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
 
@@ -882,7 +885,7 @@ final class Evaluation {
         }
     }
 
-    private static void evaluateQueen(int myColor, int enemyColor, Position board) {
+    private  void evaluateQueen(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
 
@@ -959,7 +962,7 @@ final class Evaluation {
         }
     }
 
-    private static void evaluateKing(int myColor, int enemyColor, Position board) {
+    private  void evaluateKing(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
 
@@ -1132,7 +1135,7 @@ final class Evaluation {
         mytotal[TOTAL_OPENING] -= pawnShieldPenalty;
     }
 
-    private static void evaluatePawnStructure(int myColor, int enemyColor, Position board) {
+    private  void evaluatePawnStructure(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
 
@@ -1224,9 +1227,11 @@ final class Evaluation {
         }
     }
 
-    private static void evaluatePawnPasser(int myColor, int enemyColor, Position board) {
+    private  void evaluatePawnPasser(int myColor, int enemyColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
+
+        _see = new See(board);
 
         // Initialize
         int[] mytotal = totalPawnPasser[myColor];
@@ -1409,7 +1414,7 @@ final class Evaluation {
                     if (board.board[pawnPosition + sign * 16] == Piece.NOPIECE) {
                         // TODO: Do we have to consider promotion moves?
                         int move = Move.createMove(MoveType.NORMAL, pawnPosition, pawnPosition + sign * 16, pawn, Piece.NOPIECE, Piece.NOPIECE);
-                        if (See.seeMove(move, myColor) >= 0) {
+                        if (_see.seeMove(move, myColor) >= 0) {
                             endgameMax += EVAL_PAWN_PASSER_FREE;
                         }
                     }
@@ -1424,7 +1429,7 @@ final class Evaluation {
         }
     }
 
-    private static void evaluatePatterns(int myColor, Position board) {
+    private  void evaluatePatterns(int myColor, Position board) {
         assert myColor != Color.NOCOLOR;
         assert board != null;
 
@@ -1592,7 +1597,7 @@ final class Evaluation {
         }
     }
 
-    private static int getPawnShieldPenalty(int myColor, int kingPosition) {
+    private  int getPawnShieldPenalty(int myColor, int kingPosition) {
         assert myColor != Color.NOCOLOR;
         assert (kingPosition & 0x88) == 0;
 

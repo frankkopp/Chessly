@@ -202,10 +202,10 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
             if (_game.isTimedGame()) {
                 final long whiteTimeLeft = _game.getWhiteTime() - _game.getWhiteClock().getTime();
                 this._search.setSearchClock(Color.WHITE, whiteTimeLeft);
-                this._search.setSearchClockIncrement(Color.WHITE, 0); // not used
+                //this._search.setSearchClockIncrement(Color.WHITE, 0); // not used
                 final long blackTimeLeft = _game.getBlackTime() - _game.getBlackClock().getTime();
                 this._search.setSearchClock(Color.BLACK, blackTimeLeft);
-                this._search.setSearchClockIncrement(Color.BLACK, 0); // not used
+                //this._search.setSearchClockIncrement(Color.BLACK, 0); // not used
             } else {
                 // set the max search depth from the level in game
                 if (_activeColor.isWhite()) {

@@ -25,12 +25,13 @@ import java.util.concurrent.TimeUnit;
 final class Perft {
 
     private static final int MAX_DEPTH = 6;
+    private MoveGenerator _moveGenerator;
 
     void run() {
         Position position = new Position(new GameBoardImpl());
         int depth = MAX_DEPTH;
 
-        new MoveGenerator(position, new KillerTable(), new HistoryTable());
+        _moveGenerator = new MoveGenerator(position, new KillerTable(), new HistoryTable());
         new See(position);
 
         System.out.format("Testing %s at depth %d%n", position.toString(), depth);
@@ -53,7 +54,7 @@ final class Perft {
         System.out.format("n/ms: %d%n", result / duration);
     }
 
-    private static long miniMax(Position board, int depth, int ply) {
+    private long miniMax(Position board, int depth, int ply) {
         if (depth == 0) {
             return 1;
         }
@@ -61,16 +62,16 @@ final class Perft {
         long totalNodes = 0;
 
         Attack attack = board.getAttack(board.activeColor);
-        MoveGenerator.initializeMain(attack, 0, Move.NOMOVE);
+        _moveGenerator.initializeMain(attack, 0, Move.NOMOVE);
 
         int move;
-        while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
+        while ((move = _moveGenerator.getNextMove()) != Move.NOMOVE) {
             board.makeMove(move);
             totalNodes += miniMax(board, depth - 1, ply + 1);
             board.undoMove(move);
         }
 
-        MoveGenerator.destroy();
+        _moveGenerator.destroy();
 
         return totalNodes;
     }

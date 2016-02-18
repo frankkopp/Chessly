@@ -84,17 +84,17 @@ final class Search implements Runnable {
 
     // Search logic
     private Evaluation _evaluation = new Evaluation();
-    private static Position _board;
+    private Position _board;
     private final int _myColor;
 
     // Search tables
     private TranspositionTable _transpositionTable;
-    private static KillerTable _killerTable;
-    private static HistoryTable _historyTable;
+    private KillerTable _killerTable;
+    private HistoryTable _historyTable;
 
     // Search information
-    private static final MoveList[] _pvList = new MoveList[Depth.MAX_PLY + 1];
-    private static final HashMap<Integer, PrincipalVariation> _multiPvMap = new HashMap<>(MAX_MOVES);
+    private final MoveList[] _pvList = new MoveList[Depth.MAX_PLY + 1];
+    private final HashMap<Integer, PrincipalVariation> _multiPvMap = new HashMap<>(MAX_MOVES);
     private Result _bestResult = null;
     private final int[] _timeTable;
 
@@ -113,6 +113,9 @@ final class Search implements Runnable {
     // Cache statistics
     private final AtomicLong _nodeCacheHits = new AtomicLong(0);
     private final AtomicLong _nodeCacheMisses = new AtomicLong(0);
+
+    private MoveGenerator _moveGenerator;
+    private See _see;
 
     static final class Result {
         int bestMove = Move.NOMOVE;
@@ -137,15 +140,15 @@ final class Search implements Runnable {
         } else {
             NULLMOVE_REDUCTION = 2;
         }
-
-        for (int i = 0; i < _pvList.length; i++) {
-            _pvList[i] = new MoveList();
-        }
     }
 
     Search(FluxEngine backreference, Position newBoard, TranspositionTable newTranspositionTable, EvaluationTable evaluationTable, int[] timeTable) {
         assert newBoard != null;
         assert newTranspositionTable != null;
+
+        for (int i = 0; i < _pvList.length; i++) {
+            _pvList[i] = new MoveList();
+        }
 
         _fluxengine = backreference;
 
@@ -164,8 +167,8 @@ final class Search implements Runnable {
         _killerTable = new KillerTable();
         _historyTable = new HistoryTable();
 
-        new MoveGenerator(_board, _killerTable, _historyTable);
-        new See(_board);
+        _moveGenerator = new MoveGenerator(_board, _killerTable, _historyTable);
+        _see = new See(_board);
 
         this._timeTable = timeTable;
 
@@ -433,14 +436,14 @@ final class Search implements Runnable {
         boolean isCheck = attack.isCheck();
 
         if (this._searchMoveList.getLength() == 0) {
-            MoveGenerator.initializeMain(attack, 0, transpositionMove);
+            _moveGenerator.initializeMain(attack, 0, transpositionMove);
 
             int move;
-            while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
+            while ((move = _moveGenerator.getNextMove()) != Move.NOMOVE) {
                 rootMoveList.moves[rootMoveList.tail++] = move;
             }
 
-            MoveGenerator.destroy();
+            _moveGenerator.destroy();
         } else {
             for (int i = this._searchMoveList.head; i < this._searchMoveList.tail; i++) {
                 rootMoveList.moves[rootMoveList.tail++] = this._searchMoveList.moves[i];
@@ -1143,14 +1146,14 @@ final class Search implements Runnable {
         // ## ENDOF Internal Iterative Deepening
 
         // Initialize the move generator
-        MoveGenerator.initializeMain(attack, ply, transpositionMove);
+        _moveGenerator.initializeMain(attack, ply, transpositionMove);
 
         // Initialize Single-Response Extension
         boolean isSingleReply;
         isSingleReply = isCheck && attack.numberOfMoves == 1;
 
         int move;
-        while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
+        while ((move = _moveGenerator.getNextMove()) != Move.NOMOVE) {
             // ## BEGIN Minor Promotion Pruning
             if (Configuration.useMinorPromotionPruning && !this._analyzeMode
                     && Move.getType(move) == MoveType.PAWNPROMOTION
@@ -1332,7 +1335,7 @@ final class Search implements Runnable {
             }
         }
 
-        MoveGenerator.destroy();
+        _moveGenerator.destroy();
 
         // If we cannot move, check for checkmate and stalemate.
         if (bestValue == -Value.INFINITY) {
@@ -1472,10 +1475,10 @@ final class Search implements Runnable {
         }
 
         // Initialize the move generator
-        MoveGenerator.initializeQuiescent(attack, checkingDepth >= 0);
+        _moveGenerator.initializeQuiescent(attack, checkingDepth >= 0);
 
         int move;
-        while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
+        while ((move = _moveGenerator.getNextMove()) != Move.NOMOVE) {
 
             // ## BEGIN Futility Pruning
             if (Configuration.useDeltaPruning) {
@@ -1539,7 +1542,7 @@ final class Search implements Runnable {
             }
         }
 
-        MoveGenerator.destroy();
+        _moveGenerator.destroy();
 
         if (bestValue == -Value.INFINITY) {
             assert isCheck;
@@ -1596,7 +1599,6 @@ final class Search implements Runnable {
      * @param mateThreat whether we have a mate threat.
      * @return the new possibly extended search depth.
      */
-    @SuppressWarnings("static-method")
     private int getNewDepth(int depth, int move, boolean isSingleReply, boolean mateThreat) {
         int newDepth = depth - 1;
 
@@ -1606,7 +1608,7 @@ final class Search implements Runnable {
         // ## Recapture Extension
         if (Configuration.useRecaptureExtension
                 && Move.getEnd(move) == _board.captureSquare
-                && See.seeMove(move, Move.getChessmanColor(move)) > 0) {
+                && _see.seeMove(move, Move.getChessmanColor(move)) > 0) {
             newDepth++;
         }
 
@@ -1643,7 +1645,7 @@ final class Search implements Runnable {
         return newDepth;
     }
 
-    private static boolean isDangerousMove(int move) {
+    private boolean isDangerousMove(int move) {
         int chessman = Move.getChessman(move);
         int relativeRank = Square.getRelativeRank(Move.getEnd(move),
                 _board.activeColor);
@@ -1659,7 +1661,7 @@ final class Search implements Runnable {
         return false;
     }
 
-    private static void addPv(MoveList destination, MoveList source, int move) {
+    private void addPv(MoveList destination, MoveList source, int move) {
         assert destination != null;
         assert source != null;
         assert move != Move.NOMOVE;
@@ -1673,7 +1675,7 @@ final class Search implements Runnable {
         }
     }
 
-    private static void addGoodMove(int move, int depth, int height) {
+    private void addGoodMove(int move, int depth, int height) {
         assert move != Move.NOMOVE;
 
         if (Move.getTarget(move) != Piece.NOPIECE) {

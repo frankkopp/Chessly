@@ -23,8 +23,8 @@ package fko.chessly.player.computer.FluxEngine;
  */
 final class See {
 
-    private static Position _myPosition = null;
-    private static final List[] chessmanList = new List[Color.ARRAY_DIMENSION];
+    private Position _myPosition = null;
+    private final List[] chessmanList = new List[Color.ARRAY_DIMENSION];
 
     private static final class List {
         private static final int MAXSIZE = 16;
@@ -43,7 +43,7 @@ final class See {
         chessmanList[Color.BLACK] = new List();
     }
 
-    static int seeMove(int move, int myColor) {
+    int seeMove(int move, int myColor) {
         int start = Move.getStart(move);
         int end = Move.getEnd(move);
         int target = Move.getTarget(move);
@@ -117,7 +117,7 @@ final class See {
         return value;
     }
 
-    private static int makeCapture(int targetPosition, int myColor, int enemyColor, int targetValue) {
+    private int makeCapture(int targetPosition, int myColor, int enemyColor, int targetValue) {
         // Get the next attacker
         int attacker = chessmanList[myColor].chessman[0];
         int attackerPosition = chessmanList[myColor].position[0];
@@ -155,7 +155,7 @@ final class See {
         return value;
     }
 
-    private static void addAllAttackers(List list, int targetPosition, int myColor) {
+    private  void addAllAttackers(List list, int targetPosition, int myColor) {
         // Pawn attacks
         int sign = 1;
         int pawn = Piece.WHITE_PAWN;
@@ -241,7 +241,7 @@ final class See {
         }
     }
 
-    private static void addHiddenAttacker(int chessmanPosition, int targetPosition) {
+    private  void addHiddenAttacker(int chessmanPosition, int targetPosition) {
         int vector = Attack.vector[targetPosition - chessmanPosition + 127];
         if (vector == Attack.N || vector == Attack.K) {
             // No line
@@ -270,7 +270,7 @@ final class See {
         }
     }
 
-    private static boolean hasHiddenAttacker(int chessmanPosition, int targetPosition) {
+    private  boolean hasHiddenAttacker(int chessmanPosition, int targetPosition) {
         int vector = Attack.vector[targetPosition - chessmanPosition + 127];
         if (vector == Attack.N || vector == Attack.K) {
             // No line
@@ -297,7 +297,7 @@ final class See {
         return false;
     }
 
-    private static boolean shiftAttacker(List list) {
+    private  boolean shiftAttacker(List list) {
         if (list.size == 0) {
             return false;
         }
@@ -311,7 +311,7 @@ final class See {
         return true;
     }
 
-    private static void addAttacker(List list, int attacker, int attackerPosition, boolean hasHiddenAttacker) {
+    private  void addAttacker(List list, int attacker, int attackerPosition, boolean hasHiddenAttacker) {
         int attackerValue = Piece.getValueFromPiece(attacker);
         int index = -1;
         for (int i = 0; i < list.size; i++) {

@@ -48,7 +48,7 @@ class Position {
             + 2 * Piece.VALUE_ROOK;
     private static final int GAMEPHASE_ENDGAME_COUNT = 2;
 
-    private static final Random random = new Random(0);
+    private final static Random random = new Random(0);
 
     // The zobrist keys
     private static final long zobristActiveColor;
