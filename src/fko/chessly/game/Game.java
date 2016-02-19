@@ -313,8 +313,6 @@ public class Game extends ModelObservable implements Runnable, Observer {
                         notifyObservers(new PlayerDependendModelEvent(
                                 "GAME nextMove() illegalMove BLACK", _playerBlack, SIG_GAME_ILLEGAL_MOVE));
                     }
-
-
                 } else {
                     return;
                 }
@@ -352,8 +350,6 @@ public class Game extends ModelObservable implements Runnable, Observer {
                         notifyObservers(new PlayerDependendModelEvent(
                                 "GAME nextMove() illegalMove WHITE", _playerWhite, SIG_GAME_ILLEGAL_MOVE));
                     }
-
-
                 } else {
                     return;
                 }
@@ -577,6 +573,11 @@ public class Game extends ModelObservable implements Runnable, Observer {
             }
             _gameOverCause.setStatus(Game.GAMEOVER_TIME_IS_UP_FOR_ONE_PLAYER);
             _gameStatus.setStatus(Game.GAME_OVER);
+
+            // stop the player
+            _playerBlack.stopPlayer();
+            _playerWhite.stopPlayer();
+
             // -- model has changed --
             setChanged();
         } finally {
@@ -983,12 +984,12 @@ public class Game extends ModelObservable implements Runnable, Observer {
      */
     public static final int GAMEOVER_NONE = 0;
     /**
-     * Reason for status GAME_OVER: There are no more posssible moves.
+     * Reason for status GAME_OVER: There are no more possible moves.
      * Query the game over reason with get_gameOverCause()
      */
     public static final int GAMEOVER_CHECKMATE = 1;
     /**
-     * Reason for status GAME_OVER: There are no more posssible moves.
+     * Reason for status GAME_OVER: There are no more possible moves.
      * Query the game over reason with get_gameOverCause()
      */
     public static final int GAMEOVER_STALEMATE = 2;
