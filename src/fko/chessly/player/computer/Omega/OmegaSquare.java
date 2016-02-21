@@ -27,11 +27,12 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import fko.chessly.game.GamePosition;
 
 /**
  * This enumeration class represents all squares on a chess board.
@@ -164,6 +165,14 @@ public enum OmegaSquare {
     public enum File {
         a, b, c, d, e, f, g, h, NOFILE;
 
+        /**
+         * returns the file index number from 1..8
+         * @return
+         */
+        public int get() {
+            return this.ordinal()+1;
+        }
+
         @Override
         public String toString() {
             if (this == NOFILE) return "-";
@@ -177,6 +186,14 @@ public enum OmegaSquare {
      */
     public enum Rank {
         r1, r2, r3, r4, r5, r6, r7, r8, NORANK;
+
+        /**
+         * returns the rank index number from 1..8
+         * @return
+         */
+        public int get() {
+            return this.ordinal()+1;
+        }
 
         @Override
         public String toString() {
@@ -207,4 +224,20 @@ public enum OmegaSquare {
         }
     }
 
+    /**
+     * Returns the matching OmegaSquare to a given GamePosition
+     * @param gp
+     * @return matching OmegaSquare
+     */
+    public static OmegaSquare convertFromGamePosition(GamePosition gp) {
+        return OmegaSquare.values() [(gp.getRank()-1) * 16 +gp.getFile()-1];
+    }
+
+    /**
+     * Returns the matching GamePosition to this OmegaSquare
+     * @return matching GamePosition
+     */
+    public GamePosition convertToGamePosition() {
+        return GamePosition.getGamePosition(this.getFile().get(), this.getRank().get());
+    }
 }

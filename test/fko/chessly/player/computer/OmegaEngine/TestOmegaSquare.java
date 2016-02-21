@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import fko.chessly.game.GamePosition;
 import fko.chessly.player.computer.Omega.OmegaColor;
 import fko.chessly.player.computer.Omega.OmegaSquare;
 import fko.chessly.player.computer.Omega.OmegaSquare.File;
@@ -119,6 +120,25 @@ public class TestOmegaSquare {
             counter++;
         }
         assertTrue(counter==8);
+
+        // convert to GamePosition
+        GamePosition gp = OmegaSquare.a1.convertToGamePosition();
+        assertTrue(gp.getName().equals(OmegaSquare.a1.name()));
+        gp = OmegaSquare.h8.convertToGamePosition();
+        assertTrue(gp.getName().equals(OmegaSquare.h8.name()));
+        gp = OmegaSquare.e5.convertToGamePosition();
+        assertTrue(gp.getName().equals(OmegaSquare.e5.name()));
+        gp = OmegaSquare.e5.convertToGamePosition();
+        assertFalse(gp.getName().equals(OmegaSquare.e6.name()));
+
+        //convert from GamePosition
+        gp = OmegaSquare.a1.convertToGamePosition();
+        OmegaSquare os = OmegaSquare.convertFromGamePosition(gp);
+        assertTrue(os.name().equals(gp.getName()));
+        gp = GamePosition.getGamePosition("e4");
+        os = OmegaSquare.convertFromGamePosition(gp);
+        assertTrue(os.name().equals("e4"));
+
 
     }
 }

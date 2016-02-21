@@ -139,7 +139,7 @@ public enum OmegaColor {
      * Convert to GameColor
      * @return matching GameColor
      */
-    public GameColor converttoGameColor() {
+    public GameColor convertToGameColor() {
         switch (this) {
             case WHITE:
                 return GameColor.WHITE;
