@@ -36,7 +36,7 @@ import java.util.concurrent.CountDownLatch;
 public class OmegaSearch implements Runnable {
 
     private OmegaEngine _omegaEngine;
-    private OmegaBoard _omegaBoard;
+    private OmegaBoardPosition _omegaBoard;
 
     // the thread in which we will do the actual search
     private Thread _searchThread = null;
@@ -70,7 +70,7 @@ public class OmegaSearch implements Runnable {
     /**
      * @param omegaBoard
      */
-    public void startSearch(OmegaBoard omegaBoard) {
+    public void startSearch(OmegaBoardPosition omegaBoard) {
         assert omegaBoard != null : "omegaBoard must not be null";
         _omegaBoard = omegaBoard;
 

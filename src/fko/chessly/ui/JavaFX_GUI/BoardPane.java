@@ -436,7 +436,7 @@ public class BoardPane extends Pane {
     /**
      * Draw all pieces on the board
      * @param curBoard
-     * @param board
+     * @param x88board
      */
     private void drawPieces(GameBoard curBoard) {
         // do not reset the piece list if we drag

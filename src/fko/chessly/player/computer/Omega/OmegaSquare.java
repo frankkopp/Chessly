@@ -56,7 +56,7 @@ public enum OmegaSquare {
     a6, b6, c6, d6, e6, f6, g6, h6, i6, j6, k6, l6, m6, n6, o6, p6, // 80-95
     a7, b7, c7, d7, e7, f7, g7, h7, i7, j7, k7, l7, m7, n7, o7, p7, // 96-111
     a8, b8, c8, d8, e8, f8, g8, h8, i8, j8, k8, l8, m8, n8, o8, p8, // 112-127
-    INVALID;
+    NOSQUARE;
 
     // Move deltas north, south, east, west and combinations
     public static final int N = 16;
@@ -120,7 +120,7 @@ public enum OmegaSquare {
      * @return the OmegaSquare for the given index of a 0x88 board - returns INVALID if not a valid index
      */
     public static OmegaSquare getSquare(int index) {
-        if ((index & 0x88) != 0) return INVALID;
+        if ((index & 0x88) != 0) return NOSQUARE;
         return (OmegaSquare.values())[index];
     }
 

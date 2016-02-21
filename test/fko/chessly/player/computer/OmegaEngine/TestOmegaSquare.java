@@ -53,12 +53,12 @@ public class TestOmegaSquare {
         // Square addressing
         assertTrue(OmegaSquare.getSquare(0).equals(OmegaSquare.a1));
         assertTrue(OmegaSquare.getSquare(119).equals(OmegaSquare.h8));
-        assertTrue(OmegaSquare.getSquare(8).equals(OmegaSquare.INVALID));
-        assertTrue(OmegaSquare.getSquare(-1).equals(OmegaSquare.INVALID));
-        assertTrue(OmegaSquare.getSquare(128).equals(OmegaSquare.INVALID));
+        assertTrue(OmegaSquare.getSquare(8).equals(OmegaSquare.NOSQUARE));
+        assertTrue(OmegaSquare.getSquare(-1).equals(OmegaSquare.NOSQUARE));
+        assertTrue(OmegaSquare.getSquare(128).equals(OmegaSquare.NOSQUARE));
         assertTrue(OmegaSquare.h8.isValidSquare());
         assertFalse(OmegaSquare.i8.isValidSquare());
-        assertFalse(OmegaSquare.INVALID.isValidSquare());
+        assertFalse(OmegaSquare.NOSQUARE.isValidSquare());
 
         // getFile
         assertTrue(OmegaSquare.a1.getFile().equals(File.a));

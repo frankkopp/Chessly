@@ -137,7 +137,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         } // or ponder miss
 
         // convert GameBoard to OmegaBoard
-        OmegaBoard omegaBoard = new OmegaBoard(gameBoard);
+        OmegaBoardPosition omegaBoard = new OmegaBoardPosition(gameBoard);
 
         // tell the ui and the observers out state
         _engineState  = ObservableEngine.THINKING;

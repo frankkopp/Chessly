@@ -672,7 +672,7 @@ final class Move {
      * Returns whether the CommandMove is a castling move.
      *
      * @param move  the CommandMove.
-     * @param board the Hex88Board.
+     * @param x88board the Hex88Board.
      * @return true if the CommandMove is a castling move, false otherwise.
      */
     /*    private static boolean isCastling(GameMove move, Position board) {

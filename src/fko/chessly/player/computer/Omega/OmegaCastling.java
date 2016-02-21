@@ -27,19 +27,33 @@
 
 package fko.chessly.player.computer.Omega;
 
-import fko.chessly.game.GameBoard;
-import fko.chessly.game.GameBoardImpl;
-
 /**
- * @author Frank
+ * Enumeration for chess castlings
  */
-public class OmegaBoard extends GameBoardImpl {
+@SuppressWarnings("javadoc")
+public enum OmegaCastling {
+
+    WHITE_KINGSIDE  ("K"),
+    WHITE_QUEENSIDE ("Q"),
+    BLACK_KINGSIDE  ("k"),
+    BLACK_QUEENSIDE ("q");
+
+    private final String _shortName;
+
+    private OmegaCastling(String shortname) {
+        _shortName = shortname;
+    }
 
     /**
-     * @param board
+     * @return the shortName
      */
-    public OmegaBoard(GameBoard board) {
-        super(board);
+    public String getShortName() {
+        return _shortName;
+    }
+
+    @Override
+    public String toString() {
+        return _shortName;
     }
 
 }
