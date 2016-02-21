@@ -78,7 +78,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     private long _startTime = 0;;
 
 
-
     /**********************************************************************
      * Engine Interface
      **********************************************************************/
@@ -119,17 +118,26 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     /**
      * Starts calculation and returns next move
-     * @param board
+     * @param gameBoard
      * @return computed move
+     *
+     * TODO: pondering
      */
     @Override
-    public GameMove getNextMove(GameBoard board) {
+    public GameMove getNextMove(GameBoard gameBoard) {
+        assert gameBoard !=null : "gameBoard must not be null";
 
         // Start timer
         _startTime = System.currentTimeMillis();
 
+        // have we been pondering
+        if (_CONFIGURATION._USE_PONDERER && ponderHit(gameBoard)) {
+            // ponder hit
+
+        } // or ponder miss
+
         // convert GameBoard to OmegaBoard
-        OmegaBoard omegaBoard = new OmegaBoard(board);
+        OmegaBoard omegaBoard = new OmegaBoard(gameBoard);
 
         // tell the ui and the observers out state
         _engineState  = ObservableEngine.THINKING;
@@ -148,7 +156,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         GameMove bookMove = null;
         if (_CONFIGURATION._USE_BOOK) {
             _openingBook.initialize();
-            bookMove = _openingBook.getBookMove(board.toFENString());
+            bookMove = _openingBook.getBookMove(gameBoard.toFENString());
             if (bookMove != null) {
                 // tell the ui and the observers out state
                 _statusInfo = "Book move. Engine waiting.";
@@ -189,9 +197,30 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         setChanged();
         notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
 
+        // pondering
+        if (_CONFIGURATION._USE_PONDERER) {
+            /*
+            if (_searchResult != null && _searchResult.ponderMove != 0) {
+                _ponderMove = Move.toGameMove(_moveResult.ponderMove);
+                _engineState  = ObservableEngine.PONDERING;
+                _statusInfo = "Engine pondering.";
+                // ponder search
+                // make best move
+                assert gameBoard.isLegalMove(bestMove);
+                gameBoard.makeMove(bestMove);
+                // make ponder move
+                assert gameBoard.isLegalMove(_ponderMove);
+                gameBoard.makeMove(_ponderMove);
+                startPondering();
+            } else {
+                _ponderMove = null;
+            }
+             */
+        }
+
         // DEBUG code
         if (bestMove == null) {
-            List<GameMove> moves = board.generateMoves();
+            List<GameMove> moves = gameBoard.generateMoves();
             if (!moves.isEmpty()) {
                 int move = (int) Math.round((moves.size() - 1) * Math.random());
                 return moves.get(move);
@@ -202,6 +231,15 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     /**********************************************************************
      * Omega Engine Methods
+     **********************************************************************/
+
+    /**
+     * @param gameBoard
+     * @return
+     */
+    private boolean ponderHit(GameBoard gameBoard) {
+        return false;
+    }
 
     /**
      * @param searchResult

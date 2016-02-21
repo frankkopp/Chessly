@@ -106,7 +106,6 @@ final class Color {
      */
     static int switchColor(int color) {
         assert color != NOCOLOR && (color == WHITE || color == BLACK);
-
         assert (color ^ MASK) == WHITE || (color ^ MASK) == BLACK;
         return color ^ MASK;
     }
@@ -130,7 +129,6 @@ final class Color {
                 return true;
             }
         }
-
         return false;
     }
 

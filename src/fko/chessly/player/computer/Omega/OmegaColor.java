@@ -24,25 +24,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package fko.chessly.game;
+
+package fko.chessly.player.computer.Omega;
+
+import fko.chessly.game.GameColor;
 
 /**
  * <p/>
- * The ChesslyColor class represents the two colors of a Chessly game and a special color for empty fields (NONE).
- * This class can not be instanciated. It keeps public references to the only possible instances BLACK, WHITE, NONE.
+ * The Color class represents the two colors of a Chessly game and a special color for empty fields (NONE).
+ * This class can not be instantiated. It keeps public references to the only possible instances BLACK, WHITE, NONE.
  * These instances are immutable. As it is not possible to have any other instances of ChesslyColors the use of
  * these instances is as fast as if using an int.
  * </p>
  *
  * @author Frank Kopp (frank@familie-kopp.de)
  */
-public enum GameColor {
+enum OmegaColor {
 
     BLACK,
     WHITE,
     NONE;
 
-    static final GameColor[] values = {
+    static final OmegaColor[] values = {
             WHITE, BLACK
     };
 
@@ -50,15 +53,16 @@ public enum GameColor {
      * Returns the other ChesslyColor.
      * @return int - as defined in ChesslyColor
      */
-    public GameColor getInverseColor() {
-        if (this == BLACK) {
-            return WHITE;
-        } else if (this == WHITE) {
-            return BLACK;
-        } else if (this == NONE ) {
-            throw new UnsupportedOperationException("Chessly.NONE has no inverse color");
-        } else {
-            throw new RuntimeException("Invalid ChesslyColor");
+    public OmegaColor getInverseColor() {
+        switch (this) {
+            case BLACK:
+                return WHITE;
+            case WHITE:
+                return BLACK;
+            case NONE:
+                throw new UnsupportedOperationException("Color.NONE has no inverse color");
+            default:
+                throw new RuntimeException("Invalid Color");
         }
     }
 
@@ -81,7 +85,7 @@ public enum GameColor {
      */
     public char toChar() {
         switch (this) {
-            case WHITE:	return 'w';
+            case WHITE: return 'w';
             case BLACK: return 'b';
             case NONE:
             default: return ' ';
@@ -90,6 +94,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is BLACK
+     * @return true if black
      */
     public boolean isBlack() {
         return this==BLACK;
@@ -97,6 +102,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is WHITE
+     * @return true if white
      */
     public boolean isWhite() {
         return this==WHITE;
@@ -104,23 +110,45 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is NONE
+     * @return true if neither white nor black
      */
     public boolean isNone() {
         return this==NONE;
     }
 
     /**
-     * Convenience method to check if the instance is EMPTY
+     * Convert from GameColor
+     * @param c
+     * @return matching OmegaColor
      */
-    public boolean isEmpty() {
-        return this==NONE;
+    public static OmegaColor convertFromGameColor(GameColor c) {
+        switch (c) {
+            case WHITE:
+                return OmegaColor.WHITE;
+            case BLACK:
+                return OmegaColor.BLACK;
+            case NONE:
+                return OmegaColor.NONE;
+            default:
+                throw new RuntimeException("Invalid Color");
+        }
     }
 
     /**
-     * Convenience method to check if the instance is not EMPTY
+     * Convert to GameColor
+     * @return matching GameColor
      */
-    public boolean isNotEmpty() {
-        return this!=NONE;
+    public GameColor converttoGameColor() {
+        switch (this) {
+            case WHITE:
+                return GameColor.WHITE;
+            case BLACK:
+                return GameColor.BLACK;
+            case NONE:
+                return GameColor.NONE;
+            default:
+                throw new RuntimeException("Invalid Color");
+        }
     }
 
 }
