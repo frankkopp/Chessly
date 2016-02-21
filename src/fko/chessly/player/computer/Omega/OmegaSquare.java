@@ -157,7 +157,6 @@ public enum OmegaSquare {
         return valueList;
     }
 
-
     /**
      * This enum represents all files of a chess board.
      * If used in a loop via values() omit NOFILE.
