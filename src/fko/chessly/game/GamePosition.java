@@ -29,7 +29,7 @@ package fko.chessly.game;
 import java.io.Serializable;
 
 /**
- * Simply and lightwight class for x and Y coordinates.
+ * Class for x and Y coordinates.
  * Coordinates are int value.
  * Immutable.
  *
@@ -172,7 +172,7 @@ public class GamePosition implements Serializable {
 
     /**
      * Factory method for GamePosition - so we can return one 64
-     * pregenerated GamePosition objects.
+     * pre-generated GamePosition objects.
      *
      * @param s
      * @return the game position from the string s
@@ -231,12 +231,15 @@ public class GamePosition implements Serializable {
     }
 
     /**
-     * @return
+     * @return string representing the position
      */
     public String toNotationString() {
         return getName();
     }
 
+    /**
+     * @return string representing the position
+     */
     @Override
     public String toString() {
         return getName();
