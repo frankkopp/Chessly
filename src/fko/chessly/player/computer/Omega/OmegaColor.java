@@ -42,8 +42,8 @@ import fko.chessly.game.GameColor;
 @SuppressWarnings("javadoc")
 public enum OmegaColor {
 
-    BLACK,
     WHITE,
+    BLACK,
     NONE;
 
     public static final OmegaColor[] values = {
