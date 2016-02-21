@@ -26,23 +26,34 @@
  */
 package fko.chessly.player.computer.Omega;
 
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveList;
+import fko.chessly.mvc.ModelObservable;
+import fko.chessly.mvc.ModelEvents.PlayerDependendModelEvent;
+import fko.chessly.openingbook.OpeningBookImpl;
+import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.Omega.OmegaSearch.SearchResult;
+import fko.chessly.player.computer.PulseEngine.Configuration;
 
 /**
  * New engine implementation
  */
-public class OmegaEngine implements ObservableEngine {
+public class OmegaEngine extends ModelObservable implements ObservableEngine {
+
+    /** read in the default configuration - change the public fields if necessary */
+    public final Configuration _CONFIGURATION = new Configuration();
 
     // The current game this engine is used in
     private Game _game = null;
@@ -57,7 +68,16 @@ public class OmegaEngine implements ObservableEngine {
     private SearchResult _searchResult = null;
 
     // the player owning this engine
-    private Player _player;
+    private ComputerPlayer _player = null;
+    private GameColor _activeColor = GameColor.NONE;
+
+    // the opening book
+    private OpeningBookImpl _openingBook = null;
+
+    // holds the time we started searching
+    private long _startTime = 0;;
+
+
 
     /**********************************************************************
      * Engine Interface
@@ -65,7 +85,6 @@ public class OmegaEngine implements ObservableEngine {
 
     /**
      * Sets the current game.
-     *
      * @param game
      */
     @Override
@@ -81,27 +100,64 @@ public class OmegaEngine implements ObservableEngine {
      */
     @Override
     public void init(Player player) {
-        _player = player;
+        // setup our player and color
+        if (!(player instanceof ComputerPlayer)) {
+            Chessly.fatalError("Engine objext can only be used with an instance of ComputerPlayer!");
+        }
+        this._player = (ComputerPlayer) player;
+        _activeColor = player.getColor();
+
         // Create Search
         _omegaSearch = new OmegaSearch(this);
+
+        // initialize opening book
+        if (_CONFIGURATION._USE_BOOK) {
+            Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
+            _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
+        }
     }
 
     /**
      * Starts calculation and returns next move
-     *
      * @param board
-     * @return first legal move
+     * @return computed move
      */
     @Override
     public GameMove getNextMove(GameBoard board) {
 
-        // TODO: Opening Book
+        // Start timer
+        _startTime = System.currentTimeMillis();
 
         // convert GameBoard to OmegaBoard
         OmegaBoard omegaBoard = new OmegaBoard(board);
 
-        // set latch to later wait for move from search
-        _waitForMoveLatch = new CountDownLatch(1);
+        // tell the ui and the observers out state
+        _engineState  = ObservableEngine.THINKING;
+        _statusInfo = "Engine calculating.";
+        setChanged();
+        notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" start calculating",
+                _player, SIG_ENGINE_START_CALCULATING));
+
+        // Reset all the counters used for the TreeSearchEngineWatcher
+        resetCounters();
+
+        // reset last search result
+        _searchResult = null;
+
+        // check for move from opening book
+        GameMove bookMove = null;
+        if (_CONFIGURATION._USE_BOOK) {
+            _openingBook.initialize();
+            bookMove = _openingBook.getBookMove(board.toFENString());
+            if (bookMove != null) {
+                // tell the ui and the observers out state
+                _statusInfo = "Book move. Engine waiting.";
+                _engineState  = ObservableEngine.IDLE;
+                setChanged();
+                notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
+                return bookMove;
+            }
+        }
 
         // configure the search
         // if not configured will used default mode
@@ -113,31 +169,39 @@ public class OmegaEngine implements ObservableEngine {
                 Playroom.getInstance().getCurrentEngineLevelBlack()
                 );
 
-        // reset last search result
-        _searchResult = null;
+        // set latch to later wait for move from search
+        _waitForMoveLatch = new CountDownLatch(1);
 
-        // do the search
+        // do normal search
         _omegaSearch.startSearch(omegaBoard);
 
         // wait for the result to come in from the search
         try { _waitForMoveLatch.await();
         } catch (InterruptedException e) { /*empty*/ }
 
-        // convert OmegaMove to GameMove
-        // TODO
+        // TODO convert result OmegaMove to GameMove
+        GameMove bestMove = null;
+        // convert
+
+        // tell the ui and the observers out state
+        _statusInfo = "Engine waiting.";
+        _engineState  = ObservableEngine.IDLE;
+        setChanged();
+        notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
 
         // DEBUG code
-        List<GameMove> moves = board.generateMoves();
-        if (!moves.isEmpty()) {
-            int move = (int) Math.round((moves.size() - 1) * Math.random());
-            return moves.get(move);
+        if (bestMove == null) {
+            List<GameMove> moves = board.generateMoves();
+            if (!moves.isEmpty()) {
+                int move = (int) Math.round((moves.size() - 1) * Math.random());
+                return moves.get(move);
+            }
         }
-        return null;
+        return bestMove;
     }
 
     /**********************************************************************
      * Omega Engine Methods
-     **********************************************************************/
 
     /**
      * @param searchResult
@@ -153,6 +217,14 @@ public class OmegaEngine implements ObservableEngine {
      */
     public GameColor getActiveColor() {
         return _player.getColor();
+    }
+
+    /**
+     *
+     */
+    private void resetCounters() {
+        // TODO Auto-generated method stub
+
     }
 
     /**********************************************************************
@@ -357,31 +429,21 @@ public class OmegaEngine implements ObservableEngine {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getInfoText()
-     */
     @Override
     public String getInfoText() {
-        // TODO Auto-generated method stub
         return "";
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getStatusText()
-     */
+    private String _statusInfo = "";
     @Override
     public String getStatusText() {
-        // TODO Auto-generated method stub
-        return null;
+        return _statusInfo;
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getState()
-     */
+    private int _engineState = ObservableEngine.IDLE;
     @Override
     public int getState() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _engineState;
     }
 
     /* (non-Javadoc)
@@ -403,5 +465,15 @@ public class OmegaEngine implements ObservableEngine {
     }
 
 
+    /** */
+    public static final int SIG_ENGINE_START_CALCULATING = 6000;
+    /** */
+    public static final int SIG_ENGINE_FINISHED_CALCULATING = 6010;
+    /** */
+    public static final int SIG_ENGINE_START_PONDERING = 6020;
+    /** */
+    public static final int SIG_ENGINE_FINISHED_PONDERING = 6030;
+    /** */
+    public static final int SIG_ENGINE_NO_PONDERING = 6040;
 
 }

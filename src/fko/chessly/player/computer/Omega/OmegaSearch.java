@@ -28,7 +28,6 @@
 package fko.chessly.player.computer.Omega;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 
 /**
  * @author Frank
@@ -51,6 +50,16 @@ public class OmegaSearch implements Runnable {
     // flag to indicate to stop the search - can be called externally or via the timer clock.
     private boolean _stopSearch = true;
 
+    // flag to indicate that the search is currently pondering
+    private boolean _isPondering = false;
+
+    // search configuration (with defaults)
+    private boolean _isTimedGame = true;
+    private long _remainingTimeWhite = 300;
+    private long _remainginTiemBlack = 300;
+    private int _currentEngineLevelWhite = 99;
+    private int _currentEngineLevelBlack = 99;
+
     /**
      * @param omegaEngine
      */
@@ -63,16 +72,17 @@ public class OmegaSearch implements Runnable {
      */
     public void startSearch(OmegaBoard omegaBoard) {
         assert omegaBoard != null : "omegaBoard must not be null";
+        _omegaBoard = omegaBoard;
 
         // has OmegaSearch.configure been called?
         if (!_isConfigured) {
             System.err.println("Search started without configuration - using defaults");
         }
 
-        _omegaBoard = omegaBoard;
-
+        // setup latch
         _waitForInitializaitonLatch = new CountDownLatch(1);
 
+        // reset the stop search flag
         _stopSearch = false;
 
         // create new search thread
@@ -92,6 +102,7 @@ public class OmegaSearch implements Runnable {
     public void stop() {
         // TODO - do something that stops search
 
+        // set stop flag - search needs to check regularly and stop accordingly
         _stopSearch = true;
 
         // Wait for the thread to die
@@ -126,6 +137,8 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Setup the Search with all necessary level and time settings.
+     *
      * @param timedGame
      * @param remainingTimeWhite in ms
      * @param remainginTiemBlack in ms
@@ -136,14 +149,27 @@ public class OmegaSearch implements Runnable {
             long remainingTimeWhite, long remainginTiemBlack,
             int currentEngineLevelWhite, int currentEngineLevelBlack) {
 
-        _isConfigured = true;
-        // TODO Auto-generated method stub
+        _isTimedGame = timedGame;
+        _remainingTimeWhite = remainingTimeWhite;
+        _remainginTiemBlack = remainginTiemBlack;
+        _currentEngineLevelWhite = currentEngineLevelWhite;
+        _currentEngineLevelBlack = currentEngineLevelBlack;
 
+        _isConfigured = true;
+
+    }
+
+    /**
+     * @return true if currently pondering or was pondering but search is finished
+     */
+    public boolean isPondering() {
+        return _isPondering;
     }
 
     /**
      * Parameter class for the search result
      */
+
     static final class SearchResult {
         int bestMove = 0;
         int ponderMove = 0;
