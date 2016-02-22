@@ -132,6 +132,17 @@ public enum OmegaSquare {
     }
 
     /**
+     *
+     */
+    public static OmegaSquare getSquare(int file, int rank) {
+        if (file<1 || file>8 || rank<1 || rank>8) return OmegaSquare.NOSQUARE;
+        // index starts with 0 while file and rank start with 1 - decrease
+        final int index = (rank-1) * 16 + (file-1);
+        if ((index & 0x88) != 0) return NOSQUARE; // is this extra check nexessary?
+        return OmegaSquare.values() [ index ];
+    }
+
+    /**
      * @return OmegaSquare.File for this QmegaSquare
      */
     public File getFile() {
@@ -172,6 +183,15 @@ public enum OmegaSquare {
             return this.ordinal()+1;
         }
 
+        /**
+         * returns the enum File for a given file number
+         * @param file
+         * @return
+         */
+        public static File get(int file) {
+            return OmegaSquare.File.values()[file-1];
+        }
+
         @Override
         public String toString() {
             if (this == NOFILE) return "-";
@@ -192,6 +212,15 @@ public enum OmegaSquare {
          */
         public int get() {
             return this.ordinal()+1;
+        }
+
+        /**
+         * returns the enum Rank for a given rank number
+         * @param file
+         * @return
+         */
+        public static Rank get(int rank) {
+            return OmegaSquare.Rank.values()[rank-1];
         }
 
         @Override

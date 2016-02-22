@@ -33,10 +33,11 @@ package fko.chessly.player.computer.Omega;
 @SuppressWarnings("javadoc")
 public enum OmegaCastling {
 
-    WHITE_KINGSIDE  ("K"),
-    WHITE_QUEENSIDE ("Q"),
-    BLACK_KINGSIDE  ("k"),
-    BLACK_QUEENSIDE ("q");
+    // order has influence on FEN notation
+    WHITE_KINGSIDE  ("K"), // 0
+    WHITE_QUEENSIDE ("Q"), // 1
+    BLACK_KINGSIDE  ("k"), // 2
+    BLACK_QUEENSIDE ("q"); // 3
 
     private final String _shortName;
 

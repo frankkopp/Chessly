@@ -33,12 +33,14 @@ package fko.chessly.player.computer.Omega;
 @SuppressWarnings("javadoc")
 public enum OmegaPieceType {
 
-    KING   ("K", false, 20000),
-    QUEEN  ("Q", true,  975),
-    ROOK   ("R", true,  500),
-    BISHOP ("B", true,  325),
-    KNIGHT ("N", false, 325),
-    PAWN   ("P", false, 100);
+    // order has influence on OmegaPiece
+    NOTYPE ("-", false, 0),    // 0
+    PAWN   ("P", false, 100),  // 1
+    KNIGHT ("N", false, 325),  // 2
+    BISHOP ("B", true,  325),  // 3
+    ROOK   ("R", true,  500),  // 4
+    QUEEN  ("Q", true,  975),  // 5
+    KING   ("K", false, 20000);// 6
 
     private final String _shortName;
     private final int _value;

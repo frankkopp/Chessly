@@ -42,18 +42,19 @@ import fko.chessly.game.pieces.Rook;
 @SuppressWarnings("javadoc")
 public enum OmegaPiece {
 
-    WHITE_KING   (OmegaPieceType.KING,   OmegaColor.WHITE, "K"),
-    WHITE_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.WHITE, "Q"),
-    WHITE_ROOK   (OmegaPieceType.ROOK,   OmegaColor.WHITE, "R"),
-    WHITE_BISHOP (OmegaPieceType.BISHOP, OmegaColor.WHITE, "B"),
-    WHITE_KNIGHT (OmegaPieceType.KNIGHT, OmegaColor.WHITE, "N"),
-    WHITE_PAWN   (OmegaPieceType.PAWN,   OmegaColor.WHITE, "P"),
-    BLACK_KING   (OmegaPieceType.KING,   OmegaColor.BLACK, "k"),
-    BLACK_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.BLACK, "q"),
-    BLACK_ROOK   (OmegaPieceType.ROOK,   OmegaColor.BLACK, "r"),
-    BLACK_BISHOP (OmegaPieceType.BISHOP, OmegaColor.BLACK, "b"),
-    BLACK_KNIGHT (OmegaPieceType.KNIGHT, OmegaColor.BLACK, "n"),
-    BLACK_PAWN   (OmegaPieceType.PAWN,   OmegaColor.BLACK, "p");
+    NOPIECE      (OmegaPieceType.NOTYPE, OmegaColor.NOCOLOR, " "), // 0
+    WHITE_PAWN   (OmegaPieceType.PAWN,   OmegaColor.WHITE, "P"), // 1
+    WHITE_KNIGHT (OmegaPieceType.KNIGHT, OmegaColor.WHITE, "N"), // 2
+    WHITE_BISHOP (OmegaPieceType.BISHOP, OmegaColor.WHITE, "B"), // 3
+    WHITE_ROOK   (OmegaPieceType.ROOK,   OmegaColor.WHITE, "R"), // 4
+    WHITE_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.WHITE, "Q"), // 5
+    WHITE_KING   (OmegaPieceType.KING,   OmegaColor.WHITE, "K"), // 6
+    BLACK_PAWN   (OmegaPieceType.PAWN,   OmegaColor.BLACK, "p"), // 7
+    BLACK_KNIGHT (OmegaPieceType.KNIGHT, OmegaColor.BLACK, "n"), // 8
+    BLACK_BISHOP (OmegaPieceType.BISHOP, OmegaColor.BLACK, "b"), // 9
+    BLACK_ROOK   (OmegaPieceType.ROOK,   OmegaColor.BLACK, "r"), // 10
+    BLACK_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.BLACK, "q"), // 11
+    BLACK_KING   (OmegaPieceType.KING,   OmegaColor.BLACK, "k"); // 12
 
     private final OmegaPieceType _type;
     private final OmegaColor _color;
@@ -98,7 +99,9 @@ public enum OmegaPiece {
      * @return matching OmegaPiece
      */
     public static OmegaPiece getPiece(OmegaPieceType type, OmegaColor color) {
-        return OmegaPiece.values() [ (color.ordinal()*6) + type.ordinal()];
+        // this only works if the ordinal of all enums stay the same - if they change this
+        // has to be changed as well
+        return OmegaPiece.values() [ (color.ordinal()*6) + type.ordinal() ];
     }
 
     /**

@@ -27,10 +27,14 @@
 
 package fko.chessly.player.computer.OmegaEngine;
 
+import static org.junit.Assert.*;
+
 import java.util.EnumSet;
 
 import org.junit.Test;
 
+import fko.chessly.game.NotationHelper;
+import fko.chessly.player.computer.Omega.OmegaBoardPosition;
 import fko.chessly.player.computer.Omega.OmegaCastling;
 
 /**
@@ -42,7 +46,7 @@ public class TestOmegaBoardPosition {
     /**
      *
      */
-    @Test
+    //@Test
     public void testCastlingRights() {
         // Castling rights
         EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
@@ -53,5 +57,47 @@ public class TestOmegaBoardPosition {
         System.out.println();
         System.out.println(_castlingRights.contains(OmegaCastling.BLACK_QUEENSIDE));
     }
+
+    /**
+     *
+     */
+    @Test
+    public void testContructorFromFEN() {
+
+        String fen = NotationHelper.StandardBoardFEN;
+        fen = "8/1P6/6k1/8/8/8/p1K5/8 w - - 0 1";
+        fen = "4k2r/1q1p1pp1/p3p3/1pb1P3/2r3P1/P1N1P2p/1PP1Q2P/2R1R1K1 b k - 0 1";
+        fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+
+        /*
+            ---------------------------------
+         8: |bR |   |   |   |bK |   |   |bR |
+            ---------------------------------
+         7: |   |bP |bP |bN |   |   |   |bP |
+            ---------------------------------
+         6: |   |   |bQ |   |bQ |   |bN |   |
+            ---------------------------------
+         5: |   |   |   |   |   |   |   |   |
+            ---------------------------------
+         4: |   |   |bQ |   |wP |bP |   |   |
+            ---------------------------------
+         3: |   |   |   |   |   |   |wR |   |
+            ---------------------------------
+         2: |bP |   |bP |   |   |wP |wP |wP |
+            ---------------------------------
+         1: |   |wR |   |   |   |   |wK |   |
+            ---------------------------------
+              A   B   C   D   E   F   G   H
+
+         black, ep on e4, O-O & O-O-O for black
+         */
+
+        OmegaBoardPosition obp = new OmegaBoardPosition(fen);
+        //System.out.println(fen);
+        //System.out.println(obp.toFENString());
+        assertTrue(obp.toFENString().equals(fen));
+
+    }
+
 
 }

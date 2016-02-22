@@ -42,9 +42,10 @@ import fko.chessly.game.GameColor;
 @SuppressWarnings("javadoc")
 public enum OmegaColor {
 
-    WHITE,
-    BLACK,
-    NONE;
+    // order has influence on OmegaPiece
+    WHITE,   // 0
+    BLACK,   // 1
+    NOCOLOR; // 2
 
     public static final OmegaColor[] values = {
             WHITE, BLACK
@@ -60,7 +61,7 @@ public enum OmegaColor {
                 return WHITE;
             case WHITE:
                 return BLACK;
-            case NONE:
+            case NOCOLOR:
                 throw new UnsupportedOperationException("Color.NONE has no inverse color");
             default:
                 throw new RuntimeException("Invalid Color");
@@ -88,7 +89,7 @@ public enum OmegaColor {
         switch (this) {
             case WHITE: return 'w';
             case BLACK: return 'b';
-            case NONE:
+            case NOCOLOR:
             default: return ' ';
         }
     }
@@ -114,7 +115,7 @@ public enum OmegaColor {
      * @return true if neither white nor black
      */
     public boolean isNone() {
-        return this==NONE;
+        return this==NOCOLOR;
     }
 
     /**
@@ -129,7 +130,7 @@ public enum OmegaColor {
             case BLACK:
                 return OmegaColor.BLACK;
             case NONE:
-                return OmegaColor.NONE;
+                return OmegaColor.NOCOLOR;
             default:
                 throw new RuntimeException("Invalid Color");
         }
@@ -145,7 +146,7 @@ public enum OmegaColor {
                 return GameColor.WHITE;
             case BLACK:
                 return GameColor.BLACK;
-            case NONE:
+            case NOCOLOR:
                 return GameColor.NONE;
             default:
                 throw new RuntimeException("Invalid Color");

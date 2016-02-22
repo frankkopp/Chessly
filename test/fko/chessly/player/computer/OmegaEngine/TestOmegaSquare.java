@@ -60,6 +60,13 @@ public class TestOmegaSquare {
         assertFalse(OmegaSquare.i8.isValidSquare());
         assertFalse(OmegaSquare.NOSQUARE.isValidSquare());
 
+        // addressing with file and rank
+        assertTrue(OmegaSquare.getSquare(1,1).equals(OmegaSquare.a1));
+        assertTrue(OmegaSquare.getSquare(8,8).equals(OmegaSquare.h8));
+        assertTrue(OmegaSquare.getSquare(1,9).equals(OmegaSquare.NOSQUARE));
+        assertTrue(OmegaSquare.getSquare(0,8).equals(OmegaSquare.NOSQUARE));
+        assertTrue(OmegaSquare.getSquare(9,9).equals(OmegaSquare.NOSQUARE));
+
         // getFile
         assertTrue(OmegaSquare.a1.getFile().equals(File.a));
         assertTrue(OmegaSquare.h8.getFile().equals(File.h));
