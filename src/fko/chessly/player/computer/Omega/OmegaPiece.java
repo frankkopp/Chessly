@@ -131,6 +131,7 @@ public enum OmegaPiece {
      * @return matching OmegaPiece
      */
     public static OmegaPiece convertFromGamePiece(GamePiece gp) {
+        if (gp == null) return OmegaPiece.NOPIECE;
         assert (gp.isWhite() || gp.isBlack());
         switch (gp.getType()) {
             case KING:   return gp.isWhite() ? OmegaPiece.WHITE_KING : OmegaPiece.BLACK_KING;

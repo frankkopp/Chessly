@@ -258,6 +258,7 @@ public enum OmegaSquare {
      * @return matching OmegaSquare
      */
     public static OmegaSquare convertFromGamePosition(GamePosition gp) {
+        if (gp==null) return OmegaSquare.NOSQUARE;
         return OmegaSquare.values() [(gp.getRank()-1) * 16 +gp.getFile()-1];
     }
 

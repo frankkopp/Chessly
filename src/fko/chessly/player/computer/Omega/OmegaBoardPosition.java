@@ -31,6 +31,9 @@ import java.util.Arrays;
 import java.util.EnumSet;
 
 import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameCastling;
+import fko.chessly.game.GameColor;
+import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePosition;
 import fko.chessly.player.computer.Omega.OmegaSquare.File;
 
@@ -105,16 +108,54 @@ public class OmegaBoardPosition {
      * @param op
      */
     public OmegaBoardPosition(OmegaBoardPosition op) {
-
+        if (op == null)
+            throw new NullPointerException("Parameter op may not be null");
+        System.arraycopy(op._x88Board, 0, this._x88Board, 0, op._x88Board.length);
+        this._castlingRights = op._castlingRights.clone();
+        this._enPassantSquare = op._enPassantSquare;
+        this._halfMoveClock = op._halfMoveClock;
+        this._halfMoveNumber = op._halfMoveNumber;
+        this._nextPlayer = op._nextPlayer;
     }
 
     /**
      * Copy constructor from GameBoard - creates a equivalent OmegaBoardPosition
      * from the give GameBoard
-     * @param board
+     * @param oldBoard
      */
-    public OmegaBoardPosition(GameBoard board) {
-
+    public OmegaBoardPosition(GameBoard oldBoard) {
+        if (oldBoard == null)
+            throw new NullPointerException("Parameter oldBoard may not be null");
+        // -- copy fields --
+        for (int file = 1; file <= 8; file++) {
+            for (int rank = 1; rank <= 8; rank++) {
+                // we can't do an arraycopy here as we do not know the
+                // Implementation of the old board
+                GamePiece gp = oldBoard.getPiece(file, rank) == null ? null
+                        : (GamePiece) oldBoard.getPiece(file, rank).clone();
+                OmegaPiece op = OmegaPiece.convertFromGamePiece(gp);
+                _x88Board[OmegaSquare.getSquare(file, rank).ordinal()] = op;
+            }
+        }
+        // -- copy castling flags
+        _castlingRights = EnumSet.noneOf(OmegaCastling.class);
+        if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
+            _castlingRights.add(OmegaCastling.WHITE_KINGSIDE);
+        }
+        if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
+            _castlingRights.add(OmegaCastling.WHITE_QUEENSIDE);
+        }
+        if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
+            _castlingRights.add(OmegaCastling.BLACK_KINGSIDE);
+        }
+        if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
+            _castlingRights.add(OmegaCastling.BLACK_QUEENSIDE);
+        }
+        // other fields
+        this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
+        this._halfMoveClock = oldBoard.getHalfmoveClock();
+        this._halfMoveNumber = oldBoard.getLastHalfMoveNumber();
+        this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
     }
 
     /**
@@ -143,10 +184,9 @@ public class OmegaBoardPosition {
      * @param fen
      */
     private void initBoard(String fen) {
+
         // clear board
-        for (OmegaSquare s : OmegaSquare.getValueList()) {
-            _x88Board[s.ordinal()] = OmegaPiece.NOPIECE;
-        }
+        Arrays.fill(_x88Board,  OmegaPiece.NOPIECE);
 
         // Standard Start Board
         setupFromFEN(fen);
@@ -210,7 +250,6 @@ public class OmegaBoardPosition {
             if (file > 9) {
                 throw new IllegalArgumentException("FEN Syntax not valid - expected (1-9a-hA-H/)");
             }
-
         }
 
         // next player

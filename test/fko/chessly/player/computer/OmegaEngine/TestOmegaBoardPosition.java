@@ -29,19 +29,92 @@ package fko.chessly.player.computer.OmegaEngine;
 
 import static org.junit.Assert.*;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.EnumSet;
 
 import org.junit.Test;
 
+import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.NotationHelper;
 import fko.chessly.player.computer.Omega.OmegaBoardPosition;
 import fko.chessly.player.computer.Omega.OmegaCastling;
+import fko.chessly.player.computer.Omega.OmegaPiece;
+import fko.chessly.player.computer.Omega.OmegaSquare;
 
 /**
  * @author fkopp
  *
  */
 public class TestOmegaBoardPosition {
+
+
+    private static final int ITERATIONS = 99999;
+
+    /**
+     *
+     */
+    @Test
+    public void testTimings() {
+
+        OmegaPiece[] _x88Board = new OmegaPiece[129];
+
+        // fill array
+        System.out.println("x88Board fill with value 1. Arrays.fill 2. for loop");
+        Instant start = Instant.now();
+        for (int i=0;i<ITERATIONS;i++) Arrays.fill(_x88Board,  OmegaPiece.NOPIECE);
+        Instant end = Instant.now();
+        System.out.println(Duration.between(start, end));
+        start = Instant.now();
+        // clear board
+        for (int i=0;i<ITERATIONS;i++) {
+            for (OmegaSquare s : OmegaSquare.getValueList()) {
+                _x88Board[s.ordinal()] = OmegaPiece.NOPIECE;
+            }
+        }
+        end = Instant.now();
+        System.out.println(Duration.between(start, end));
+
+        // copy array
+        System.out.println("Copy x88Board - 1. System.arraycopy 2. Arrays.copyof");
+        _x88Board = new OmegaPiece[128];
+        OmegaPiece[] _x88Board2 = new OmegaPiece[128];
+        start = Instant.now();
+        // clear board
+        for (int i=0;i<ITERATIONS;i++) System.arraycopy(_x88Board, 0, _x88Board2, 0, _x88Board.length);
+        end = Instant.now();
+        System.out.println(Duration.between(start, end));
+        start = Instant.now();
+        // clear board
+        for (int i=0;i<ITERATIONS;i++) _x88Board2 = Arrays.copyOf(_x88Board, _x88Board.length);
+        end = Instant.now();
+        System.out.println(Duration.between(start, end));
+
+        System.out.println("OmegaBoardPosition creation and Copy Contructor of OmegaBoardPosition");
+        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+        OmegaBoardPosition obp = null;
+        start = Instant.now();
+        for (int i=0;i<ITERATIONS;i++) obp = new OmegaBoardPosition(fen);
+        end = Instant.now();
+        System.out.println(Duration.between(start, end));
+        OmegaBoardPosition obp_copy=null;
+        start = Instant.now();
+        for (int i=0;i<ITERATIONS;i++) obp_copy = new OmegaBoardPosition(obp);
+        end = Instant.now();
+        System.out.println(Duration.between(start, end));
+
+        System.out.println("GameBoard creation and Copy Contructor of OmegaBoardPosition");
+        GameBoard gb = null;;
+        start = Instant.now();
+        for (int i=0;i<ITERATIONS;i++) gb = new GameBoardImpl(fen);
+        end = Instant.now();
+        System.out.println(Duration.between(start, end));
+        start = Instant.now();
+        for (int i=0;i<ITERATIONS;i++) obp_copy = new OmegaBoardPosition(gb);
+        System.out.println(Duration.between(start, end));
+    }
 
     /**
      *
@@ -97,6 +170,29 @@ public class TestOmegaBoardPosition {
         //System.out.println(obp.toFENString());
         assertTrue(obp.toFENString().equals(fen));
 
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testCopyContructor() {
+        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+        OmegaBoardPosition obp = new OmegaBoardPosition(fen);
+        OmegaBoardPosition obp_copy = new OmegaBoardPosition(obp);
+        assertTrue(obp.equals(obp_copy));
+        assertTrue(obp.toFENString().equals(obp_copy.toFENString()));
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testContructorFromGameBoard() {
+        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+        GameBoard gb = new GameBoardImpl(fen);
+        OmegaBoardPosition obp_copy = new OmegaBoardPosition(gb);
+        assertTrue(gb.toFENString().equals(obp_copy.toFENString()));
     }
 
 
