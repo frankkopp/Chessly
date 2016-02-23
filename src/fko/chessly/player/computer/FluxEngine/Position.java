@@ -57,7 +57,7 @@ final class Position {
     private static final long[] zobristEnPassant = new long[BOARDSIZE];
 
     //## BEGIN 0x88 Board Representation
-    final int[] board = new int[BOARDSIZE];
+    static final int[] board = new int[BOARDSIZE];
     //## ENDOF 0x88 Board Representation
 
     // The chessman lists.

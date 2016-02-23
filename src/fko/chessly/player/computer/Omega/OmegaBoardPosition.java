@@ -158,6 +158,14 @@ public class OmegaBoardPosition {
         this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
     }
 
+    private void makeMove(OmegaMove om) {
+
+    }
+
+    private void undoMove(OmegaMove om) {
+
+    }
+
     /**
      * @param piece
      * @param file
