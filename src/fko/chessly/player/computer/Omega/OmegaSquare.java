@@ -96,11 +96,6 @@ public enum OmegaSquare {
             S, SW, W, NW
     };
 
-    public static final OmegaSquare WHITE_CASTLING_KINGSIDE = g1;
-    public static final OmegaSquare WHITE_CASTLING_QUEENSIDE = c1;
-    public static final OmegaSquare BLACK_CASTLING_KINGSIDE = g8;
-    public static final OmegaSquare BLACK_CASTLING_QUEENSIDE = c8;
-
     // pre-computed if square is valid
     private final boolean _validSquare;
 

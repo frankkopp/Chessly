@@ -27,11 +27,12 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
-import fko.chessly.player.computer.Omega.OmegaMove;
+import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameBoardImpl;
+import fko.chessly.game.GameMove;
+import fko.chessly.game.NotationHelper;
 
 /**
  * @author Frank
@@ -41,6 +42,75 @@ public class TestOmegaMove {
 
     @Test
     public void testCreateMove() {
+        int move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.e2, OmegaSquare.d3, OmegaPiece.WHITE_PAWN, OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE);
+        System.out.println(OmegaMove.toString(move));
+        move = OmegaMove.createMove(OmegaMoveType.PROMOTION, OmegaSquare.e2, OmegaSquare.f1, OmegaPiece.BLACK_PAWN, OmegaPiece.WHITE_ROOK, OmegaPiece.BLACK_QUEEN);
+        System.out.println(OmegaMove.toString(move));
+        move = OmegaMove.createMove(OmegaMoveType.CASTLING, OmegaSquare.e1, OmegaSquare.g1, OmegaPiece.WHITE_KING, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        System.out.println(OmegaMove.toString(move));
+    }
+
+    @Test
+    public void testConvertMove() {
+        GameBoard gameBoard = new GameBoardImpl();
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+
+        // normal
+        gameBoard = new GameBoardImpl(testFen);
+        GameMove gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"c4-a4");
+        int move = OmegaMove.convertFromGameMove(gameMove);
+        GameMove convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        System.out.println(OmegaMove.toString(move));
+        System.out.println(convertedMove);
+        System.out.println();
+
+        // pawn double
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        gameBoard = new GameBoardImpl(testFen);
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"h7-h5");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        System.out.println(OmegaMove.toString(move));
+        System.out.println(convertedMove);
+        System.out.println();
+
+        // castling
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        gameBoard = new GameBoardImpl(testFen);
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"e8-g8");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        System.out.println(OmegaMove.toString(move));
+        System.out.println(convertedMove);
+        System.out.println();
+
+        // promotion
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        gameBoard = new GameBoardImpl(testFen);
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"a2-a1");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        System.out.println(OmegaMove.toString(move));
+        System.out.println(convertedMove);
+        System.out.println();
+
+        // en passant
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        gameBoard = new GameBoardImpl(testFen);
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"f4-e3");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        System.out.println(OmegaMove.toString(move));
+        System.out.println(convertedMove);
+        System.out.println();
+
+
+
     }
 
 }

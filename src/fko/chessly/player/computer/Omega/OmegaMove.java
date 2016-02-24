@@ -27,10 +27,9 @@
 
 package fko.chessly.player.computer.Omega;
 
-import fko.chessly.player.computer.FluxEngine.Color;
-import fko.chessly.player.computer.FluxEngine.MoveType;
-import fko.chessly.player.computer.FluxEngine.Piece;
-import fko.chessly.player.computer.FluxEngine.PieceType;
+import fko.chessly.game.GameCastling;
+import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveImpl;
 
 /**
  * This class represents a move in the Omega Engine.
@@ -40,6 +39,8 @@ import fko.chessly.player.computer.FluxEngine.PieceType;
  */
 public class OmegaMove {
 
+    // NOMOVE
+    private static final int NOMOVE = -1;
     // MASKs
     private static final int SQUARE_bitMASK = 0x7F;
     private static final int PIECE_bitMASK = 0xF;
@@ -50,7 +51,7 @@ public class OmegaMove {
     private static final int START_SQUARE_MASK = SQUARE_bitMASK << START_SQUARE_SHIFT;
 
     private static final int END_SQUARE_SHIFT = 7;
-    private static final int END_MASK = SQUARE_bitMASK << END_SQUARE_SHIFT;
+    private static final int END_SQUARE_MASK = SQUARE_bitMASK << END_SQUARE_SHIFT;
 
     private static final int PIECE_SHIFT = 14;
     private static final int PIECE_MASK = PIECE_bitMASK << PIECE_SHIFT;
@@ -61,7 +62,7 @@ public class OmegaMove {
     private static final int PROMOTION_SHIFT = 22;
     private static final int PROMOTION_MASK = PIECE_bitMASK << PROMOTION_SHIFT;
 
-    private static final int MOVETYPE_SHIFT = 25;
+    private static final int MOVETYPE_SHIFT = 26;
     private static final int MOVETYPE_MASK = MOVETYPE_bitMASK << MOVETYPE_SHIFT;
 
     // no instantiation of this class
@@ -73,57 +74,217 @@ public class OmegaMove {
      */
     static int createMove(OmegaMoveType movetype, OmegaSquare start, OmegaSquare end,
             OmegaPiece piece, OmegaPiece target, OmegaPiece promotion) {
-
         int move = 0;
-
         // Encode start
         move |= start.ordinal() << START_SQUARE_SHIFT;
-
         // Encode end
         move |= end.ordinal() << END_SQUARE_SHIFT;
-
         // Encode piece
-        assert piece == Piece.NOPIECE
-                || (Piece.getChessman(piece) == PieceType.PAWN)
-                || (Piece.getChessman(piece) == PieceType.KNIGHT)
-                || (Piece.getChessman(piece) == PieceType.BISHOP)
-                || (Piece.getChessman(piece) == PieceType.ROOK)
-                || (Piece.getChessman(piece) == PieceType.QUEEN)
-                || (Piece.getChessman(piece) == PieceType.KING);
-        assert piece == Piece.NOPIECE
-                || (Piece.getColor(piece) == Color.WHITE)
-                || (Piece.getColor(piece) == Color.BLACK);
-        move |= piece << CHESSMAN_PIECE_SHIFT;
-
+        move |= piece.ordinal() << PIECE_SHIFT;
         // Encode target
-        assert target == Piece.NOPIECE
-                || (Piece.getChessman(target) == PieceType.PAWN)
-                || (Piece.getChessman(target) == PieceType.KNIGHT)
-                || (Piece.getChessman(target) == PieceType.BISHOP)
-                || (Piece.getChessman(target) == PieceType.ROOK)
-                || (Piece.getChessman(target) == PieceType.QUEEN);
-        assert target == Piece.NOPIECE
-                || (Piece.getColor(target) == Color.WHITE)
-                || (Piece.getColor(target) == Color.BLACK);
-        move |= target << TARGET_PIECE_SHIFT;
-
+        move |= target.ordinal() << TARGET_SHIFT;
         // Encode promotion
-        assert promotion == Piece.NOPIECE
-                || (promotion == PieceType.KNIGHT)
-                || (promotion == PieceType.BISHOP)
-                || (promotion == PieceType.ROOK)
-                || (promotion == PieceType.QUEEN);
-        move |= promotion << PROMOTION_SHIFT;
-
+        move |= promotion.ordinal() << PROMOTION_SHIFT;
         // Encode move
-        assert (type == MoveType.NORMAL)
-        || (type == MoveType.PAWNDOUBLE)
-        || (type == MoveType.PAWNPROMOTION)
-        || (type == MoveType.ENPASSANT)
-        || (type == MoveType.CASTLING);
-        move |= type << MOVE_SHIFT;
-
+        move |= movetype.ordinal() << MOVETYPE_SHIFT;
         return move;
+    }
+
+    /**
+     * Get the start square from the move
+     *
+     * @param move the move.
+     * @return  start position of the move.
+     */
+    static OmegaSquare getStart(int move) {
+        assert move != NOMOVE;
+        int position = (move & START_SQUARE_MASK) >>> START_SQUARE_SHIFT;
+        assert (position & 0x88) == 0;
+        return OmegaSquare.getSquare(position);
+    }
+
+    /**
+     * Get the end position from the move.
+     *
+     * @param move the move.
+     * @return the end position of the move.
+     */
+    static OmegaSquare getEnd(int move) {
+        assert move != NOMOVE;
+        int position = (move & END_SQUARE_MASK) >>> END_SQUARE_SHIFT;
+        assert (position & 0x88) == 0;
+        return OmegaSquare.getSquare(position);
+    }
+
+    /**
+     * Get the piece from the Move.
+     *
+     * @param move the IntMove.
+     * @return the piece
+     */
+    static OmegaPiece getPiece(int move) {
+        assert move != NOMOVE;
+        int chessman = (move & PIECE_MASK) >>> PIECE_SHIFT;
+        return OmegaPiece.values()[chessman];
+    }
+
+    /**
+     * Get the target piece from the move.
+     *
+     * @param move the move.
+     * @return the target piece.
+     */
+    static OmegaPiece getTarget(int move) {
+        assert move != NOMOVE;
+        int chessman = (move & TARGET_MASK) >>> TARGET_SHIFT;
+        return OmegaPiece.values()[chessman];
+    }
+
+    /**
+     * Get the promotion piece from the move.
+     *
+     * @param move the move.
+     * @return the promotion piece.
+     */
+    static OmegaPiece getPromotion(int move) {
+        assert move != NOMOVE;
+        int promotion = ((move & PROMOTION_MASK) >>> PROMOTION_SHIFT);
+        return OmegaPiece.values()[promotion];
+    }
+
+    /**
+     * Get the type from the move.
+     *
+     * @param move the move.
+     * @return the type.
+     */
+    static OmegaMoveType getMoveType(int move) {
+        assert move != NOMOVE;
+        int type = ((move & MOVETYPE_MASK) >>> MOVETYPE_SHIFT);
+        return OmegaMoveType.values()[type];
+    }
+
+    /**
+     * String representation of move
+     *
+     * @param move
+     * @return String for move
+     */
+    static String toString(int move) {
+        String s = "";
+        if (getMoveType(move) == OmegaMoveType.CASTLING) {
+            switch (getEnd(move)) {
+                case g1: s += OmegaCastling.WHITE_KINGSIDE.getNotation();
+                break;
+                case c1: s += OmegaCastling.WHITE_QUEENSIDE.getNotation();
+                break;
+                case g8: s += OmegaCastling.BLACK_KINGSIDE.getNotation();
+                break;
+                case c8: s += OmegaCastling.BLACK_QUEENSIDE.getNotation();
+                break;
+                default:
+                    break;
+            }
+        } else {
+            s += getMoveType(move)+" "+getPiece(move)+getStart(move);
+            s += getTarget(move) == OmegaPiece.NOPIECE ? "-" : "x"+getTarget(move).toString();
+            s += getEnd(move).toString()+getPromotion(move).toString();
+        }
+        return s;
+    }
+
+    /**
+     * Converts move to GameMove
+     * @param move
+     * @return the matching GameMove
+     */
+    static GameMove convertToGameMove(int move) {
+        assert move != NOMOVE;
+        GameMove gameMove = new GameMoveImpl(
+                getStart(move).convertToGamePosition(),
+                getEnd(move).convertToGamePosition(),
+                getPiece(move).convertToGamePiece()
+                );
+        switch (getMoveType(move)) {
+            case NORMAL:
+                if (getTarget(move) != OmegaPiece.NOPIECE) {
+                    gameMove.setCapturedPiece(getTarget(move).convertToGamePiece());
+                }
+                break;
+            case PAWNDOUBLE:
+                break;
+            case ENPASSANT:
+                break;
+            case CASTLING:
+                break;
+            case PROMOTION:
+                gameMove.setPromotedTo(getPromotion(move).convertToGamePiece());
+                break;
+                //return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
+            case NOMOVETYPE:
+            default:
+                throw new IllegalArgumentException();
+        }
+        return gameMove;
+    }
+
+    /**
+     * Converts GameMove to move integer
+     * @param gm
+     * @return integer representing matching move for the GameMove
+     */
+    static int convertFromGameMove(GameMove move) {
+        assert move != null;
+
+        if (move.getPromotedTo() != null) {
+            OmegaPiece promotion = OmegaPiece.convertFromGamePiece(move.getPromotedTo());
+            return createMove(
+                    OmegaMoveType.PROMOTION,
+                    OmegaSquare.convertFromGamePosition(move.getFromField()),
+                    OmegaSquare.convertFromGamePosition(move.getToField()),
+                    OmegaPiece.convertFromGamePiece(move.getMovedPiece()),
+                    OmegaPiece.convertFromGamePiece(move.getCapturedPiece()),
+                    OmegaPiece.convertFromGamePiece(move.getPromotedTo()));
+
+        } else if (move.isEnPassantNextMovePossible()) {
+            //} else if (isPawnDouble(move, board)) {
+            return createMove(
+                    OmegaMoveType.PAWNDOUBLE,
+                    OmegaSquare.convertFromGamePosition(move.getFromField()),
+                    OmegaSquare.convertFromGamePosition(move.getToField()),
+                    OmegaPiece.convertFromGamePiece(move.getMovedPiece()),
+                    OmegaPiece.NOPIECE,
+                    OmegaPiece.NOPIECE);
+
+        } else if (move.getWasEnPassantCapture()) {
+            //} else if (isEnPassant(move, board)) {
+            return createMove(
+                    OmegaMoveType.ENPASSANT,
+                    OmegaSquare.convertFromGamePosition(move.getFromField()),
+                    OmegaSquare.convertFromGamePosition(move.getToField()),
+                    OmegaPiece.convertFromGamePiece(move.getMovedPiece()),
+                    OmegaPiece.convertFromGamePiece(move.getCapturedPiece()),
+                    OmegaPiece.NOPIECE);
+
+        } else if (move.getCastlingType() != GameCastling.NOCASTLING) {
+            //} else if (isCastling(move, board)) {
+            return createMove(
+                    OmegaMoveType.CASTLING,
+                    OmegaSquare.convertFromGamePosition(move.getFromField()),
+                    OmegaSquare.convertFromGamePosition(move.getToField()),
+                    OmegaPiece.convertFromGamePiece(move.getMovedPiece()),
+                    OmegaPiece.NOPIECE,
+                    OmegaPiece.NOPIECE);
+
+        } else {
+            return createMove(
+                    OmegaMoveType.NORMAL,
+                    OmegaSquare.convertFromGamePosition(move.getFromField()),
+                    OmegaSquare.convertFromGamePosition(move.getToField()),
+                    OmegaPiece.convertFromGamePiece(move.getMovedPiece()),
+                    OmegaPiece.convertFromGamePiece(move.getCapturedPiece()),
+                    OmegaPiece.NOPIECE);
+        }
     }
 
 }
