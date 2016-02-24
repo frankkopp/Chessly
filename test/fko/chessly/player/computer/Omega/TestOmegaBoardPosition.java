@@ -25,7 +25,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package fko.chessly.player.computer.OmegaEngine;
+package fko.chessly.player.computer.Omega;
 
 import static org.junit.Assert.*;
 

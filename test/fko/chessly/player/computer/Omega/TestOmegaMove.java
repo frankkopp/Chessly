@@ -25,41 +25,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package fko.chessly.player.computer.OmegaEngine;
+package fko.chessly.player.computer.Omega;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import fko.chessly.game.GameColor;
-import fko.chessly.game.GamePiece;
-import fko.chessly.game.pieces.Rook;
-import fko.chessly.player.computer.Omega.OmegaColor;
-import fko.chessly.player.computer.Omega.OmegaPiece;
-import fko.chessly.player.computer.Omega.OmegaPieceType;
+import fko.chessly.player.computer.Omega.OmegaMove;
 
 /**
- * @author fkopp
+ * @author Frank
  *
  */
-public class TestOmegaPiece {
+public class TestOmegaMove {
 
-    /**
-     *
-     */
     @Test
-    public void test() {
-        // get piece
-        OmegaPiece op = OmegaPiece.getPiece(OmegaPieceType.KNIGHT, OmegaColor.BLACK);
-        assertTrue(op.equals(OmegaPiece.BLACK_KNIGHT));
-
-        // convert piece
-        GamePiece gp = Rook.create(GameColor.BLACK);
-        op = OmegaPiece.convertFromGamePiece(gp);
-        assertTrue (op == OmegaPiece.BLACK_ROOK);
-        assertTrue (op.toString().equals(gp.toString()));
-
-
+    public void testCreateMove() {
     }
 
 }
