@@ -40,7 +40,7 @@ import fko.chessly.game.GameMoveImpl;
 public class OmegaMove {
 
     // NOMOVE
-    private static final int NOMOVE = -1;
+    public static final int NOMOVE = -1;
     // MASKs
     private static final int SQUARE_bitMASK = 0x7F;
     private static final int PIECE_bitMASK = 0xF;
@@ -237,7 +237,6 @@ public class OmegaMove {
         assert move != null;
 
         if (move.getPromotedTo() != null) {
-            OmegaPiece promotion = OmegaPiece.convertFromGamePiece(move.getPromotedTo());
             return createMove(
                     OmegaMoveType.PROMOTION,
                     OmegaSquare.convertFromGamePosition(move.getFromField()),

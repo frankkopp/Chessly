@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.EnumSet;
 
 import fko.chessly.game.GameBoard;
-import fko.chessly.game.GameCastling;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePosition;
@@ -158,11 +157,47 @@ public class OmegaBoardPosition {
         this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
     }
 
-    private void makeMove(OmegaMove om) {
+    /**
+     * Commits a move to the board.
+     * @param move the move
+     */
+    public void makeMove(int move) {
+        assert (move != OmegaMove.NOMOVE);
+
+        OmegaSquare fromSquare = OmegaMove.getStart(move);
+        OmegaSquare toSquare   = OmegaMove.getEnd(move);
+        OmegaPiece  piece      = OmegaMove.getPiece(move);
+
+        // TODO: Save state for undoMove
+
+        // make move
+        switch (OmegaMove.getMoveType(move)) {
+            case NORMAL:
+
+                break;
+            case PAWNDOUBLE:
+                break;
+            case ENPASSANT:
+                break;
+            case CASTLING:
+                break;
+            case PROMOTION:
+                break;
+            case NOMOVETYPE:
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        // update halfMoveNumber
+
+        // change color (active player)
+
 
     }
-
-    private void undoMove(OmegaMove om) {
+    /**
+     * Takes back a move from the board
+     */
+    public void undoMove() {
 
     }
 
