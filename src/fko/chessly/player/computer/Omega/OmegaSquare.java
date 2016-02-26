@@ -59,19 +59,19 @@ public enum OmegaSquare {
     NOSQUARE;
 
     // Move deltas north, south, east, west and combinations
-    public static final int N = 16;
-    public static final int E = 1;
-    public static final int S = -16;
-    public static final int W = -1;
-    public static final int NE = N + E;
-    public static final int SE = S + E;
-    public static final int SW = S + W;
-    public static final int NW = N + W;
+    private static final int N = 16;
+    private static final int E = 1;
+    private static final int S = -16;
+    private static final int W = -1;
+    private static final int NE = N + E;
+    private static final int SE = S + E;
+    private static final int SW = S + W;
+    private static final int NW = N + W;
 
-    public static final int[] pawnDirections = {
+    private static final int[] pawnDirections = {
             N, NE, NW
     };
-    public static final int[] knightDirections = {
+    private static final int[] knightDirections = {
             N + N + E,
             N + E + E,
             S + E + E,
@@ -81,17 +81,17 @@ public enum OmegaSquare {
             N + W + W,
             N + N + W
     };
-    public static final int[] bishopDirections = {
+    private static final int[] bishopDirections = {
             NE, SE, SW, NW
     };
-    public static final int[] rookDirections = {
+    private static final int[] rookDirections = {
             N, E, S, W
     };
-    public static final int[] queenDirections = {
+    private static final int[] queenDirections = {
             N, NE, E, SE,
             S, SW, W, NW
     };
-    public static final int[] kingDirections = {
+    private static final int[] kingDirections = {
             N, NE, E, SE,
             S, SW, W, NW
     };
@@ -133,7 +133,51 @@ public enum OmegaSquare {
         if (file<1 || file>8 || rank<1 || rank>8) return OmegaSquare.NOSQUARE;
         // index starts with 0 while file and rank start with 1 - decrease
         final int index = (rank-1) * 16 + (file-1);
-        if ((index & 0x88) != 0) return NOSQUARE; // is this extra check nexessary?
+        if ((index & 0x88) != 0) return NOSQUARE; // is this extra check necessary?
+        return OmegaSquare.values() [ index ];
+    }
+
+    /**
+     * Returns the square north of this square.
+     * as seen from the white side.
+     * @return square north
+     */
+    public OmegaSquare getNorth() {
+        int index = this.ordinal() + N;
+        if ((index & 0x88) != 0) return NOSQUARE;
+        return OmegaSquare.values() [ index ];
+    }
+
+    /**
+     * Returns the square north of this square.
+     * as seen from the white side.
+     * @return square north
+     */
+    public OmegaSquare getSouth() {
+        int index = this.ordinal() + S;
+        if ((index & 0x88) != 0) return NOSQUARE;
+        return OmegaSquare.values() [ index ];
+    }
+
+    /**
+     * Returns the square north of this square.
+     * as seen from the white side.
+     * @return square north
+     */
+    public OmegaSquare getEast() {
+        int index = this.ordinal() + E;
+        if ((index & 0x88) != 0) return NOSQUARE;
+        return OmegaSquare.values() [ index ];
+    }
+
+    /**
+     * Returns the square north of this square.
+     * as seen from the white side.
+     * @return square north
+     */
+    public OmegaSquare getWest() {
+        int index = this.ordinal() + W;
+        if ((index & 0x88) != 0) return NOSQUARE;
         return OmegaSquare.values() [ index ];
     }
 

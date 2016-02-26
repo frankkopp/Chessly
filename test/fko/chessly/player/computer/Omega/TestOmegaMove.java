@@ -109,8 +109,6 @@ public class TestOmegaMove {
         System.out.println(convertedMove);
         System.out.println();
 
-
-
     }
 
 }

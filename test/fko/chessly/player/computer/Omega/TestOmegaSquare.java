@@ -145,7 +145,17 @@ public class TestOmegaSquare {
         gp = GamePosition.getGamePosition("e4");
         os = OmegaSquare.convertFromGamePosition(gp);
         assertTrue(os.name().equals("e4"));
+    }
 
-
+    /**
+     *
+     */
+    @Test
+    public void testDirections() {
+        OmegaSquare e4 = OmegaSquare.e4;
+        assertTrue(e4.getNorth() == OmegaSquare.e5);
+        assertTrue(e4.getSouth() == OmegaSquare.e3);
+        assertTrue(e4.getEast() == OmegaSquare.f4);
+        assertTrue(e4.getWest() == OmegaSquare.d4);
     }
 }
