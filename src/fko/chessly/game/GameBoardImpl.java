@@ -28,6 +28,8 @@ package fko.chessly.game;
 
 import java.util.Arrays;
 
+import com.sun.org.glassfish.gmbal.GmbalException;
+
 import fko.chessly.game.pieces.Bishop;
 import fko.chessly.game.pieces.King;
 import fko.chessly.game.pieces.Knight;
@@ -81,7 +83,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     protected GameCastling[] _castlingRights = new GameCastling[4];
 
     /**
-     * save en passant right and position of capturable pawn for one move
+     * save en passant right and position of the en passant capture fiels for one move
      */
     protected GamePosition _enPassantCapturable = null;
 
@@ -339,7 +341,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                 int baseRow = (move.getMovedPiece().getColor() == GameColor.WHITE ? 2 : 7);
                 if (move.getFromField().getRank() == baseRow
                         && Math.abs(move.getToField().getRank() - baseRow) == 2) {
-                    _enPassantCapturable = move.getToField();
+                    int enpassantrank = (move.getMovedPiece().getColor() == GameColor.WHITE ? 3 : 6);
+                    _enPassantCapturable = GamePosition.getGamePosition(move.getToField().getFile(),enpassantrank);
                     move.setEnPassantNextMovePossible(true);
                 }
 

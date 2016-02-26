@@ -234,7 +234,7 @@
                  } else { // en passant
                      if (board.hasEnPassantCapturable()
                              && board.getEnPassantCapturable().getFile() == new_col
-                             && board.getEnPassantCapturable().getRank() == fromPos.getRank()) {
+                             && board.getEnPassantCapturable().getRank() == (pawnColor.isWhite() ? 6 : 3 )) {
                          final GameMoveImpl m = new GameMoveImpl(fromPos, newPos, this);
                          m.setCapturedPiece(board.getPiece(new_col, fromPos.getRank()));
                          m.setEnPassantCapturePosition(GamePosition.getGamePosition(new_col, fromPos.getRank()));
