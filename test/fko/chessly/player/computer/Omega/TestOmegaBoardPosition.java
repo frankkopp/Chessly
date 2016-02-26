@@ -96,6 +96,7 @@ public class TestOmegaBoardPosition {
         for (int i=0;i<ITERATIONS;i++) obp = new OmegaBoardPosition(fen);
         end = Instant.now();
         System.out.println(Duration.between(start, end));
+        @SuppressWarnings("unused")
         OmegaBoardPosition obp_copy=null;
         start = Instant.now();
         for (int i=0;i<ITERATIONS;i++) obp_copy = new OmegaBoardPosition(obp);
