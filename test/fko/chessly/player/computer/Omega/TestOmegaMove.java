@@ -53,7 +53,7 @@ public class TestOmegaMove {
     @Test
     public void testConvertMove() {
         GameBoard gameBoard = new GameBoardImpl();
-        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
 
         // normal
         gameBoard = new GameBoardImpl(testFen);
@@ -66,7 +66,7 @@ public class TestOmegaMove {
         System.out.println();
 
         // pawn double
-        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
         gameBoard = new GameBoardImpl(testFen);
         gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"h7-h5");
         move = OmegaMove.convertFromGameMove(gameMove);
@@ -77,7 +77,7 @@ public class TestOmegaMove {
         System.out.println();
 
         // castling
-        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
         gameBoard = new GameBoardImpl(testFen);
         gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"e8-g8");
         move = OmegaMove.convertFromGameMove(gameMove);
@@ -88,7 +88,7 @@ public class TestOmegaMove {
         System.out.println();
 
         // promotion
-        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
         gameBoard = new GameBoardImpl(testFen);
         gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"a2-a1");
         move = OmegaMove.convertFromGameMove(gameMove);
@@ -99,7 +99,7 @@ public class TestOmegaMove {
         System.out.println();
 
         // en passant
-        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e4 0 113";
+        testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
         gameBoard = new GameBoardImpl(testFen);
         gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"f4-e3");
         move = OmegaMove.convertFromGameMove(gameMove);

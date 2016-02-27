@@ -136,9 +136,7 @@ public class TestOmegaBoardPosition {
     public void testContructorFromFEN() {
 
         String fen = NotationHelper.StandardBoardFEN;
-        fen = "8/1P6/6k1/8/8/8/p1K5/8 w - - 0 1";
-        fen = "4k2r/1q1p1pp1/p3p3/1pb1P3/2r3P1/P1N1P2p/1PP1Q2P/2R1R1K1 b k - 0 1";
-        fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+        fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
 
         /*
             ---------------------------------
@@ -164,9 +162,17 @@ public class TestOmegaBoardPosition {
          */
 
         OmegaBoardPosition obp = new OmegaBoardPosition(fen);
-        //System.out.println(fen);
-        //System.out.println(obp.toFENString());
+        System.out.println(fen);
+        System.out.println(obp.toFENString());
         assertTrue(obp.toFENString().equals(fen));
+
+        OmegaBoardPosition omegaBoard = new OmegaBoardPosition(fen);
+        GameBoard gameBoard = new GameBoardImpl(fen);
+        OmegaBoardPosition omegaBoard2 = new OmegaBoardPosition(gameBoard);
+
+        System.out.println(omegaBoard.toFENString());
+        System.out.println(omegaBoard2.toFENString());
+        assertTrue(omegaBoard.equals(omegaBoard2));
 
     }
 
@@ -175,7 +181,7 @@ public class TestOmegaBoardPosition {
      */
     @Test
     public void testCopyContructor() {
-        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e3 0 2";
         OmegaBoardPosition obp = new OmegaBoardPosition(fen);
         OmegaBoardPosition obp_copy = new OmegaBoardPosition(obp);
         assertTrue(obp.equals(obp_copy));
@@ -187,7 +193,7 @@ public class TestOmegaBoardPosition {
      */
     @Test
     public void testContructorFromGameBoard() {
-        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e4 0 2";
+        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq e3 0 2";
         GameBoard gb = new GameBoardImpl(fen);
         OmegaBoardPosition obp_copy = new OmegaBoardPosition(gb);
         assertTrue(gb.toFENString().equals(obp_copy.toFENString()));
@@ -360,6 +366,63 @@ public class TestOmegaBoardPosition {
         omegaBoard.undoMove();
         assertTrue(omegaBoard.toFENString().equals(testFen));
         System.out.println(omegaBoard);
+
+    }
+
+    /**
+     * Test Zobrist Key generation
+     */
+    @Test
+    public void testZobrist() {
+
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
+        long initialZobrist = 0;
+        long zobrist = 0;
+
+        OmegaBoardPosition omegaBoard = new OmegaBoardPosition(testFen);
+        GameBoard gameBoard = new GameBoardImpl(testFen);
+        OmegaBoardPosition omegaBoard2 = new OmegaBoardPosition(gameBoard);
+
+        System.out.println("Test if board are equal.");
+        System.out.println(omegaBoard.toFENString());
+        System.out.println(omegaBoard2.toFENString());
+        assertTrue(omegaBoard.equals(omegaBoard2));
+
+        System.out.println("Test if zobrists are equal.");
+        System.out.println(omegaBoard.getZobristKey());
+        System.out.println(omegaBoard2.getZobristKey());
+        assertTrue(omegaBoard.getZobristKey()==omegaBoard2.getZobristKey());
+
+        int testMove = OmegaMove.createMove(
+                OmegaMoveType.NORMAL,
+                OmegaSquare.b7,
+                OmegaSquare.b6,
+                OmegaPiece.BLACK_PAWN,
+                OmegaPiece.NOPIECE,
+                OmegaPiece.NOPIECE);
+
+        System.out.println("Test if zobrist after move/undo are equal.");
+        initialZobrist = omegaBoard.getZobristKey();
+        System.out.println(initialZobrist);
+        omegaBoard.makeMove(testMove);
+        zobrist = omegaBoard.getZobristKey();
+        System.out.println(zobrist);
+        omegaBoard.undoMove();
+        zobrist = omegaBoard.getZobristKey();
+        System.out.println(zobrist);
+        assertTrue(zobrist==initialZobrist);
+
+        // test if zobrist key is identical if one board comes to the same position
+        // as a newly created one
+        String fenAfterMove = "r3k2r/2pn3p/1pq1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq - 0 114";
+        omegaBoard.makeMove(testMove);
+        omegaBoard2 = new OmegaBoardPosition(fenAfterMove);
+        System.out.println(omegaBoard.getZobristKey()+" "+omegaBoard.toFENString());
+        System.out.println(omegaBoard2.getZobristKey()+" "+omegaBoard2.toFENString());
+        assertTrue(omegaBoard.toFENString().equals(omegaBoard2.toFENString()));
+        assertTrue(omegaBoard.getZobristKey() == omegaBoard2.getZobristKey());
+        assertTrue(omegaBoard.equals(omegaBoard2));
+
 
     }
 
