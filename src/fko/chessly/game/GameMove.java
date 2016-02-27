@@ -89,10 +89,22 @@ public interface GameMove {
     public void setPromotedTo(GamePiece _promotedTo);
 
     /**
+     * Stores the half move clock before the move (is reset when capture or pawn move)
+     * @param halfmoveClock
+     */
+    public void setHalfMoveClock(int halfmoveClock);
+
+    /**
      * If the move is a pawn promotion then this is the piece the pawn is promoted to
      * @return piece the pawn will be promoted to
      */
     public GamePiece getPromotedTo();
+
+    /**
+     * Retrieves the half move clock before the move (is reset when capture or pawn move)
+     * @return half move clock number
+     */
+    public int getHalfMoveClock();
 
     public void setWasCheck(boolean _wasCheck);
     public boolean getWasCheck();
@@ -130,5 +142,8 @@ public interface GameMove {
 
     @Override
     boolean equals(Object obj);
+
+
+
 
 }
