@@ -27,14 +27,12 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import fko.chessly.ui.SwingGUI.MoveList;
-
 /**
+ * Simple and fast list class for OmegaMoves which are in fact integer
+ * .
  * @author Frank
- *
  */
 public class OmegaMoveList {
 
@@ -43,9 +41,9 @@ public class OmegaMoveList {
      */
     public static final int MAX_ENTRIES = 256;
 
-    private int[] _list;
-    private int _head = 0;
-    private int _tail = 0;
+    int[] _list;
+    int _head = 0;
+    int _tail = 0;
 
     /**
      * Creates a list with a maximum of MAX_ENTRIES elements
@@ -80,10 +78,10 @@ public class OmegaMoveList {
 
     /**
      * Adds an element to the end of the list.
-     * @param element
+     * @param newList
      */
     public void add(OmegaMoveList newList) {
-        if (_tail+newList.size()>=_list.length) throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
+        if (_tail+newList.size()>_list.length) throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
         System.arraycopy(newList._list, newList._head, this._list, this._tail, newList.size());
         this._tail +=newList.size();
     }
@@ -139,6 +137,7 @@ public class OmegaMoveList {
 
     /**
      * Returns the size of the list
+     * @return number of elements
      */
     public int size() {
         return _tail-_head;
@@ -153,12 +152,99 @@ public class OmegaMoveList {
     }
 
     /**
+     * fast sort of list
+     */
+    public void sort() {
+        quicksort(_head,_tail-1);
+    }
+
+    /**
      * Returns a copy of the list.
      * @return copy of list as int[]
      *
      */
     public int[] toArray() {
         return Arrays.copyOfRange(_list, _head, _tail);
+    }
+
+    /**
+     * clones the list
+     */
+    @Override
+    public OmegaMoveList clone() {
+        OmegaMoveList n = new OmegaMoveList();
+        n.add(this);
+        return n;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        String s = "MoveList size="+size()+" available capacity="+(_list.length-size()-_head)+" [";
+        for (int i=_head; i<_tail; i++) {
+            s += _list[i] + " ("+OmegaMove.toString(_list[i])+")";
+            if (i<_tail-1) s += ", ";
+        }
+        s+="]";
+        return s;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(this.toArray());
+        return result;
+    }
+
+    /**
+     * A MoveList is equal to another MoveList when they have the same
+     * elements in the same order independent from internal implementation.
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (!(obj instanceof OmegaMoveList)) { return false; }
+        OmegaMoveList other = (OmegaMoveList) obj;
+        if (!Arrays.equals(this.toArray(), other.toArray())) { return false; }
+        return true;
+    }
+
+    /**
+     * @param lo
+     * @param hi
+     * TODO: use move value or other criteria to sort - not int itself
+     */
+    private void quicksort(int lo, int hi) {
+        int low=lo, high=hi;
+        int mid=_list[(lo+hi)/2];
+        while (low<=high) {
+            while (_list[low] < mid) low++;
+            while (_list[high] > mid) high--;
+            if (low <= high) {
+                exchange(low,high);
+                low++; high--;
+            }
+            if (lo<high) quicksort(lo, high);
+            if (low<hi) quicksort(low, hi);
+        }
+    }
+
+    /**
+     * @param i
+     * @param j
+     */
+    private void exchange(int i, int j) {
+        int t=_list[i];
+        _list[i]=_list[j];
+        _list[j]=t;
     }
 
 

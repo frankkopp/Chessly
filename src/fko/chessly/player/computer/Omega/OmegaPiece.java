@@ -42,7 +42,7 @@ import fko.chessly.game.pieces.Rook;
 @SuppressWarnings("javadoc")
 public enum OmegaPiece {
 
-    NOPIECE      (OmegaPieceType.NOTYPE, OmegaColor.NOCOLOR, " "), // 0
+    NOPIECE      (OmegaPieceType.NOTYPE, OmegaColor.NOCOLOR, ""), // 0
     WHITE_PAWN   (OmegaPieceType.PAWN,   OmegaColor.WHITE, "P"), // 1
     WHITE_KNIGHT (OmegaPieceType.KNIGHT, OmegaColor.WHITE, "N"), // 2
     WHITE_BISHOP (OmegaPieceType.BISHOP, OmegaColor.WHITE, "B"), // 3

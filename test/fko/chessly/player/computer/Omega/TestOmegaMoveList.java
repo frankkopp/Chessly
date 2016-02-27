@@ -41,7 +41,7 @@ public class TestOmegaMoveList {
      *
      */
     @Test
-    public void testList() {
+    public void testListWithInts() {
         OmegaMoveList list = new OmegaMoveList();
 
         // empty list
@@ -149,11 +149,37 @@ public class TestOmegaMoveList {
             // ignore
         }
 
+        // equals
+        list = new OmegaMoveList();
+        list.add(list2);
+        list.removeFirst();
+        list2.removeFirst();
+        assertTrue(list.equals(list2));
+        list2.removeFirst();
+        assertFalse(list.equals(list2));
+
+        OmegaMoveList cloneList = list2.clone();
+        assertTrue(cloneList.equals(list2));
+
+        OmegaMoveList sortList = new OmegaMoveList();
+        sortList.add(99);
+        sortList.add(50);
+        sortList.add(55);
+        sortList.add(10);
+        sortList.add(5);
+        sortList.add(80);
+        sortList.sort();
+
+        cloneList.sort();
+
         // clear
         list.clear();
         assertTrue(list.size()==0 && list.empty());
         list2.clear();
         assertTrue(list2.size()==0 && list2.empty());
+
+        //System.out.println(list2);
+
 
     }
 
