@@ -188,7 +188,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         } catch (InterruptedException e) { /*empty*/ }
 
         // TODO convert result OmegaMove to GameMove
-        GameMove bestMove = null;
+        GameMove bestMove = OmegaMove.convertToGameMove(_searchResult.bestMove);
         // convert
 
         // tell the ui and the observers out state
@@ -218,14 +218,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
              */
         }
 
-        // DEBUG code
-        if (bestMove == null) {
-            List<GameMove> moves = gameBoard.generateMoves();
-            if (!moves.isEmpty()) {
-                int move = (int) Math.round((moves.size() - 1) * Math.random());
-                return moves.get(move);
-            }
-        }
         return bestMove;
     }
 

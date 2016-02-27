@@ -72,7 +72,8 @@ public class OmegaMoveList {
      * @param element
      */
     public void add(int element) {
-        if (_tail>=_list.length) throw new ArrayIndexOutOfBoundsException("List is full");
+        if (_tail>=_list.length)
+            throw new ArrayIndexOutOfBoundsException("List is full");
         _list[_tail++] = element;
     }
 
@@ -81,7 +82,8 @@ public class OmegaMoveList {
      * @param newList
      */
     public void add(OmegaMoveList newList) {
-        if (_tail+newList.size()>_list.length) throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
+        if (_tail+newList.size()>_list.length)
+            throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
         System.arraycopy(newList._list, newList._head, this._list, this._tail, newList.size());
         this._tail +=newList.size();
     }
@@ -92,7 +94,8 @@ public class OmegaMoveList {
      * @return removed element
      */
     public int removeLast() {
-        if (_tail<=_head) throw new ArrayIndexOutOfBoundsException("List is empty");
+        if (_tail<=_head)
+            throw new ArrayIndexOutOfBoundsException("List is empty");
         return _list[--_tail];
     }
 
@@ -102,7 +105,8 @@ public class OmegaMoveList {
      * @return removed element
      */
     public int removeFirst() {
-        if (_tail<=_head) throw new ArrayIndexOutOfBoundsException("List is empty");
+        if (_tail<=_head)
+            throw new ArrayIndexOutOfBoundsException("List is empty");
         return _list[_head++];
     }
 
@@ -112,8 +116,10 @@ public class OmegaMoveList {
      * @return element at index
      */
     public int get(int index) {
-        if (index < 0 || _tail<=_head) throw new ArrayIndexOutOfBoundsException("List is empty");
-        if (_head+index > _tail) throw new ArrayIndexOutOfBoundsException("Index too high");
+        if (index < 0 || _tail<=_head)
+            throw new ArrayIndexOutOfBoundsException("List is empty");
+        if (_head+index > _tail)
+            throw new ArrayIndexOutOfBoundsException("Index too high");
         return _list[_head+index];
     }
 
@@ -122,7 +128,8 @@ public class OmegaMoveList {
      * @return last element
      */
     public int getLast() {
-        if (_tail<=_head) throw new ArrayIndexOutOfBoundsException("List is empty");
+        if (_tail<=_head)
+            throw new ArrayIndexOutOfBoundsException("List is empty");
         return _list[_tail-1];
     }
 
@@ -131,7 +138,8 @@ public class OmegaMoveList {
      * @return first element
      */
     public int getFirst() {
-        if (_tail<=_head) throw new ArrayIndexOutOfBoundsException("List is empty");
+        if (_tail<=_head)
+            throw new ArrayIndexOutOfBoundsException("List is empty");
         return _list[_head];
     }
 

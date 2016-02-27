@@ -27,17 +27,42 @@
 
 package fko.chessly.player.computer.Omega;
 
+import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameBoardImpl;
+import fko.chessly.game.GameMoveList;
+
 /**
  * @author Frank
  *
  */
 public class OmegaMoveGenerator {
 
+    private OmegaBoardPosition _position;
+
+    private OmegaMoveList _moveList = null;
+
     /**
      * Constructor
      */
-    public OmegaMoveGenerator() {
+    public OmegaMoveGenerator(OmegaBoardPosition position) {
+        this._position = position;
     }
+
+    /**
+     * @return generated moves as OmegaMoveList
+     */
+    public OmegaMoveList getLegalMoves() {
+        // DEBUG - temporary code
+        _moveList=new OmegaMoveList();
+        GameBoard board = new GameBoardImpl(_position.toFENString());
+        GameMoveList moves = board.generateMoves();
+        moves.stream().forEach(c -> _moveList.add(OmegaMove.convertFromGameMove(c)));
+        return _moveList;
+    }
+
+
+
+
 
 
 

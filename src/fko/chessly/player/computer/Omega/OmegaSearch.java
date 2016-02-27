@@ -123,10 +123,22 @@ public class OmegaSearch implements Runnable {
 
         // search
         // DEBUG code
+        // START TEMPORARY CODE
         try {
             Thread.sleep(2000); // pretend calculation
         } catch (InterruptedException e) { // ignore
         }
+        OmegaMoveGenerator omg = new OmegaMoveGenerator(_omegaBoard);
+        OmegaMoveList legalMoves = omg.getLegalMoves();
+        int move = (int) Math.round(legalMoves.size() * Math.random());
+        searchResult.bestMove=legalMoves.get(move);
+        searchResult.resultValue=0;
+        searchResult.depth=0;
+        searchResult.moveNumber=move;
+        searchResult.ponderMove=OmegaMove.NOMOVE;
+        searchResult.time=0;
+
+        // END TEMPORARY CODE
 
         // send the result
         _omegaEngine.storeResult(searchResult);
@@ -173,7 +185,7 @@ public class OmegaSearch implements Runnable {
     static final class SearchResult {
         int bestMove = 0;
         int ponderMove = 0;
-        int value = 0;
+        int bound = 0;
         int resultValue = 0;
         long time = -1;
         int moveNumber = 0;

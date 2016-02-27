@@ -732,7 +732,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     /**
      * Returns a list of all possible legal moves
      *
-     * @param capturingMovesOnly - true if only capturing moces should be generated
+     * @param capturingMovesOnly - true if only capturing moves should be generated
      * @return list of moves
      */
     public GameMoveList generateMoves(boolean capturingMovesOnly) {
