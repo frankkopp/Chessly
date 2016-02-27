@@ -47,6 +47,11 @@ public class OmegaBoardPosition {
     private static final int BOARDSIZE = 128;
 
     /**
+     * Max History
+     */
+    private static final int MAX_HISTORY = 255;
+
+    /**
      * Standard Board Setup as FEN
      */
     private final static String STANDARD_BOARD_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -55,17 +60,26 @@ public class OmegaBoardPosition {
     // Board State START ----------------------------------------
     // unique chess position
 
+    // history counter
+    private int _historyCounter = 0;
+
     // 0x88 Board
-    private final OmegaPiece[] _x88Board = new OmegaPiece[BOARDSIZE];
+    private OmegaPiece[] _x88Board = new OmegaPiece[BOARDSIZE];
+    // we can recreate the board through the last move - no need for history of board itself
+    private int[] _moveHistory = new int[MAX_HISTORY];
 
     // Castling rights
     private EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
+    @SuppressWarnings("unchecked")
+    private EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
 
     // en passant field - if NOSQUARE then we do not have an en passant option
     private OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
+    private OmegaSquare[] _enPassantSquare_History = new OmegaSquare[MAX_HISTORY];
 
     // half move clock - number of half moves since last capture
     private int _halfMoveClock = 0;
+    private int[] _halfMoveClock_History = new int[MAX_HISTORY];
 
     // half move number - the actual half move number to determine the full move number
     private int _halfMoveNumber = 0;
@@ -175,73 +189,17 @@ public class OmegaBoardPosition {
         OmegaPiece  target     = OmegaMove.getTarget(move);
         OmegaPiece  promotion  = OmegaMove.getPromotion(move);
 
-        // TODO: Save state for undoMove
+        // Save state for undoMove
+        _moveHistory[_historyCounter] = move;
+        _castlingRights_History[_historyCounter] = _castlingRights.clone();
+        _enPassantSquare_History[_historyCounter] = _enPassantSquare;
+        _halfMoveClock_History[_historyCounter] = _halfMoveClock;
+        _historyCounter++;
 
         // make move
         switch (OmegaMove.getMoveType(move)) {
             case NORMAL:
-                // check for castling rights invalidation
-                switch (fromSquare) {
-                    case e1: // white king
-                        _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                        _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                        break;
-                    case e8: // black king
-                        _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                        _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                        break;
-                    case a1: // rook a1
-                        _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                        break;
-                    case h1: // rook h1
-                        _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                        break;
-                    case a8: // rook a8
-                        _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                        break;
-                    case h8: // rook h8
-                        _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                        break;
-                    default:
-                        break;
-                }
-                switch (toSquare) {
-                    case e1: // white king
-                        assert false; // king capture should not happen
-                        _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                        _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                        break;
-                    case e8: // black king
-                        assert false; // king capture should not happen
-                        _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                        _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                        break;
-                    case a1: // rook a1
-                        _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                        break;
-                    case h1: // rook h1
-                        _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                        break;
-                    case a8: // rook a8
-                        _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                        break;
-                    case h8: // rook h8
-                        _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                        break;
-                    default:
-                        break;
-                }
-                if (target != OmegaPiece.NOPIECE) {
-                    removePiece(toSquare, target);
-                    _halfMoveClock = 0; // reset half move clock because of capture
-                }  else if (piece.getType() == OmegaPieceType.PAWN) {
-                    _halfMoveClock = 0; // reset half move clock because of pawn move
-                } else {
-                    _halfMoveClock++;
-                }
-                movePiece(fromSquare, toSquare, piece);
-                // clear en passant
-                _enPassantSquare = OmegaSquare.NOSQUARE;
+                makeNormalMove(fromSquare, toSquare, piece, target);
                 break;
             case PAWNDOUBLE:
                 assert fromSquare.isPawnBaseRow(piece.getColor());
@@ -286,6 +244,140 @@ public class OmegaBoardPosition {
         // change color (active player)
         _nextPlayer = _nextPlayer.getInverseColor();
 
+    }
+
+    /**
+     * Takes back the last move from the board
+     */
+    public void undoMove() {
+        // Get state for undoMove
+        _historyCounter--;
+
+        int move = _moveHistory[_historyCounter];
+
+        // undo piece move / restore board
+        OmegaSquare fromSquare = OmegaMove.getStart(move); assert fromSquare.isValidSquare();
+        OmegaSquare toSquare   = OmegaMove.getEnd(move); assert toSquare.isValidSquare();
+        OmegaPiece  piece      = OmegaMove.getPiece(move); assert piece != OmegaPiece.NOPIECE;
+        OmegaPiece  target     = OmegaMove.getTarget(move);
+
+        switch (OmegaMove.getMoveType(move)) {
+            case NORMAL:
+                movePiece(toSquare, fromSquare, piece);
+                if (target != OmegaPiece.NOPIECE) {
+                    putPiece(toSquare, target);
+                }
+                break;
+            case PAWNDOUBLE:
+                movePiece(toSquare, fromSquare, piece);
+                // set en passant target field - always one "behind" the toSquare
+                break;
+            case ENPASSANT:
+                OmegaSquare targetSquare = target.getColor().isWhite() ? toSquare.getNorth() : toSquare.getSouth();
+                movePiece(toSquare, fromSquare, piece);
+                putPiece(targetSquare, target);
+                break;
+            case CASTLING:
+                undoCastlingMove(fromSquare, toSquare, piece);
+                // clear en passant
+                _enPassantSquare = OmegaSquare.NOSQUARE;
+                _halfMoveClock++;
+                break;
+            case PROMOTION:
+                movePiece(toSquare, fromSquare, piece);
+                if (target != OmegaPiece.NOPIECE) putPiece(toSquare, target);
+                break;
+            case NOMOVETYPE:
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        // restore castling rights
+        _castlingRights = _castlingRights_History[_historyCounter];
+
+        // restore en passant square
+        _enPassantSquare = _enPassantSquare_History[_historyCounter];
+
+        // restore halfMoveClock
+        _halfMoveClock = _halfMoveClock_History[_historyCounter];
+
+        // decrease _halfMoveNumber
+        _halfMoveNumber--;
+
+        // change back color
+        _nextPlayer = _nextPlayer.getInverseColor();
+
+    }
+
+    /**
+     * @param fromSquare
+     * @param toSquare
+     * @param piece
+     * @param target
+     */
+    private void makeNormalMove(OmegaSquare fromSquare, OmegaSquare toSquare, OmegaPiece piece, OmegaPiece target) {
+        // check for castling rights invalidation
+        switch (fromSquare) {
+            case e1: // white king
+                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
+                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
+                break;
+            case e8: // black king
+                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
+                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
+                break;
+            case a1: // rook a1
+                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
+                break;
+            case h1: // rook h1
+                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
+                break;
+            case a8: // rook a8
+                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
+                break;
+            case h8: // rook h8
+                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
+                break;
+            default:
+                break;
+        }
+        switch (toSquare) {
+            case e1: // white king
+                assert false; // king capture should not happen
+                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
+                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
+                break;
+            case e8: // black king
+                assert false; // king capture should not happen
+                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
+                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
+                break;
+            case a1: // rook a1
+                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
+                break;
+            case h1: // rook h1
+                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
+                break;
+            case a8: // rook a8
+                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
+                break;
+            case h8: // rook h8
+                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
+                break;
+            default:
+                break;
+        }
+        if (target != OmegaPiece.NOPIECE) {
+            removePiece(toSquare, target);
+            _halfMoveClock = 0; // reset half move clock because of capture
+        }  else if (piece.getType() == OmegaPieceType.PAWN) {
+            _halfMoveClock = 0; // reset half move clock because of pawn move
+        } else {
+            _halfMoveClock++;
+        }
+        movePiece(fromSquare, toSquare, piece);
+        // clear en passant
+        _enPassantSquare = OmegaSquare.NOSQUARE;
     }
 
     /**
@@ -338,10 +430,43 @@ public class OmegaBoardPosition {
     }
 
     /**
-     * Takes back a move from the board
+     * @param fromSquare
+     * @param toSquare
+     * @param piece
      */
-    public void undoMove() {
-
+    private void undoCastlingMove(OmegaSquare fromSquare, OmegaSquare toSquare, OmegaPiece piece) {
+        // update castling rights
+        OmegaPiece  rook = OmegaPiece.NOPIECE;
+        OmegaSquare rookFromSquare = OmegaSquare.NOSQUARE;
+        OmegaSquare rookToSquare = OmegaSquare.NOSQUARE;
+        switch (toSquare) {
+            case g1: // white kingside
+                rook = OmegaPiece.WHITE_ROOK;
+                rookFromSquare = OmegaSquare.h1;
+                rookToSquare = OmegaSquare.f1;
+                break;
+            case c1: // white queenside
+                rook = OmegaPiece.WHITE_ROOK;
+                rookFromSquare = OmegaSquare.a1;
+                rookToSquare = OmegaSquare.d1;
+                break;
+            case g8: // black kingside
+                rook = OmegaPiece.BLACK_ROOK;
+                rookFromSquare = OmegaSquare.h8;
+                rookToSquare = OmegaSquare.f8;
+                break;
+            case c8: // black queenside
+                rook = OmegaPiece.BLACK_ROOK;
+                rookFromSquare = OmegaSquare.a8;
+                rookToSquare = OmegaSquare.d8;
+                break;
+            default:
+                throw new IllegalArgumentException("Castling to wrong square "+toSquare.toString());
+        }
+        // King
+        movePiece(toSquare, fromSquare, piece);
+        // Rook
+        movePiece(rookToSquare, rookFromSquare, rook);
     }
 
     /**

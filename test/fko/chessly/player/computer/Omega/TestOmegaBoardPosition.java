@@ -51,7 +51,7 @@ public class TestOmegaBoardPosition {
     private static final int ITERATIONS = 99999;
 
     /**
-     *
+     * Some timings to find fastest code - so nfr test
      */
     @Test
     public void testTimings() {
@@ -212,6 +212,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/q3Pp2/6R1/p1p2PPP/1R4K1 w kq - 1 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // normal pawn move
         gameBoard = new GameBoardImpl(testFen);
@@ -222,6 +224,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/2pn3p/1pq1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq - 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // normal capture
         gameBoard = new GameBoardImpl(testFen);
@@ -232,6 +236,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/4qp2/6R1/p1p2PPP/1R4K1 w kq - 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // pawn double
         gameBoard = new GameBoardImpl(testFen);
@@ -242,6 +248,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/2pn3p/2q1q1n1/1p6/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq b6 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // castling
         gameBoard = new GameBoardImpl(testFen);
@@ -252,6 +260,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r4rk1/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w - - 1 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // promotion
         gameBoard = new GameBoardImpl(testFen);
@@ -262,6 +272,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/2p2PPP/qR4K1 w kq - 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // promotion capture
         gameBoard = new GameBoardImpl(testFen);
@@ -272,6 +284,8 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/2p2PPP/1r4K1 w kq - 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
         // en passant
         gameBoard = new GameBoardImpl(testFen);
@@ -282,8 +296,72 @@ public class TestOmegaBoardPosition {
         assert(gameMove.equals(convertedMove));
         omegaBoard.makeMove(move);
         assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q5/4p1R1/p1p2PPP/1R4K1 w kq - 0 114"));
-    }
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113"));
 
+        // multiple moves
+        // normal
+        gameBoard = new GameBoardImpl(testFen);
+        omegaBoard = new OmegaBoardPosition(gameBoard);
+        // en passant
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"f4-e3");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        omegaBoard.makeMove(move);
+        gameBoard.makeMove(convertedMove);
+        System.out.println(omegaBoard);
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q5/4p1R1/p1p2PPP/1R4K1 w kq - 0 114"));
+        // pawn capture
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"f2-e3");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        omegaBoard.makeMove(move);
+        gameBoard.makeMove(convertedMove);
+        System.out.println(omegaBoard);
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q5/4P1R1/p1p3PP/1R4K1 b kq - 0 114"));
+        // castling
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"e8-g8");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        omegaBoard.makeMove(move);
+        gameBoard.makeMove(convertedMove);
+        System.out.println(omegaBoard);
+        assertTrue(omegaBoard.toFENString().equals("r4rk1/1ppn3p/2q1q1n1/8/2q5/4P1R1/p1p3PP/1R4K1 w - - 1 115"));
+        // pawn double
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"h2-h4");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        omegaBoard.makeMove(move);
+        gameBoard.makeMove(convertedMove);
+        System.out.println(omegaBoard);
+        assertTrue(omegaBoard.toFENString().equals("r4rk1/1ppn3p/2q1q1n1/8/2q4P/4P1R1/p1p3P1/1R4K1 b - h3 0 115"));
+        // pawn promotion
+        gameMove = NotationHelper.createNewMoveFromSimpleNotation(gameBoard,"a2-b1R");
+        move = OmegaMove.convertFromGameMove(gameMove);
+        convertedMove = OmegaMove.convertToGameMove(move);
+        assert(gameMove.equals(convertedMove));
+        omegaBoard.makeMove(move);
+        gameBoard.makeMove(convertedMove);
+        System.out.println(omegaBoard);
+        assertTrue(omegaBoard.toFENString().equals("r4rk1/1ppn3p/2q1q1n1/8/2q4P/4P1R1/2p3P1/1r4K1 w - - 0 116"));
+        // now test undo
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r4rk1/1ppn3p/2q1q1n1/8/2q4P/4P1R1/p1p3P1/1R4K1 b - h3 0 115"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r4rk1/1ppn3p/2q1q1n1/8/2q5/4P1R1/p1p3PP/1R4K1 w - - 1 115"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q5/4P1R1/p1p3PP/1R4K1 b kq - 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals("r3k2r/1ppn3p/2q1q1n1/8/2q5/4p1R1/p1p2PPP/1R4K1 w kq - 0 114"));
+        omegaBoard.undoMove();
+        assertTrue(omegaBoard.toFENString().equals(testFen));
+        System.out.println(omegaBoard);
+
+    }
 
 
 }
