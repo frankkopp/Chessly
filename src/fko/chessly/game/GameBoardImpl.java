@@ -316,9 +316,6 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // -- remove from fromField
         GamePiece movedPiece = removePiece(fromCol, fromRow);
 
-        // reset en passant
-        _enPassantCapturable = null;
-
         // en passant?
         // Pawn not moving straight but no captured piece
         // we do not need to do an exhaustive check as this has been done
@@ -338,6 +335,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                 move.setWasEnPassantCapture(true);
                 move.setEnPassantCapturePosition(GamePosition.getGamePosition(lastToCol + 1, lastToRow + 1));
 
+                // reset en passant
+                _enPassantCapturable = null;
+
             } else if (fromCol == toCol) {
                 // double pawn move - possible en passant next move
                 int baseRow = (move.getMovedPiece().getColor() == GameColor.WHITE ? 2 : 7);
@@ -346,9 +346,15 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                     int enpassantrank = (move.getMovedPiece().getColor() == GameColor.WHITE ? 3 : 6);
                     _enPassantCapturable = GamePosition.getGamePosition(move.getToField().getFile(),enpassantrank);
                     move.setEnPassantNextMovePossible(true);
+                } else {
+                    // reset en passant
+                    _enPassantCapturable = null;
                 }
 
             }
+        } else {
+            // reset en passant
+            _enPassantCapturable = null;
         }
 
         // -- place piece
