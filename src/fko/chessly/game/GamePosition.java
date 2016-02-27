@@ -149,7 +149,7 @@ public class GamePosition implements Serializable {
     }
 
     /**
-     * Returns GamePostion for given x,y - will null if not a valid
+     * Returns GamePostion for given file and rank - will be null if not a valid
      * chess position.
      *
      * @param file (1..8)

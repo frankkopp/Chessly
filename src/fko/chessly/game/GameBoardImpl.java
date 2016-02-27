@@ -92,7 +92,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     protected int _halfmoveClock = 0;
 
-    protected int _halfMoveNumber = 0;
+    protected int _lastHalfMoveNumber = 0;
 
     // Board State END -----------------------------------------
 
@@ -163,7 +163,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- copy move history --
         this._moveHistory = oldBoard.getMoveHistory();
-        this._halfMoveNumber = oldBoard._halfMoveNumber;
+        this._lastHalfMoveNumber = oldBoard._lastHalfMoveNumber;
 
         // -- copy castling flags
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -231,7 +231,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- copy move history --
         this._moveHistory = oldBoard.getMoveHistory();
-        this._halfMoveNumber = oldBoard.getLastHalfMoveNumber();
+        this._lastHalfMoveNumber = oldBoard.getLastHalfMoveNumber();
 
         // -- copy castling flags
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -316,6 +316,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // -- remove from fromField
         GamePiece movedPiece = removePiece(fromCol, fromRow);
 
+        // reset en passant
+        _enPassantCapturable = null;
+
         // en passant?
         // Pawn not moving straight but no captured piece
         // we do not need to do an exhaustive check as this has been done
@@ -347,9 +350,6 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
             }
         }
-
-        // reset en passant
-        _enPassantCapturable = null;
 
         // -- place piece
         if (move.getPromotedTo() == null) {
@@ -386,19 +386,24 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             }
         }
 
+        // store half move clock
+        move.setHalfMoveClock(_halfmoveClock);
+
         // -- save last move ---
         this._moveHistory.add(move);
 
         // increase halfmovenumber
-        _halfMoveNumber++;
+        _lastHalfMoveNumber++;
 
-        if (capturedPiece == null)
-            _halfmoveClock++;
-        else
+        // half move clock - reset when pawn move or capture - otherwise increase
+        if (movedPiece instanceof Pawn || capturedPiece != null) {
             _halfmoveClock = 0;
+        } else {
+            _halfmoveClock++;
+        }
 
         // -- Update Move Object
-        move.setHalfMoveNumber(_halfMoveNumber); // save move number
+        move.setHalfMoveNumber(_lastHalfMoveNumber); // save move number
         move.setCapturedPiece(capturedPiece); // store the captured Piece in the Move
 
         // was this last move check for the opponent?
@@ -423,10 +428,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         GameMove lastMove = _moveHistory.removeLast();
 
         // decrease half move number
-        _halfMoveNumber--;
+        _lastHalfMoveNumber--;
 
         // decrease half move clock
-        _halfmoveClock--;
+        _halfmoveClock =  lastMove.getHalfMoveClock();
 
         GamePiece lastPiece = lastMove.getMovedPiece();
 
@@ -1140,7 +1145,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     @Override
     public GameColor getNextPlayerColor() {
         // should we store next player color to be quicker
-        if (_halfMoveNumber % 2 == 0)
+        if (_lastHalfMoveNumber % 2 == 0)
             return GameColor.WHITE;
         return GameColor.BLACK;
     }
@@ -1186,7 +1191,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     @Override
     public int getLastHalfMoveNumber() {
-        return _halfMoveNumber;
+        return _lastHalfMoveNumber;
     }
 
     /*
@@ -1203,7 +1208,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      * @return full move number
      */
     public int getFullMoveNumber() {
-        return (_halfMoveNumber+1)/2;
+        return (_lastHalfMoveNumber/2)+1;
     }
 
     @Override
@@ -1562,12 +1567,12 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // full move number
         if (parts.length < 6) { // default "1"
-            _halfMoveNumber = 1 ;
+            _lastHalfMoveNumber = 1 ;
         } else {
             s = parts[5];
-            _halfMoveNumber = (2 * Integer.parseInt(s)) - 1;
+            _lastHalfMoveNumber = (2 * Integer.parseInt(s)) - 1;
         }
-        if (nextPlayer.isWhite()) _halfMoveNumber--;
+        if (nextPlayer.isWhite()) _lastHalfMoveNumber--;
     }
 
     /*
