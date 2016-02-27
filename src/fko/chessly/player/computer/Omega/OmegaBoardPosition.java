@@ -80,7 +80,7 @@ public class OmegaBoardPosition {
     // we can recreate the board through the last move - no need for history of board itself
     private int[] _moveHistory = new int[MAX_HISTORY];
     // hash for pieces - piece, board
-    private static final long[][] _piece_Zobrist = new long[OmegaPiece.values().length][BOARDSIZE+1];
+    private static final long[][] _piece_Zobrist = new long[OmegaPiece.values().length][OmegaSquare.values().length];
 
     // Castling rights
     private EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
@@ -93,7 +93,7 @@ public class OmegaBoardPosition {
     private OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
     private OmegaSquare[] _enPassantSquare_History = new OmegaSquare[MAX_HISTORY];
     // hash for castling rights
-    private static final long[] _enPassantSquare_Zobrist = new long[BOARDSIZE+1];
+    private static final long[] _enPassantSquare_Zobrist = new long[OmegaSquare.values().length];
 
     // half move clock - number of half moves since last capture
     private int _halfMoveClock = 0;
