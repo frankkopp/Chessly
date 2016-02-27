@@ -316,19 +316,18 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // -- remove from fromField
         GamePiece movedPiece = removePiece(fromCol, fromRow);
 
-        // reset en passant
-        _enPassantCapturable = null;
-
         // en passant?
         // Pawn not moving straight but no captured piece
         // we do not need to do an exhaustive check as this has been done
         // in isLegalMove - we can assume it is a legal move.
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null) {
+                assert _enPassantCapturable != null;
+
                 // en passant capture
                 GameMove last = _moveHistory.getLast();
-                int lastToCol = last.getToField().getFile() - 1;
-                int lastToRow = last.getToField().getRank() - 1;
+                int lastToCol = _enPassantCapturable.getFile() - 1;
+                int lastToRow = _enPassantCapturable.getRank() - 1;
 
                 // remove the piece
                 capturedPiece = removePiece(lastToCol, lastToRow);
@@ -348,6 +347,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
             }
         }
+
+        // reset en passant
+        _enPassantCapturable = null;
 
         // -- place piece
         if (move.getPromotedTo() == null) {
