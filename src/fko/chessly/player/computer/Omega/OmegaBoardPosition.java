@@ -29,6 +29,7 @@ package fko.chessly.player.computer.Omega;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Random;
 
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameColor;
@@ -56,36 +57,46 @@ public class OmegaBoardPosition {
      */
     private final static String STANDARD_BOARD_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    // **********************************************************
-    // Board State START ----------------------------------------
-    // unique chess position
+    /**
+     * random generator for use with zobrist hash keys
+     */
+    private static final Random random = new Random(0);
 
     // history counter
     private int _historyCounter = 0;
+
+    // **********************************************************
+    // Board State START ----------------------------------------
+    // unique chess position
 
     // 0x88 Board
     private OmegaPiece[] _x88Board = new OmegaPiece[BOARDSIZE];
     // we can recreate the board through the last move - no need for history of board itself
     private int[] _moveHistory = new int[MAX_HISTORY];
+    // hash for pieces - piece, board
+    private static final long[][] _piece_Zobrist = new long[OmegaPiece.values().length][BOARDSIZE];
 
     // Castling rights
     private EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
     @SuppressWarnings("unchecked")
     private EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
+    // hash for castling rights
+    private static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
 
     // en passant field - if NOSQUARE then we do not have an en passant option
     private OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
     private OmegaSquare[] _enPassantSquare_History = new OmegaSquare[MAX_HISTORY];
+    // hash for castling rights
+    private static final long[] _enPassantSquare_Zobrist = new long[BOARDSIZE];
 
     // half move clock - number of half moves since last capture
     private int _halfMoveClock = 0;
     private int[] _halfMoveClock_History = new int[MAX_HISTORY];
 
-    // half move number - the actual half move number to determine the full move number
-    private int _halfMoveNumber = 0;
-
     // next player color
     private OmegaColor _nextPlayer = OmegaColor.WHITE;
+    // hash for castling rights
+    private static final long _nextPlayer_Zobrist;
 
     // Board State END ------------------------------------------
     // **********************************************************
@@ -93,10 +104,35 @@ public class OmegaBoardPosition {
     // Extended Board State ----------------------------------
     // not necessary for a unique position
 
+    // half move number - the actual half move number to determine the full move number
+    private int _halfMoveNumber = 0;
 
 
 
-
+    // static initialization
+    static {
+        // all pieces on all squares
+        for (OmegaPiece p : OmegaPiece.values()) {
+            if (p == OmegaPiece.NOPIECE) continue;
+            for (OmegaSquare s : OmegaSquare.values()) {
+                if (s == OmegaSquare.NOSQUARE) continue;
+                _piece_Zobrist[p.ordinal()]
+                        [s.ordinal()] = Math.abs(random.nextLong());
+            }
+        }
+        // all castling combinations
+        for (EnumSet<OmegaCastling> es : OmegaCastling.getCombinationList()) {
+            _castlingRights_Zobrist[OmegaCastling.getCombinationList().indexOf(es)] = Math.abs(random.nextLong());
+        }
+        // all possible positions of the en passant square (easiest to use all fields and not just the
+        // ones where en passant is indeed possible)
+        for (OmegaSquare s : OmegaSquare.values()) {
+            if (s == OmegaSquare.NOSQUARE) continue;
+            _enPassantSquare_Zobrist[s.ordinal()] = Math.abs(random.nextLong());
+        }
+        // set or unset this for the two color options
+        _nextPlayer_Zobrist = Math.abs(random.nextLong());
+    }
 
     // Constructors START -----------------------------------------
 
@@ -478,7 +514,6 @@ public class OmegaBoardPosition {
         assert fromSquare.isValidSquare();
         assert toSquare.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
-        assert _x88Board[fromSquare.ordinal()] == piece; // check if removed piece is indeed there
         assert _x88Board[toSquare.ordinal()] == OmegaPiece.NOPIECE; // should be empty
         // due to performance we do not call remove and put
         // no need to update counters when moving
