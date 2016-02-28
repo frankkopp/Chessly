@@ -42,77 +42,84 @@ import fko.chessly.player.computer.Omega.OmegaSquare.File;
  */
 public class OmegaBoardPosition {
 
-    /**
-     * Size of 0x88 board
-     */
+    /* Size of 0x88 board */
     private static final int BOARDSIZE = 128;
 
-    /**
-     * Max History
-     */
+    /* Max History */
     private static final int MAX_HISTORY = 255;
 
-    /**
-     * Standard Board Setup as FEN
-     */
+    /* Standard Board Setup as FEN */
     private final static String STANDARD_BOARD_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    /**
-     * random generator for use with zobrist hash keys
-     */
+    /* random generator for use with zobrist hash keys */
     private static final Random random = new Random(0);
 
-    /** The zobrist key to use as a hash key in transposition tables
-     *  The zobrist key will be updated incrementally every time one of the the state variables change.
+    /*
+     * The zobrist key to use as a hash key in transposition tables
+     * The zobrist key will be updated incrementally every time one of the the state variables change.
      */
-    private long _zobristKey=0;
-    private long[] _zobristKey_History = new long[MAX_HISTORY];
+    long _zobristKey=0;
+    long[] _zobristKey_History = new long[MAX_HISTORY];
 
     // history counter
-    private int _historyCounter = 0;
+    int _historyCounter = 0;
 
     // **********************************************************
     // Board State START ----------------------------------------
     // unique chess position
-
+    //
     // 0x88 Board
-    private OmegaPiece[] _x88Board = new OmegaPiece[BOARDSIZE];
+    OmegaPiece[] _x88Board = new OmegaPiece[BOARDSIZE];
     // we can recreate the board through the last move - no need for history of board itself
-    private int[] _moveHistory = new int[MAX_HISTORY];
+    int[] _moveHistory = new int[MAX_HISTORY];
     // hash for pieces - piece, board
-    private static final long[][] _piece_Zobrist = new long[OmegaPiece.values().length][OmegaSquare.values().length];
+    static final long[][] _piece_Zobrist = new long[OmegaPiece.values().length][OmegaSquare.values().length];
 
     // Castling rights
-    private EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
+    EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
     @SuppressWarnings("unchecked")
-    private EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
+    EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
     // hash for castling rights
-    private static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
+    static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
 
     // en passant field - if NOSQUARE then we do not have an en passant option
-    private OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
-    private OmegaSquare[] _enPassantSquare_History = new OmegaSquare[MAX_HISTORY];
+    OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
+    OmegaSquare[] _enPassantSquare_History = new OmegaSquare[MAX_HISTORY];
     // hash for castling rights
-    private static final long[] _enPassantSquare_Zobrist = new long[OmegaSquare.values().length];
+    static final long[] _enPassantSquare_Zobrist = new long[OmegaSquare.values().length];
 
     // half move clock - number of half moves since last capture
-    private int _halfMoveClock = 0;
-    private int[] _halfMoveClock_History = new int[MAX_HISTORY];
+    int _halfMoveClock = 0;
+    int[] _halfMoveClock_History = new int[MAX_HISTORY];
     // has no zobrist key
 
     // next player color
-    private OmegaColor _nextPlayer = OmegaColor.WHITE;
+    OmegaColor _nextPlayer = OmegaColor.WHITE;
     // hash for castling rights
-    private static final long _nextPlayer_Zobrist;
-
+    static final long _nextPlayer_Zobrist;
+    //
     // Board State END ------------------------------------------
     // **********************************************************
 
+    // **********************************************************
     // Extended Board State ----------------------------------
     // not necessary for a unique position
-
+    //
     // half move number - the actual half move number to determine the full move number
-    private int _nextHalfMoveNumber = 1;
+    int _nextHalfMoveNumber = 1;
+
+    /**
+     * Lists for all pieces
+     */
+    final EnumSet<OmegaSquare>[] _pawnSquares = new EnumSet[OmegaColor.values.length];
+    final EnumSet<OmegaSquare>[] _knightSquares = new EnumSet[OmegaColor.values.length];
+    final EnumSet<OmegaSquare>[] _bishopSquares = new EnumSet[OmegaColor.values.length];
+    final EnumSet<OmegaSquare>[] _rookSquares = new EnumSet[OmegaColor.values.length];
+    final EnumSet<OmegaSquare>[] _queenSquares = new EnumSet[OmegaColor.values.length];
+    final EnumSet<OmegaSquare>[] _kingSquares = new EnumSet[OmegaColor.values.length];
+
+    // Material value will always be up to date
+    int[] _material;
 
 
 
@@ -153,6 +160,7 @@ public class OmegaBoardPosition {
      * @param fen
      */
     public OmegaBoardPosition(String fen) {
+        initializeLists();
         initBoard(fen);
     }
 
@@ -163,6 +171,7 @@ public class OmegaBoardPosition {
     public OmegaBoardPosition(OmegaBoardPosition op) {
         if (op == null)
             throw new NullPointerException("Parameter op may not be null");
+
         System.arraycopy(op._x88Board, 0, this._x88Board, 0, op._x88Board.length);
         this._castlingRights = op._castlingRights.clone();
         this._enPassantSquare = op._enPassantSquare;
@@ -170,6 +179,20 @@ public class OmegaBoardPosition {
         this._nextHalfMoveNumber = op._nextHalfMoveNumber;
         this._nextPlayer = op._nextPlayer;
         this._zobristKey = op._zobristKey;
+
+        initializeLists();
+        // copy piece lists
+        for (int i=0; i<=1; i++) { // foreach color
+            this._pawnSquares[i] = op._pawnSquares[i];
+            this._knightSquares[i] = op._knightSquares[i];
+            this._bishopSquares[i] = op._bishopSquares[i];
+            this._rookSquares[i] = op._rookSquares[i];
+            this._queenSquares[i] = op._queenSquares[i];
+            this._kingSquares[i] = op._kingSquares[i];
+        }
+        this._material[0] = op._material[0];
+        this._material[1] = op._material[1];
+
     }
 
     /**
@@ -180,9 +203,13 @@ public class OmegaBoardPosition {
     public OmegaBoardPosition(GameBoard oldBoard) {
         if (oldBoard == null)
             throw new NullPointerException("Parameter oldBoard may not be null");
+
+        initializeLists();
+
         // fill board with NOPIECE
         Arrays.fill(_x88Board,  OmegaPiece.NOPIECE);
-        // -- copy fields --
+
+        // -- fields --
         for (int file = 1; file <= 8; file++) {
             for (int rank = 1; rank <= 8; rank++) {
                 // we can't do an arraycopy here as we do not know the
@@ -193,6 +220,15 @@ public class OmegaBoardPosition {
                 if (op != OmegaPiece.NOPIECE) putPiece(OmegaSquare.getSquare(file, rank), op);
             }
         }
+
+        // next player
+        this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
+        if (_nextPlayer == OmegaColor.BLACK) {
+            _zobristKey ^= _nextPlayer_Zobrist; // only when black to have the right in/out rhythm
+        }
+        this._halfMoveClock = oldBoard.getHalfmoveClock();
+        this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
+
         // -- copy castling flags
         _castlingRights = EnumSet.noneOf(OmegaCastling.class);
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -208,15 +244,28 @@ public class OmegaBoardPosition {
             _castlingRights.add(OmegaCastling.BLACK_QUEENSIDE);
         }
         _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)];
-        // other fields
+
+        // en passant
         this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
         if (_enPassantSquare!=OmegaSquare.NOSQUARE) {
             _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // in
         }
-        this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
-        _zobristKey ^= _nextPlayer_Zobrist;
-        this._halfMoveClock = oldBoard.getHalfmoveClock();
-        this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
+
+    }
+
+    /**
+     *
+     */
+    private void initializeLists() {
+        for (int i=0; i<=1; i++) { // foreach color
+            _pawnSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _knightSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _bishopSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _rookSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _queenSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _kingSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+        }
+        _material = new int[2];
     }
 
     /**
@@ -561,10 +610,18 @@ public class OmegaBoardPosition {
         assert _x88Board[toSquare.ordinal()] == OmegaPiece.NOPIECE; // should be empty
         // due to performance we do not call remove and put
         // no need to update counters when moving
+        // remove
         _x88Board[fromSquare.ordinal()] = OmegaPiece.NOPIECE;
         _zobristKey ^= _piece_Zobrist[piece.ordinal()][fromSquare.ordinal()]; // out
+        // update piece lists
+        final int color = piece.getColor().ordinal();
+        removeFromPieceLists(fromSquare, piece, color);
+        // put
         _x88Board[toSquare.ordinal()] = piece;
         _zobristKey ^= _piece_Zobrist[piece.ordinal()][toSquare.ordinal()]; // in
+        // update piece lists
+        addToPieceLists(toSquare, piece, color);
+
     }
 
     /**
@@ -575,8 +632,14 @@ public class OmegaBoardPosition {
         assert square.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
         assert _x88Board[square.ordinal()] == OmegaPiece.NOPIECE; // should be empty
+        // put
         _x88Board[square.ordinal()] = piece;
         _zobristKey ^= _piece_Zobrist[piece.ordinal()][square.ordinal()]; // in
+        // update piece lists
+        final int color = piece.getColor().ordinal();
+        addToPieceLists(square, piece, color);
+        // update material
+        _material[color] += piece.getType().getValue();
     }
 
     /**
@@ -588,10 +651,53 @@ public class OmegaBoardPosition {
         assert square.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
         assert _x88Board[square.ordinal()] == piece; // check if removed piece is indeed there
+        // remove
         OmegaPiece old = _x88Board[square.ordinal()];
         _x88Board[square.ordinal()] = OmegaPiece.NOPIECE;
         _zobristKey ^= _piece_Zobrist[piece.ordinal()][square.ordinal()]; // out
+        // update piece lists
+        final int color = piece.getColor().ordinal();
+        removeFromPieceLists(square, piece, color);
+        // update material
+        _material[color] -= piece.getType().getValue();
+        // return the remove piece
         return old;
+    }
+
+    /**
+     * @param toSquare
+     * @param piece
+     * @param color
+     */
+    private void addToPieceLists(OmegaSquare toSquare, OmegaPiece piece, final int color) {
+        switch(piece.getType()) {
+            case PAWN: _pawnSquares[color].add(toSquare); break;
+            case KNIGHT: _knightSquares[color].add(toSquare); break;
+            case BISHOP: _bishopSquares[color].add(toSquare); break;
+            case ROOK: _rookSquares[color].add(toSquare); break;
+            case QUEEN: _queenSquares[color].add(toSquare); break;
+            case KING: _kingSquares[color].add(toSquare); break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * @param fromSquare
+     * @param piece
+     * @param color
+     */
+    private void removeFromPieceLists(OmegaSquare fromSquare, OmegaPiece piece, final int color) {
+        switch(piece.getType()) {
+            case PAWN: _pawnSquares[color].remove(fromSquare); break;
+            case KNIGHT: _knightSquares[color].remove(fromSquare); break;
+            case BISHOP: _bishopSquares[color].remove(fromSquare); break;
+            case ROOK: _rookSquares[color].remove(fromSquare); break;
+            case QUEEN: _queenSquares[color].remove(fromSquare); break;
+            case KING: _kingSquares[color].remove(fromSquare); break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -678,7 +784,6 @@ public class OmegaBoardPosition {
         } else { // default "w"
             _nextPlayer = OmegaColor.WHITE;
         }
-
 
         // castling
         // reset all castling first
@@ -880,9 +985,7 @@ public class OmegaBoardPosition {
         if (obj == null) { return false; }
         if (!(obj instanceof OmegaBoardPosition)) { return false; }
         OmegaBoardPosition other = (OmegaBoardPosition) obj;
-
         if (this._zobristKey != other._zobristKey) { return false; }
-
         /* these should be covered by the zobrist key
         if (this._castlingRights == null) {
             if (other._castlingRights != null) { return false; }
@@ -891,10 +994,8 @@ public class OmegaBoardPosition {
         if (this._nextPlayer != other._nextPlayer) { return false; }
         if (!Arrays.equals(this._x88Board, other._x88Board)) { return false; }
          */
-
         if (this._halfMoveClock != other._halfMoveClock) { return false; }
         if (this._nextHalfMoveNumber != other._nextHalfMoveNumber) { return false; }
-
         return true;
     }
 
@@ -903,6 +1004,21 @@ public class OmegaBoardPosition {
      */
     public long getZobristKey() {
         return this._zobristKey;
+    }
+
+    /**
+     * @param c OmegaColor
+     * @return the material value
+     */
+    public int getMaterial(OmegaColor c) {
+        return this._material[c.ordinal()];
+    }
+
+    /**
+     * @return color of next player
+     */
+    public OmegaColor getNextPlayer() {
+        return _nextPlayer;
     }
 
     /**

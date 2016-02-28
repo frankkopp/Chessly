@@ -169,10 +169,16 @@ public class TestOmegaBoardPosition {
         OmegaBoardPosition omegaBoard = new OmegaBoardPosition(fen);
         GameBoard gameBoard = new GameBoardImpl(fen);
         OmegaBoardPosition omegaBoard2 = new OmegaBoardPosition(gameBoard);
+        //OmegaBoardPosition omegaBoard3 = new OmegaBoardPosition(fen);
+        //assertTrue(omegaBoard.equals(omegaBoard3));
 
         System.out.println(omegaBoard.toFENString());
         System.out.println(omegaBoard2.toFENString());
+        assertTrue(omegaBoard.hashCode() == omegaBoard2.hashCode());
         assertTrue(omegaBoard.equals(omegaBoard2));
+
+
+
 
     }
 

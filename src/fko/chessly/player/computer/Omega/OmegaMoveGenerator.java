@@ -33,12 +33,21 @@ import fko.chessly.game.GameMoveList;
 import fko.chessly.ui.SwingGUI.MoveList;
 
 /**
+ * The move generator for Omega Engine.<br/>
+ * It generates pseudo legal and legal moves for a given position.<br/>
+ * As long as the position does not change for consecutive calls the generated
+ * move lists are caches.<br/>
+ * <b>This class is not thread safe as it uses static variables to avoid generating them
+ * during each object creation.</b><br/>
  * @author Frank
  *
  */
 public class OmegaMoveGenerator {
 
-    private long _zobristLastPosition;
+    private long _zobristLastPosition = 0;
+
+    private OmegaBoardPosition _position = null;
+    private OmegaColor _activePlayer;
 
     // cache the generated move list for repeated call to generateMoves
     private OmegaMoveList _cachedPseudoLegalMoveList = null;
@@ -55,6 +64,8 @@ public class OmegaMoveGenerator {
     private static final OmegaMoveList _checkingMoves = new OmegaMoveList(); // only checking moves
     private static final OmegaMoveList _nonCapturingMoves = new OmegaMoveList(); // only non capturing moves
     private static final OmegaMoveList _evasionMoves = new OmegaMoveList(); // only evasion moves
+
+
 
     /**
      * Constructor
@@ -81,6 +92,8 @@ public class OmegaMoveGenerator {
             return _cachedLegalMoveList;
         }
 
+        _position = position;
+        _activePlayer = _position._nextPlayer;
         // position has changed - cache is invalid
         _cachedLegalMoveListValid = false;
         _cachedPseudoLegalMoveListValid = false;
@@ -94,9 +107,9 @@ public class OmegaMoveGenerator {
 
         // call the move generators
         if (position.hasCheck()) {
-            generateEvasionMoves(_legalMoves);
+            generateEvasionMoves();
         } else {
-            generatePseudoLegaMoves(_pseudoLegalMoves);
+            generatePseudoLegaMoves();
             filterLegalMovesOnly(_pseudoLegalMoves, _legalMoves);
             sortMoves(_legalMoves);
         }
@@ -135,6 +148,8 @@ public class OmegaMoveGenerator {
             return _cachedPseudoLegalMoveList;
         }
 
+        _position = position;
+        _activePlayer = _position._nextPlayer;
         // position has changed - cache is invalid
         _cachedLegalMoveListValid = false;
         _cachedPseudoLegalMoveListValid = false;
@@ -148,9 +163,9 @@ public class OmegaMoveGenerator {
 
         // call the move generators
         if (position.hasCheck()) {
-            generateEvasionMoves(_pseudoLegalMoves);
+            generateEvasionMoves();
         } else {
-            generatePseudoLegaMoves(_pseudoLegalMoves);
+            generatePseudoLegaMoves();
             sortMoves(_pseudoLegalMoves);
         }
 
@@ -172,7 +187,7 @@ public class OmegaMoveGenerator {
     /**
      * @param legalMoves
      */
-    private void generatePseudoLegaMoves(OmegaMoveList legalMoves) {
+    private void generatePseudoLegaMoves() {
         /*
          * Start with capturing move - lower pieces to higher pieces
          * Then checking moves
@@ -187,21 +202,76 @@ public class OmegaMoveGenerator {
          * Too expensive to create several lists? Make them static and clear them instead of creating?
          */
 
-
-
-
-
-
-
-
-
+        generatePawnMoves();
+        generateKnightMoves();
+        generateBishopMoves();
+        generateRookMoves();
+        generateQueenMoves();
+        generateKingMoves();
 
     }
 
     /**
+     * @param position
+     *
+     */
+    private void generatePawnMoves() {
+        int pawnDir = -1 *_activePlayer.ordinal();
+        for (OmegaSquare os : _position._pawnSquares[_activePlayer.ordinal()]) {
+            assert _position._x88Board[os.ordinal()].getType() == OmegaPieceType.PAWN;
+
+        }
+    }
+
+    /**
+     * @param position
+     *
+     */
+    private void generateKnightMoves() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param position
+     *
+     */
+    private void generateBishopMoves() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param position
+     *
+     */
+    private void generateRookMoves() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param position
+     *
+     */
+    private void generateQueenMoves() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     *
+     */
+    private void generateKingMoves() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param position
      * @param legalMoves
      */
-    private void generateEvasionMoves(OmegaMoveList legalMoves) {
+    private void generateEvasionMoves() {
         // TODO Auto-generated method stub
 
     }
@@ -209,7 +279,7 @@ public class OmegaMoveGenerator {
     /**
      * @param legalMoves
      */
-    private void sortMoves(OmegaMoveList legalMoves) {
+    private void sortMoves(OmegaMoveList list) {
         // TODO Auto-generated method stub
 
     }
@@ -217,7 +287,6 @@ public class OmegaMoveGenerator {
     /**
      * @param pseudolegalmoves
      * @param legalMoves
-     * @return
      */
     private void filterLegalMovesOnly(OmegaMoveList pseudolegalmoves, OmegaMoveList legalMoves) {
         // TODO Auto-generated method stub
