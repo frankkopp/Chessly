@@ -100,15 +100,11 @@ public class OmegaSearch implements Runnable {
      *
      */
     public void stop() {
-        // TODO - do something that stops search
-
         // set stop flag - search needs to check regularly and stop accordingly
         _stopSearch = true;
-
         // Wait for the thread to die
         try { this._searchThread.join();
         } catch (InterruptedException e) { /* empty*/ }
-
         // clear thread
         _searchThread=null;
     }
@@ -125,11 +121,11 @@ public class OmegaSearch implements Runnable {
         // DEBUG code
         // START TEMPORARY CODE
         try {
-            Thread.sleep(2000); // pretend calculation
+            Thread.sleep(0); // pretend calculation
         } catch (InterruptedException e) { // ignore
         }
-        OmegaMoveGenerator omg = new OmegaMoveGenerator(_omegaBoard);
-        OmegaMoveList legalMoves = omg.getLegalMoves();
+        OmegaMoveGenerator omg = new OmegaMoveGenerator();
+        OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
         int move = (int) Math.round(legalMoves.size() * Math.random());
         searchResult.bestMove=legalMoves.get(move);
         searchResult.resultValue=0;
@@ -137,7 +133,6 @@ public class OmegaSearch implements Runnable {
         searchResult.moveNumber=move;
         searchResult.ponderMove=OmegaMove.NOMOVE;
         searchResult.time=0;
-
         // END TEMPORARY CODE
 
         // send the result

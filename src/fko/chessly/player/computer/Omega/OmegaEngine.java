@@ -28,7 +28,6 @@ package fko.chessly.player.computer.Omega;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import fko.chessly.Chessly;
@@ -76,7 +75,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     // holds the time we started searching
     private long _startTime = 0;;
-
 
     /**********************************************************************
      * Engine Interface
@@ -187,9 +185,8 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         try { _waitForMoveLatch.await();
         } catch (InterruptedException e) { /*empty*/ }
 
-        // TODO convert result OmegaMove to GameMove
+        // convert result OmegaMove to GameMove
         GameMove bestMove = OmegaMove.convertToGameMove(_searchResult.bestMove);
-        // convert
 
         // tell the ui and the observers out state
         _statusInfo = "Engine waiting.";
@@ -493,7 +490,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         // TODO Auto-generated method stub
 
     }
-
 
     /** */
     public static final int SIG_ENGINE_START_CALCULATING = 6000;

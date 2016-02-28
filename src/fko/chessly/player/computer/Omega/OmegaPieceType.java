@@ -27,6 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
+import javax.swing.plaf.SliderUI;
+
 /**
  * Enumeration of all piece types in chess
  */
@@ -48,7 +50,7 @@ public enum OmegaPieceType {
 
     private OmegaPieceType(String shortName, boolean sliding, int value) {
         _shortName = shortName;
-        setSliding(sliding);
+        _sliding = sliding;
         _value = value;
     }
 

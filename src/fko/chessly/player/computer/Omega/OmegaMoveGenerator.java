@@ -30,6 +30,7 @@ package fko.chessly.player.computer.Omega;
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.GameMoveList;
+import fko.chessly.ui.SwingGUI.MoveList;
 
 /**
  * @author Frank
@@ -37,28 +38,204 @@ import fko.chessly.game.GameMoveList;
  */
 public class OmegaMoveGenerator {
 
-    private OmegaBoardPosition _position;
+    private long _zobristLastPosition;
 
-    private OmegaMoveList _moveList = null;
+    // cache the generated move list for repeated call to generateMoves
+    private OmegaMoveList _cachedPseudoLegalMoveList = null;
+    private boolean _cachedPseudoLegalMoveListValid = false;
+    private OmegaMoveList _cachedLegalMoveList = null;
+    private boolean _cachedLegalMoveListValid = false;
+
+    // these are are working lists as static fields to avoid to have to
+    // create them every time. Instead of creating the need to be cleared before use.
+    private static final OmegaMoveList _legalMoves = new OmegaMoveList();
+    // these are all pseudo legal
+    private static final OmegaMoveList _pseudoLegalMoves = new OmegaMoveList(); // all moves
+    private static final OmegaMoveList _capturingMoves = new OmegaMoveList(); // only capturing moves
+    private static final OmegaMoveList _checkingMoves = new OmegaMoveList(); // only checking moves
+    private static final OmegaMoveList _nonCapturingMoves = new OmegaMoveList(); // only non capturing moves
+    private static final OmegaMoveList _evasionMoves = new OmegaMoveList(); // only evasion moves
 
     /**
      * Constructor
      */
-    public OmegaMoveGenerator(OmegaBoardPosition position) {
-        this._position = position;
+    public OmegaMoveGenerator() {
+
     }
 
     /**
-     * @return generated moves as OmegaMoveList
+     * Generates all legal moves for a position.
+     * Legal moves have been checked if they leave the king in check or not.
+     * Repeated calls to this will return a cached list as long the position has
+     * not changed in between.
+     *
+     * @param position
+     * @param capturingOnly if only capturing moves should be generated for quiescence moves
+     * @return legal moves
      */
-    public OmegaMoveList getLegalMoves() {
-        // DEBUG - temporary code
-        _moveList=new OmegaMoveList();
-        GameBoard board = new GameBoardImpl(_position.toFENString());
-        GameMoveList moves = board.generateMoves();
-        moves.stream().forEach(c -> _moveList.add(OmegaMove.convertFromGameMove(c)));
-        return _moveList;
+    public OmegaMoveList getLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
+        if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
+
+        if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
+            System.out.println("PseudoLegalMoves form cache");
+            return _cachedLegalMoveList;
+        }
+
+        // position has changed - cache is invalid
+        _cachedLegalMoveListValid = false;
+        _cachedPseudoLegalMoveListValid = false;
+
+        // remember the last position to see when it has changed
+        // if changed the cache is always invalid
+        this._zobristLastPosition = position.getZobristKey();
+
+        // clear all lists
+        clearLists();
+
+        // call the move generators
+        if (position.hasCheck()) {
+            generateEvasionMoves(_legalMoves);
+        } else {
+            generatePseudoLegaMoves(_pseudoLegalMoves);
+            filterLegalMovesOnly(_pseudoLegalMoves, _legalMoves);
+            sortMoves(_legalMoves);
+        }
+
+        // DEBUG - temporary code until we actually can create moves
+        if (_legalMoves.empty()) {
+            GameBoard board = new GameBoardImpl(position.toFENString());
+            GameMoveList moves = board.generateMoves();
+            moves.stream().forEach(c -> _legalMoves.add(OmegaMove.convertFromGameMove(c)));
+        }
+
+        // cache the list of legal moves
+        _cachedLegalMoveList = _legalMoves;
+        _cachedLegalMoveListValid = true;
+
+        // return a clone of the list as we will continue to use the list as a static list
+        return _legalMoves.clone();
     }
+
+    /**
+     * Generates all  moves for a position. These moves may leave the king in check
+     * and may be illegal.
+     * Before committing the to a board they to be checked if they leave the king in check.
+     * Repeated calls to this will return a cached list as long the position has
+     * not changed in between.
+     *
+     * @param position
+     * @param capturingOnly
+     * @return list of moves which may leave the king in check
+     */
+    public OmegaMoveList getPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
+        if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
+
+        if (_cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
+            System.out.println("PseudoLegalMoves form cache");
+            return _cachedPseudoLegalMoveList;
+        }
+
+        // position has changed - cache is invalid
+        _cachedLegalMoveListValid = false;
+        _cachedPseudoLegalMoveListValid = false;
+
+        // remember the last position to see when it has changed
+        // if changed the cache is always invalid
+        this._zobristLastPosition = position.getZobristKey();
+
+        // clear all lists
+        clearLists();
+
+        // call the move generators
+        if (position.hasCheck()) {
+            generateEvasionMoves(_pseudoLegalMoves);
+        } else {
+            generatePseudoLegaMoves(_pseudoLegalMoves);
+            sortMoves(_pseudoLegalMoves);
+        }
+
+        // DEBUG - temporary code until we actually can create moves
+        if (_legalMoves.empty()) {
+            GameBoard board = new GameBoardImpl(position.toFENString());
+            GameMoveList moves = board.generateMoves();
+            moves.stream().forEach(c -> _pseudoLegalMoves.add(OmegaMove.convertFromGameMove(c)));
+        }
+
+        // cache the list of legal moves
+        _cachedPseudoLegalMoveList = _pseudoLegalMoves;
+        _cachedPseudoLegalMoveListValid = true;
+
+        // return a clone of the list as we will continue to use the list as a static list
+        return _pseudoLegalMoves.clone();
+    }
+
+    /**
+     * @param legalMoves
+     */
+    private void generatePseudoLegaMoves(OmegaMoveList legalMoves) {
+        /*
+         * Start with capturing move - lower pieces to higher pieces
+         * Then checking moves
+         * Then non capturing - lower to higher pieces
+         *      moves to better positions first
+         *      - e.g. Knights in the middle
+         *      - sliding pieces middle border position with much control over board
+         *      - King at the beginning in castle or corners, at the end in middle
+         *      - middle pawns forward in the beginning
+         *
+         * Use different list to add move to avoid repeated looping
+         * Too expensive to create several lists? Make them static and clear them instead of creating?
+         */
+
+
+
+
+
+
+
+
+
+
+    }
+
+    /**
+     * @param legalMoves
+     */
+    private void generateEvasionMoves(OmegaMoveList legalMoves) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param legalMoves
+     */
+    private void sortMoves(OmegaMoveList legalMoves) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param pseudolegalmoves
+     * @param legalMoves
+     * @return
+     */
+    private void filterLegalMovesOnly(OmegaMoveList pseudolegalmoves, OmegaMoveList legalMoves) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * Clears all lists
+     */
+    private void clearLists() {
+        _legalMoves.clear();
+        _pseudoLegalMoves.clear();
+        _evasionMoves.clear();
+        _capturingMoves.clear();
+        _checkingMoves.clear();
+        _nonCapturingMoves.clear();
+    }
+
 
 
 

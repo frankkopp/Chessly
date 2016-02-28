@@ -905,4 +905,12 @@ public class OmegaBoardPosition {
         return this._zobristKey;
     }
 
+    /**
+     * @return
+     */
+    public boolean hasCheck() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }
