@@ -126,8 +126,11 @@ public class OmegaSearch implements Runnable {
         }
         OmegaMoveGenerator omg = new OmegaMoveGenerator();
         OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
-        int move = (int) Math.round(legalMoves.size() * Math.random());
+        int move = (int) Math.round((legalMoves.size()-1) * Math.random());
         searchResult.bestMove=legalMoves.get(move);
+        if (searchResult.bestMove==0) {
+            System.out.println("SHIT");
+        }
         searchResult.resultValue=0;
         searchResult.depth=0;
         searchResult.moveNumber=move;
