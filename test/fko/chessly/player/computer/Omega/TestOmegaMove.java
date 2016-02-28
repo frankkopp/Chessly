@@ -27,6 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 import fko.chessly.game.GameBoard;
@@ -39,6 +41,20 @@ import fko.chessly.game.NotationHelper;
  *
  */
 public class TestOmegaMove {
+
+    @Test
+    public void testValidMove() {
+        int move = 100;
+        assertFalse(OmegaMove.isValid(move));
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.e2, OmegaSquare.d3, OmegaPiece.WHITE_PAWN, OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE);
+        assertTrue(OmegaMove.isValid(move));
+        move = OmegaMove.createMove(OmegaMoveType.NOMOVETYPE, OmegaSquare.e2, OmegaSquare.d3, OmegaPiece.WHITE_PAWN, OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE);
+        assertFalse(OmegaMove.isValid(move));
+        move = OmegaMove.createMove(OmegaMoveType.NOMOVETYPE, OmegaSquare.e2, OmegaSquare.d3, OmegaPiece.NOPIECE, OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE);
+        assertFalse(OmegaMove.isValid(move));
+        move = OmegaMove.createMove(OmegaMoveType.NOMOVETYPE, OmegaSquare.j1, OmegaSquare.d3, OmegaPiece.WHITE_PAWN, OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE);
+        assertFalse(OmegaMove.isValid(move));
+    }
 
     @Test
     public void testCreateMove() {

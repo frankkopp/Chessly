@@ -35,30 +35,20 @@ import org.junit.Test;
  * @author Frank
  *
  */
-public class TestOmegaMoveList {
+public class TestOmegaIntegerList {
 
     /**
      *
      */
     @Test
     public void testListWithInts() {
-        OmegaMoveList list = new OmegaMoveList();
+        OmegaIntegerList list = new OmegaIntegerList();
 
         // empty list
         testEmptyList(list);
 
         // add one entry
-        int move1 = OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.b1,
-                OmegaSquare.c3,
-                OmegaPiece.WHITE_KNIGHT,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                );
-
-        int value = move1;
-
+        int value = 100;
         list.add(value);
         assertTrue(list.size()==1);
         assertFalse(list.empty());
@@ -77,75 +67,25 @@ public class TestOmegaMoveList {
 
         // add 10 entries
         for (int i=100; i<110; i++) {
-            int move = OmegaMove.createMove(
-                    OmegaMoveType.NORMAL,
-                    OmegaSquare.getValueList().get(i-100),
-                    OmegaSquare.getValueList().get(i-100),
-                    OmegaPiece.WHITE_PAWN,
-                    OmegaPiece.NOPIECE,
-                    OmegaPiece.NOPIECE
-                    );
-            list.add(move);
+            list.add(i);
             assertTrue(list.size()==i-100+1);
             assertFalse(list.empty());
         }
 
         // get one entry
-        assertTrue(list.get(4)==OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.values()[4],
-                OmegaSquare.values()[4],
-                OmegaPiece.WHITE_PAWN,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                ));
+        assertTrue(list.get(4)==104);
 
         // remove one entry
         element = list.removeLast();
-        assertTrue(element==OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.b2,
-                OmegaSquare.b2,
-                OmegaPiece.WHITE_PAWN,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                ));
-        assertTrue(list.getLast()==OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.a2,
-                OmegaSquare.a2,
-                OmegaPiece.WHITE_PAWN,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                ));
+        assertTrue(element==109);
+        assertTrue(list.getLast()==108);
         element = list.removeFirst();
-        assertTrue(element==OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.a1,
-                OmegaSquare.a1,
-                OmegaPiece.WHITE_PAWN,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                ));
-        assertTrue(list.getFirst()==OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.b1,
-                OmegaSquare.b1,
-                OmegaPiece.WHITE_PAWN,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                ));
+        assertTrue(element==100);
+        assertTrue(list.getFirst()==101);
         assertTrue(list.size()==8);
 
         // get one entry
-        assertTrue(list.get(4)==OmegaMove.createMove(
-                OmegaMoveType.NORMAL,
-                OmegaSquare.f1,
-                OmegaSquare.f1,
-                OmegaPiece.WHITE_PAWN,
-                OmegaPiece.NOPIECE,
-                OmegaPiece.NOPIECE
-                ));
+        assertTrue(list.get(4)==105);
 
         // get entry higher than size
         try {
@@ -163,12 +103,90 @@ public class TestOmegaMoveList {
             assertTrue(true);
         }
 
+        // add list to list
+        OmegaIntegerList list2 = new OmegaIntegerList();
+        // add 10 entries
+        for (int i=200; i<210; i++) {
+            list2.add(i);
+        }
+        assertTrue(list2.size()==10);
+
+        // remove elements from list2
+        element = list2.removeLast();
+        assertTrue(element==209);
+        assertTrue(list2.getLast()==208);
+        element = list2.removeFirst();
+        assertTrue(element==200);
+        assertTrue(list2.getFirst()==201);
+        assertTrue(list2.size()==8);
+
+        // concatenate lists
+        list.add(list2);
+        assertTrue(list.size()==16);
+
+        // add many elements
+        list2 = new OmegaIntegerList();
+        // add 10 entries
+        for (int i=200; i<456; i++) {
+            list2.add(i);
+        }
+        assertTrue(list2.size()==256);
+
+        // add one too many
+        try {
+            list2.add(999);
+            fail();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // ignore
+        }
+        assertTrue(list2.size()==256);
+
+        // add too many elements
+        try {
+            list.add(list2);
+            fail();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // ignore
+        }
+
+        // equals
+        list = new OmegaIntegerList();
+        list.add(list2);
+        list.removeFirst();
+        list2.removeFirst();
+        assertTrue(list.equals(list2));
+        list2.removeFirst();
+        assertFalse(list.equals(list2));
+
+        OmegaIntegerList cloneList = list2.clone();
+        assertTrue(cloneList.equals(list2));
+
+        OmegaIntegerList sortList = new OmegaIntegerList();
+        sortList.add(99);
+        sortList.add(50);
+        sortList.add(55);
+        sortList.add(10);
+        sortList.add(5);
+        sortList.add(80);
+        sortList.sort();
+
+        cloneList.sort();
+
+        // clear
+        list.clear();
+        assertTrue(list.size()==0 && list.empty());
+        list2.clear();
+        assertTrue(list2.size()==0 && list2.empty());
+
+        System.out.println(cloneList);
+
+
     }
 
     /**
      * @param list
      */
-    private static void testEmptyList(OmegaMoveList list) {
+    private static void testEmptyList(OmegaIntegerList list) {
         // list is empty
         assertTrue(list.size()==0);
         assertTrue(list.empty());

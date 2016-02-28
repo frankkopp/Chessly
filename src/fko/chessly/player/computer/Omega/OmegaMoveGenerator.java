@@ -183,7 +183,7 @@ public class OmegaMoveGenerator {
          *      - King at the beginning in castle or corners, at the end in middle
          *      - middle pawns forward in the beginning
          *
-         * Use different list to add move to avoid repeated looping
+         * Use different lists to add moves to avoid repeated looping
          * Too expensive to create several lists? Make them static and clear them instead of creating?
          */
 

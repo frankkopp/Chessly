@@ -48,8 +48,9 @@ public enum OmegaMoveType {
         _valid = EnumSet.of(NORMAL, PAWNDOUBLE, PROMOTION, ENPASSANT, CASTLING);
     }
 
-    boolean isValid() {
-        return OmegaMoveType._valid.contains(this);
+    static boolean isValid(int mt) {
+        if (mt<0 || mt>5) return false;
+        return true;
     }
 
 }

@@ -40,6 +40,7 @@ import fko.chessly.game.GameMoveImpl;
 public class OmegaMove {
 
     // NOMOVE
+    /** */
     public static final int NOMOVE = -1;
     // MASKs
     private static final int SQUARE_bitMASK = 0x7F;
@@ -284,6 +285,35 @@ public class OmegaMove {
                     OmegaPiece.convertFromGamePiece(move.getCapturedPiece()),
                     OmegaPiece.NOPIECE);
         }
+    }
+
+    /**
+     * Lightwight check if the given int is a valid int representing a move.<br/>
+     * <b>This does not check if this is a legal move</b>.<br/> It simply checks
+     * if the we can extract a valid OmegaSquare as "from" and "to" and valid
+     * OmegaPieces for piece (without NOPIECE), target and promotion.
+     * @param move
+     * @return true if we could extract valid squares and pieces
+     */
+    static boolean isValid(int move) {
+        // is it a valid move type (excludes NOMOVETYPE
+        int type = ((move & MOVETYPE_MASK) >>> MOVETYPE_SHIFT);
+        if (type==0 || !OmegaMoveType.isValid(type)) return false;
+        // is there a valid from (start) square
+        int start = ((move & START_SQUARE_MASK) >>> START_SQUARE_SHIFT);
+        if ((start & 0x88) != 0) return false;
+        // is there a valid to (end) square
+        int end = ((move & END_SQUARE_MASK) >>> END_SQUARE_SHIFT);
+        if ((end & 0x88) != 0) return false;
+        // is the piece a valid piece excluding NOPIECE
+        int piece = (move & PIECE_MASK) >>> PIECE_SHIFT;
+        if (piece == 0 || !OmegaPiece.isValid(piece)) return false;
+        // is the target and the promotion a valid piece including NOPIECE
+        int target = (move & TARGET_MASK) >>> TARGET_SHIFT;
+        if (!OmegaPiece.isValid(target)) return false;
+        int promotion = (move & PROMOTION_MASK) >>> PROMOTION_SHIFT;
+        if (!OmegaPiece.isValid(promotion)) return false;
+        return true;
     }
 
 }

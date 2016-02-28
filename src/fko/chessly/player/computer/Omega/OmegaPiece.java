@@ -145,4 +145,13 @@ public enum OmegaPiece {
         }
     }
 
+    /**
+     * @param chessman
+     * @return
+     */
+    public static boolean isValid(int i) {
+        if (i<0 || i>12) return false;
+        return true;
+    }
+
 }
