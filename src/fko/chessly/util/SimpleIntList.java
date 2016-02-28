@@ -25,7 +25,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package fko.chessly.player.computer.Omega;
+package fko.chessly.util;
 
 import java.util.Arrays;
 
@@ -35,7 +35,7 @@ import java.util.Arrays;
  *
  * @author Frank Kopp
  */
-public class OmegaIntegerList {
+public class SimpleIntList {
 
     /**
      * Max entries of a MoveList
@@ -49,7 +49,7 @@ public class OmegaIntegerList {
     /**
      * Creates a list with a maximum of MAX_ENTRIES elements
      */
-    public OmegaIntegerList() {
+    public SimpleIntList() {
         this(DEFAULT_MAX_ENTRIES);
     }
 
@@ -57,7 +57,7 @@ public class OmegaIntegerList {
      * Creates a list with a maximum of max_site elements
      * @param max_size
      */
-    public OmegaIntegerList(int max_size) {
+    public SimpleIntList(int max_size) {
         _list = new int[max_size];
     }
 
@@ -82,7 +82,7 @@ public class OmegaIntegerList {
      * Adds an element to the end of the list.
      * @param newList
      */
-    public void add(OmegaIntegerList newList) {
+    public void add(SimpleIntList newList) {
         if (_tail+newList.size()>_list.length)
             throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
         System.arraycopy(newList._list, newList._head, this._list, this._tail, newList.size());
@@ -156,7 +156,7 @@ public class OmegaIntegerList {
      * Returns a number of how many elements can be added to this list before it is full.
      * @return number of available slots for elements to add
      */
-    public int availableCapacity() {
+    public int getAvailableCapacity() {
         return _list.length-size()-_head;
     }
 
@@ -188,8 +188,8 @@ public class OmegaIntegerList {
      * clones the list
      */
     @Override
-    public OmegaIntegerList clone() {
-        OmegaIntegerList n = new OmegaIntegerList();
+    public SimpleIntList clone() {
+        SimpleIntList n = new SimpleIntList();
         n.add(this);
         return n;
     }
@@ -199,7 +199,7 @@ public class OmegaIntegerList {
      */
     @Override
     public String toString() {
-        String s = "List size="+size()+" available capacity="+availableCapacity()+" [";
+        String s = "List size="+size()+" available capacity="+getAvailableCapacity()+" [";
         for (int i=_head; i<_tail; i++) {
             s += _list[i];
             if (i<_tail-1) s += ",";
@@ -228,8 +228,8 @@ public class OmegaIntegerList {
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj == null) { return false; }
-        if (!(obj instanceof OmegaIntegerList)) { return false; }
-        OmegaIntegerList other = (OmegaIntegerList) obj;
+        if (!(obj instanceof SimpleIntList)) { return false; }
+        SimpleIntList other = (SimpleIntList) obj;
         if (!Arrays.equals(this.toArray(), other.toArray())) { return false; }
         return true;
     }

@@ -25,24 +25,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package fko.chessly.player.computer.Omega;
+package fko.chessly.util;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import fko.chessly.util.SimpleIntList;
+
 /**
  * @author Frank
- *
  */
-public class TestOmegaIntegerList {
+public class TestSimpleIntList {
 
     /**
      *
      */
     @Test
     public void testListWithInts() {
-        OmegaIntegerList list = new OmegaIntegerList();
+        SimpleIntList list = new SimpleIntList();
 
         // empty list
         testEmptyList(list);
@@ -104,7 +105,7 @@ public class TestOmegaIntegerList {
         }
 
         // add list to list
-        OmegaIntegerList list2 = new OmegaIntegerList();
+        SimpleIntList list2 = new SimpleIntList();
         // add 10 entries
         for (int i=200; i<210; i++) {
             list2.add(i);
@@ -125,7 +126,7 @@ public class TestOmegaIntegerList {
         assertTrue(list.size()==16);
 
         // add many elements
-        list2 = new OmegaIntegerList();
+        list2 = new SimpleIntList();
         // add 10 entries
         for (int i=200; i<456; i++) {
             list2.add(i);
@@ -150,7 +151,7 @@ public class TestOmegaIntegerList {
         }
 
         // equals
-        list = new OmegaIntegerList();
+        list = new SimpleIntList();
         list.add(list2);
         list.removeFirst();
         list2.removeFirst();
@@ -158,10 +159,10 @@ public class TestOmegaIntegerList {
         list2.removeFirst();
         assertFalse(list.equals(list2));
 
-        OmegaIntegerList cloneList = list2.clone();
+        SimpleIntList cloneList = list2.clone();
         assertTrue(cloneList.equals(list2));
 
-        OmegaIntegerList sortList = new OmegaIntegerList();
+        SimpleIntList sortList = new SimpleIntList();
         sortList.add(99);
         sortList.add(50);
         sortList.add(55);
@@ -186,7 +187,7 @@ public class TestOmegaIntegerList {
     /**
      * @param list
      */
-    private static void testEmptyList(OmegaIntegerList list) {
+    private static void testEmptyList(SimpleIntList list) {
         // list is empty
         assertTrue(list.size()==0);
         assertTrue(list.empty());

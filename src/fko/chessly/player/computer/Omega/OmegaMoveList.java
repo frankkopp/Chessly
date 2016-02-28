@@ -27,12 +27,14 @@
 
 package fko.chessly.player.computer.Omega;
 
+import fko.chessly.util.SimpleIntList;
+
 /**
  * Simple and fast list class for OmegaMoves which are in fact integer
  * .
  * @author Frank
  */
-public class OmegaMoveList extends OmegaIntegerList {
+public class OmegaMoveList extends SimpleIntList {
 
 
     /* (non-Javadoc)
@@ -49,7 +51,7 @@ public class OmegaMoveList extends OmegaIntegerList {
      * @see fko.chessly.player.computer.Omega.OmegaIntegerList#add(fko.chessly.player.computer.Omega.OmegaIntegerList)
      */
     @Override
-    public void add(OmegaIntegerList newList) {
+    public void add(SimpleIntList newList) {
         if (!(newList instanceof OmegaMoveList))
             throw new IllegalArgumentException("not a valid OmegaMoveList: "+newList);
         super.add(newList);
@@ -69,10 +71,10 @@ public class OmegaMoveList extends OmegaIntegerList {
      */
     @Override
     public String toString() {
-        String s = "MoveList size="+size()+" available capacity="+(_list.length-size()-_head)+" [";
-        for (int i=_head; i<_tail; i++) {
-            s += _list[i] + " ("+OmegaMove.toString(_list[i])+")";
-            if (i<_tail-1) s += ", ";
+        String s = "MoveList size="+size()+" available capacity="+getAvailableCapacity()+" [";
+        for (int i=0; i<size(); i++) {
+            s += get(i) + " ("+OmegaMove.toString(get(i))+")";
+            if (i<size()-1) s += ", ";
         }
         s+="]";
         return s;
