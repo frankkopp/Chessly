@@ -59,19 +59,19 @@ public enum OmegaSquare {
     NOSQUARE;
 
     // Move deltas north, south, east, west and combinations
-    private static final int N = 16;
-    private static final int E = 1;
-    private static final int S = -16;
-    private static final int W = -1;
-    private static final int NE = N + E;
-    private static final int SE = S + E;
-    private static final int SW = S + W;
-    private static final int NW = N + W;
+    static final int N = 16;
+    static final int E = 1;
+    static final int S = -16;
+    static final int W = -1;
+    static final int NE = N + E;
+    static final int SE = S + E;
+    static final int SW = S + W;
+    static final int NW = N + W;
 
-    private static final int[] pawnDirections = {
-            N, NE, NW
+    static final int[] pawnDirections = {
+            N, NW, NE
     };
-    private static final int[] knightDirections = {
+    static final int[] knightDirections = {
             N + N + E,
             N + E + E,
             S + E + E,
@@ -81,17 +81,17 @@ public enum OmegaSquare {
             N + W + W,
             N + N + W
     };
-    private static final int[] bishopDirections = {
+    static final int[] bishopDirections = {
             NE, SE, SW, NW
     };
-    private static final int[] rookDirections = {
+    static final int[] rookDirections = {
             N, E, S, W
     };
-    private static final int[] queenDirections = {
+    static final int[] queenDirections = {
             N, NE, E, SE,
             S, SW, W, NW
     };
-    private static final int[] kingDirections = {
+    static final int[] kingDirections = {
             N, NE, E, SE,
             S, SW, W, NW
     };

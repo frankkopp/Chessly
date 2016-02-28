@@ -30,7 +30,6 @@ package fko.chessly.player.computer.Omega;
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.GameMoveList;
-import fko.chessly.ui.SwingGUI.MoveList;
 
 /**
  * The move generator for Omega Engine.<br/>
@@ -169,13 +168,6 @@ public class OmegaMoveGenerator {
             sortMoves(_pseudoLegalMoves);
         }
 
-        // DEBUG - temporary code until we actually can create moves
-        if (_legalMoves.empty()) {
-            GameBoard board = new GameBoardImpl(position.toFENString());
-            GameMoveList moves = board.generateMoves();
-            moves.stream().forEach(c -> _pseudoLegalMoves.add(OmegaMove.convertFromGameMove(c)));
-        }
-
         // cache the list of legal moves
         _cachedPseudoLegalMoveList = _pseudoLegalMoves;
         _cachedPseudoLegalMoveListValid = true;
@@ -209,6 +201,10 @@ public class OmegaMoveGenerator {
         generateQueenMoves();
         generateKingMoves();
 
+        // sort captureList - acccording to value diff
+        // sort checking moves - lowest ranking first - should already have this order?
+        // sort non capturing - via better piece/position/game phase value
+
     }
 
     /**
@@ -216,10 +212,87 @@ public class OmegaMoveGenerator {
      *
      */
     private void generatePawnMoves() {
-        int pawnDir = -1 *_activePlayer.ordinal();
+        int pawnDir = _activePlayer.isBlack() ? -1 : 1;
         for (OmegaSquare os : _position._pawnSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[os.ordinal()].getType() == OmegaPieceType.PAWN;
 
+            final int from = os.ordinal();
+            int[] directions = OmegaSquare.pawnDirections;
+
+            for (int d : directions) {
+                int to = from + d * pawnDir;
+
+                if ((to & 0x88) == 0) { // valid square
+                    final OmegaMoveType type = OmegaMoveType.NORMAL;
+                    final OmegaSquare fromSquare = OmegaSquare.getSquare(from);
+                    final OmegaSquare toSquare = OmegaSquare.getSquare(to);
+                    final OmegaPiece piece = OmegaPiece.getPiece(OmegaPieceType.PAWN, _activePlayer);
+                    final OmegaPiece target = _position._x88Board[to];
+                    final OmegaPiece promotion = OmegaPiece.NOPIECE;
+
+                    // capture
+                    if (d != OmegaSquare.N // not straight
+                            && target != OmegaPiece.NOPIECE // not empty
+                            && (target.getColor() == _activePlayer.getInverseColor())) { // opponents color
+
+                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
+
+                        // capture & promotion
+                        if (to > 111) { // rank 8
+                            assert _activePlayer.isWhite(); // checking for  color is probably redundant
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_QUEEN));
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_ROOK));
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_BISHOP));
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_KNIGHT));
+                        } else if (to < 8) { // rank 1
+                            assert _activePlayer.isBlack(); // checking for  color is probably redundant
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_QUEEN));
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_ROOK));
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_BISHOP));
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_KNIGHT));
+                        } else if (toSquare == _position._enPassantSquare) { //  en passant capture
+                            // which target?
+                            final int t = _activePlayer.isWhite() ? _position._enPassantSquare.getSouth().ordinal() : _position._enPassantSquare.getNorth().ordinal();
+                            _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.ENPASSANT,fromSquare,toSquare,piece,_position._x88Board[t],promotion));
+                        } else { // normal capture
+                            _capturingMoves.add(OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion));
+                        }
+                    }
+                    // no capture
+                    else if (d == OmegaSquare.N) {
+                        if (target == OmegaPiece.NOPIECE){ // way needs to be free
+                            // promotion
+                            if (to > 111) { // rank 8
+                                assert _activePlayer.isWhite(); // checking for  color is probably redundant
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_QUEEN));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_ROOK));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_BISHOP));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_KNIGHT));
+                            } else if (to < 8) { // rank 1
+                                assert _activePlayer.isBlack(); // checking for  color is probably redundant
+                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_QUEEN));
+                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_ROOK));
+                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_BISHOP));
+                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_KNIGHT));
+                            }
+                            // pawndouble
+                            else if (_activePlayer.isWhite()
+                                    && fromSquare.isWhitePawnBaseRow()
+                                    && (_position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.N)]) == OmegaPiece.NOPIECE) {
+                                // on rank 2 && rank 4 is free(rank 3 already checked via target)
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getNorth(),piece,target,promotion));
+                            }
+                        } else if (_activePlayer.isBlack()
+                                && fromSquare.isBlackPawnBaseRow()
+                                && _position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.S)] == OmegaPiece.NOPIECE) {
+                            // on rank 7 && rank 5 is free(rank 6 already checked via target)
+                            _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getSouth(),piece,target,promotion));
+                        }
+                        // normal pawn move
+                        _nonCapturingMoves.add(OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion));
+                    }
+                }
+            }
         }
     }
 
@@ -296,7 +369,7 @@ public class OmegaMoveGenerator {
     /**
      * Clears all lists
      */
-    private void clearLists() {
+    private static void clearLists() {
         _legalMoves.clear();
         _pseudoLegalMoves.clear();
         _evasionMoves.clear();

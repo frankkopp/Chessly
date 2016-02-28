@@ -177,9 +177,6 @@ public class TestOmegaBoardPosition {
         assertTrue(omegaBoard.hashCode() == omegaBoard2.hashCode());
         assertTrue(omegaBoard.equals(omegaBoard2));
 
-
-
-
     }
 
     /**
