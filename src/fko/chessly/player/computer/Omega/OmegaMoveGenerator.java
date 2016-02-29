@@ -60,11 +60,8 @@ public class OmegaMoveGenerator {
     // these are all pseudo legal
     private static final OmegaMoveList _pseudoLegalMoves = new OmegaMoveList(); // all moves
     private static final OmegaMoveList _capturingMoves = new OmegaMoveList(); // only capturing moves
-    private static final OmegaMoveList _checkingMoves = new OmegaMoveList(); // only checking moves
     private static final OmegaMoveList _nonCapturingMoves = new OmegaMoveList(); // only non capturing moves
     private static final OmegaMoveList _evasionMoves = new OmegaMoveList(); // only evasion moves
-
-
 
     /**
      * Constructor
@@ -131,7 +128,7 @@ public class OmegaMoveGenerator {
     /**
      * Generates all  moves for a position. These moves may leave the king in check
      * and may be illegal.
-     * Before committing the to a board they to be checked if they leave the king in check.
+     * Before committing them to a board they need to be checked if they leave the king in check.
      * Repeated calls to this will return a cached list as long the position has
      * not changed in between.
      *
@@ -143,8 +140,8 @@ public class OmegaMoveGenerator {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
         if (_cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            System.out.println("PseudoLegalMoves form cache");
-            return _cachedPseudoLegalMoveList;
+            //System.out.println("PseudoLegalMoves form cache");
+            //return _cachedPseudoLegalMoveList;
         }
 
         _position = position;
@@ -182,14 +179,13 @@ public class OmegaMoveGenerator {
     private void generatePseudoLegaMoves() {
         /*
          * Start with capturing move - lower pieces to higher pieces
-         * Then checking moves
          * Then non capturing - lower to higher pieces
-         *      moves to better positions first
+         *      - ideally:
+         *      - moves to better positions first
          *      - e.g. Knights in the middle
          *      - sliding pieces middle border position with much control over board
          *      - King at the beginning in castle or corners, at the end in middle
          *      - middle pawns forward in the beginning
-         *
          * Use different lists to add moves to avoid repeated looping
          * Too expensive to create several lists? Make them static and clear them instead of creating?
          */
@@ -201,10 +197,13 @@ public class OmegaMoveGenerator {
         generateQueenMoves();
         generateKingMoves();
 
-        // sort captureList - acccording to value diff
+        // TODO
+        // sort captureList - according to value diff
         // sort checking moves - lowest ranking first - should already have this order?
         // sort non capturing - via better piece/position/game phase value
 
+        _pseudoLegalMoves.add(_capturingMoves);
+        _pseudoLegalMoves.add(_nonCapturingMoves);
     }
 
     /**
@@ -223,6 +222,7 @@ public class OmegaMoveGenerator {
                 int to = from + d * pawnDir;
 
                 if ((to & 0x88) == 0) { // valid square
+
                     final OmegaMoveType type = OmegaMoveType.NORMAL;
                     final OmegaSquare fromSquare = OmegaSquare.getSquare(from);
                     final OmegaSquare toSquare = OmegaSquare.getSquare(to);
@@ -270,10 +270,10 @@ public class OmegaMoveGenerator {
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_KNIGHT));
                             } else if (to < 8) { // rank 1
                                 assert _activePlayer.isBlack(); // checking for  color is probably redundant
-                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_QUEEN));
-                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_ROOK));
-                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_BISHOP));
-                                _capturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_KNIGHT));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_QUEEN));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_ROOK));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_BISHOP));
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_KNIGHT));
                             }
                             // pawndouble
                             else if (_activePlayer.isWhite()
@@ -282,14 +282,15 @@ public class OmegaMoveGenerator {
                                 // on rank 2 && rank 4 is free(rank 3 already checked via target)
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getNorth(),piece,target,promotion));
                             }
-                        } else if (_activePlayer.isBlack()
-                                && fromSquare.isBlackPawnBaseRow()
-                                && _position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.S)] == OmegaPiece.NOPIECE) {
-                            // on rank 7 && rank 5 is free(rank 6 already checked via target)
-                            _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getSouth(),piece,target,promotion));
+                            else if (_activePlayer.isBlack()
+                                    && fromSquare.isBlackPawnBaseRow()
+                                    && _position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.S)] == OmegaPiece.NOPIECE) {
+                                // on rank 7 && rank 5 is free(rank 6 already checked via target)
+                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getSouth(),piece,target,promotion));
+                            }
+                            // normal pawn move
+                            _nonCapturingMoves.add(OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion));
                         }
-                        // normal pawn move
-                        _nonCapturingMoves.add(OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion));
                     }
                 }
             }
@@ -301,8 +302,36 @@ public class OmegaMoveGenerator {
      *
      */
     private void generateKnightMoves() {
-        // TODO Auto-generated method stub
+        for (OmegaSquare os : _position._knightSquares[_activePlayer.ordinal()]) {
+            assert _position._x88Board[os.ordinal()].getType() == OmegaPieceType.KNIGHT;
 
+            final int from = os.ordinal();
+            int[] directions = OmegaSquare.knightDirections;
+
+            for (int d : directions) {
+                int to = from + d;
+
+                if ((to & 0x88) == 0) { // valid square
+                    final OmegaPiece target = _position._x88Board[to];
+
+                    // free square - non capture
+                    if (target == OmegaPiece.NOPIECE) { // empty
+                        _nonCapturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(from),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(OmegaPieceType.KNIGHT, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                    // occupied square - capture or ignore
+                    else if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
+                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
+                        _capturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(from),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(OmegaPieceType.KNIGHT, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -310,7 +339,6 @@ public class OmegaMoveGenerator {
      *
      */
     private void generateBishopMoves() {
-        // TODO Auto-generated method stub
 
     }
 
@@ -374,7 +402,6 @@ public class OmegaMoveGenerator {
         _pseudoLegalMoves.clear();
         _evasionMoves.clear();
         _capturingMoves.clear();
-        _checkingMoves.clear();
         _nonCapturingMoves.clear();
     }
 
