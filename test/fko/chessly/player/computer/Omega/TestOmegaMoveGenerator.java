@@ -27,6 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.text.Format;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -83,7 +84,7 @@ public class TestOmegaMoveGenerator {
 
         System.out.println(board);
         System.out.println(moves);
-        System.out.println(ITERATIONS/DURATION+" runs/s");
+        System.out.println(String.format("%,d runs/s", ITERATIONS/DURATION));
     }
 
 }

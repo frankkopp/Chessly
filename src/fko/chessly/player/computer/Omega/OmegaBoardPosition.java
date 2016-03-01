@@ -1029,4 +1029,19 @@ public class OmegaBoardPosition {
         return false;
     }
 
+    /**
+     * @param inverseColor
+     * @param omegaSquare
+     * @return
+     */
+    boolean isAttacked(OmegaColor inverseColor, OmegaSquare omegaSquare) {
+        // check pawns
+        // check knights
+        // check king
+        // check sliding horizontal
+        // check sliding diagonal
+    
+        return false;
+    }
+
 }

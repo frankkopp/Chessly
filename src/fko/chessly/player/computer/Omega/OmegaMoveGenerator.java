@@ -198,7 +198,8 @@ public class OmegaMoveGenerator {
          *      - King at the beginning in castle or corners, at the end in middle
          *      - middle pawns forward in the beginning
          * Use different lists to add moves to avoid repeated looping
-         * Too expensive to create several lists? Make them static and clear them instead of creating?
+         * Too expensive to create several lists every call?
+         * Make them static and clear them instead of creating!!
          */
 
         generatePawnMoves();
@@ -211,7 +212,6 @@ public class OmegaMoveGenerator {
 
         // TODO
         // sort captureList - according to value diff
-        // sort checking moves - lowest ranking first - should already have this order?
         // sort non capturing - via better piece/position/game phase value
 
         _pseudoLegalMoves.add(_capturingMoves);
@@ -219,10 +219,6 @@ public class OmegaMoveGenerator {
         _pseudoLegalMoves.add(_nonCapturingMoves);
     }
 
-    /**
-     * Generates all pseudo legal pawn moves add adds them to _capturingMoves or
-     * _nonCapturingMoves accordingly.
-     */
     private void generatePawnMoves() {
         // reverse direction of pawns for black
         int pawnDir = _activePlayer.isBlack() ? -1 : 1;
@@ -316,45 +312,26 @@ public class OmegaMoveGenerator {
         }
     }
 
-    /**
-     * @param position
-     *
-     */
     private void generateKnightMoves() {
         generateNonSlidingMoves(OmegaPieceType.KNIGHT, _position._knightSquares[_activePlayer.ordinal()], OmegaSquare.knightDirections);
     }
 
-    /**
-     *
-     */
     private void generateBishopMoves() {
         generateSlidingMoves(OmegaPieceType.BISHOP, _position._bishopSquares[_activePlayer.ordinal()], OmegaSquare.bishopDirections);
     }
 
-    /**
-     *
-     */
     private void generateRookMoves() {
         generateSlidingMoves(OmegaPieceType.ROOK, _position._rookSquares[_activePlayer.ordinal()], OmegaSquare.rookDirections);
     }
 
-    /**
-     *
-     */
     private void generateQueenMoves() {
         generateSlidingMoves(OmegaPieceType.QUEEN, _position._queenSquares[_activePlayer.ordinal()], OmegaSquare.queenDirections);
     }
 
-    /**
-     *
-     */
     private void generateKingMoves() {
         generateNonSlidingMoves(OmegaPieceType.KING, _position._kingSquares[_activePlayer.ordinal()], OmegaSquare.kingDirections);
     }
 
-    /**
-     *
-     */
     private void generateCastlingMoves() {
         // iterate over all available castlings at this position
         for (OmegaCastling castling : _position._castlingRights) {
@@ -364,7 +341,7 @@ public class OmegaMoveGenerator {
                     // we will not check if g1 is attacked as this is a pseudo legal move
                     // and this to be checked separately e.g. when filtering for legal moves
                     if (_position._x88Board[OmegaSquare.f1.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && !isAttackedBy(_activePlayer.getInverseColor(), _position._x88Board[OmegaSquare.f1.ordinal()]) // passing square not attacked
+                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.f1) // passing square not attacked
                             && _position._x88Board[OmegaSquare.g1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
                     {
                         _castlingMoves.add(OmegaMove.createMove(
@@ -378,7 +355,7 @@ public class OmegaMoveGenerator {
                     // we will not check if d1 is attacked as this is a pseudo legal move
                     // and this to be checked separately e.g. when filtering for legal moves
                     if (_position._x88Board[OmegaSquare.d1.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && !isAttackedBy(_activePlayer.getInverseColor(), _position._x88Board[OmegaSquare.d1.ordinal()]) // passing square not attacked
+                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d1) // passing square not attacked
                             && _position._x88Board[OmegaSquare.c1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
                     {
                         _castlingMoves.add(OmegaMove.createMove(
@@ -394,7 +371,7 @@ public class OmegaMoveGenerator {
                     // we will not check if g8 is attacked as this is a pseudo legal move
                     // and this to be checked separately e.g. when filtering for legal moves
                     if (_position._x88Board[OmegaSquare.f8.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && !isAttackedBy(_activePlayer.getInverseColor(), _position._x88Board[OmegaSquare.f8.ordinal()]) // passing square not attacked
+                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.f8) // passing square not attacked
                             && _position._x88Board[OmegaSquare.g8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
                     {
                         _castlingMoves.add(OmegaMove.createMove(
@@ -408,7 +385,7 @@ public class OmegaMoveGenerator {
                     // we will not check if d8 is attacked as this is a pseudo legal move
                     // and this to be checked separately e.g. when filtering for legal moves
                     if (_position._x88Board[OmegaSquare.d8.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && !isAttackedBy(_activePlayer.getInverseColor(), _position._x88Board[OmegaSquare.d8.ordinal()]) // passing square not attacked
+                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d8) // passing square not attacked
                             && _position._x88Board[OmegaSquare.c8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
                     {
                         _castlingMoves.add(OmegaMove.createMove(
@@ -420,16 +397,6 @@ public class OmegaMoveGenerator {
                 }
             }
         }
-    }
-
-    /**
-     * @param inverseColor
-     * @param omegaPiece
-     * @return
-     */
-    private boolean isAttackedBy(OmegaColor inverseColor, OmegaPiece omegaPiece) {
-        // TODO Auto-generated method stub
-        return false;
     }
 
     /**
