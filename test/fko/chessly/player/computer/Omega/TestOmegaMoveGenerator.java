@@ -45,8 +45,8 @@ public class TestOmegaMoveGenerator {
     @Test
     public void testFromStandardBoard() {
 
-        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
-        //String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq - 0 113";
+        //String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 b kq e3 0 113";
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
 
         OmegaBoardPosition board = new OmegaBoardPosition(testFen);
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
@@ -62,25 +62,28 @@ public class TestOmegaMoveGenerator {
     @Test
     public void testTiming() {
 
-        int ITERATIONS = 100000;
+        int ITERATIONS = 0;
+        int DURATION = 5;
 
-        String testFen = "r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
-        //String testFen = "r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq - 0 113";
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/pbp2PPP/1R4K1 b kq e3 0 113";
+        //String testFen = "r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
 
         OmegaBoardPosition board = new OmegaBoardPosition(testFen);
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
 
         OmegaMoveList moves = null;
         Instant start = Instant.now();
-        for (int i=0;i<ITERATIONS;i++) {
+        while (true) {
+            ITERATIONS++;
             moves = moveGenerator.getPseudoLegalMoves(board, false);
+            if (Duration.between(start,Instant.now()).getSeconds()==DURATION) {
+                break;
+            };
         }
-        Instant end = Instant.now();
-        System.out.println(Duration.between(start, end));
 
         System.out.println(board);
         System.out.println(moves);
-
+        System.out.println(ITERATIONS/DURATION+" runs/s");
     }
 
 }
