@@ -95,7 +95,6 @@ public class OmegaMoveGenerator {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
         if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            //System.out.println("PseudoLegalMoves form cache");
             //return _cachedLegalMoveList;
         }
 
@@ -118,15 +117,8 @@ public class OmegaMoveGenerator {
             generateEvasionMoves();
         } else {
             generatePseudoLegaMoves();
-            filterLegalMovesOnly(_pseudoLegalMoves, _legalMoves);
+            filterLegalMovesOnly();
             sortMoves(_legalMoves);
-        }
-
-        // DEBUG - temporary code until we actually can create moves
-        if (_legalMoves.empty()) {
-            GameBoard board = new GameBoardImpl(position.toFENString());
-            GameMoveList moves = board.generateMoves();
-            moves.stream().forEach(c -> _legalMoves.add(OmegaMove.convertFromGameMove(c)));
         }
 
         // cache the list of legal moves
@@ -152,7 +144,6 @@ public class OmegaMoveGenerator {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
         if (_cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            //System.out.println("PseudoLegalMoves form cache");
             //return _cachedPseudoLegalMoveList;
         }
 
@@ -506,12 +497,25 @@ public class OmegaMoveGenerator {
     }
 
     /**
+     * Filters the _pseudoLegalMove list into the _legalMove list.
+     * Very expensive as i has to make and unmake the move to test
+     * if king is left in check.
+     * TODO: Improve - is there a way to avoid make/unmake?
+     *
      * @param pseudolegalmoves
      * @param legalMoves
      */
-    private void filterLegalMovesOnly(OmegaMoveList pseudolegalmoves, OmegaMoveList legalMoves) {
-        // TODO Auto-generated method stub
-
+    private void filterLegalMovesOnly() {
+        int size = _pseudoLegalMoves.size();
+        assert _legalMoves.size() == 0;
+        for (int i = 0; i < size; ++i) {
+            int move = _pseudoLegalMoves.get(i);
+            _position.makeMove(move);
+            if (!_position.isAttacked(_activePlayer.getInverseColor(), (OmegaSquare) _position._kingSquares[_activePlayer.ordinal()].toArray()[0])) {
+                _legalMoves.add(move);
+            }
+            _position.undoMove();
+        }
     }
 
     /**

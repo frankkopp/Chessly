@@ -27,6 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Random;

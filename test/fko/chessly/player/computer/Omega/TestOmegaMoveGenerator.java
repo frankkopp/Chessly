@@ -74,7 +74,7 @@ public class TestOmegaMoveGenerator {
         while (fens[i]!=null) {
             String testFen = fens[i];
             board = new OmegaBoardPosition(testFen);
-
+            //System.out.println(board);
 
             OmegaMoveList moves = null;
             Instant start = Instant.now();
@@ -85,10 +85,21 @@ public class TestOmegaMoveGenerator {
                     break;
                 };
             }
+            //System.out.println(moves);
+            System.out.println(String.format("PseudoLegal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
+            ITERATIONS=0;
 
-            //            System.out.println(board);
-            //            System.out.println(moves);
-            System.out.println(String.format("%,d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
+            moves = null;
+            start = Instant.now();
+            while (true) {
+                ITERATIONS++;
+                moves = moveGenerator.getLegalMoves(board, false);
+                if (Duration.between(start,Instant.now()).getSeconds()==DURATION) {
+                    break;
+                };
+            }
+            //System.out.println(moves);
+            System.out.println(String.format("      Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
             i++;
             ITERATIONS=0;
         }
@@ -98,6 +109,7 @@ public class TestOmegaMoveGenerator {
 
         int i=0;
         String[] fen = new String[200];
+        fen[i++]="r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/B5R1/pbp2PPP/1R4K1 b kq e3 0 113";
         fen[i++]="r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/pbp2PPP/1R4K1 b kq e3 0 113";
         fen[i++]="r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
         fen[i++]="8/1P6/6k1/8/8/8/p1K5/8 w - - 0 1";
