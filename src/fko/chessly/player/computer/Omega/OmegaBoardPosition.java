@@ -462,12 +462,10 @@ public class OmegaBoardPosition {
         }
         switch (toSquare) {
             case e1: // white king
-                assert false; // king capture should not happen
                 _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
                 _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
                 break;
             case e8: // black king
-                assert false; // king capture should not happen
                 _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
                 _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
                 break;

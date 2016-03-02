@@ -264,10 +264,12 @@ public final class Chessly_PERFT {
 
         resetCounters();
 
-        GameBoardImpl board = new GameBoardImpl();
+
         int depth = maxDepth;
 
         System.out.format("Testing single threaded at depth %d%n", depth);
+
+        GameBoardImpl board = new GameBoardImpl();
 
         long result = 0;
 
