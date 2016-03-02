@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Random;
 
+import org.omg.CORBA._PolicyStub;
+
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GamePiece;
@@ -1030,18 +1032,68 @@ public class OmegaBoardPosition {
     }
 
     /**
-     * @param inverseColor
+     * This checks if a certain square is currently under attack by the player of the
+     * given color. It does not matter who has the next move on this position.
+     * It also is checking if the actual attack can be done as a legal move. E.g. a
+     * pinned piece could not actually make a capture on the square.
+     *
+     * @param color
      * @param omegaSquare
      * @return
      */
-    boolean isAttacked(OmegaColor inverseColor, OmegaSquare omegaSquare) {
-        // check pawns
-        // check knights
-        // check king
-        // check sliding horizontal
-        // check sliding diagonal
-    
-        return false;
-    }
+    public boolean isAttacked(OmegaColor color, OmegaSquare omegaSquare) {
+        assert (omegaSquare != OmegaSquare.NOSQUARE);
+        assert (!color.isNone());
 
+        final int os_Index = omegaSquare.ordinal();
+        final boolean isWhite = color.isWhite();
+
+        /*
+         * Checks are ordered for likelihood to return from this as fast as possible
+         */
+
+        // check pawns
+        // reverse direction to look for pawns which could attack
+        final int pawnDir = isWhite ? -1 : 1;
+        final OmegaPiece piece = isWhite ? OmegaPiece.WHITE_PAWN : OmegaPiece.BLACK_PAWN;
+        for (int d : OmegaSquare.pawnAttackDirections) {
+            final int i = os_Index+d*pawnDir;
+            if ((i & 0x88) == 0 && _x88Board[i] == piece) return true;
+        }
+
+        // check sliding horizontal (rook + queen)
+
+        // check sliding diagonal (bishop + queen)
+
+        // check knights
+
+        // check king
+
+        // check en passant
+        if (this._enPassantSquare != OmegaSquare.NOSQUARE){
+            if (isWhite // white is attacker
+                    && _x88Board[_enPassantSquare.getSouth().ordinal()] == OmegaPiece.BLACK_PAWN // black is target
+                    && this._enPassantSquare.getSouth() == omegaSquare) { //this is indeed the en passant attacked square
+                // left
+                int i = os_Index + OmegaSquare.W;
+                if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.WHITE_PAWN) return true;
+                // right
+                i = os_Index + OmegaSquare.E;
+                if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.WHITE_PAWN) return true;
+            }
+            else if (!isWhite // black is attacker (assume not noColor)
+                    && _x88Board[_enPassantSquare.getNorth().ordinal()] == OmegaPiece.WHITE_PAWN // white is target
+                    && this._enPassantSquare.getNorth() == omegaSquare) { //this is indeed the en passant attacked square
+                // attack from left
+                int i = os_Index + OmegaSquare.W;
+                if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.BLACK_PAWN) return true;
+                // attack from right
+                i = os_Index + OmegaSquare.E;
+                if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.BLACK_PAWN) return true;
+            }
+        }
+
+        return false;
+
+    }
 }

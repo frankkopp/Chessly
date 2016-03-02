@@ -425,8 +425,20 @@ public class TestOmegaBoardPosition {
         assertTrue(omegaBoard.toFENString().equals(omegaBoard2.toFENString()));
         assertTrue(omegaBoard.getZobristKey() == omegaBoard2.getZobristKey());
         assertTrue(omegaBoard.equals(omegaBoard2));
+    }
 
+    @Test
+    public void testIsAttacked() {
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
+        OmegaBoardPosition omegaBoard = new OmegaBoardPosition(testFen);
 
+        System.out.println(omegaBoard);
+
+        assertTrue(omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.g3));
+        assertTrue(omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.e3));
+        assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.b1));
+        assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.e4));
+        assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.e3));
     }
 
 

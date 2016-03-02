@@ -71,6 +71,9 @@ public enum OmegaSquare {
     static final int[] pawnDirections = {
             N, NW, NE
     };
+    static final int[] pawnAttackDirections = {
+            NW, NE
+    };
     static final int[] knightDirections = {
             N + N + E,
             N + E + E,

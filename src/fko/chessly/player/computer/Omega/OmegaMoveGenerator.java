@@ -95,10 +95,11 @@ public class OmegaMoveGenerator {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
         if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            System.out.println("PseudoLegalMoves form cache");
-            return _cachedLegalMoveList;
+            //System.out.println("PseudoLegalMoves form cache");
+            //return _cachedLegalMoveList;
         }
 
+        // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
         // position has changed - cache is invalid
@@ -155,6 +156,7 @@ public class OmegaMoveGenerator {
             //return _cachedPseudoLegalMoveList;
         }
 
+        // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
         // position has changed - cache is invalid
@@ -221,7 +223,7 @@ public class OmegaMoveGenerator {
 
     private void generatePawnMoves() {
         // reverse direction of pawns for black
-        int pawnDir = _activePlayer.isBlack() ? -1 : 1;
+        final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
 
         // iterate over all squares where we have a pawn
         for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
@@ -234,7 +236,7 @@ public class OmegaMoveGenerator {
             for (int d : directions) {
 
                 // calculate the to square
-                int to = square.ordinal() + d * pawnDir;
+                final int to = square.ordinal() + d * pawnDir;
 
                 if ((to & 0x88) == 0) { // valid square
 
