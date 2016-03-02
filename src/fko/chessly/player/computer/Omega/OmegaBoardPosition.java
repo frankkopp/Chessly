@@ -831,7 +831,7 @@ public class OmegaBoardPosition {
             s = parts[5];
             _nextHalfMoveNumber = (2 * Integer.parseInt(s));
         } else {
-            _nextHalfMoveNumber = 1 ;
+            _nextHalfMoveNumber = 2 ;
         }
         if (_nextPlayer.isWhite()) _nextHalfMoveNumber--;
 
@@ -1024,7 +1024,7 @@ public class OmegaBoardPosition {
     }
 
     /**
-     * @return
+     * @return true if current position has check for next player
      */
     public boolean hasCheck() {
         // TODO Auto-generated method stub
@@ -1039,7 +1039,7 @@ public class OmegaBoardPosition {
      *
      * @param color
      * @param omegaSquare
-     * @return
+     * @return true if under attack
      */
     public boolean isAttacked(OmegaColor color, OmegaSquare omegaSquare) {
         assert (omegaSquare != OmegaSquare.NOSQUARE);
@@ -1055,19 +1055,71 @@ public class OmegaBoardPosition {
         // check pawns
         // reverse direction to look for pawns which could attack
         final int pawnDir = isWhite ? -1 : 1;
-        final OmegaPiece piece = isWhite ? OmegaPiece.WHITE_PAWN : OmegaPiece.BLACK_PAWN;
+        final OmegaPiece attackerPawn = isWhite ? OmegaPiece.WHITE_PAWN : OmegaPiece.BLACK_PAWN;
         for (int d : OmegaSquare.pawnAttackDirections) {
             final int i = os_Index+d*pawnDir;
-            if ((i & 0x88) == 0 && _x88Board[i] == piece) return true;
+            if ((i & 0x88) == 0 && _x88Board[i] == attackerPawn) return true;
         }
 
-        // check sliding horizontal (rook + queen)
+        // check sliding horizontal (rook + queen) if there are any
+        if (!(_rookSquares[color.ordinal()].isEmpty() && _queenSquares[color.ordinal()].isEmpty())) {
+            for (int d : OmegaSquare.rookDirections) {
+                int i = os_Index+d;
+                while ((i & 0x88) == 0) { // slide while valid square
+                    if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
+                            && _x88Board[i].getColor() == color // attacker piece
+                            && (_x88Board[i].getType() == OmegaPieceType.ROOK || _x88Board[i].getType() == OmegaPieceType.QUEEN)
+                            ) {
+                        return true;
+                    }
+                    i += d; // next sliding field in this direction
+                }
+            }
+        }
 
-        // check sliding diagonal (bishop + queen)
+        // check sliding diagonal (bishop + queen) if there are any
+        if (!(_bishopSquares[color.ordinal()].isEmpty() && _queenSquares[color.ordinal()].isEmpty())) {
+            for (int d : OmegaSquare.bishopDirections) {
+                int i = os_Index+d;
+                while ((i & 0x88) == 0) { // slide while valid square
+                    if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
+                            && _x88Board[i].getColor() == color // attacker piece
+                            && (_x88Board[i].getType() == OmegaPieceType.BISHOP || _x88Board[i].getType() == OmegaPieceType.QUEEN)
+                            ) {
+                        return true;
+                    }
+                    i += d; // next sliding field in this direction
+                }
+            }
+        }
 
-        // check knights
+        // check knights if there are any
+        if (!(_knightSquares[color.ordinal()].isEmpty())) {
+            for (int d : OmegaSquare.knightDirections) {
+                int i = os_Index+d;
+                if ((i & 0x88) == 0) { // valid square
+                    if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
+                            && _x88Board[i].getColor() == color // attacker piece
+                            && (_x88Board[i].getType() == OmegaPieceType.KNIGHT)
+                            ) {
+                        return true;
+                    }
+                }
+            }
+        }
 
         // check king
+        for (int d : OmegaSquare.kingDirections) {
+            int i = os_Index+d;
+            if ((i & 0x88) == 0) { // valid square
+                if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
+                        && _x88Board[i].getColor() == color // attacker piece
+                        && (_x88Board[i].getType() == OmegaPieceType.KING)
+                        ) {
+                    return true;
+                }
+            }
+        }
 
         // check en passant
         if (this._enPassantSquare != OmegaSquare.NOSQUARE){

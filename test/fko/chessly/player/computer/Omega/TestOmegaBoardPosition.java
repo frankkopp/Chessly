@@ -434,12 +434,72 @@ public class TestOmegaBoardPosition {
 
         System.out.println(omegaBoard);
 
+        // pawns
         assertTrue(omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.g3));
         assertTrue(omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.e3));
         assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.b1));
         assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.e4));
         assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.e3));
+
+        // sliding
+        assertTrue(omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.g6));
+        assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.a5));
     }
 
+    /**
+     * Tests the timing
+     */
+    @Test
+    public void testIsAttackedTiming() {
+
+        int ITERATIONS = 0;
+        int DURATION = 5;
+
+        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
+        OmegaBoardPosition board = null;
+
+        int i=0;
+        String[] fens = getFENs();
+        while (fens[i]!=null) {
+            String testFen = fens[i];
+            board = new OmegaBoardPosition(testFen);
+
+
+            boolean test = false;
+            Instant start = Instant.now();
+            while (true) {
+                ITERATIONS++;
+                test = board.isAttacked(OmegaColor.WHITE, OmegaSquare.d4);
+                if (Duration.between(start,Instant.now()).getSeconds()==DURATION) {
+                    break;
+                };
+            }
+
+            //            System.out.println(board);
+            //            System.out.println(moves);
+            System.out.println(String.format("%,d runs/s for %s (%b)", ITERATIONS/DURATION, fens[i], test ));
+            i++;
+            ITERATIONS=0;
+        }
+    }
+
+    String[] getFENs() {
+
+        int i=0;
+        String[] fen = new String[200];
+        fen[i++]="8/8/8/8/8/8/8/8 w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/8 w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/7B w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/6B1 w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/7R w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/6R1 w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/7Q w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/6Q1 w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/7N w - - 0 1";
+        fen[i++]="8/8/8/8/8/8/8/6N1 w - - 0 1";
+
+        return fen;
+
+    }
 
 }
