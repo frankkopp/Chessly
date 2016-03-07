@@ -325,15 +325,20 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                 assert _enPassantCapturable != null;
 
                 // en passant capture
-                GameMove last = _moveHistory.getLast();
-                int lastToCol = _enPassantCapturable.getFile() - 1;
-                int lastToRow = _enPassantCapturable.getRank() - 1;
+                int epCol = _enPassantCapturable.getFile()-1;
+                int epRow = _enPassantCapturable.getRank()-1;
+
+                /*                // correct the actual position of the capturable piece
+                if (epRow == 3) epRow = 3; // en passant on the white side - black as attacker
+                else if (epRow == 4) epRow = 4; // en passant on the black side - white a attacker
+                else
+                    throw new RuntimeException("Not a valid en passant rank");*/
 
                 // remove the piece
-                capturedPiece = removePiece(lastToCol, lastToRow);
+                capturedPiece = removePiece(epCol, epRow);
 
                 move.setWasEnPassantCapture(true);
-                move.setEnPassantCapturePosition(GamePosition.getGamePosition(lastToCol + 1, lastToRow + 1));
+                move.setEnPassantCapturePosition(GamePosition.getGamePosition(epCol + 1, epRow + 1));
 
                 // reset en passant
                 _enPassantCapturable = null;
@@ -452,11 +457,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // en passant
         if (lastMove.getWasEnPassantCapture()) {
             GamePosition p = lastMove.getEnPassantCapturePosition();
-            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1,
-                    p.getRank() - 1);
+            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1, p.getRank() - 1);
         } else {
-            putPiece(lastMove.getCapturedPiece(), originalTarget.getFile() - 1,
-                    originalTarget.getRank() - 1);
+            putPiece(lastMove.getCapturedPiece(), originalTarget.getFile() - 1, originalTarget.getRank() - 1);
         }
 
         // undo promotion

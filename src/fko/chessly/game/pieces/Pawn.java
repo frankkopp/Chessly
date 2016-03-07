@@ -199,45 +199,49 @@
              int[][] deltas) {
 
          for (int i = 0; i < deltas.length; i++) {
-             int col_inc = deltas[i][0];
-             int row_inc = deltas[i][1];
-             int new_col = fromPos.getFile() + col_inc;
-             int new_row = fromPos.getRank() + row_inc;
-             GamePosition newPos = GamePosition.getGamePosition(new_col, new_row);
+             int file_inc = deltas[i][0];
+             int rank_inc = deltas[i][1];
+             int new_file = fromPos.getFile() + file_inc;
+             int new_rank = fromPos.getRank() + rank_inc;
+             GamePosition newPos = GamePosition.getGamePosition(new_file, new_rank);
 
              if (board.isWithinBoard(newPos)) {
-                 if (board.getPiece(new_col, new_row) != null) {
-                     if (board.getPiece(new_col, new_row).getColor()
+                 if (board.getPiece(new_file, new_rank) != null) {
+                     if (board.getPiece(new_file, new_rank).getColor()
                              .equals(this._color.getInverseColor())) {
                          GameMoveImpl m = new GameMoveImpl(fromPos, newPos, this);
                          if (newPos.getRank() == promotionRow) {
                              m.setPromotedTo(Queen.create(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                              m = new GameMoveImpl(fromPos, newPos, this);
                              m.setPromotedTo(Rook.create(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                              m = new GameMoveImpl(fromPos, newPos, this);
                              m.setPromotedTo(Bishop.create(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                              m = new GameMoveImpl(fromPos, newPos, this);
                              m.setPromotedTo(Knight.create(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                          } else {
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                          }
                      }
                  } else { // en passant
-                     if (board.hasEnPassantCapturable()
-                             && board.getEnPassantCapturable().getFile() == new_col
-                             && board.getEnPassantCapturable().getRank() == (pawnColor.isWhite() ? 6 : 3 )) {
+                     if (board.hasEnPassantCapturable() // is en passant possible
+                             && board.getEnPassantCapturable().getFile() == new_file // same file as en passant pawn
+                             && board.getEnPassantCapturable().getRank() == new_rank // correct rank
+                             && fromPos.getRank() == (pawnColor.isWhite() ? 5 : 4)
+
+                             ){
+
                          final GameMoveImpl m = new GameMoveImpl(fromPos, newPos, this);
-                         m.setCapturedPiece(board.getPiece(new_col, fromPos.getRank()));
-                         m.setEnPassantCapturePosition(GamePosition.getGamePosition(new_col, fromPos.getRank()));
+                         m.setCapturedPiece(board.getPiece(new_file, fromPos.getRank()));
+                         m.setEnPassantCapturePosition(GamePosition.getGamePosition(new_file, fromPos.getRank()));
                          m.setWasEnPassantCapture(true);
                          legalMoves.add(m);
                      }

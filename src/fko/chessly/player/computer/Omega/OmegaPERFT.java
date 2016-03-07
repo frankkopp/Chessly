@@ -138,7 +138,7 @@ public class OmegaPERFT {
      * @param duration
      */
     private void printResult(long result, long duration) {
-        System.out.format("Leaf Nodes: %d Captures: %d EnPassant: %d Checks: %d Checkmates: %d %n",
+        System.out.format("Leaf Nodes: %,d Captures: %,d EnPassant: %,d Checks: %,d Checkmates: %,d %n",
                 result, _captureCounter, _enpassantCounter, _checkCounter, _checkMateCounter);
         System.out.format("Duration: %02d:%02d:%02d.%03d%n",
                 TimeUnit.MILLISECONDS.toHours(duration),
@@ -152,7 +152,7 @@ public class OmegaPERFT {
                 - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS
                         .toSeconds(duration)));
 
-        System.out.format("n/s: %d%n", result*1000/duration);
+        System.out.format("n/s: %,d%n", result*1000/duration);
         System.out.println();
     }
 

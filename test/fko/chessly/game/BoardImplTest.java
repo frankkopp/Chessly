@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
 
 import fko.chessly.game.pieces.Pawn;
@@ -15,6 +18,22 @@ import fko.chessly.player.computer.Omega.OmegaBoardPosition;
  *
  */
 public class BoardImplTest {
+
+    @Test
+    public void testEnPassantMoves() {
+        GameBoard b = new GameBoardImpl("r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/B5R1/pbp2PPP/1R4K1 b kq e3 0 113");
+        GameMoveList list = b.generateMoves();
+        List<GameMove> ep = list.stream().filter(p -> p.getWasEnPassantCapture()).collect(Collectors.toList());
+        System.out.println(b);
+        System.out.println(list);
+        System.out.println("En Passant Moves: "+ep);
+        for ( GameMove m : ep) {
+            GameBoard copy = new GameBoardImpl(b);
+            copy.makeMove(m);
+            System.out.println(copy);
+        }
+
+    }
 
     /**
      * Test Setup from FEN

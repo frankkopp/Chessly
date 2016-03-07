@@ -264,7 +264,6 @@ public final class Chessly_PERFT {
 
         resetCounters();
 
-
         int depth = maxDepth;
 
         System.out.format("Testing single threaded at depth %d%n", depth);
