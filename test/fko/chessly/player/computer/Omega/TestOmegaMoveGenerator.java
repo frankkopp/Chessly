@@ -48,6 +48,7 @@ public class TestOmegaMoveGenerator {
 
         //String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 b kq e3 0 113";
         String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
+        testFen = "rnbqkbnr/1pp1pppp/p7/2PpP3/8/8/PP1P1PPP/RNBQKBNR w KQkq d6 0 1";
 
         OmegaBoardPosition board = new OmegaBoardPosition(testFen);
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();

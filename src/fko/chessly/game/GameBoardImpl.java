@@ -981,7 +981,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
     /**
      * Checks if there is another piece between the from field and the to field
-     * along the alowed move path.
+     * along the allowed move path.
      *
      * @param move
      * @return true if no other piece blocking the way - false otherwise

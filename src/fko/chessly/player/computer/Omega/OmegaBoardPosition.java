@@ -27,12 +27,9 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Random;
-
-import org.omg.CORBA._PolicyStub;
 
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameColor;
@@ -43,6 +40,7 @@ import fko.chessly.player.computer.Omega.OmegaSquare.File;
 /**
  * @author Frank
  */
+@SuppressWarnings("unchecked")
 public class OmegaBoardPosition {
 
     /* Size of 0x88 board */
@@ -80,7 +78,6 @@ public class OmegaBoardPosition {
 
     // Castling rights
     EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
-    @SuppressWarnings("unchecked")
     EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
     // hash for castling rights
     static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
@@ -123,6 +120,16 @@ public class OmegaBoardPosition {
 
     // Material value will always be up to date
     int[] _material;
+
+    // caches a hasCheck and hasMate Flag for the current position. Will be set after
+    // a call to hasCheck() and reset to TBD every time a move is made or unmade.
+    private Flag _hasCheck = Flag.TBD;
+    private Flag _hasMate = Flag.TBD;
+    private enum Flag {
+        TBD,
+        TRUE,
+        FALSE
+    }
 
     // **********************************************************
     // static initialization
@@ -215,8 +222,7 @@ public class OmegaBoardPosition {
             for (int rank = 1; rank <= 8; rank++) {
                 // we can't do an arraycopy here as we do not know the
                 // Implementation of the old board
-                GamePiece gp = oldBoard.getPiece(file, rank) == null ? null
-                        : (GamePiece) oldBoard.getPiece(file, rank).clone();
+                GamePiece gp = oldBoard.getPiece(file, rank) == null ? null : oldBoard.getPiece(file, rank);
                 OmegaPiece op = OmegaPiece.convertFromGamePiece(gp);
                 if (op != OmegaPiece.NOPIECE) putPiece(OmegaSquare.getSquare(file, rank), op);
             }
@@ -255,7 +261,7 @@ public class OmegaBoardPosition {
     }
 
     /**
-     *
+     * Initialize the lists for the pieces and the material counter
      */
     private void initializeLists() {
         for (int i=0; i<=1; i++) { // foreach color
@@ -294,6 +300,9 @@ public class OmegaBoardPosition {
         _halfMoveClock_History[_historyCounter] = _halfMoveClock;
         _zobristKey_History[_historyCounter] = _zobristKey;
         _historyCounter++;
+        // TODO: maybe also put this onto the stack?
+        _hasCheck = Flag.TBD;
+        _hasMate = Flag.TBD;
 
         // make move
         switch (OmegaMove.getMoveType(move)) {
@@ -421,6 +430,10 @@ public class OmegaBoardPosition {
 
         // zobristKey - just overwrite - should be the same as before the move
         _zobristKey = _zobristKey_History[_historyCounter];
+
+        // TODO: maybe also get this from the stack?
+        _hasCheck = Flag.TBD;
+        _hasMate = Flag.TBD;
 
     }
 
@@ -1145,7 +1158,27 @@ public class OmegaBoardPosition {
      * @return true if current position has check for next player
      */
     public boolean hasCheck() {
-        return isAttacked(_nextPlayer.getInverseColor(), (OmegaSquare) _kingSquares[_nextPlayer.ordinal()].toArray()[0]);
+        if (_hasCheck != Flag.TBD) return _hasCheck == Flag.TRUE ? true : false;
+        boolean check = isAttacked(_nextPlayer.getInverseColor(), (OmegaSquare) _kingSquares[_nextPlayer.ordinal()].toArray()[0]);
+        _hasCheck = check ? Flag.TRUE : Flag.FALSE;
+        return check;
+    }
+
+    /**
+     * Tests for mate on this position. If true the next player has lost.
+     * Expensive test as all legal moves have to be generated.
+     * TODO: could be optimized as it would be enough to find one move.
+     * @return true if current position is mate for next player
+     */
+    public boolean hasCheckMate() {
+        if (!hasCheck()) {
+            return false;
+        }
+        if (_hasMate != Flag.TBD) return _hasMate == Flag.TRUE ? true : false;
+        OmegaMoveGenerator mg = new OmegaMoveGenerator();
+        OmegaMoveList moves = mg.getLegalMoves(this, false);
+        if (moves.empty()) return true;
+        return false;
     }
 
     /**

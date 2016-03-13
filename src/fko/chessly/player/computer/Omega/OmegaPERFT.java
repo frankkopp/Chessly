@@ -56,8 +56,8 @@ public class OmegaPERFT {
 
         System.out.format("Testing single threaded at depth %d%n", depth);
 
-        OmegaBoardPosition board = new OmegaBoardPosition();
         OmegaMoveGenerator mg = new OmegaMoveGenerator();
+        OmegaBoardPosition board = new OmegaBoardPosition();
 
         long result = 0;
 
@@ -101,9 +101,9 @@ public class OmegaPERFT {
     private void updateCounter(OmegaBoardPosition board) {
         if (board.hasCheck()) {
             _checkCounter++;
-            //            if (board.hasCheckMate()) {
-            //                _checkMateCounter++;
-            //            }
+            if (board.hasCheckMate()) {
+                _checkMateCounter++;
+            }
         }
 
         int lastMove = board.getLastMove();

@@ -61,7 +61,7 @@ public class OmegaMoveList extends SimpleIntList {
      */
     @Override
     public void sort() {
-        // TODO - sort Moves
+        // TODO sort Moves
         super.sort();
     }
 
