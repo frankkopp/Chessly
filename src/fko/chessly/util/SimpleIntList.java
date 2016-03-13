@@ -235,9 +235,9 @@ public class SimpleIntList {
     }
 
     /**
+     * Standard quicksort implementation to order the list according to the int value.
      * @param lo
      * @param hi
-     * TODO: use move value or other criteria to sort - not int itself
      */
     private void quicksort(int lo, int hi) {
         int low=lo, high=hi;

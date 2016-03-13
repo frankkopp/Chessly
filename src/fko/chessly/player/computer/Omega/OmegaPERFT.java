@@ -48,7 +48,7 @@ public class OmegaPERFT {
     /**
      * @param maxDepth
      */
-    public void testSingleThreaded(int maxDepth) {
+    public void testPerft(int maxDepth) {
 
         resetCounters();
 
@@ -99,27 +99,22 @@ public class OmegaPERFT {
      * @param board
      */
     private void updateCounter(OmegaBoardPosition board) {
-        /*        if (board.hasCheck()) {
-            synchronized (_checkCounterLock) {
-                _checkCounter++;
-            }
-            if (board.hasCheckMate()) {
-                synchronized (_mateCounterLock) {
-                    _checkMateCounter++;
-                }
-            }
+        if (board.hasCheck()) {
+            _checkCounter++;
+            //            if (board.hasCheckMate()) {
+            //                _checkMateCounter++;
+            //            }
         }
-        GameMove lastMove = board.getMoveHistory().getLast();
-        if (lastMove.getCapturedPiece() != null) {
-            synchronized (_captureCounterLock) {
-                _captureCounter++;
-            }
+
+        int lastMove = board.getLastMove();
+
+        if (OmegaMove.getTarget(lastMove) != OmegaPiece.NOPIECE) {
+            _captureCounter++;
         }
-        if (lastMove.getWasEnPassantCapture()) {
-            synchronized (_epCounterLock) {
-                _enpassantCounter++;
-            }
-        }*/
+
+        if (OmegaMove.getMoveType(lastMove) == OmegaMoveType.ENPASSANT) {
+            _enpassantCounter++;
+        }
     }
 
     /**
@@ -152,7 +147,7 @@ public class OmegaPERFT {
                 - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS
                         .toSeconds(duration)));
 
-        System.out.format("n/s: %,d%n", result*1000/duration);
+        System.out.format("n/s: %,d%n", result*1000/(duration+1));
         System.out.println();
     }
 

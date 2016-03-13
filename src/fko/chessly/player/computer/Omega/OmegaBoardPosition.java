@@ -124,8 +124,6 @@ public class OmegaBoardPosition {
     // Material value will always be up to date
     int[] _material;
 
-
-
     // **********************************************************
     // static initialization
     static {
@@ -1023,17 +1021,9 @@ public class OmegaBoardPosition {
     }
 
     /**
-     * @return true if current position has check for next player
-     */
-    public boolean hasCheck() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    /**
      * This checks if a certain square is currently under attack by the player of the
      * given color. It does not matter who has the next move on this position.
-     * It also is checking if the actual attack can be done as a legal move. E.g. a
+     * It also is not checking if the actual attack can be done as a legal move. E.g. a
      * pinned piece could not actually make a capture on the square.
      *
      * @param color
@@ -1065,11 +1055,13 @@ public class OmegaBoardPosition {
             for (int d : OmegaSquare.rookDirections) {
                 int i = os_Index+d;
                 while ((i & 0x88) == 0) { // slide while valid square
-                    if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
-                            && _x88Board[i].getColor() == color // attacker piece
-                            && (_x88Board[i].getType() == OmegaPieceType.ROOK || _x88Board[i].getType() == OmegaPieceType.QUEEN)
-                            ) {
-                        return true;
+                    if (_x88Board[i] != OmegaPiece.NOPIECE ) { // not empty
+                        if (_x88Board[i].getColor() == color  // attacker piece
+                                && (_x88Board[i].getType() == OmegaPieceType.ROOK
+                                || _x88Board[i].getType() == OmegaPieceType.QUEEN)) {
+                            return true;
+                        }
+                        break; // not an attacker color or attacker piece blocking the way.
                     }
                     i += d; // next sliding field in this direction
                 }
@@ -1081,11 +1073,13 @@ public class OmegaBoardPosition {
             for (int d : OmegaSquare.bishopDirections) {
                 int i = os_Index+d;
                 while ((i & 0x88) == 0) { // slide while valid square
-                    if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
-                            && _x88Board[i].getColor() == color // attacker piece
-                            && (_x88Board[i].getType() == OmegaPieceType.BISHOP || _x88Board[i].getType() == OmegaPieceType.QUEEN)
-                            ) {
-                        return true;
+                    if (_x88Board[i] != OmegaPiece.NOPIECE ) { // not empty
+                        if (_x88Board[i].getColor() == color  // attacker piece
+                                && (_x88Board[i].getType() == OmegaPieceType.BISHOP
+                                || _x88Board[i].getType() == OmegaPieceType.QUEEN)) {
+                            return true;
+                        }
+                        break; // not an attacker color or attacker piece blocking the way.
                     }
                     i += d; // next sliding field in this direction
                 }
@@ -1145,6 +1139,23 @@ public class OmegaBoardPosition {
         }
 
         return false;
-
     }
+
+    /**
+     * @return true if current position has check for next player
+     */
+    public boolean hasCheck() {
+        return isAttacked(_nextPlayer.getInverseColor(), (OmegaSquare) _kingSquares[_nextPlayer.ordinal()].toArray()[0]);
+    }
+
+    /**
+     * Returns the last move. Returns OmegaMove.NOMOVE if there is no last move.
+     * @return int representing a move
+     */
+    public int getLastMove() {
+        if (_historyCounter == 0) return OmegaMove.NOMOVE;
+        return _moveHistory[_historyCounter-1];
+    }
+
+
 }

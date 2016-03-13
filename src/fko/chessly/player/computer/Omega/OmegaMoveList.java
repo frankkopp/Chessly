@@ -36,7 +36,6 @@ import fko.chessly.util.SimpleIntList;
  */
 public class OmegaMoveList extends SimpleIntList {
 
-
     /* (non-Javadoc)
      * @see fko.chessly.player.computer.Omega.OmegaIntegerList#add(int)
      */

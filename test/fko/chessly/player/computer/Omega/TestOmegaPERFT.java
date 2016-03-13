@@ -27,11 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
-
-import fko.chessly.game.Chessly_PERFT;
 
 /**
  * @author Frank
@@ -50,15 +46,18 @@ public class TestOmegaPERFT {
             { 6, 119060324, 2812008, 5248,  809099, 10828}
     };
 
+    /**
+     * Perft Test
+     */
     @Test
     public void testPerft() {
 
-        int maxDepth = 6;
+        int maxDepth = 4;
 
         OmegaPERFT perftTest = new OmegaPERFT();
 
         for (int i=1;i<=maxDepth;i++) {
-            perftTest.testSingleThreaded(i);
+            perftTest.testPerft(i);
 
             //assertTrue(perftTest.get_nodes() == results[i][1]);
             //            assertTrue(perftTest.get_captureCounter() == results[i][2]);

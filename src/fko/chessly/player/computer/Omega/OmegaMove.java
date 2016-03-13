@@ -288,7 +288,7 @@ public class OmegaMove {
     }
 
     /**
-     * Lightwight check if the given int is a valid int representing a move.<br/>
+     * Lightweight check if the given int is a valid int representing a move.<br/>
      * <b>This does not check if this is a legal move</b>.<br/> It simply checks
      * if the we can extract a valid OmegaSquare as "from" and "to" and valid
      * OmegaPieces for piece (without NOPIECE), target and promotion.

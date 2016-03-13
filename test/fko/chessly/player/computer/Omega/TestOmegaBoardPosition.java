@@ -27,7 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -444,6 +444,14 @@ public class TestOmegaBoardPosition {
         // sliding
         assertTrue(omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.g6));
         assertTrue(omegaBoard.isAttacked(OmegaColor.BLACK, OmegaSquare.a5));
+
+        // king
+        testFen = "rnbqkbnr/1ppppppp/8/p7/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2";
+        omegaBoard = new OmegaBoardPosition(testFen);
+        System.out.println(omegaBoard);
+        assertFalse(
+                omegaBoard.isAttacked(OmegaColor.WHITE, OmegaSquare.e8)
+                );
     }
 
     /**
