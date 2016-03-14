@@ -37,6 +37,8 @@ import fko.chessly.game.NotationHelper;
  */
 public class OmegaPERFT {
 
+    private static final boolean DIVIDE=false;
+
     private long _nodes = 0;
     private long _checkCounter = 0;
     private long _checkMateCounter = 0;
@@ -81,8 +83,11 @@ public class OmegaPERFT {
         long startTime = System.currentTimeMillis();
         OmegaMoveList moves = mg.getLegalMoves(board, false);
         for (int move : moves.toArray()) {
+            if (DIVIDE) System.out.print(OmegaMove.toSimpleString(move)+" ");
             board.makeMove(move);
-            result += miniMax(depth - 1, board, mg, 1);
+            long r = miniMax(depth - 1, board, mg, 1);
+            if (DIVIDE) System.out.println(r);
+            result += r;
             board.undoMove();
         }
         long endTime = System.currentTimeMillis();

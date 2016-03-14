@@ -288,22 +288,23 @@ public class OmegaMoveGenerator {
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_ROOK));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_BISHOP));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_KNIGHT));
+                            } else {
+                                // pawndouble
+                                if (_activePlayer.isWhite()
+                                        && fromSquare.isWhitePawnBaseRow()
+                                        && (_position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.N)]) == OmegaPiece.NOPIECE) {
+                                    // on rank 2 && rank 4 is free(rank 3 already checked via target)
+                                    _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getNorth(),piece,target,promotion));
+                                }
+                                else if (_activePlayer.isBlack()
+                                        && fromSquare.isBlackPawnBaseRow()
+                                        && _position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.S)] == OmegaPiece.NOPIECE) {
+                                    // on rank 7 && rank 5 is free(rank 6 already checked via target)
+                                    _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getSouth(),piece,target,promotion));
+                                }
+                                // normal pawn move
+                                _nonCapturingMoves.add(OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion));
                             }
-                            // pawndouble
-                            else if (_activePlayer.isWhite()
-                                    && fromSquare.isWhitePawnBaseRow()
-                                    && (_position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.N)]) == OmegaPiece.NOPIECE) {
-                                // on rank 2 && rank 4 is free(rank 3 already checked via target)
-                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getNorth(),piece,target,promotion));
-                            }
-                            else if (_activePlayer.isBlack()
-                                    && fromSquare.isBlackPawnBaseRow()
-                                    && _position._x88Board[fromSquare.ordinal()+(2*OmegaSquare.S)] == OmegaPiece.NOPIECE) {
-                                // on rank 7 && rank 5 is free(rank 6 already checked via target)
-                                _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PAWNDOUBLE,fromSquare,toSquare.getSouth(),piece,target,promotion));
-                            }
-                            // normal pawn move
-                            _nonCapturingMoves.add(OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion));
                         }
                     }
                 }
@@ -332,6 +333,7 @@ public class OmegaMoveGenerator {
     }
 
     private void generateCastlingMoves() {
+        if (_position.hasCheck()) return; // no castling if we are in check
         // iterate over all available castlings at this position
         for (OmegaCastling castling : _position._castlingRights) {
             if (_activePlayer.isWhite()) {
@@ -354,6 +356,7 @@ public class OmegaMoveGenerator {
                     // we will not check if d1 is attacked as this is a pseudo legal move
                     // and this to be checked separately e.g. when filtering for legal moves
                     if (_position._x88Board[OmegaSquare.d1.ordinal()] == OmegaPiece.NOPIECE // passing square free
+                            && _position._x88Board[OmegaSquare.b1.ordinal()] == OmegaPiece.NOPIECE // rook passing square free
                             && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d1) // passing square not attacked
                             && _position._x88Board[OmegaSquare.c1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
                     {
@@ -384,6 +387,7 @@ public class OmegaMoveGenerator {
                     // we will not check if d8 is attacked as this is a pseudo legal move
                     // and this to be checked separately e.g. when filtering for legal moves
                     if (_position._x88Board[OmegaSquare.d8.ordinal()] == OmegaPiece.NOPIECE // passing square free
+                            && _position._x88Board[OmegaSquare.b8.ordinal()] == OmegaPiece.NOPIECE // rook passing square free
                             && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d8) // passing square not attacked
                             && _position._x88Board[OmegaSquare.c8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
                     {

@@ -195,6 +195,19 @@ public class OmegaMove {
     }
 
     /**
+     * Simple String representation of move
+     *
+     * @param move
+     * @return String for move
+     */
+    public static String toSimpleString(int move) {
+        String s = "";
+        s += getStart(move).toString();
+        s += getEnd(move).toString();
+        return s;
+    }
+
+    /**
      * Converts move to GameMove
      * @param move
      * @return the matching GameMove
@@ -315,5 +328,7 @@ public class OmegaMove {
         if (!OmegaPiece.isValid(promotion)) return false;
         return true;
     }
+
+
 
 }

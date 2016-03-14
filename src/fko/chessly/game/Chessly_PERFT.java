@@ -260,6 +260,25 @@ public final class Chessly_PERFT {
     private final Object _captureCounterLock = new Object();
     private final Object _epCounterLock = new Object();
 
+    private String _fen;
+
+    /**
+     * @param fen
+     */
+    public Chessly_PERFT(String fen) {
+        _fen = fen;
+    }
+
+    /**
+     *
+     */
+    public Chessly_PERFT() {
+        _fen = NotationHelper.StandardBoardFEN;
+    }
+
+    /**
+     * @param maxDepth
+     */
     public void testSingleThreaded(int maxDepth) {
 
         resetCounters();
@@ -268,7 +287,7 @@ public final class Chessly_PERFT {
 
         System.out.format("Testing single threaded at depth %d%n", depth);
 
-        GameBoardImpl board = new GameBoardImpl();
+        GameBoardImpl board = new GameBoardImpl(_fen);
 
         long result = 0;
 
@@ -286,6 +305,10 @@ public final class Chessly_PERFT {
         printResult(result, duration);
     }
 
+    /**
+     * @param maxDepth
+     * @param threads
+     */
     public void testMultiThreaded(int maxDepth, int threads) {
 
         resetCounters();
@@ -294,7 +317,7 @@ public final class Chessly_PERFT {
 
         System.out.format("Testing multi threaded at depth %d%n", depth);
 
-        GameBoardImpl board = new GameBoardImpl();
+        GameBoardImpl board = new GameBoardImpl(_fen);
 
         long result = 0;
 
@@ -460,7 +483,7 @@ public final class Chessly_PERFT {
                 - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS
                         .toSeconds(duration)));
 
-        System.out.format("n/s: %d%n", result*1000/duration);
+        System.out.format("n/s: %d%n", result*1000/(duration+1));
         System.out.println();
     }
 

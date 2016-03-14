@@ -345,6 +345,7 @@ public class OmegaBoardPosition {
                 break;
             case PROMOTION:
                 if (target != OmegaPiece.NOPIECE) removePiece(toSquare, target);
+                invalidateCastlingRights(fromSquare, toSquare);
                 removePiece(fromSquare, piece);
                 putPiece(toSquare, promotion);
                 // clear en passant
@@ -444,6 +445,30 @@ public class OmegaBoardPosition {
      * @param target
      */
     private void makeNormalMove(OmegaSquare fromSquare, OmegaSquare toSquare, OmegaPiece piece, OmegaPiece target) {
+        invalidateCastlingRights(fromSquare, toSquare);
+
+        if (target != OmegaPiece.NOPIECE) {
+            removePiece(toSquare, target);
+            _halfMoveClock = 0; // reset half move clock because of capture
+        }  else if (piece.getType() == OmegaPieceType.PAWN) {
+            _halfMoveClock = 0; // reset half move clock because of pawn move
+        } else {
+            _halfMoveClock++;
+        }
+        movePiece(fromSquare, toSquare, piece);
+        // clear en passant
+        if (_enPassantSquare != OmegaSquare.NOSQUARE) {
+            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // out
+            _enPassantSquare = OmegaSquare.NOSQUARE;
+        }
+
+    }
+
+    /**
+     * @param fromSquare
+     * @param toSquare
+     */
+    private void invalidateCastlingRights(OmegaSquare fromSquare, OmegaSquare toSquare) {
         // _take out castling rights from zobrist to set new later
         _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
         // check for castling rights invalidation
@@ -496,22 +521,6 @@ public class OmegaBoardPosition {
                 break;
         }
         _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // in
-
-        if (target != OmegaPiece.NOPIECE) {
-            removePiece(toSquare, target);
-            _halfMoveClock = 0; // reset half move clock because of capture
-        }  else if (piece.getType() == OmegaPieceType.PAWN) {
-            _halfMoveClock = 0; // reset half move clock because of pawn move
-        } else {
-            _halfMoveClock++;
-        }
-        movePiece(fromSquare, toSquare, piece);
-        // clear en passant
-        if (_enPassantSquare != OmegaSquare.NOSQUARE) {
-            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // out
-            _enPassantSquare = OmegaSquare.NOSQUARE;
-        }
-
     }
 
     /**
