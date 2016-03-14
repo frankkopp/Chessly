@@ -245,7 +245,6 @@ public class OmegaMoveGenerator {
 
                     // capture
                     if (d != OmegaSquare.N) { // not straight
-
                         if (target != OmegaPiece.NOPIECE // not empty
                                 && (target.getColor() == _activePlayer.getInverseColor())) { // opponents color
                             assert target.getType() != OmegaPieceType.KING; // did we miss a check?
@@ -274,7 +273,7 @@ public class OmegaMoveGenerator {
                         }
                     }
                     // no capture
-                    else if (d == OmegaSquare.N) {
+                    else if (d == OmegaSquare.N) { // straight
                         if (target == OmegaPiece.NOPIECE){ // way needs to be free
                             // promotion
                             if (to > 111) { // rank 8

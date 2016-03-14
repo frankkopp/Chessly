@@ -56,6 +56,7 @@ public enum OmegaPiece {
     BLACK_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.BLACK, "q"), // 11
     BLACK_KING   (OmegaPieceType.KING,   OmegaColor.BLACK, "k"); // 12
 
+
     private final OmegaPieceType _type;
     private final OmegaColor _color;
     private final String _shortName;

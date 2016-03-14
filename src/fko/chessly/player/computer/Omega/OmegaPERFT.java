@@ -29,6 +29,8 @@ package fko.chessly.player.computer.Omega;
 
 import java.util.concurrent.TimeUnit;
 
+import fko.chessly.game.NotationHelper;
+
 /**
  * @author Frank
  *
@@ -44,6 +46,21 @@ public class OmegaPERFT {
     private final Object _mateCounterLock = new Object();
     private final Object _captureCounterLock = new Object();
     private final Object _epCounterLock = new Object();
+    private String _fen = "";
+
+    /**
+     * @param string
+     */
+    public OmegaPERFT(String fen) {
+        _fen = fen;
+    }
+
+    /**
+     *
+     */
+    public OmegaPERFT() {
+        _fen = NotationHelper.StandardBoardFEN;
+    }
 
     /**
      * @param maxDepth
@@ -57,7 +74,7 @@ public class OmegaPERFT {
         System.out.format("Testing single threaded at depth %d%n", depth);
 
         OmegaMoveGenerator mg = new OmegaMoveGenerator();
-        OmegaBoardPosition board = new OmegaBoardPosition();
+        OmegaBoardPosition board = new OmegaBoardPosition(_fen);
 
         long result = 0;
 
