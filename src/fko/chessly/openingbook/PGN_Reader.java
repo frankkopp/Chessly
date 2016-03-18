@@ -180,7 +180,7 @@ public class PGN_Reader {
             // empty line before start of Tag pairs
             if (line.isEmpty()) continue;
 
-            // clean up all unessecary stuf we don't need (yet)
+            // clean up all unnecessary stuff we don't need (yet)
             line = lineCleanUp(line);
 
             // tag pair section

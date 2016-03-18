@@ -467,10 +467,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             if (!processSIMPLELineItem(item, currentPosition)) return;
         });
 
-        /*for (String item : lineItems) {
-            if (!processSIMPLELineItem(item, currentPosition)) break;
-        }*/
-
     }
 
     /**
