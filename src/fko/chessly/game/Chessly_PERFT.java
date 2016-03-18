@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import fko.chessly.game.pieces.Pawn;
+import fko.chessly.player.computer.Omega.OmegaMove;
+
 /**
  * <table class="wiki_table">
  * <tr>
@@ -247,6 +250,8 @@ import java.util.concurrent.TimeUnit;
  */
 public final class Chessly_PERFT {
 
+    private static final boolean DIVIDE=false;
+
     private LinkedBlockingQueue<Job> fifo = new LinkedBlockingQueue<Job>();
     private final Object _fifoLock = new Object();
 
@@ -288,18 +293,25 @@ public final class Chessly_PERFT {
         System.out.format("Testing single threaded at depth %d%n", depth);
 
         GameBoardImpl board = new GameBoardImpl(_fen);
+        //        board.makeMove(NotationHelper.createNewMoveFromSimpleNotation(board, "a2a4"));
+        //        board.makeMove(NotationHelper.createNewMoveFromSimpleNotation(board, "e6d5"));
+        //        board.makeMove(NotationHelper.createNewMoveFromSimpleNotation(board, "e4d5"));
 
         long result = 0;
 
         long startTime = System.currentTimeMillis();
         List<GameMove> moves = board.generateMoves();
         for (GameMove move : moves) {
+            if (DIVIDE) System.out.print(move.toSimpleString()+" ");
             board.makeMove(move);
-            result += miniMax(depth - 1, board, 1);
+            long r = miniMax(depth - 1, board, 1);
+            if (DIVIDE) System.out.println(r);
+            result += r;
             board.undoMove();
         }
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
+        if (DIVIDE) System.out.println("Moves: "+moves.size());
 
         _nodes = result;
         printResult(result, duration);

@@ -320,25 +320,20 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // Pawn not moving straight but no captured piece
         // we do not need to do an exhaustive check as this has been done
         // in isLegalMove - we can assume it is a legal move.
+        // TODO: Ugly Code!!!
+        move.setEnPassantCapturePosition(_enPassantCapturable);
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null) {
                 assert _enPassantCapturable != null;
 
                 // en passant capture
                 int epCol = _enPassantCapturable.getFile()-1;
-                int epRow = _enPassantCapturable.getRank()-1;
-
-                /*                // correct the actual position of the capturable piece
-                if (epRow == 3) epRow = 3; // en passant on the white side - black as attacker
-                else if (epRow == 4) epRow = 4; // en passant on the black side - white a attacker
-                else
-                    throw new RuntimeException("Not a valid en passant rank");*/
+                int epRow = _enPassantCapturable.getRank()-1 + (movedPiece.isWhite() ? -1 : +1);
 
                 // remove the piece
                 capturedPiece = removePiece(epCol, epRow);
 
                 move.setWasEnPassantCapture(true);
-                move.setEnPassantCapturePosition(GamePosition.getGamePosition(epCol + 1, epRow + 1));
 
                 // reset en passant
                 _enPassantCapturable = null;
@@ -355,7 +350,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                     // reset en passant
                     _enPassantCapturable = null;
                 }
-
+            } else {
+                // reset en passant
+                _enPassantCapturable = null;
             }
         } else {
             // reset en passant
@@ -457,7 +454,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // en passant
         if (lastMove.getWasEnPassantCapture()) {
             GamePosition p = lastMove.getEnPassantCapturePosition();
-            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1, p.getRank() - 1);
+            int rank = p.getRank() + (lastPiece.isWhite() ?  - 1 : 1);
+            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1, rank - 1);
         } else {
             putPiece(lastMove.getCapturedPiece(), originalTarget.getFile() - 1, originalTarget.getRank() - 1);
         }
@@ -467,20 +465,6 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             removePiece(originalSource.getFile() - 1, originalSource.getRank() - 1);
             putPiece(Pawn.create(lastPiece.getColor()), originalSource.getFile() - 1,
                     originalSource.getRank() - 1);
-        }
-
-        // en passant possible
-        // checks the last move before the move to be undone
-        GameMove previousMove = _moveHistory.getLast();
-        if (_moveHistory.size() > 0 && previousMove.getMovedPiece() instanceof Pawn
-                && previousMove.getFromField().getFile() == previousMove.getToField().getFile()) {
-            // double pawn move - possible en passant next move
-            int baseRow = (previousMove.getMovedPiece().getColor() == GameColor.WHITE ? 2
-                    : 7);
-            if (previousMove.getFromField().getRank() == baseRow
-                    && Math.abs(previousMove.getToField().getRank() - baseRow) == 2) {
-                _enPassantCapturable = previousMove.getToField();
-            }
         }
 
         // castle - restore caslting rights
@@ -506,6 +490,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             }
         }
 
+        // en passant possible
+        _enPassantCapturable = lastMove.getEnPassantCapturePosition();
         // check
         _hasCheck = lastMove.getWasCheck();
         // reset Mates - not possible true if we undo a move
@@ -547,8 +533,11 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- remove from fromField
         GamePiece movedPiece = this.removePiece(fromCol, fromRow);
+        // -- place piece (pawn promotion does not matter here)
+        this.putPiece(movedPiece, toCol, toRow);
 
         // en passant? Pawn not moving straight but no captured piece
+        // FIXME: not correctly checking pinned ep target
         boolean enPassantCapture = false;
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null && _enPassantCapturable != null) {
@@ -557,15 +546,16 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                 GamePosition enPassantField = _enPassantCapturable;
 
                 // remove the piece
-                capturedPiece = this.removePiece(enPassantField.getFile()-1, enPassantField.getRank()-1);
+                int rank = enPassantField.getRank()-1;
+                rank += movedPiece.isWhite() ? -1 : 1;
+                capturedPiece = this.removePiece(enPassantField.getFile()-1, rank);
 
                 // remember this for undo
                 enPassantCapture=true;
             }
         }
 
-        // -- place piece (pawn promotion does not matter here)
-        this.putPiece(movedPiece, toCol, toRow);
+
 
         // CHECK CHECK
 
@@ -589,7 +579,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             GamePosition enPassantField = _enPassantCapturable;
 
             // remove the piece
-            this.putPiece(capturedPiece, enPassantField.getFile()-1, enPassantField.getRank()-1);
+            int rank = enPassantField.getRank()-1;
+            rank += movedPiece.isWhite() ? -1 : 1;
+            this.putPiece(capturedPiece, enPassantField.getFile()-1, rank);
 
         } else {
             // put back captured piece (should be null if none)

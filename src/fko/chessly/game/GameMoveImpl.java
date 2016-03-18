@@ -426,6 +426,18 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
         return s.toString();
     }
 
+    /* (non-Javadoc)
+     * @see fko.chessly.game.GameMove#toSimpleString()
+     */
+    @Override
+    public String toSimpleString() {
+        StringBuilder s = new StringBuilder();
+        // field
+        s.append(_fromField.toNotationString());
+        s.append(_toField.toNotationString());
+        return s.toString();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -479,5 +491,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
     public Object clone() {
         return new GameMoveImpl(this);
     }
+
+
 
 }

@@ -134,6 +134,8 @@ public interface GameMove {
     int getValue();
 
     public String toLongAlgebraicNotationString();
+    String toSimpleString();
+
     @Override
     public String toString();
 
@@ -142,8 +144,5 @@ public interface GameMove {
 
     @Override
     boolean equals(Object obj);
-
-
-
 
 }
