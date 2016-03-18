@@ -45,6 +45,8 @@ import fko.chessly.game.GameMoveList;
  */
 public class OmegaMoveGenerator {
 
+    static private final boolean CACHE = false;
+
     // remember the last position to control cache validity
     private long _zobristLastPosition = 0;
 
@@ -96,7 +98,7 @@ public class OmegaMoveGenerator {
 
         // TODO zobrist is could collide - then this will break.
         if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            return _cachedLegalMoveList;
+            if (CACHE) return _cachedLegalMoveList;
         }
 
         // update position
@@ -116,7 +118,7 @@ public class OmegaMoveGenerator {
         // call the move generators
         if (position.hasCheck()) {
             generateEvasionMoves();
-            // DEBUG temporary
+            // DEBUG temporary -- only generate check evasion moves - not yet implemented
             generatePseudoLegaMoves();
             filterLegalMovesOnly();
             sortMoves(_legalMoves);
@@ -149,7 +151,7 @@ public class OmegaMoveGenerator {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
         if (_cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            return _cachedPseudoLegalMoveList;
+            if (CACHE) return _cachedPseudoLegalMoveList;
         }
 
         // update position
@@ -169,6 +171,8 @@ public class OmegaMoveGenerator {
         // call the move generators
         if (position.hasCheck()) {
             generateEvasionMoves();
+            // DEBUG temporary -- only generate check evasion moves - not yet implemented
+            generatePseudoLegaMoves();
         } else {
             generatePseudoLegaMoves();
             sortMoves(_pseudoLegalMoves);
