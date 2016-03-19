@@ -27,7 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -43,6 +43,7 @@ public class TestOmegaPERFT {
      */
     @Test
     public void testStandardPerftTiming() {
+
         int maxDepth = 6;
         long[][] results = {
                 //N  Nodes      Captures EP     Checks  Mates

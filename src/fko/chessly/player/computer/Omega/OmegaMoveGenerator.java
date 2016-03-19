@@ -95,22 +95,6 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * Streams all  moves for a position. These moves may leave the king in check
-     * and may be illegal.<br/>
-     * Before committing them to a board they need to be checked if they leave the king in check.
-     * Repeated calls to this will return a cached list as long the position has
-     * not changed in between.<br/>
-     * A stream allows lazy generation of moves - on demand. Not yet implemented.<br/>
-     *
-     * @param position
-     * @param capturingOnly
-     * @return list of moves which may leave the king in check
-     */
-    public IntStream streamPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
-        return this.getPseudoLegalMoves(position, capturingOnly).stream();
-    }
-
-    /**
      * Generates all legal moves for a position.
      * Legal moves have been checked if they leave the king in check or not.
      * Repeated calls to this will return a cached list as long the position has
@@ -145,18 +129,9 @@ public class OmegaMoveGenerator {
         // clear all lists
         clearLists();
 
-        // call the move generators
-        if (position.hasCheck()) {
-            generateEvasionMoves();
-            // DEBUG temporary -- only generate check evasion moves - not yet implemented
-            generatePseudoLegaMoves();
-        } else {
-            generatePseudoLegaMoves();
-        }
-
         // filter legal moves
         assert _legalMoves.size() == 0;
-        _pseudoLegalMoves.stream().filter(this::isLegalMove).forEach(_legalMoves::add);
+        streamPseudoLegalMoves(position, capturingOnly).filter(this::isLegalMove).forEach(_legalMoves::add);
 
         // sort moves - not implemented yet
         sortMoves(_legalMoves);
@@ -167,6 +142,22 @@ public class OmegaMoveGenerator {
 
         // return a clone of the list as we will continue to use the list as a static list
         return _legalMoves.clone();
+    }
+
+    /**
+     * Streams all  moves for a position. These moves may leave the king in check
+     * and may be illegal.<br/>
+     * Before committing them to a board they need to be checked if they leave the king in check.
+     * Repeated calls to this will return a cached list as long the position has
+     * not changed in between.<br/>
+     * A stream allows lazy generation of moves - on demand. Not yet implemented.<br/>
+     *
+     * @param position
+     * @param capturingOnly
+     * @return list of moves which may leave the king in check
+     */
+    public IntStream streamPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
+        return this.getPseudoLegalMoves(position, capturingOnly).stream();
     }
 
     /**

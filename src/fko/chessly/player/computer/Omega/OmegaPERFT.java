@@ -44,14 +44,10 @@ public class OmegaPERFT {
     private long _checkMateCounter = 0;
     private long _captureCounter = 0;
     private long _enpassantCounter = 0;
-    private final Object _checkCounterLock = new Object();
-    private final Object _mateCounterLock = new Object();
-    private final Object _captureCounterLock = new Object();
-    private final Object _epCounterLock = new Object();
     private String _fen = "";
 
     /**
-     * @param string
+     * @param fen
      */
     public OmegaPERFT(String fen) {
         _fen = fen;
@@ -81,20 +77,31 @@ public class OmegaPERFT {
         long result = 0;
 
         long startTime = System.currentTimeMillis();
-        OmegaMoveList moves = mg.getLegalMoves(board, false);
-        for (int move : moves.toArray()) {
-            if (DIVIDE) System.out.print(OmegaMove.toSimpleString(move)+" ");
-            board.makeMove(move);
-            long r = miniMax(depth - 1, board, mg, 1);
-            if (DIVIDE) System.out.println(r);
-            result += r;
-            board.undoMove();
-        }
+        result = mg
+                .streamLegalMoves(board, false)
+                .mapToLong((move) -> dividePerft(depth, mg, board, move))
+                .sum();
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
         _nodes = result;
         printResult(result, duration);
+    }
+
+    /**
+     * @param depth
+     * @param mg
+     * @param board
+     * @param move
+     * @return
+     */
+    private long dividePerft(int depth, OmegaMoveGenerator mg, OmegaBoardPosition board, int move) {
+        if (DIVIDE) System.out.print(OmegaMove.toSimpleString(move)+" ");
+        board.makeMove(move);
+        long r = miniMax(depth - 1, board, mg, 1);
+        if (DIVIDE) System.out.println(r);
+        board.undoMove();
+        return r;
     }
 
     private long miniMax(int depthleft, OmegaBoardPosition board, OmegaMoveGenerator mg, int ply) {
@@ -107,12 +114,15 @@ public class OmegaPERFT {
 
         // Iterate over moves
         long totalNodes = 0L;
-        OmegaMoveList moves = mg.getLegalMoves(board, false);
-        for (int move : moves.toArray()) {
-            board.makeMove(move);
-            totalNodes += miniMax(depthleft - 1, board, mg, ply + 1);
-            board.undoMove();
-        }
+        totalNodes = mg
+                .streamLegalMoves(board, false)
+                .mapToLong((move) -> {
+                    board.makeMove(move);
+                    long nodes = miniMax(depthleft-1, board, mg, ply+1);
+                    board.undoMove();
+                    return nodes;
+                })
+                .sum();
 
         return totalNodes;
     }
@@ -127,13 +137,10 @@ public class OmegaPERFT {
                 _checkMateCounter++;
             }
         }
-
         int lastMove = board.getLastMove();
-
         if (OmegaMove.getTarget(lastMove) != OmegaPiece.NOPIECE) {
             _captureCounter++;
         }
-
         if (OmegaMove.getMoveType(lastMove) == OmegaMoveType.ENPASSANT) {
             _enpassantCounter++;
         }
@@ -154,7 +161,7 @@ public class OmegaPERFT {
      * @param result
      * @param duration
      */
-    private void printResult(long result, long duration) {
+    private void printResult(final long result, final long duration) {
         System.out.format("Leaf Nodes: %,d Captures: %,d EnPassant: %,d Checks: %,d Checkmates: %,d %n",
                 result, _captureCounter, _enpassantCounter, _checkCounter, _checkMateCounter);
         System.out.format("Duration: %02d:%02d:%02d.%03d%n",
