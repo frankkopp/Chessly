@@ -152,6 +152,9 @@ public class OmegaMoveGenerator {
      * not changed in between.<br/>
      * A stream allows lazy generation of moves - on demand. Not yet implemented.<br/>
      *
+     * TODO: Refactor to generate moves on demand - this helps when pruning in AlphaBeta Search
+     * cuts of trees - in this case we have save generating unecessary moves.
+     *
      * @param position
      * @param capturingOnly
      * @return list of moves which may leave the king in check
@@ -192,15 +195,15 @@ public class OmegaMoveGenerator {
         // clear all lists
         clearLists();
 
-        // call the move generators
-        if (position.hasCheck()) {
-            generateEvasionMoves();
-            // DEBUG temporary -- only generate check evasion moves - not yet implemented
-            generatePseudoLegaMoves();
-        } else {
-            generatePseudoLegaMoves();
-            sortMoves(_pseudoLegalMoves);
-        }
+        /*
+         * call the move generators
+         * TODO: if check we might be able to implement a faster generation with
+         * only evasion moves
+         */
+        generatePseudoLegaMoves();
+
+        // sort moves - not yet implemented
+        sortMoves(_pseudoLegalMoves);
 
         // cache the list of legal moves
         _cachedPseudoLegalMoveList = _pseudoLegalMoves;
@@ -601,20 +604,10 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * @param position
-     * @param legalMoves
-     */
-    private void generateEvasionMoves() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
      * @param legalMoves
      */
     private void sortMoves(OmegaMoveList list) {
-        // TODO Auto-generated method stub
-
+        // TODO move sorting not yet implemented
     }
 
     /**
