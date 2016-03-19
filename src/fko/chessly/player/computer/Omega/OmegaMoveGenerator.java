@@ -29,10 +29,6 @@ package fko.chessly.player.computer.Omega;
 
 import java.util.EnumSet;
 
-import fko.chessly.game.GameBoard;
-import fko.chessly.game.GameBoardImpl;
-import fko.chessly.game.GameMoveList;
-
 /**
  * The move generator for Omega Engine.<br/>
  * It generates pseudo legal and legal moves for a given position.<br/>
@@ -45,7 +41,7 @@ import fko.chessly.game.GameMoveList;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = false;
+    static private final boolean CACHE = true;
 
     // remember the last position to control cache validity
     private long _zobristLastPosition = 0;
@@ -226,7 +222,8 @@ public class OmegaMoveGenerator {
         final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
 
         // iterate over all squares where we have a pawn
-        for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
+        _position._pawnSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+            //for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[square.ordinal()].getType() == OmegaPieceType.PAWN;
 
             // get all possible x88 index values for pawn moves
@@ -313,7 +310,8 @@ public class OmegaMoveGenerator {
                     }
                 }
             }
-        }
+            //}
+        });
     }
 
     private void generateKnightMoves() {
@@ -339,7 +337,8 @@ public class OmegaMoveGenerator {
     private void generateCastlingMoves() {
         if (_position.hasCheck()) return; // no castling if we are in check
         // iterate over all available castlings at this position
-        for (OmegaCastling castling : _position._castlingRights) {
+        _position._castlingRights.stream().forEach((castling) -> {
+            //for (OmegaCastling castling : _position._castlingRights) {
             if (_activePlayer.isWhite()) {
                 if (castling == OmegaCastling.WHITE_KINGSIDE) {
                     // f1 free, g1 free and f1 not attacked
@@ -403,7 +402,7 @@ public class OmegaMoveGenerator {
                     }
                 }
             }
-        }
+        });
     }
 
     /**
@@ -415,7 +414,8 @@ public class OmegaMoveGenerator {
      */
     private void generateSlidingMoves(OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
         // iterate over all squares where we have this piece type
-        for (OmegaSquare square : pieceSquares) {
+        pieceSquares.stream().forEach((square) -> {
+            //for (OmegaSquare square : pieceSquares) {
             assert _position._x88Board[square.ordinal()].getType() == type;
 
             // get all possible x88 index values for piece's moves
@@ -448,7 +448,7 @@ public class OmegaMoveGenerator {
                     to += d; // next sliding field in this direction
                 }
             }
-        }
+        });
     }
 
     /**
@@ -460,7 +460,8 @@ public class OmegaMoveGenerator {
      */
     private void generateNonSlidingMoves(OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
         // iterate over all squares where we have a piece
-        for (OmegaSquare square : pieceSquares) {
+        pieceSquares.stream().forEach((square) -> {
+            //for (OmegaSquare square : pieceSquares) {
             assert _position._x88Board[square.ordinal()].getType() == type;
 
             // get all possible x88 index values for piece moves
@@ -490,7 +491,7 @@ public class OmegaMoveGenerator {
                     }
                 }
             }
-        }
+        });
     }
 
     /**

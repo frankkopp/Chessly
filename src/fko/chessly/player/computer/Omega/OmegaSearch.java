@@ -120,10 +120,6 @@ public class OmegaSearch implements Runnable {
         // search
         // DEBUG code
         // START TEMPORARY CODE
-        try {
-            Thread.sleep(0); // pretend calculation
-        } catch (InterruptedException e) { // ignore
-        }
         OmegaMoveGenerator omg = new OmegaMoveGenerator();
         OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
         int move = (int) Math.round((legalMoves.size()-1) * Math.random());
