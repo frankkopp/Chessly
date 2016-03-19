@@ -28,6 +28,9 @@
 package fko.chessly.util;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 /**
  * Simple and fast list class for integers.
@@ -182,6 +185,14 @@ public class SimpleIntList {
      */
     public int[] toArray() {
         return Arrays.copyOfRange(_list, _head, _tail);
+    }
+
+    /**
+     * Creates a stream of int from this list
+     * @return IntStream from list
+     */
+    public IntStream stream() {
+        return Arrays.stream(_list, _head, _tail);
     }
 
     /**

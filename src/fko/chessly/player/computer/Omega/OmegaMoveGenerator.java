@@ -28,8 +28,7 @@
 package fko.chessly.player.computer.Omega;
 
 import java.util.EnumSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 /**
  * The move generator for Omega Engine.<br/>
@@ -42,7 +41,7 @@ import java.util.concurrent.Executors;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = false;
+    static private final boolean CACHE = true;
 
     // remember the last position to control cache validity
     private long _zobristLastPosition = 0;
@@ -78,13 +77,47 @@ public class OmegaMoveGenerator {
     }
 
     /**
+     * Streams all legal moves for a position.<br/>
+     * Legal moves have been checked if they leave the king in check or not.
+     * Repeated calls to this will return a cached list as long the position has
+     * not changed in between.<br/>
+     * This method basically calls <code>getPseudoLegalMoves</code> and the filters the
+     * non legal moves out of the provided list by checking each move if it leaves
+     * the king in check.<br/>
+     * A stream allows lazy generation of moves - on demand. Not yet implemented. <br/>
+     *
+     * @param position
+     * @param capturingOnly if only capturing moves should be generated for quiescence moves
+     * @return legal moves
+     */
+    public IntStream streamLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
+        return this.getLegalMoves(position, capturingOnly).stream();
+    }
+
+    /**
+     * Streams all  moves for a position. These moves may leave the king in check
+     * and may be illegal.<br/>
+     * Before committing them to a board they need to be checked if they leave the king in check.
+     * Repeated calls to this will return a cached list as long the position has
+     * not changed in between.<br/>
+     * A stream allows lazy generation of moves - on demand. Not yet implemented.<br/>
+     *
+     * @param position
+     * @param capturingOnly
+     * @return list of moves which may leave the king in check
+     */
+    public IntStream streamPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
+        return this.getPseudoLegalMoves(position, capturingOnly).stream();
+    }
+
+    /**
      * Generates all legal moves for a position.
      * Legal moves have been checked if they leave the king in check or not.
      * Repeated calls to this will return a cached list as long the position has
-     * not changed in between.
+     * not changed in between.<br/>
      * This method basically calls <code>getPseudoLegalMoves</code> and the filters the
      * non legal moves out of the provided list by checking each move if it leaves
-     * the king in check.
+     * the king in check.<br/>
      *
      * @param position
      * @param capturingOnly if only capturing moves should be generated for quiescence moves
@@ -117,13 +150,16 @@ public class OmegaMoveGenerator {
             generateEvasionMoves();
             // DEBUG temporary -- only generate check evasion moves - not yet implemented
             generatePseudoLegaMoves();
-            filterLegalMovesOnly();
-            sortMoves(_legalMoves);
         } else {
             generatePseudoLegaMoves();
-            filterLegalMovesOnly();
-            sortMoves(_legalMoves);
         }
+
+        // filter legal moves
+        assert _legalMoves.size() == 0;
+        _pseudoLegalMoves.stream().filter(this::isLegalMove).forEach(_legalMoves::add);
+
+        // sort moves - not implemented yet
+        sortMoves(_legalMoves);
 
         // cache the list of legal moves
         _cachedLegalMoveList = _legalMoves;
@@ -135,10 +171,10 @@ public class OmegaMoveGenerator {
 
     /**
      * Generates all  moves for a position. These moves may leave the king in check
-     * and may be illegal.
+     * and may be illegal.<br/>
      * Before committing them to a board they need to be checked if they leave the king in check.
      * Repeated calls to this will return a cached list as long the position has
-     * not changed in between.
+     * not changed in between.<br/>
      *
      * @param position
      * @param capturingOnly
@@ -184,6 +220,84 @@ public class OmegaMoveGenerator {
     }
 
     /**
+     * This method checks if the position has at least one legal move.
+     * It will mainly be used to determine mate and stale mate position.
+     * This method returns as quick as possible as it is sufficient to have
+     * found at least one legal move to see that the position is not a mate position.
+     * It only has to check all moves if it is indeed a mate position which
+     * in general is a rare case.
+     * @param position
+     * @return true if there is at least one legal move
+     */
+    public boolean hasLegalMove(OmegaBoardPosition position) {
+        if (position==null) throw new IllegalArgumentException("position may not be null to find legal moves");
+
+        // TODO zobrist could collide - then this will break.
+        if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
+            if (CACHE) return !_cachedLegalMoveList.empty();
+        }
+        // update position
+        _position = position;
+        _activePlayer = _position._nextPlayer;
+        // position has changed - cache is invalid
+        _cachedLegalMoveListValid = false;
+        _cachedPseudoLegalMoveListValid = false;
+
+        // clear all lists
+        clearLists();
+
+        /*
+         * Find a move by generating moves for piece types. If a the move list contains
+         * at least one legal move return true.
+         * This could be further optimized by having the methods for piece types return
+         * as soon as they have found a move.
+         */
+        generateKingMoves();
+        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        generatePawnMoves();
+        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        generateQueenMoves();
+        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        generateKnightMoves();
+        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        generateBishopMoves();
+        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        generateRookMoves();
+        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        generateCastlingMoves();
+        if (_castlingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+
+        return false;
+    }
+
+    /**
+     * Test if move is legal on the current position for the next player.
+     * TODO: Improve - is there a way to avoid make/unmake?
+     *
+     * @param move
+     * @return true if king of active player is not attacked after the move
+     */
+    private boolean isLegalMove(int move) {
+        assert OmegaMove.isValid(move);
+        // make the move on the position
+        _position.makeMove(move);
+        // check if the move leaves the king in check
+        if (!_position.isAttacked(_activePlayer.getInverseColor(),
+                _position._kingSquares[_activePlayer.ordinal()].stream().findAny().get())) {
+            _position.undoMove();
+            return true;
+        }
+        _position.undoMove();
+        return false;
+    }
+
+    /**
      * Generates all pseudo legal moves from the given position.
      */
     private void generatePseudoLegaMoves() {
@@ -200,7 +314,6 @@ public class OmegaMoveGenerator {
          * Too expensive to create several lists every call?
          * Make them static and clear them instead of creating!!
          */
-
 
         generatePawnMoves();
         generateKnightMoves();
@@ -511,28 +624,6 @@ public class OmegaMoveGenerator {
     private void sortMoves(OmegaMoveList list) {
         // TODO Auto-generated method stub
 
-    }
-
-    /**
-     * Filters the _pseudoLegalMove list into the _legalMove list.
-     * Very expensive as i has to make and unmake the move to test
-     * if king is left in check.
-     * TODO: Improve - is there a way to avoid make/unmake?
-     *
-     * @param pseudolegalmoves
-     * @param legalMoves
-     */
-    private void filterLegalMovesOnly() {
-        int size = _pseudoLegalMoves.size();
-        assert _legalMoves.size() == 0;
-        for (int i = 0; i < size; ++i) {
-            int move = _pseudoLegalMoves.get(i);
-            _position.makeMove(move);
-            if (!_position.isAttacked(_activePlayer.getInverseColor(), (OmegaSquare) _position._kingSquares[_activePlayer.ordinal()].toArray()[0])) {
-                _legalMoves.add(move);
-            }
-            _position.undoMove();
-        }
     }
 
     /**

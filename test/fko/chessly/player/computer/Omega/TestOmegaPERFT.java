@@ -38,6 +38,33 @@ import org.junit.Test;
 public class TestOmegaPERFT {
 
     /**
+     * Perft Timing Test
+     * https://chessprogramming.wikispaces.com/Perft+Results
+     */
+    @Test
+    public void testStandardPerftTiming() {
+        int maxDepth = 6;
+        long[][] results = {
+                //N  Nodes      Captures EP     Checks  Mates
+                { 0, 1,         0,       0,     0,      0},
+                { 1, 20,        0,       0,     0,      0},
+                { 2, 400,       0,       0,     0,      0},
+                { 3, 8902,      34,      0,     12,     0},
+                { 4, 197281,    1576,    0,     469,    8},
+                { 5, 4865609,   82719,   258,   27351,  347},
+                { 6, 119060324, 2812008, 5248,  809099, 10828},
+        };
+
+        OmegaPERFT perftTest = new OmegaPERFT();
+        perftTest.testPerft(maxDepth);
+        assertTrue(perftTest.get_nodes() == results[maxDepth][1]);
+        assertTrue(perftTest.get_captureCounter() == results[maxDepth][2]);
+        assertTrue(perftTest.get_enpassantCounter() == results[maxDepth][3]);
+        assertTrue(perftTest.get_checkCounter() == results[maxDepth][4]);
+        assertTrue(perftTest.get_checkMateCounter() == results[maxDepth][5]);
+    }
+
+    /**
      * Perft Test
      * https://chessprogramming.wikispaces.com/Perft+Results
      */
@@ -203,7 +230,7 @@ public class TestOmegaPERFT {
                 { 7, 178633661, 14519036,294874,12797406,87}
         };
 
-        int maxDepth = 6;
+        int maxDepth = 5;
 
         OmegaPERFT perftTest = new OmegaPERFT("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -");
 
@@ -241,7 +268,7 @@ public class TestOmegaPERFT {
                 { 5, 89941194,  0,       0,     0,      0}
         };
 
-        int maxDepth = 3;
+        int maxDepth = 4;
 
         OmegaPERFT perftTest = new OmegaPERFT("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 

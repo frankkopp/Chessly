@@ -95,7 +95,7 @@ public class OmegaBoardPosition {
 
     // next player color
     OmegaColor _nextPlayer = OmegaColor.WHITE;
-    // hash for castling rights
+    // hash for next player
     static final long _nextPlayer_Zobrist;
     //
     // Board State END ------------------------------------------
@@ -124,7 +124,11 @@ public class OmegaBoardPosition {
     // caches a hasCheck and hasMate Flag for the current position. Will be set after
     // a call to hasCheck() and reset to TBD every time a move is made or unmade.
     private Flag _hasCheck = Flag.TBD;
+    Flag[] _hasCheckFlag_History = new Flag[MAX_HISTORY];
     private Flag _hasMate = Flag.TBD;
+    Flag[] _hasMateFlag_History = new Flag[MAX_HISTORY];
+
+    private final OmegaMoveGenerator _mateCheckMG = new OmegaMoveGenerator();
     private enum Flag {
         TBD,
         TRUE,
@@ -299,8 +303,11 @@ public class OmegaBoardPosition {
         _enPassantSquare_History[_historyCounter] = _enPassantSquare;
         _halfMoveClock_History[_historyCounter] = _halfMoveClock;
         _zobristKey_History[_historyCounter] = _zobristKey;
+        _hasCheckFlag_History[_historyCounter] = _hasCheck;
+        _hasMateFlag_History[_historyCounter] = _hasMate;
         _historyCounter++;
-        // TODO: maybe also put this onto the stack?
+
+        // reset check and mate flag
         _hasCheck = Flag.TBD;
         _hasMate = Flag.TBD;
 
@@ -432,9 +439,9 @@ public class OmegaBoardPosition {
         // zobristKey - just overwrite - should be the same as before the move
         _zobristKey = _zobristKey_History[_historyCounter];
 
-        // TODO: maybe also get this from the stack?
-        _hasCheck = Flag.TBD;
-        _hasMate = Flag.TBD;
+        // get the check and mate flag from history
+        _hasCheck = _hasCheckFlag_History[_historyCounter];
+        _hasMate = _hasMateFlag_History[_historyCounter];
 
     }
 
@@ -1176,17 +1183,15 @@ public class OmegaBoardPosition {
     /**
      * Tests for mate on this position. If true the next player has lost.
      * Expensive test as all legal moves have to be generated.
-     * TODO: could be optimized as it would be enough to find one move.
+     * TODO: could be optimized as it would be enough to find one legal move.
      * @return true if current position is mate for next player
      */
     public boolean hasCheckMate() {
-        if (!hasCheck()) {
-            return false;
-        }
+        if (!hasCheck()) return false;
         if (_hasMate != Flag.TBD) return _hasMate == Flag.TRUE ? true : false;
-        OmegaMoveGenerator mg = new OmegaMoveGenerator();
-        OmegaMoveList moves = mg.getLegalMoves(this, false);
-        if (moves.empty()) return true;
+        final boolean hasLegalMove = _mateCheckMG.hasLegalMove(this);
+        _hasMate = hasLegalMove ? Flag.FALSE : Flag.TRUE;
+        if (!hasLegalMove) return true;
         return false;
     }
 

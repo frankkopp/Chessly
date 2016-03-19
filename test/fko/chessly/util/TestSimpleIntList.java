@@ -29,6 +29,9 @@ package fko.chessly.util;
 
 import static org.junit.Assert.*;
 
+import java.util.function.IntPredicate;
+import java.util.stream.IntStream;
+
 import org.junit.Test;
 
 import fko.chessly.util.SimpleIntList;
@@ -226,6 +229,21 @@ public class TestSimpleIntList {
         } catch (ArrayIndexOutOfBoundsException e) {
             assertTrue(true);
         }
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testIntStreamFromList() {
+        SimpleIntList list = new SimpleIntList();
+
+        // add 10 entries
+        IntStream.rangeClosed(0, 100).forEach(list::add);
+
+        System.out.println(list.stream().average());
+
+        list.stream().filter(i -> i % 2 == 0).forEach(System.out::println);;
     }
 
 }
