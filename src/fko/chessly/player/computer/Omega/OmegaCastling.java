@@ -28,7 +28,6 @@
 package fko.chessly.player.computer.Omega;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -97,7 +96,7 @@ public enum OmegaCastling {
     /**
      * Returns a list of all the combinations of castlings
      * to easily create a zobrist key for it
-     * @return a list with the combination of casltings
+     * @return a list with the combination of castlings
      */
     public static List<EnumSet<OmegaCastling>> getCombinationList() {
         return Collections.unmodifiableList(_permutationList);

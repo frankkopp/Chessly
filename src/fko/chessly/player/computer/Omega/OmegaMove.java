@@ -35,7 +35,7 @@ import fko.chessly.game.GameMoveImpl;
  * This class represents a move in the Omega Engine.
  * The data structure is optimized for speed using only int and enum.
  *
- * @author Frank
+ * @author Frank Kopp
  */
 public class OmegaMove {
 

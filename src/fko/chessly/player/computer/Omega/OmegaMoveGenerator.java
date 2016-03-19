@@ -28,6 +28,8 @@
 package fko.chessly.player.computer.Omega;
 
 import java.util.EnumSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The move generator for Omega Engine.<br/>
@@ -36,12 +38,11 @@ import java.util.EnumSet;
  * move lists are caches.<br/>
  * <b>This class is not thread safe as it uses static variables to avoid generating them
  * during each object creation.</b><br/>
- * @author Frank
- *
+ * @author Frank Kopp
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = true;
+    static private final boolean CACHE = false;
 
     // remember the last position to control cache validity
     private long _zobristLastPosition = 0;
@@ -92,7 +93,7 @@ public class OmegaMoveGenerator {
     public OmegaMoveList getLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
-        // TODO zobrist is could collide - then this will break.
+        // TODO zobrist could collide - then this will break.
         if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
             if (CACHE) return _cachedLegalMoveList;
         }
@@ -199,6 +200,7 @@ public class OmegaMoveGenerator {
          * Too expensive to create several lists every call?
          * Make them static and clear them instead of creating!!
          */
+
 
         generatePawnMoves();
         generateKnightMoves();

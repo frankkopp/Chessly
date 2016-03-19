@@ -47,7 +47,7 @@ import fko.chessly.player.computer.Omega.OmegaSearch.SearchResult;
 import fko.chessly.player.computer.PulseEngine.Configuration;
 
 /**
- * New engine implementation
+ * New engine implementation.
  */
 public class OmegaEngine extends ModelObservable implements ObservableEngine {
 

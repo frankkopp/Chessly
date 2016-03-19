@@ -30,8 +30,8 @@ package fko.chessly.player.computer.Omega;
 import fko.chessly.util.SimpleIntList;
 
 /**
- * Simple and fast list class for OmegaMoves which are in fact integer
- * .
+ * Simple and fast list class for OmegaMoves which are in fact integers.
+ *
  * @author Frank
  */
 public class OmegaMoveList extends SimpleIntList {
