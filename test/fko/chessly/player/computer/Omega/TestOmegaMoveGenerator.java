@@ -60,7 +60,7 @@ public class TestOmegaMoveGenerator {
      * Tests the generated moves from a standard board setup
      */
     @Test
-    public void testOnDemandFromStandardBoard() {
+    public void testOnDemandFromFenBoard() {
 
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
         OmegaBoardPosition board = null;
@@ -97,7 +97,7 @@ public class TestOmegaMoveGenerator {
     public void testTiming() {
 
         int ITERATIONS = 0;
-        int DURATION = 2;
+        int DURATION = 1;
 
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
         OmegaBoardPosition board = null;

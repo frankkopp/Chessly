@@ -441,7 +441,7 @@ public class OmegaMoveGenerator {
         generateKingMoves();
         generateCastlingMoves();
 
-        //if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+        if (SORT) _capturingMoves.sort(_mvvlva_comparator);
 
         // TODO: sort non capturing - via better piece/position/game phase value
 

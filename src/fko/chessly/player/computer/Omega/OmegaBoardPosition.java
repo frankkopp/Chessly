@@ -678,7 +678,8 @@ public class OmegaBoardPosition {
     private OmegaPiece removePiece(OmegaSquare square, OmegaPiece piece) {
         assert square.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
-        assert _x88Board[square.ordinal()] == piece; // check if removed piece is indeed there
+        assert _x88Board[square.ordinal()] == piece
+                : "STOP"; // check if removed piece is indeed there
         // remove
         OmegaPiece old = _x88Board[square.ordinal()];
         _x88Board[square.ordinal()] = OmegaPiece.NOPIECE;

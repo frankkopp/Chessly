@@ -271,7 +271,7 @@ public class SimpleIntList {
      */
     private void insertionsort(int head, int tail, Comparator<Integer> comparator) {
         int temp;
-        for (int i = head + 1; i <= tail; i++) {
+        for (int i = head + 1; i < tail; i++) {
             for (int j = i; j > head; j--) {
                 if (comparator.compare(_list[j],_list[j-1]) < 0) {
                     temp = _list[j];
