@@ -116,7 +116,7 @@ public class OmegaBoardPosition {
     final EnumSet<OmegaSquare>[] _bishopSquares = new EnumSet[OmegaColor.values.length];
     final EnumSet<OmegaSquare>[] _rookSquares = new EnumSet[OmegaColor.values.length];
     final EnumSet<OmegaSquare>[] _queenSquares = new EnumSet[OmegaColor.values.length];
-    final EnumSet<OmegaSquare>[] _kingSquares = new EnumSet[OmegaColor.values.length];
+    final OmegaSquare[] _kingSquares = new OmegaSquare[OmegaColor.values.length];
 
     // Material value will always be up to date
     int[] _material;
@@ -274,7 +274,7 @@ public class OmegaBoardPosition {
             _bishopSquares[i] = EnumSet.noneOf(OmegaSquare.class);
             _rookSquares[i] = EnumSet.noneOf(OmegaSquare.class);
             _queenSquares[i] = EnumSet.noneOf(OmegaSquare.class);
-            _kingSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _kingSquares[i] = OmegaSquare.NOSQUARE;
         }
         _material = new int[2];
     }
@@ -704,7 +704,7 @@ public class OmegaBoardPosition {
             case BISHOP: _bishopSquares[color].add(toSquare); break;
             case ROOK: _rookSquares[color].add(toSquare); break;
             case QUEEN: _queenSquares[color].add(toSquare); break;
-            case KING: _kingSquares[color].add(toSquare); break;
+            case KING: _kingSquares[color] = toSquare; break;
             default:
                 break;
         }
@@ -722,7 +722,7 @@ public class OmegaBoardPosition {
             case BISHOP: _bishopSquares[color].remove(fromSquare); break;
             case ROOK: _rookSquares[color].remove(fromSquare); break;
             case QUEEN: _queenSquares[color].remove(fromSquare); break;
-            case KING: _kingSquares[color].remove(fromSquare); break;
+            case KING: _kingSquares[color] = OmegaSquare.NOSQUARE; break;
             default:
                 break;
         }
@@ -1175,7 +1175,7 @@ public class OmegaBoardPosition {
      */
     public boolean hasCheck() {
         if (_hasCheck != Flag.TBD) return _hasCheck == Flag.TRUE ? true : false;
-        boolean check = isAttacked(_nextPlayer.getInverseColor(), (OmegaSquare) _kingSquares[_nextPlayer.ordinal()].toArray()[0]);
+        boolean check = isAttacked(_nextPlayer.getInverseColor(), _kingSquares[_nextPlayer.ordinal()]);
         _hasCheck = check ? Flag.TRUE : Flag.FALSE;
         return check;
     }

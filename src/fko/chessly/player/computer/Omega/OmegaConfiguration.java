@@ -44,7 +44,7 @@ public class OmegaConfiguration {
     boolean _USE_BOOK = true;
 
     /** Use Ponderer while waiting for opponents move - fills node_cache */
-    public boolean _USE_PONDERER = true;
+    boolean _USE_PONDERER = true;
 
     /** default value for folder to books */
     String _OB_FolderPath = "./book/";

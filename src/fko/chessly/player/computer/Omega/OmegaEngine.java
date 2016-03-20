@@ -52,7 +52,7 @@ import fko.chessly.player.computer.PulseEngine.Configuration;
 public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     /** read in the default configuration - change the public fields if necessary */
-    public final Configuration _CONFIGURATION = new Configuration();
+    public final OmegaConfiguration _CONFIGURATION = new OmegaConfiguration();
 
     // The current game this engine is used in
     private Game _game = null;
@@ -482,14 +482,26 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#printVerboseInfo(java.lang.String)
+    /** Will store the VERBOSE info until the EngineWatcher collects it. */
+    private static final int _engineInfoTextMaxSize = 10000;
+    private final StringBuilder _engineInfoText = new StringBuilder(_engineInfoTextMaxSize);
+    /**
+     * Provide additional information for the UI to collect.
+     * E.g. verbose information etc.
+     * Size is limited to avoid out of memory.
+     * @param info
      */
     @Override
     public void printVerboseInfo(String info) {
-        // TODO Auto-generated method stub
-
+        synchronized (_engineInfoText) {
+            _engineInfoText.append(info);
+            // out of memory protection if the info is not retrieved
+            int oversize = _engineInfoText.length() - _engineInfoTextMaxSize;
+            if (oversize > 0) _engineInfoText.delete(0, oversize);
+        }
+        if (_CONFIGURATION.VERBOSE_TO_SYSOUT) System.out.print(info);
     }
+
 
     /** */
     public static final int SIG_ENGINE_START_CALCULATING = 6000;

@@ -30,8 +30,31 @@ package fko.chessly.player.computer.Omega;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * @author Frank
+ * This is the actual search implementation class for the Omega Engine.<br/>
+ * It runs in a separate thread and needs to be started through <code>startSearch(position)</code>().
+ * If stopped with stop() it stops gracefully returning the best move at that time.
  *
+ * Features:
+ *      DONE: Thread control
+ *      DONE: Move Generation
+ *      DONE: Book (in the engine class)
+ *      TODO: Basic iterative AlphaBeta search
+ *      TODO: Basic Evaluation
+ *      TODO: Basic Time Control
+ *      TODO: Pondering
+ *      TODO: Transposition Table
+ *      TODO: Evaluation Table
+ *      TODO: Quiescence
+ *      TODO: Advanced iterative AlphaBeta search
+ *      TODO: Advanced Evaluation
+ *      TODO: Advanced Time Control
+ *      TODO: AspirationWindows
+ *      TODO: Pruning: AlphaBeta_Pruning, PV, MDP,
+ *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion
+ *      TODO: KillerTable. HistoryTable, PawnTable
+ *      TODO: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
+ *
+ * @author Frank
  */
 public class OmegaSearch implements Runnable {
 
@@ -120,18 +143,20 @@ public class OmegaSearch implements Runnable {
         // search
         // DEBUG code
         // START TEMPORARY CODE
-        OmegaMoveGenerator omg = new OmegaMoveGenerator();
-        OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
-        int move = (int) Math.round((legalMoves.size()-1) * Math.random());
-        searchResult.bestMove=legalMoves.get(move);
-        if (searchResult.bestMove==0) {
-            System.out.println("SHIT");
+        {
+            OmegaMoveGenerator omg = new OmegaMoveGenerator();
+            OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
+            int move = (int) Math.round((legalMoves.size()-1) * Math.random());
+            searchResult.bestMove=legalMoves.get(move);
+            if (searchResult.bestMove==0) {
+                System.out.println("SHIT");
+            }
+            searchResult.resultValue=0;
+            searchResult.depth=0;
+            searchResult.moveNumber=move;
+            searchResult.ponderMove=OmegaMove.NOMOVE;
+            searchResult.time=0;
         }
-        searchResult.resultValue=0;
-        searchResult.depth=0;
-        searchResult.moveNumber=move;
-        searchResult.ponderMove=OmegaMove.NOMOVE;
-        searchResult.time=0;
         // END TEMPORARY CODE
 
         // send the result

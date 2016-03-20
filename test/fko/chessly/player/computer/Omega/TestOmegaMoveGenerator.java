@@ -109,13 +109,6 @@ public class TestOmegaMoveGenerator {
             board = new OmegaBoardPosition(testFen);
             //System.out.println(board);
 
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
             // Pseudo Legal Moves
             OmegaMoveList moves = new OmegaMoveList();
             Instant start = Instant.now();

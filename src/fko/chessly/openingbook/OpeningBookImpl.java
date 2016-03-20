@@ -51,6 +51,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -217,6 +218,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         Path serPath = FileSystems.getDefault().getPath(_config._serPath, path.getFileName().toString() + ".ser");
 
         if (serPath.toFile().exists()) {
+
             if (!_config.FORCE_CREATE) {
                 _config._mode = Mode.SER;
                 path = serPath;
@@ -365,7 +367,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         }
 
         OpeningBook_Entry rootEntry = bookMap.get(NotationHelper.StandardBoardFEN);
-        rootEntry.occurenceCounter++;
+        rootEntry.occurenceCounter.getAndIncrement();
 
         switch (_config._mode) {
             case SAN:
@@ -529,7 +531,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             if (!currentFen.equals(currentEntry.position)) {
                 throw new RuntimeException("Hashtable Collision!");
             }
-            currentEntry.occurenceCounter++;
+            currentEntry.occurenceCounter.getAndIncrement();
         } else {
             String key = new String(currentFen);
             bookMap.put(key, new OpeningBook_Entry(currentFen));
@@ -681,14 +683,14 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         // as fen notation
         String position;
         // how often did this position occur in the opening book
-        int occurenceCounter = 0;
-        // list of moves to subsequential positions
+        AtomicInteger occurenceCounter = new AtomicInteger(0);
+        // list of moves to next positions
         ArrayList<GameMove> moves = new ArrayList<GameMove>(5);
 
         // Constructor
         OpeningBook_Entry(String fen) {
             this.position = fen;
-            this.occurenceCounter = 1;
+            this.occurenceCounter.set(1);
         }
 
         @Override
@@ -707,7 +709,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
          */
         @Override
         public int compareTo(OpeningBook_Entry b) {
-            return b.occurenceCounter - this.occurenceCounter;
+            return b.occurenceCounter.get() - this.occurenceCounter.get();
         }
 
         /*
@@ -715,7 +717,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
          */
         @Override
         public int compare(OpeningBook_Entry o1, OpeningBook_Entry o2) {
-            return o2.occurenceCounter - o1.occurenceCounter;
+            return o2.occurenceCounter.get() - o1.occurenceCounter.get();
         }
 
         /* (non-Javadoc)

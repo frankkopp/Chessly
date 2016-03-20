@@ -79,7 +79,6 @@ public class OmegaPERFT {
         long startTime = System.currentTimeMillis();
         result = mg
                 .streamLegalMoves(board, false)
-                //.limit(5)
                 .mapToLong((move) -> dividePerft(depth, mg, board, move))
                 .sum();
         long endTime = System.currentTimeMillis();
