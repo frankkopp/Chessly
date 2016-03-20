@@ -26,6 +26,8 @@
  */
 package fko.chessly.game;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -242,7 +244,6 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
                 // -- do the next move --
                 nextMove();
-
                 // -- observer handling is done in the methods
                 // -- nextMove, doMove, gameOver*
 
@@ -359,6 +360,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
             setChanged();
             notifyObservers(new PlayerDependendModelEvent(
                     "GAME received move from white player", _playerWhite, SIG_GAME_RECEIVED_MOVE));
+
         }
 
         // -- we have a legal move --> reset illegal move flag --
@@ -416,7 +418,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
         // Sleep a short while to let the UI catch up (book moves are too fast otherwise)
         try {
-            Thread.sleep(20);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             // ignore
         }
