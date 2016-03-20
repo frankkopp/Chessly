@@ -247,27 +247,52 @@ public class SimpleIntList {
     }
 
     /**
-     * Standard quicksort implementation to order the list according to the int value.
-     * @param left
-     * @param right
+     * Sort implementation to order the list according to the given comparator.<br/>
+     * Uses insertionsort for smaller arrays and quicksort for larger arrays.
+     *
+     * @param head (including)
+     * @param tail (excluding)
      * @param comparator
      */
-    private void sort(int left, int right, Comparator<Integer> comparator) {
+    private void sort(int head, int tail, Comparator<Integer> comparator) {
+        if (tail-head < 150 ) {
+            insertionsort(head, tail, comparator);
+        } else {
+            quicksort(head, tail, comparator);
+        }
+    }
 
-        /*
-        int i; int j; int move;
-        for (i = left + 1; i <= right; i++) {
-            move = _list[i];
-            j = i;
-            while ((j > left) && (comparator.compare(_list[j - 1],_list[i]) < 0)) {
-                _list[j] = _list[j - 1];
-                j--;
+    /**
+     * Insertionsort algorithm for smaller arrays.
+     *
+     * @param head
+     * @param tail
+     * @param comparator
+     */
+    private void insertionsort(int head, int tail, Comparator<Integer> comparator) {
+        int temp;
+        for (int i = head + 1; i <= tail; i++) {
+            for (int j = i; j > head; j--) {
+                if (comparator.compare(_list[j],_list[j-1]) < 0) {
+                    temp = _list[j];
+                    _list[j] = _list[j-1];
+                    _list[j-1] = temp;
+                }
             }
-            _list[j] = move;
-        }*/
+        }
+    }
 
-        int low=left, high=right;
-        int midValue=_list[(left+right)/2];
+    /**
+     * Quicksort algorithm for larger arrays.
+     *
+     * @param head
+     * @param tail
+     * @param comparator
+     */
+    private void quicksort(int head, int tail, Comparator<Integer> comparator) {
+        tail--; // tail is not included
+        int low=head, high=tail;
+        int midValue=_list[(head+tail)/2];
         while (low<=high) {
             while (comparator.compare(_list[low], midValue) < 0) low++;
             while (comparator.compare(_list[high],midValue) > 0) high--;
@@ -275,8 +300,8 @@ public class SimpleIntList {
                 exchange(low,high);
                 low++; high--;
             }
-            if (left<high) sort(left, high, comparator);
-            if (low<right) sort(low, right, comparator);
+            if (head<high) sort(head, high, comparator);
+            if (low<tail) sort(low, tail, comparator);
         }
     }
 

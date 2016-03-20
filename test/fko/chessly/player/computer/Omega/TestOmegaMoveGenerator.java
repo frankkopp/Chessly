@@ -185,7 +185,7 @@ public class TestOmegaMoveGenerator {
             OmegaMoveList moves = moveGenerator.getPseudoLegalMoves(board, false);
 
             moves.stream()
-            .filter((move) -> OmegaMove.getTarget(move) != OmegaPiece.NOPIECE)
+            //.filter((move) -> OmegaMove.getTarget(move) != OmegaPiece.NOPIECE)
             .forEach((m) -> {
                 System.out.print(OmegaMove.toString(m));
                 System.out.print(" " + (OmegaMove.getPiece(m).getType().getValue() - OmegaMove.getTarget(m).getType().getValue()));

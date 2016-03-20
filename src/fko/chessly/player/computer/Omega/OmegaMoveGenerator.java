@@ -265,7 +265,7 @@ public class OmegaMoveGenerator {
 
         // filter legal moves
         assert _legalMoves.size() == 0;
-        streamPseudoLegalMoves(position, capturingOnly).filter(this::isLegalMove).forEach(_legalMoves::add);
+        streamPseudoLegalMoves(position, capturingOnly).filter(this::isLegalMove).forEachOrdered(_legalMoves::add);
 
         // cache the list of legal moves
         _cachedLegalMoveList = _legalMoves;
@@ -441,7 +441,7 @@ public class OmegaMoveGenerator {
         generateKingMoves();
         generateCastlingMoves();
 
-        if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+        //if (SORT) _capturingMoves.sort(_mvvlva_comparator);
 
         // TODO: sort non capturing - via better piece/position/game phase value
 
