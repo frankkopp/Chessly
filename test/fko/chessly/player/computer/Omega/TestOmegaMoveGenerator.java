@@ -27,10 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.text.Format;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -59,13 +57,47 @@ public class TestOmegaMoveGenerator {
     }
 
     /**
+     * Tests the generated moves from a standard board setup
+     */
+    @Test
+    public void testOnDemandFromStandardBoard() {
+
+        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
+        OmegaBoardPosition board = null;
+
+        int i=0;
+        String[] fens = getFENs();
+        while (fens[i]!=null) {
+            String testFen = fens[i];
+            board = new OmegaBoardPosition(testFen);
+
+            int j = 0;
+            int move =  moveGenerator.getNextLegalMove(board, false);
+            while (move != OmegaMove.NOMOVE) {
+                System.out.println((j++)+". "+OmegaMove.toString(move));
+                move =  moveGenerator.getNextLegalMove(board, false);
+            }
+
+            OmegaMoveList moves = null;
+            moves = moveGenerator.getLegalMoves(board, false);
+
+            System.out.println("OnDemand: "+j+ " Bulk: "+moves.size());
+            System.out.println();
+
+            assert(j==moves.size());
+            i++;
+        }
+
+    }
+
+    /**
      * Tests the timing
      */
     @Test
     public void testTiming() {
 
         int ITERATIONS = 0;
-        int DURATION = 5;
+        int DURATION = 2;
 
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
         OmegaBoardPosition board = null;
@@ -77,32 +109,89 @@ public class TestOmegaMoveGenerator {
             board = new OmegaBoardPosition(testFen);
             //System.out.println(board);
 
-            OmegaMoveList moves = null;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            // Pseudo Legal Moves
+            OmegaMoveList moves = new OmegaMoveList();
             Instant start = Instant.now();
             while (true) {
                 ITERATIONS++;
                 moves = moveGenerator.getPseudoLegalMoves(board, false);
-                if (Duration.between(start,Instant.now()).getSeconds()==DURATION) {
+                if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) {
                     break;
                 };
             }
             //System.out.println(moves);
             System.out.println(String.format("PseudoLegal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
-            ITERATIONS=0;
 
-            moves = null;
+            // Legal Moves
+            ITERATIONS=0;
+            moves = new OmegaMoveList();
             start = Instant.now();
             while (true) {
                 ITERATIONS++;
                 moves = moveGenerator.getLegalMoves(board, false);
-                if (Duration.between(start,Instant.now()).getSeconds()==DURATION) {
+                if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) {
                     break;
                 };
             }
-            //System.out.println(moves);
             System.out.println(String.format("      Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
-            i++;
+
+            // Legal Moves On Demand
             ITERATIONS=0;
+            int moveCounter = 0;
+            start = Instant.now();
+            while (true) {
+                ITERATIONS++;
+                moveCounter=0;
+                moveGenerator.resetOnDemand();
+                int move =  moveGenerator.getNextLegalMove(board, false);
+                while (move != OmegaMove.NOMOVE) {
+                    moveCounter++;
+                    move = moveGenerator.getNextLegalMove(board, false);
+                }
+                if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) {
+                    break;
+                };
+            }
+            System.out.println(String.format("   OD Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moveCounter));
+            ITERATIONS=0;
+
+            i++;
+        }
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testMoveSorting() {
+
+        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
+        OmegaBoardPosition board = null;
+
+        int i=0;
+        String[] fens = getFENs();
+        while (fens[i]!=null) {
+            String testFen = fens[i++];
+            System.out.println(testFen);
+            board = new OmegaBoardPosition(testFen);
+
+            OmegaMoveList moves = moveGenerator.getPseudoLegalMoves(board, false);
+
+            moves.stream()
+            .filter((move) -> OmegaMove.getTarget(move) != OmegaPiece.NOPIECE)
+            .forEach((m) -> {
+                System.out.print(OmegaMove.toString(m));
+                System.out.print(" " + (OmegaMove.getPiece(m).getType().getValue() - OmegaMove.getTarget(m).getType().getValue()));
+                System.out.println();
+            });
+            System.out.println();
         }
     }
 

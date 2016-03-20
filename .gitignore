@@ -66,3 +66,6 @@ $RECYCLE.BIN/
 
 ~$.*
 ~$fields.xlsx
+/nbproject/private/
+/build/
+nbproject/

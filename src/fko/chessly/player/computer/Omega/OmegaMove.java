@@ -160,7 +160,8 @@ public class OmegaMove {
      * @return the type.
      */
     static OmegaMoveType getMoveType(int move) {
-        assert move != NOMOVE;
+        assert move != NOMOVE
+                :"STOP";
         int type = ((move & MOVETYPE_MASK) >>> MOVETYPE_SHIFT);
         return OmegaMoveType.values()[type];
     }

@@ -44,7 +44,7 @@ public class TestOmegaPERFT {
     @Test
     public void testStandardPerftTiming() {
 
-        int maxDepth = 6;
+        int maxDepth = 5;
         long[][] results = {
                 //N  Nodes      Captures EP     Checks  Mates
                 { 0, 1,         0,       0,     0,      0},

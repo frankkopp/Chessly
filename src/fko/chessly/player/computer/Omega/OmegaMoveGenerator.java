@@ -27,6 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.stream.IntStream;
 
@@ -41,7 +42,8 @@ import java.util.stream.IntStream;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = true;
+    static private final boolean CACHE = false;
+    static private final boolean SORT = true;
 
     // remember the last position to control cache validity
     private long _zobristLastPosition = 0;
@@ -69,6 +71,27 @@ public class OmegaMoveGenerator {
     private final OmegaMoveList _castlingMoves = new OmegaMoveList(); // only non castling moves
     private final OmegaMoveList _evasionMoves = new OmegaMoveList(); // only evasion moves
 
+    // These fields control the on demand generation of moves.
+    private CycleState _generationCycleState = CycleState.NEW;
+    private enum CycleState {
+        NEW,
+        PAWN,
+        KNIGHTS,
+        BISHOPS,
+        ROOKS,
+        QUEENS,
+        KINGS,
+        ALL
+    }
+    private OmegaMoveList _onDemandLegalMoveList = new OmegaMoveList();
+    private long _onDemandZobristLastPosition;
+
+    // Comparator for move value victim least value attacker
+    private static final Comparator<Integer> _mvvlva_comparator = (Integer a, Integer b) -> {
+        return (OmegaMove.getPiece(a.intValue()).getType().getValue() - OmegaMove.getTarget(a.intValue()).getType().getValue())
+                - ((OmegaMove.getPiece(b.intValue()).getType().getValue() - OmegaMove.getTarget(b.intValue()).getType().getValue()));
+    };
+
     /**
      * Creates a new {@link OmegaMoveGenerator}
      */
@@ -77,14 +100,125 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * Streams all legal moves for a position.<br/>
+     * Returns the next move of the current generation cycle.<br/>
+     * This method uses an on-demand generation of moves starting with
+     * potentially high value moves first to improve cut off rates in
+     * AlphaBeta pruning and therefore avoiding the cost of generating
+     * all possible moves.<br/>
+     *
+     * The generation cycle starts new if the position changes or if cleaOnDemand() is called.<br/>
+     *
+     * @param position
+     * @param capturingOnly
+     * @return int representing the next legal Move. Return OmegaMove.NOMOVE if none available
+     */
+    public int getNextLegalMove(OmegaBoardPosition position, boolean capturingOnly) {
+
+        // TODO zobrist could collide - then this will break.
+        if (position.getZobristKey() != _onDemandZobristLastPosition) {
+            _generationCycleState = CycleState.NEW;
+            clearLists();
+            // remember the last position to see when it has changed
+            this._onDemandZobristLastPosition = position.getZobristKey();
+        }
+
+        // update position
+        _position = position;
+        _activePlayer = _position._nextPlayer;
+
+        // clear lists
+        _capturingMoves.clear();
+        _nonCapturingMoves.clear();
+        _castlingMoves.clear();
+
+        /*
+         * If the list is currently empty and we have not generated all moves yet
+         * generate the next batch until we have new moves or all moves are generated
+         * and there are no more moves to generate
+         */
+        while (_onDemandLegalMoveList.empty() && !(_generationCycleState == CycleState.ALL)) {
+            switch (_generationCycleState) {
+                case NEW: // no moves yet generate pawn moves first
+                    // generate pawn moves
+                    generatePawnMoves();
+                    if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.PAWN;
+                    break;
+                case PAWN: // we have all moves but knight, bishop, rook, queen and king moves
+                    generateKnightMoves();
+                    if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.KNIGHTS;
+                    break;
+                case KNIGHTS: // we have all moves but bishop, rook, queen and king moves
+                    generateBishopMoves();
+                    if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.BISHOPS;
+                    break;
+                case BISHOPS: // we have all moves but rook, queen and king moves
+                    generateRookMoves();
+                    if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.ROOKS;
+                    break;
+                case ROOKS: // we have all moves but queen and king moves
+                    generateQueenMoves();
+                    if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.QUEENS;
+                    break;
+                case QUEENS: // we have all moves but king moves
+                    generateKingMoves();
+                    if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.KINGS;
+                    break;
+                case KINGS: // we have all non capturing
+                    generateCastlingMoves();
+                    _castlingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    _generationCycleState = CycleState.ALL;
+                    break;
+                case ALL: // we have all moves - do nothing
+                default:
+                    break;
+            }
+        }
+
+        // return a move a delete it form the list
+        if (!_onDemandLegalMoveList.empty()) {
+            return _onDemandLegalMoveList.removeFirst();
+        }
+
+        return OmegaMove.NOMOVE;
+
+    }
+
+    /**
+     * Reset the on demand move generation use by <code>getNextLegalMove()</code>.
+     * The move generation cycle resets automatically if a new board position is used.
+     * Calling this method resets it manually.
+     */
+    public void resetOnDemand() {
+        _onDemandLegalMoveList.clear();
+        _onDemandZobristLastPosition =0;
+    }
+
+    /**
+     * Streams <b>all</b> legal moves for a position.<br/>
      * Legal moves have been checked if they leave the king in check or not.
      * Repeated calls to this will return a cached list as long the position has
      * not changed in between.<br/>
-     * This method basically calls <code>getPseudoLegalMoves</code> and the filters the
+     * This method basically calls <code>getPseudoLegalMoves</code> and then filters the
      * non legal moves out of the provided list by checking each move if it leaves
      * the king in check.<br/>
-     * A stream allows lazy generation of moves - on demand. Not yet implemented. <br/>
      *
      * @param position
      * @param capturingOnly if only capturing moves should be generated for quiescence moves
@@ -95,7 +229,7 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * Generates all legal moves for a position.
+     * Generates <b>all</b> legal moves for a position.
      * Legal moves have been checked if they leave the king in check or not.
      * Repeated calls to this will return a cached list as long the position has
      * not changed in between.<br/>
@@ -133,9 +267,6 @@ public class OmegaMoveGenerator {
         assert _legalMoves.size() == 0;
         streamPseudoLegalMoves(position, capturingOnly).filter(this::isLegalMove).forEach(_legalMoves::add);
 
-        // sort moves - not implemented yet
-        sortMoves(_legalMoves);
-
         // cache the list of legal moves
         _cachedLegalMoveList = _legalMoves;
         _cachedLegalMoveListValid = true;
@@ -145,15 +276,11 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * Streams all  moves for a position. These moves may leave the king in check
+     * Streams <b>all</b>  moves for a position. These moves may leave the king in check
      * and may be illegal.<br/>
      * Before committing them to a board they need to be checked if they leave the king in check.
      * Repeated calls to this will return a cached list as long the position has
      * not changed in between.<br/>
-     * A stream allows lazy generation of moves - on demand. Not yet implemented.<br/>
-     *
-     * TODO: Refactor to generate moves on demand - this helps when pruning in AlphaBeta Search
-     * cuts of trees - in this case we have save generating unecessary moves.
      *
      * @param position
      * @param capturingOnly
@@ -164,7 +291,7 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * Generates all  moves for a position. These moves may leave the king in check
+     * Generates <b>all</b>  moves for a position. These moves may leave the king in check
      * and may be illegal.<br/>
      * Before committing them to a board they need to be checked if they leave the king in check.
      * Repeated calls to this will return a cached list as long the position has
@@ -201,9 +328,6 @@ public class OmegaMoveGenerator {
          * only evasion moves
          */
         generatePseudoLegaMoves();
-
-        // sort moves - not yet implemented
-        sortMoves(_pseudoLegalMoves);
 
         // cache the list of legal moves
         _cachedPseudoLegalMoveList = _pseudoLegalMoves;
@@ -317,9 +441,9 @@ public class OmegaMoveGenerator {
         generateKingMoves();
         generateCastlingMoves();
 
-        // TODO sort moves
-        // sort captureList - according to value diff
-        // sort non capturing - via better piece/position/game phase value
+        if (SORT) _capturingMoves.sort(_mvvlva_comparator);
+
+        // TODO: sort non capturing - via better piece/position/game phase value
 
         _pseudoLegalMoves.add(_capturingMoves);
         _pseudoLegalMoves.add(_castlingMoves);
@@ -604,16 +728,10 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * @param legalMoves
-     */
-    private void sortMoves(OmegaMoveList list) {
-        // TODO move sorting not yet implemented
-    }
-
-    /**
      * Clears all lists
      */
     private void clearLists() {
+        _onDemandLegalMoveList.clear();
         _legalMoves.clear();
         _pseudoLegalMoves.clear();
         _evasionMoves.clear();

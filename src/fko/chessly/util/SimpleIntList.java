@@ -28,9 +28,8 @@
 package fko.chessly.util;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.stream.IntStream;
-
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 /**
  * Simple and fast list class for integers.
@@ -172,13 +171,6 @@ public class SimpleIntList {
     }
 
     /**
-     * fast sort of list
-     */
-    public void sort() {
-        quicksort(_head,_tail-1);
-    }
-
-    /**
      * Returns a copy of the list.
      * @return copy of list as int[]
      *
@@ -246,22 +238,45 @@ public class SimpleIntList {
     }
 
     /**
-     * Standard quicksort implementation to order the list according to the int value.
-     * @param lo
-     * @param hi
+     * fast sort of list
+     * @param comparator
      */
-    private void quicksort(int lo, int hi) {
-        int low=lo, high=hi;
-        int mid=_list[(lo+hi)/2];
+    public void sort(Comparator<Integer> comparator ) {
+        if (this.empty()) return;
+        sort(_head, _tail, comparator);
+    }
+
+    /**
+     * Standard quicksort implementation to order the list according to the int value.
+     * @param left
+     * @param right
+     * @param comparator
+     */
+    private void sort(int left, int right, Comparator<Integer> comparator) {
+
+        /*
+        int i; int j; int move;
+        for (i = left + 1; i <= right; i++) {
+            move = _list[i];
+            j = i;
+            while ((j > left) && (comparator.compare(_list[j - 1],_list[i]) < 0)) {
+                _list[j] = _list[j - 1];
+                j--;
+            }
+            _list[j] = move;
+        }*/
+
+        int low=left, high=right;
+        int midValue=_list[(left+right)/2];
         while (low<=high) {
-            while (_list[low] < mid) low++;
-            while (_list[high] > mid) high--;
+            while (comparator.compare(_list[low], midValue) < 0) low++;
+            while (comparator.compare(_list[high],midValue) > 0) high--;
             if (low <= high) {
                 exchange(low,high);
                 low++; high--;
             }
-            if (lo<high) quicksort(lo, high);
-            if (low<hi) quicksort(low, hi);
+            if (left<high) sort(left, high, comparator);
+            if (low<right) sort(low, right, comparator);
         }
     }
 
