@@ -27,6 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -84,6 +86,10 @@ public class OmegaSearch implements Runnable {
     private int _currentEngineLevelBlack = 99;
 
     /**
+     * Creates a search object and stores a back reference to the engine object.<br/>
+     * Before using the search you need to configure it through <code>configure(...)</code><br/>
+     *
+     *
      * @param omegaEngine
      */
     public OmegaSearch(OmegaEngine omegaEngine) {
@@ -91,6 +97,39 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Setup the Search with all necessary level and time settings.
+     *
+     * @param timedGame
+     * @param remainingTimeWhite in ms
+     * @param remainginTiemBlack in ms
+     * @param currentEngineLevelWhite max search depth white
+     * @param currentEngineLevelBlack max search depth black
+     */
+    public void configure(boolean timedGame,
+            long remainingTimeWhite, long remainginTiemBlack,
+            int currentEngineLevelWhite, int currentEngineLevelBlack) {
+
+        _isTimedGame = timedGame;
+        _remainingTimeWhite = remainingTimeWhite;
+        _remainginTiemBlack = remainginTiemBlack;
+        _currentEngineLevelWhite = currentEngineLevelWhite;
+        _currentEngineLevelBlack = currentEngineLevelBlack;
+
+        _isConfigured = true;
+
+    }
+
+    /**
+     * Start the search in a separate thread.<br/>
+     * Calls <code>_omegaEngine.storeResult(searchResult);</code> to
+     * store the result is it has found one. After storing the result
+     * the search is ended and the thread terminated.<br/>
+     * The search will stop when it has reach the configured conditions. Either
+     * reached a certain depth oder used up the time or found a move.<br/>
+     * The search also can be stopped by calling stop at any time. The
+     * search will stop gracefully by storing the best move so far via
+     * <code>_omegaEngine.storeResult(searchResult);</code>.
+     *
      * @param omegaBoard
      */
     public void startSearch(OmegaBoardPosition omegaBoard) {
@@ -120,11 +159,15 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     *
+     * Stops a current search. If no search is running it does nothing.
      */
     public void stop() {
         // set stop flag - search needs to check regularly and stop accordingly
         _stopSearch = true;
+
+        // return if no search is running
+        if (_searchThread == null) return;
+
         // Wait for the thread to die
         try { this._searchThread.join();
         } catch (InterruptedException e) { /* empty*/ }
@@ -134,30 +177,12 @@ public class OmegaSearch implements Runnable {
 
     @Override
     public void run() {
-        // initialize
-        SearchResult searchResult = new SearchResult();
 
         // release latch so the caller can continue
         _waitForInitializaitonLatch.countDown();
 
-        // search
-        // DEBUG code
-        // START TEMPORARY CODE
-        {
-            OmegaMoveGenerator omg = new OmegaMoveGenerator();
-            OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
-            int move = (int) Math.round((legalMoves.size()-1) * Math.random());
-            searchResult.bestMove=legalMoves.get(move);
-            if (searchResult.bestMove==0) {
-                System.out.println("SHIT");
-            }
-            searchResult.resultValue=0;
-            searchResult.depth=0;
-            searchResult.moveNumber=move;
-            searchResult.ponderMove=OmegaMove.NOMOVE;
-            searchResult.time=0;
-        }
-        // END TEMPORARY CODE
+        // run the search itself
+        SearchResult searchResult = runSearch();
 
         // send the result
         _omegaEngine.storeResult(searchResult);
@@ -168,26 +193,37 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     * Setup the Search with all necessary level and time settings.
-     *
-     * @param timedGame
-     * @param remainingTimeWhite in ms
-     * @param remainginTiemBlack in ms
-     * @param currentEngineLevelWhite max search depth white
-     * @param currentEngineLevelBlack max search depth black
+     * This starts the actual search.
+     * @return the best move
      */
-    public void configure(boolean timedGame,
-            long remainingTimeWhite, long remainginTiemBlack,
-            int currentEngineLevelWhite, int currentEngineLevelBlack) {
+    private SearchResult runSearch() {
 
-        _isTimedGame = timedGame;
-        _remainingTimeWhite = remainingTimeWhite;
-        _remainginTiemBlack = remainginTiemBlack;
-        _currentEngineLevelWhite = currentEngineLevelWhite;
-        _currentEngineLevelBlack = currentEngineLevelBlack;
+        // START TEMPORARY CODE
+        SearchResult searchResult = new SearchResult();
+        OmegaMoveGenerator omg = new OmegaMoveGenerator();
+        OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
+        int move = (int) Math.round((legalMoves.size()-1) * Math.random());
+        searchResult.bestMove=legalMoves.get(move);
+        if (searchResult.bestMove==0) {
+            System.out.println("SHIT");
+        }
+        searchResult.resultValue=0;
+        searchResult.depth=0;
+        searchResult.moveNumber=move;
+        searchResult.ponderMove=OmegaMove.NOMOVE;
+        searchResult.time=0;
 
-        _isConfigured = true;
+        Instant start = Instant.now();
+        while (!_stopSearch && Duration.between(start,Instant.now()).getSeconds() < 5 ) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        // END TEMPORARY CODE
 
+        return searchResult;
     }
 
     /**
@@ -198,9 +234,17 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Returns true if the search is still running.
+     *
+     * @return true is search thread is still running
+     */
+    public boolean isSearching() {
+        return _searchThread.isAlive();
+    }
+
+    /**
      * Parameter class for the search result
      */
-
     static final class SearchResult {
         int bestMove = 0;
         int ponderMove = 0;
@@ -209,6 +253,15 @@ public class OmegaSearch implements Runnable {
         long time = -1;
         int moveNumber = 0;
         int depth = 0;
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("BestMove: "+OmegaMove.toString(bestMove));
+            return sb.toString();
+        }
+
+
     }
 
 }

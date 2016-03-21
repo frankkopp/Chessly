@@ -235,8 +235,16 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     public void storeResult(SearchResult searchResult) {
         _searchResult = searchResult;
+        //System.out.println("Store Result: "+searchResult);
         // result received - release the latch
         _waitForMoveLatch.countDown();
+    }
+
+    /**
+     * @return the searchResult
+     */
+    SearchResult getSearchResult() {
+        return this._searchResult;
     }
 
     /**
