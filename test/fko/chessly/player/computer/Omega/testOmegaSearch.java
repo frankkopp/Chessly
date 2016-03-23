@@ -48,6 +48,7 @@ public class testOmegaSearch {
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+        _omegaSearch.configure(false, 0, 0, 6, 6);
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition();
 
         // init the engine
@@ -71,6 +72,7 @@ public class testOmegaSearch {
 
         System.out.println("Start search and wait for result");
         // test search
+        _omegaSearch.configure(false, 0, 0, 4, 4);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {

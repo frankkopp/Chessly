@@ -28,6 +28,7 @@ package fko.chessly.player.computer.Omega;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import fko.chessly.Chessly;
@@ -55,7 +56,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     public final OmegaConfiguration _CONFIGURATION = new OmegaConfiguration();
 
     // The current game this engine is used in
-    private Game _game = null;
+    private Optional<Game> _game = Optional.empty() ;
 
     // used to wait for move from search
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
@@ -86,7 +87,14 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public void setGame(Game game) {
-        this._game = game;
+        this._game = Optional.of(game);
+    }
+
+    /**
+     * @return the game
+     */
+    public Optional<Game> getGame() {
+        return this._game;
     }
 
     // not used
@@ -168,9 +176,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         // configure the search
         // if not configured will used default mode
         _omegaSearch.configure(
-                _game.isTimedGame(),
-                _game.getWhiteTime()-_game.getWhiteClock().getTime(),
-                _game.getBlackTime()-_game.getBlackClock().getTime(),
+                _game.get().isTimedGame(),
+                _game.get().getWhiteTime()-_game.get().getWhiteClock().getTime(),
+                _game.get().getBlackTime()-_game.get().getBlackClock().getTime(),
                 Playroom.getInstance().getCurrentEngineLevelWhite(),
                 Playroom.getInstance().getCurrentEngineLevelBlack()
                 );
@@ -260,6 +268,13 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     private void resetCounters() {
         // TODO Auto-generated method stub
 
+    }
+
+    /**
+     * @return the player
+     */
+    public ComputerPlayer getPlayer() {
+        return this._player;
     }
 
     /**********************************************************************

@@ -31,6 +31,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 
+import fko.chessly.Chessly;
+
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
  * It runs in a separate thread and needs to be started through <code>startSearch(position)</code>().
@@ -40,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
  *      DONE: Thread control
  *      DONE: Move Generation
  *      DONE: Book (in the engine class)
- *      TODO: Basic iterative AlphaBeta search
+ *      TODO: Basic iterative MiniMax search
  *      TODO: Basic Evaluation
  *      TODO: Basic Time Control
  *      TODO: Pondering
@@ -60,8 +62,13 @@ import java.util.concurrent.CountDownLatch;
  */
 public class OmegaSearch implements Runnable {
 
+    private static final int MAX_SEARCH_DEPTH = 99;
+
     private OmegaEngine _omegaEngine;
     private OmegaBoardPosition _omegaBoard;
+
+    // Move Generator
+    private final OmegaMoveGenerator _omegaMoveGenerator = new OmegaMoveGenerator();
 
     // the thread in which we will do the actual search
     private Thread _searchThread = null;
@@ -84,6 +91,21 @@ public class OmegaSearch implements Runnable {
     private long _remainginTiemBlack = 300;
     private int _currentEngineLevelWhite = 99;
     private int _currentEngineLevelBlack = 99;
+
+    // root move evaluation fields
+    OmegaMoveList _rootMoves = new OmegaMoveList();
+    int _currentBestRootMove= OmegaMove.NOMOVE;
+    /* max depth for search iteration - will be set with values from the UI */
+    int _maxIterativeDepth = MAX_SEARCH_DEPTH;
+
+    // engine watcher fields
+    int _currentIterationDepth = 0; // how deep will the search go in the current iteration
+    int _currentSearchDepth = 0; // how deep did the search go this iteration
+    int _currentExtraSearchDepth = 0; // how deep did we search including quiescence depth this iteration
+    int _currentMove = 0;
+    int _currentMoveNumber = 0;
+    int _nodesVisited = 0;
+
 
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
@@ -182,7 +204,7 @@ public class OmegaSearch implements Runnable {
         _waitForInitializaitonLatch.countDown();
 
         // run the search itself
-        SearchResult searchResult = runSearch();
+        SearchResult searchResult = iterativeSearch();
 
         // send the result
         _omegaEngine.storeResult(searchResult);
@@ -196,34 +218,126 @@ public class OmegaSearch implements Runnable {
      * This starts the actual search.
      * @return the best move
      */
-    private SearchResult runSearch() {
+    private SearchResult iterativeSearch() {
 
-        // START TEMPORARY CODE
+        // generate all root moves
+        _rootMoves = _omegaMoveGenerator.getLegalMoves(_omegaBoard, false);
+
+        assert !_rootMoves.empty() : "no legal root moves - game already ended!";
+
+        // temporary best move - take the first move available
+        _currentBestRootMove = _rootMoves.get(0);
+
+        // set start depth and max depth
+        int startIterativeDepth = 1;
+        _maxIterativeDepth  = updateSearchDepth();
+
         SearchResult searchResult = new SearchResult();
-        OmegaMoveGenerator omg = new OmegaMoveGenerator();
-        OmegaMoveList legalMoves = omg.getLegalMoves(_omegaBoard, false);
-        int move = (int) Math.round((legalMoves.size()-1) * Math.random());
-        searchResult.bestMove=legalMoves.get(move);
-        if (searchResult.bestMove==0) {
-            System.out.println("SHIT");
-        }
-        searchResult.resultValue=0;
-        searchResult.depth=0;
-        searchResult.moveNumber=move;
-        searchResult.ponderMove=OmegaMove.NOMOVE;
-        searchResult.time=0;
 
-        Instant start = Instant.now();
-        while (!_stopSearch && Duration.between(start,Instant.now()).getSeconds() < 5 ) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        // END TEMPORARY CODE
+        // ### BEGIN Iterative Deepening
+        int depth = startIterativeDepth;
+        do {
+            // check for game paused
+            if (_omegaEngine.getGame().isPresent())
+                _omegaEngine.getGame().get().waitWhileGamePaused();
+
+            // do search
+            rootMovesSearch(depth, _omegaBoard);
+
+            // we should have a sorted _rootMoves list here
+            // first move is best move so far
+            // create searchRestult here
+            searchResult.bestMove = _rootMoves.get(0);
+            searchResult.ponderMove = OmegaMove.NOMOVE; // NYI
+            searchResult.depth = _currentIterationDepth;
+
+            // Time control
+
+            // check  for stop signal
+            if (_stopSearch) break;
+
+        } while (++depth <= _maxIterativeDepth);
+        // ### ENDOF Iterative Deepening
 
         return searchResult;
+    }
+
+    /**
+     * @param depth
+     * @param omegaBoard
+     */
+    private void rootMovesSearch(int depth, OmegaBoardPosition board) {
+
+        // ### Iterate through all available root moves
+        for (int i = 0; i < _rootMoves.size(); i++) {
+            int move = _rootMoves.get(i);
+
+            // store the current move for Engine Watcher
+            _currentMove = move;
+            _currentMoveNumber = i + 1;
+
+            // ### START - Commit move and go deeper into recursion
+            board.makeMove(move);
+            int value = miniMax(depth - 1, board, 1);
+            board.undoMove();
+            // ###END - Commit move and go deeper into recursion
+
+            // Evaluate the calculated value and compare to current best move
+
+            // Time control
+
+            // check  for stop signal
+            if (_stopSearch) break;
+
+        } // ### Iterate through all available moves
+
+    }
+
+    private int miniMax(int depthleft, OmegaBoardPosition board, int ply) {
+
+        // nodes counter
+        _nodesVisited++;
+
+        // current search depth
+        if (ply > _currentSearchDepth) _currentSearchDepth = ply;
+
+        // on leaf node evaluate the position from the view of the active player
+        if (depthleft == 0) {
+            int sideFactor = _omegaEngine.getPlayer().getColor().isWhite() ? 1 : -1;
+            return sideFactor * board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK);
+        }
+
+        // Iterate over moves
+        int value = 0;
+        value = _omegaMoveGenerator
+                .streamLegalMoves(board, false)
+                .map((move) -> {
+                    board.makeMove(move);
+                    int val = miniMax(depthleft-1, board, ply+1);
+                    board.undoMove();
+                    return val;
+                })
+                .sum();
+
+        return value;
+    }
+
+    /**
+     * Called to update the current search depth for the player.
+     * This makes sure we can change the maximum search depth of a player
+     * from the UI during the search.
+     *
+     * @return current search depth
+     */
+    private int updateSearchDepth() {
+        int maxDepth;
+        if (_omegaEngine.getPlayer().getColor().isBlack()) {
+            maxDepth = _currentEngineLevelBlack;
+        } else if (_omegaEngine.getPlayer().getColor().isWhite()) {
+            maxDepth = _currentEngineLevelWhite;
+        } else
+            throw new RuntimeException("Invalid next player color. Was " + _omegaEngine.getPlayer().getColor());
+        return maxDepth;
     }
 
     /**
@@ -246,8 +360,8 @@ public class OmegaSearch implements Runnable {
      * Parameter class for the search result
      */
     static final class SearchResult {
-        int bestMove = 0;
-        int ponderMove = 0;
+        int bestMove = OmegaMove.NOMOVE;
+        int ponderMove = OmegaMove.NOMOVE;
         int bound = 0;
         int resultValue = 0;
         long time = -1;
