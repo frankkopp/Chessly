@@ -28,6 +28,8 @@ package fko.chessly.player.computer.Omega;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
@@ -73,9 +75,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     // the opening book
     private OpeningBookImpl _openingBook = null;
-
-    // holds the time we started searching
-    private long _startTime = 0;;
 
     /**********************************************************************
      * Engine Interface
@@ -133,13 +132,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     public GameMove getNextMove(GameBoard gameBoard) {
         assert gameBoard !=null : "gameBoard must not be null";
 
-        // Start timer
-        _startTime = System.currentTimeMillis();
-
         // have we been pondering
         if (_CONFIGURATION._USE_PONDERER && ponderHit(gameBoard)) {
             // ponder hit
-
         } // or ponder miss
 
         // convert GameBoard to OmegaBoard
@@ -183,10 +178,11 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
                 Playroom.getInstance().getCurrentEngineLevelBlack()
                 );
 
-        // set latch to later wait for move from search
+        // set latch to wait until the OmegaSearch stored a move through
+        // the callback to storeResult().
         _waitForMoveLatch = new CountDownLatch(1);
 
-        // do normal search
+        // do search
         _omegaSearch.startSearch(omegaBoard);
 
         // wait for the result to come in from the search
@@ -239,6 +235,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     }
 
     /**
+     * Call back from the OmegaSearch when a result is available.
+     * Releases the latch to continue with the result.
+     *
      * @param searchResult
      */
     public void storeResult(SearchResult searchResult) {
@@ -249,13 +248,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     }
 
     /**
-     * @return the searchResult
-     */
-    SearchResult getSearchResult() {
-        return this._searchResult;
-    }
-
-    /**
      * @return GameColor color of player for this engine
      */
     public GameColor getActiveColor() {
@@ -263,18 +255,17 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     }
 
     /**
-     *
-     */
-    private void resetCounters() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
      * @return the player
      */
     public ComputerPlayer getPlayer() {
         return this._player;
+    }
+
+    /**
+     *
+     */
+    private void resetCounters() {
+        // TODO Auto-generated method stub
     }
 
     /**********************************************************************
@@ -340,8 +331,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public long getTotalNodes() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._nodesVisited;
     }
 
     /* (non-Javadoc)
@@ -479,11 +469,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return null;
     }
 
-    @Override
-    public String getInfoText() {
-        return "";
-    }
-
     private String _statusInfo = "";
     @Override
     public String getStatusText() {
@@ -503,6 +488,17 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     public GameMove getPonderMove() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public String getInfoText() {
+        String s;
+        // ui and engine write to this object in parallel
+        synchronized (_engineInfoText) {
+            s = _engineInfoText.toString();
+            _engineInfoText.setLength(0);
+        }
+        return s;
     }
 
     /** Will store the VERBOSE info until the EngineWatcher collects it. */
@@ -525,6 +521,15 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION.VERBOSE_TO_SYSOUT) System.out.print(info);
     }
 
+
+    /**
+     * This is mainly needed by UnitTest
+     *
+     * @return the searchResult
+     */
+    SearchResult getSearchResult() {
+        return this._searchResult;
+    }
 
     /** */
     public static final int SIG_ENGINE_START_CALCULATING = 6000;

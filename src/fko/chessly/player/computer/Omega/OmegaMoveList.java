@@ -36,6 +36,21 @@ import fko.chessly.util.SimpleIntList;
  */
 public class OmegaMoveList extends SimpleIntList {
 
+    /**
+     * Creates a list with a maximum of <tt>MAX_ENTRIES</tt> elements
+     */
+    public OmegaMoveList() {
+        super();
+    }
+
+    /**
+     * Creates a list with a maximum of max_site elements
+     * @param max
+     */
+    public OmegaMoveList(int max) {
+        super(max);
+    }
+
     /* (non-Javadoc)
      * @see fko.chessly.player.computer.Omega.OmegaIntegerList#add(int)
      */
@@ -67,6 +82,19 @@ public class OmegaMoveList extends SimpleIntList {
             if (i<size()-1) s += ", ";
         }
         s+="]";
+        return s;
+    }
+
+    /**
+     * Print the list as a string of move simple move notations.<br/>
+     * e2-e4 e7-e5 ....
+     * @return string containing the moves of the list
+     */
+    public String toNotationString() {
+        String s = "";
+        for (int i=0; i<size(); i++) {
+            s += OmegaMove.toSimpleString(get(i))+" ";
+        }
         return s;
     }
 

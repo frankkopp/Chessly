@@ -86,6 +86,33 @@ public class testOmegaSearch {
 
     }
 
+    @Test
+    public void testSearch() {
+
+        Player _player = createPlayer(GameColor.WHITE);
+        OmegaEngine _omegaEngine = new OmegaEngine();
+        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+        _omegaSearch.configure(false, 0, 0, 6, 6);
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition();
+
+        // init the engine
+        _omegaEngine.init(_player);
+
+        System.out.println("Start search and wait for result");
+        // test search
+        _omegaSearch.configure(false, 0, 0, 4, 4);
+        _omegaSearch.startSearch(_omegaPosition);
+        // what was the move?
+        while (_omegaSearch.isSearching()) {
+            try { Thread.sleep(200);
+            } catch (InterruptedException e) {/* */}
+        }
+        System.out.println("Nodes / Evaluations: "+ _omegaSearch._nodesVisited +" / "+_omegaSearch._boardsEvaluated);
+        System.out.println("Move: "+_omegaEngine.getSearchResult());
+
+    }
+
+
     private static Player createPlayer(GameColor color) {
         final Player newPlayer;
         try {

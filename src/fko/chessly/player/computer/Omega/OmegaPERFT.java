@@ -114,15 +114,20 @@ public class OmegaPERFT {
 
         // Iterate over moves
         long totalNodes = 0L;
-        totalNodes = mg
-                .streamLegalMoves(board, false)
-                .mapToLong((move) -> {
-                    board.makeMove(move);
-                    long nodes = miniMax(depthleft-1, board, mg, ply+1);
-                    board.undoMove();
-                    return nodes;
-                })
-                .sum();
+
+        // moves to search recursively
+        // some convenience fields
+        OmegaColor _activePlayer = board._nextPlayer;
+        OmegaColor _passivePlayer = board._nextPlayer.getInverseColor();
+        OmegaMoveList moves = mg.getPseudoLegalMoves(board, false);
+        for(int i = 0; i < moves.size(); i++) {
+            int move = moves.get(i);
+            board.makeMove(move);
+            if (!board.isAttacked(_passivePlayer, board._kingSquares[_activePlayer.ordinal()])) {
+                totalNodes += miniMax(depthleft-1, board, mg, ply+1);
+            }
+            board.undoMove();
+        }
 
         return totalNodes;
     }

@@ -152,7 +152,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     private int _curSearchDepth = _initialIterativeDepth;
     private int _currentMove = Move.NOMOVE;
     private int _currentMoveNumber = 0;
-    private int _currentExtraSearchDepth = 0;
+    private int _currrentExtraSearchDepth = 0;
 
     // is set when abort conditions are met - stops recursions at certain points
     private boolean _abort = false;
@@ -597,7 +597,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
             long time = System.currentTimeMillis() - start;
             long nps = nodes / (time + 1); // to avoid div by zero
             String info = String.format(Locale.GERMANY, "%nBest Move: %s PV: %s", _currentBestRootMove, _pv[0]);
-            info += String.format(Locale.GERMANY, "%nDepth %d/%d done. %s nodes (%.4f sec) (%s nps) %n", depth, _currentExtraSearchDepth,
+            info += String.format(Locale.GERMANY, "%nDepth %d/%d done. %s nodes (%.4f sec) (%s nps) %n", depth, _currrentExtraSearchDepth,
                     HelperTools.getDigit(nodes), (time / 1000f), HelperTools.getDigit(nps * 1000));
             printVerboseInfo(info);
         }
@@ -1064,8 +1064,8 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
         if (ply - extra > _curSearchDepth) {
             _curSearchDepth = ply - extra;
         }
-        if (extra + _curSearchDepth > _currentExtraSearchDepth) {
-            _currentExtraSearchDepth = extra + _curSearchDepth;
+        if (extra + _curSearchDepth > _currrentExtraSearchDepth) {
+            _currrentExtraSearchDepth = extra + _curSearchDepth;
         }
     }
 
@@ -1223,7 +1223,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
         _nodesVisited.set(0);
         _boardsNonQuiet.set(0);
         _curSearchDepth = 0;
-        _currentExtraSearchDepth = 0;
+        _currrentExtraSearchDepth = 0;
         _lastNodesPerSecond = 0;
         _lastUsedTime = 0;
         _nodeCacheHits.set(0);
@@ -1518,7 +1518,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
 
     @Override
     public int getCurrentMaxSearchDepth() {
-        return _currentExtraSearchDepth;
+        return _currrentExtraSearchDepth;
     }
 
     @Override

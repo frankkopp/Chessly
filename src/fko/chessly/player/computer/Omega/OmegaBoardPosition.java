@@ -1055,16 +1055,16 @@ public class OmegaBoardPosition {
      * It also is not checking if the actual attack can be done as a legal move. E.g. a
      * pinned piece could not actually make a capture on the square.
      *
-     * @param color
-     * @param omegaSquare
+     * @param attackerColor
+     * @param kingPosition
      * @return true if under attack
      */
-    public boolean isAttacked(OmegaColor color, OmegaSquare omegaSquare) {
-        assert (omegaSquare != OmegaSquare.NOSQUARE);
-        assert (!color.isNone());
+    public boolean isAttacked(OmegaColor attackerColor, OmegaSquare kingPosition) {
+        assert (kingPosition != OmegaSquare.NOSQUARE);
+        assert (!attackerColor.isNone());
 
-        final int os_Index = omegaSquare.ordinal();
-        final boolean isWhite = color.isWhite();
+        final int os_Index = kingPosition.ordinal();
+        final boolean isWhite = attackerColor.isWhite();
 
         /*
          * Checks are ordered for likelihood to return from this as fast as possible
@@ -1080,12 +1080,12 @@ public class OmegaBoardPosition {
         }
 
         // check sliding horizontal (rook + queen) if there are any
-        if (!(_rookSquares[color.ordinal()].isEmpty() && _queenSquares[color.ordinal()].isEmpty())) {
+        if (!(_rookSquares[attackerColor.ordinal()].isEmpty() && _queenSquares[attackerColor.ordinal()].isEmpty())) {
             for (int d : OmegaSquare.rookDirections) {
                 int i = os_Index+d;
                 while ((i & 0x88) == 0) { // slide while valid square
                     if (_x88Board[i] != OmegaPiece.NOPIECE ) { // not empty
-                        if (_x88Board[i].getColor() == color  // attacker piece
+                        if (_x88Board[i].getColor() == attackerColor  // attacker piece
                                 && (_x88Board[i].getType() == OmegaPieceType.ROOK
                                 || _x88Board[i].getType() == OmegaPieceType.QUEEN)) {
                             return true;
@@ -1098,12 +1098,12 @@ public class OmegaBoardPosition {
         }
 
         // check sliding diagonal (bishop + queen) if there are any
-        if (!(_bishopSquares[color.ordinal()].isEmpty() && _queenSquares[color.ordinal()].isEmpty())) {
+        if (!(_bishopSquares[attackerColor.ordinal()].isEmpty() && _queenSquares[attackerColor.ordinal()].isEmpty())) {
             for (int d : OmegaSquare.bishopDirections) {
                 int i = os_Index+d;
                 while ((i & 0x88) == 0) { // slide while valid square
                     if (_x88Board[i] != OmegaPiece.NOPIECE ) { // not empty
-                        if (_x88Board[i].getColor() == color  // attacker piece
+                        if (_x88Board[i].getColor() == attackerColor  // attacker piece
                                 && (_x88Board[i].getType() == OmegaPieceType.BISHOP
                                 || _x88Board[i].getType() == OmegaPieceType.QUEEN)) {
                             return true;
@@ -1116,12 +1116,12 @@ public class OmegaBoardPosition {
         }
 
         // check knights if there are any
-        if (!(_knightSquares[color.ordinal()].isEmpty())) {
+        if (!(_knightSquares[attackerColor.ordinal()].isEmpty())) {
             for (int d : OmegaSquare.knightDirections) {
                 int i = os_Index+d;
                 if ((i & 0x88) == 0) { // valid square
                     if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
-                            && _x88Board[i].getColor() == color // attacker piece
+                            && _x88Board[i].getColor() == attackerColor // attacker piece
                             && (_x88Board[i].getType() == OmegaPieceType.KNIGHT)
                             ) {
                         return true;
@@ -1135,7 +1135,7 @@ public class OmegaBoardPosition {
             int i = os_Index+d;
             if ((i & 0x88) == 0) { // valid square
                 if (_x88Board[i] != OmegaPiece.NOPIECE // not empty
-                        && _x88Board[i].getColor() == color // attacker piece
+                        && _x88Board[i].getColor() == attackerColor // attacker piece
                         && (_x88Board[i].getType() == OmegaPieceType.KING)
                         ) {
                     return true;
@@ -1147,7 +1147,7 @@ public class OmegaBoardPosition {
         if (this._enPassantSquare != OmegaSquare.NOSQUARE){
             if (isWhite // white is attacker
                     && _x88Board[_enPassantSquare.getSouth().ordinal()] == OmegaPiece.BLACK_PAWN // black is target
-                    && this._enPassantSquare.getSouth() == omegaSquare) { //this is indeed the en passant attacked square
+                    && this._enPassantSquare.getSouth() == kingPosition) { //this is indeed the en passant attacked square
                 // left
                 int i = os_Index + OmegaSquare.W;
                 if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.WHITE_PAWN) return true;
@@ -1157,7 +1157,7 @@ public class OmegaBoardPosition {
             }
             else if (!isWhite // black is attacker (assume not noColor)
                     && _x88Board[_enPassantSquare.getNorth().ordinal()] == OmegaPiece.WHITE_PAWN // white is target
-                    && this._enPassantSquare.getNorth() == omegaSquare) { //this is indeed the en passant attacked square
+                    && this._enPassantSquare.getNorth() == kingPosition) { //this is indeed the en passant attacked square
                 // attack from left
                 int i = os_Index + OmegaSquare.W;
                 if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.BLACK_PAWN) return true;

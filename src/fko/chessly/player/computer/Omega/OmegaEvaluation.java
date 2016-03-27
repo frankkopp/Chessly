@@ -27,43 +27,25 @@
 
 package fko.chessly.player.computer.Omega;
 
-import fko.chessly.openingbook.OpeningBookImpl.Mode;
-
 /**
- * This is the engines configuration. All fields are package visible
- * and can be change during runtime. They are deliberately not static
- * so we can change white and black differently when engine vs. engine.
+ * @author Frank
+ *
  */
-public class OmegaConfiguration {
+public class OmegaEvaluation {
 
 
-    // Verbose
-    /** If set to true this object will produce info output to System.out */
-    boolean VERBOSE_TO_SYSOUT = true;
-
-    /** If set to true we will use the opening book */
-    boolean _USE_BOOK = true;
-
-    /** Use Ponderer while waiting for opponents move - fills node_cache */
-    boolean _USE_PONDERER = true;
-
-    /** verbose alphabeta search **/
-    boolean VERBOSE_ALPHABETA = true;
-
-    /** verbose variation **/
-    boolean VERBOSE_VARIATION = true;
-
-    /** test the search without any pruning and count perft value **/
-    static public final boolean PERFT = true;
 
 
-    /** default value for folder to books */
-    String _OB_FolderPath = "./book/";
-    /** default opening book file */
-    //public String _OB_fileNamePlain = "8moves_GM_LB.pgn";
-    String _OB_fileNamePlain = "book_graham.txt";
-    /** default opening book value */
-    //public Mode _OB_Mode = Mode.PGN;
-    Mode _OB_Mode = Mode.SAN;
+
+    /**
+     * Predefined values for Evaluation of positions.
+     */
+    @SuppressWarnings("javadoc")
+    public static class Value {
+        static public final int NOVALUE = Integer.MIN_VALUE;
+        static public final int INFINITE = Integer.MAX_VALUE;
+        static public final int DRAW = 0;
+        static public final int CHECKMATE = 100000;
+    }
 
 }
