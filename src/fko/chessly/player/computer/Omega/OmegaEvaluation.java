@@ -33,10 +33,8 @@ package fko.chessly.player.computer.Omega;
  */
 public class OmegaEvaluation {
 
-    private OmegaMoveGenerator _omegaMoveGenerator;
-    private OmegaEngine _omegaEngine;
-
-
+    private final OmegaMoveGenerator _omegaMoveGenerator;
+    private final OmegaEngine _omegaEngine;
 
     /**
      * @param omegaEngine

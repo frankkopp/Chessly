@@ -56,25 +56,15 @@ public enum OmegaPiece {
     BLACK_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.BLACK, "q"), // 11
     BLACK_KING   (OmegaPieceType.KING,   OmegaColor.BLACK, "k"); // 12
 
-    static final OmegaPiece[] values = {
-            NOPIECE      ,
-            WHITE_PAWN   ,
-            WHITE_KNIGHT ,
-            WHITE_BISHOP ,
-            WHITE_ROOK   ,
-            WHITE_QUEEN  ,
-            WHITE_KING   ,
-            BLACK_PAWN   ,
-            BLACK_KNIGHT ,
-            BLACK_BISHOP ,
-            BLACK_ROOK   ,
-            BLACK_QUEEN  ,
-            BLACK_KING
-    };
+    static final OmegaPiece[] values;
 
     private final OmegaPieceType _type;
     private final OmegaColor _color;
     private final String _shortName;
+
+    static {
+        values = OmegaPiece.values();
+    }
 
     private OmegaPiece(OmegaPieceType type, OmegaColor color, String shortName) {
         _type = type;

@@ -260,10 +260,10 @@ public class OmegaSearch implements Runnable {
         assert !rootMoves.empty() : "no legal root moves - game already ended!";
 
         // prepare principal variation lists
-        //        IntStream.rangeClosed(0, MAX_SEARCH_DEPTH-1)
-        //        .forEach((i) -> {
-        //            _principalVariation[i]= new OmegaMoveValueList();
-        //        });
+        IntStream.rangeClosed(0, MAX_SEARCH_DEPTH-1)
+        .forEach((i) -> {
+            _principalVariation[i]= new OmegaMoveValueList();
+        });
 
         // create _rootMoves list
         _rootMoves.clear();
@@ -275,7 +275,6 @@ public class OmegaSearch implements Runnable {
         // temporary best move - take the first move available
         _currentBestRootMove = _rootMoves.getMove(0);
         _currentBestRootValue = _rootMoves.getValue(0);
-        //_principalVariation[0].add(_rootMoves.getMove(0), _rootMoves.getValue(0));
 
         // prepare search result
         SearchResult searchResult = new SearchResult();
@@ -336,7 +335,7 @@ public class OmegaSearch implements Runnable {
             _currentVariation.add(move);
 
             int value = negaMax(depth - 1, board, 1);
-            //            printCurrentVariation(i, 0, _rootMoves.getSize(), value);
+            printCurrentVariation(i, 0, _rootMoves.getSize(), value);
 
             board.undoMove();
             _currentVariation.removeLast();
@@ -349,7 +348,7 @@ public class OmegaSearch implements Runnable {
             if (value > _currentBestRootValue) {
                 _currentBestRootMove = move;
                 _currentBestRootValue = value;
-                //                OmegaMoveValueList.savePV(move, value, _principalVariation[1], _principalVariation[0]);
+                OmegaMoveValueList.savePV(move, value, _principalVariation[1], _principalVariation[0]);
             }
 
             // Time control
@@ -375,7 +374,7 @@ public class OmegaSearch implements Runnable {
         }
 
         // clear principal Variation for this depth
-        //        _principalVariation[ply].clear();
+        _principalVariation[ply].clear();
 
         // Initialize
         int bestMove = OmegaMove.NOMOVE;
@@ -397,14 +396,12 @@ public class OmegaSearch implements Runnable {
                     board._kingSquares[board._nextPlayer.getInverseColor().ordinal()])) {
 
                 hadLegaMove = true; // needed to check if we even had a legal move
-                //if (_principalVariation[ply].isEmpty()) _principalVariation[ply].add(move, OmegaEvaluation.Value.NOVALUE);
-
-                //                _currentVariation.add(move);
+                _currentVariation.add(move);
 
                 value = -negaMax(depthLeft-1, board, ply+1);
-                //                printCurrentVariation(i, ply, moves.size(), value);
+                printCurrentVariation(i, ply, moves.size(), value);
 
-                //                _currentVariation.removeLast();
+                _currentVariation.removeLast();
             }
             board.undoMove();
 
@@ -412,7 +409,7 @@ public class OmegaSearch implements Runnable {
             if (value > bestValue) {
                 bestMove = move;
                 bestValue = value;
-                //                OmegaMoveValueList.savePV(move, value, _principalVariation[ply+1], _principalVariation[ply]);
+                OmegaMoveValueList.savePV(move, value, _principalVariation[ply+1], _principalVariation[ply]);
             }
 
         }
@@ -438,8 +435,8 @@ public class OmegaSearch implements Runnable {
     private int evaluate(OmegaBoardPosition board) {
         // count all leaf nodes evaluated
         _boardsEvaluated++;
-        //final int value = _omegaEvaluation.evaluate(board);
-        return 0; //value;
+        final int value = _omegaEvaluation.evaluate(board);
+        return value;
     }
 
     /**
@@ -480,7 +477,6 @@ public class OmegaSearch implements Runnable {
                     , _principalVariation[ply]);
             _omegaEngine.printVerboseInfo(info);
             _log.fine(info);
-
         }
     }
 

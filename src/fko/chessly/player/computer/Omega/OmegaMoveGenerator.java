@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = true;
+    static private final boolean CACHE = false;
     static private final boolean SORT = true;
 
     // remember the last position to control cache validity
