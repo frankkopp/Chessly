@@ -112,7 +112,8 @@ public class testOmegaSearch {
             } catch (InterruptedException e) {/* */}
         }
         System.out.println("Nodes / Evaluations: "+ _omegaSearch._nodesVisited +" / "+_omegaSearch._boardsEvaluated);
-        System.out.println("Move: "+_omegaEngine.getSearchResult());
+        System.out.println("Move: "+_omegaEngine.getSearchResult()+" ("+_omegaEngine.getSearchResult().resultValue+")");
+        System.out.println("PV: "+_omegaSearch._principalVariation[0].toNotationString());
 
     }
 

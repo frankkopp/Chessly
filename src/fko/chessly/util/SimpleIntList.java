@@ -44,9 +44,9 @@ public class SimpleIntList {
      */
     public static final int DEFAULT_MAX_ENTRIES = 256;
 
-    int[] _list;
-    int _head = 0;
-    int _tail = 0;
+    protected int[] _list;
+    protected int _head = 0;
+    protected int _tail = 0;
 
     /**
      * Creates a list with a maximum of MAX_ENTRIES elements

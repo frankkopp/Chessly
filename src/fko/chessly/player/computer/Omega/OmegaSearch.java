@@ -76,7 +76,7 @@ public class OmegaSearch implements Runnable {
     private OmegaEngine _omegaEngine;
 
     // field for current position
-    private OmegaBoardPosition _omegaBoard;
+    private OmegaBoardPosition _currentBoard;
 
     // Move Generator
     private final OmegaMoveGenerator _omegaMoveGenerator;
@@ -108,7 +108,7 @@ public class OmegaSearch implements Runnable {
 
     // root move evaluation fields
     OmegaMoveValueList _rootMoves = new OmegaMoveValueList();
-    OmegaMoveValueList[] _principalVariation = new OmegaMoveValueList[MAX_SEARCH_DEPTH];
+
     int _currentBestRootMove= OmegaMove.NOMOVE;
     int _currentBestRootValue = OmegaEvaluation.Value.NOVALUE;
 
@@ -116,7 +116,8 @@ public class OmegaSearch implements Runnable {
     int _maxIterativeDepth = MAX_SEARCH_DEPTH;
 
     // current variation of the search
-    OmegaMoveList _currentVariation = new OmegaMoveList(64);
+    OmegaMoveList _currentVariation = new OmegaMoveList(MAX_SEARCH_DEPTH);
+    OmegaMoveList[] _principalVariation = new OmegaMoveList[MAX_SEARCH_DEPTH];
 
     // engine watcher fields - not private for easy access from engine
     int _currentIterationDepth = 0; // how deep will the search go in the current iteration
@@ -182,7 +183,7 @@ public class OmegaSearch implements Runnable {
      */
     public void startSearch(OmegaBoardPosition omegaBoard) {
         assert omegaBoard != null : "omegaBoard must not be null";
-        _omegaBoard = omegaBoard;
+        _currentBoard = omegaBoard;
 
         // has OmegaSearch.configure been called?
         if (!_isConfigured) {
@@ -255,14 +256,14 @@ public class OmegaSearch implements Runnable {
     private SearchResult iterativeSearch() {
 
         // generate all root moves
-        OmegaMoveList rootMoves = _omegaMoveGenerator.getLegalMoves(_omegaBoard, false);
+        OmegaMoveList rootMoves = _omegaMoveGenerator.getLegalMoves(_currentBoard, false);
 
         assert !rootMoves.empty() : "no legal root moves - game already ended!";
 
         // prepare principal variation lists
         IntStream.rangeClosed(0, MAX_SEARCH_DEPTH-1)
         .forEach((i) -> {
-            _principalVariation[i]= new OmegaMoveValueList();
+            _principalVariation[i]= new OmegaMoveList(MAX_SEARCH_DEPTH);
         });
 
         // create _rootMoves list
@@ -295,7 +296,7 @@ public class OmegaSearch implements Runnable {
                 _omegaEngine.getGame().get().waitWhileGamePaused();
 
             // do search
-            rootMovesSearch(depth, _omegaBoard);
+            rootMovesSearch(depth);
 
             // we should have a sorted _rootMoves list here
             // first move is best move so far
@@ -320,7 +321,7 @@ public class OmegaSearch implements Runnable {
      * @param depth
      * @param omegaBoard
      */
-    private void rootMovesSearch(int depth, OmegaBoardPosition board) {
+    private void rootMovesSearch(int depth) {
 
         // ### Iterate through all available root moves
         for (int i = 0; i < _rootMoves.getSize(); i++) {
@@ -331,13 +332,13 @@ public class OmegaSearch implements Runnable {
             _currentMoveNumber = i + 1;
 
             // ### START - Commit move and go deeper into recursion
-            board.makeMove(move);
+            _currentBoard.makeMove(move);
             _currentVariation.add(move);
 
-            int value = negaMax(depth - 1, board, 1);
+            int value = -negaMax(depth - 1, 1);
             printCurrentVariation(i, 0, _rootMoves.getSize(), value);
 
-            board.undoMove();
+            _currentBoard.undoMove();
             _currentVariation.removeLast();
             // ###END - Commit move and go deeper into recursion
 
@@ -348,7 +349,7 @@ public class OmegaSearch implements Runnable {
             if (value > _currentBestRootValue) {
                 _currentBestRootMove = move;
                 _currentBestRootValue = value;
-                OmegaMoveValueList.savePV(move, value, _principalVariation[1], _principalVariation[0]);
+                OmegaMoveList.savePV(move,  _principalVariation[1], _principalVariation[0]);
             }
 
             // Time control
@@ -360,7 +361,7 @@ public class OmegaSearch implements Runnable {
 
     }
 
-    private int negaMax(int depthLeft, OmegaBoardPosition board, int ply) {
+    private int negaMax(int depthLeft, int ply) {
 
         // nodes counter
         _nodesVisited++;
@@ -370,7 +371,7 @@ public class OmegaSearch implements Runnable {
 
         // on leaf node evaluate the position from the view of the active player
         if (depthLeft == 0) {
-            return evaluate(board);
+            return evaluate(_currentBoard);
         }
 
         // clear principal Variation for this depth
@@ -383,7 +384,7 @@ public class OmegaSearch implements Runnable {
         // Generate all PseudoLegalMoves
 
         boolean hadLegaMove = false;
-        OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(board, false);
+        OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(_currentBoard, false);
 
         // moves to search recursively
         for(int i = 0; i < moves.size(); i++) {
@@ -391,32 +392,31 @@ public class OmegaSearch implements Runnable {
 
             int value = bestValue;
 
-            board.makeMove(move);
-            if (!board.isAttacked(board._nextPlayer,
-                    board._kingSquares[board._nextPlayer.getInverseColor().ordinal()])) {
+            _currentBoard.makeMove(move);
+            if (!_currentBoard.isAttacked(_currentBoard._nextPlayer,
+                    _currentBoard._kingSquares[_currentBoard._nextPlayer.getInverseColor().ordinal()])) {
 
-                hadLegaMove = true; // needed to check if we even had a legal move
+                hadLegaMove = true; // needed to remember if we even had a legal move
                 _currentVariation.add(move);
 
-                value = -negaMax(depthLeft-1, board, ply+1);
+                value = -negaMax(depthLeft-1, ply+1);
                 printCurrentVariation(i, ply, moves.size(), value);
 
                 _currentVariation.removeLast();
             }
-            board.undoMove();
+            _currentBoard.undoMove();
 
             // found a better move
             if (value > bestValue) {
                 bestMove = move;
                 bestValue = value;
-                OmegaMoveValueList.savePV(move, value, _principalVariation[ply+1], _principalVariation[ply]);
+                OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
             }
-
         }
 
         // if we did not have a legal move then we have a mate
         if (!hadLegaMove) {
-            if (board.hasCheck()) {
+            if (_currentBoard.hasCheck()) {
                 // We have a check mate. Return a -CHECKMATE.
                 bestValue = OmegaEvaluation.Value.CHECKMATE;
             } else {
@@ -435,6 +435,7 @@ public class OmegaSearch implements Runnable {
     private int evaluate(OmegaBoardPosition board) {
         // count all leaf nodes evaluated
         _boardsEvaluated++;
+        if (_omegaEngine._CONFIGURATION.DO_NULL_EVALUATION) return 0;
         final int value = _omegaEvaluation.evaluate(board);
         return value;
     }
@@ -465,7 +466,7 @@ public class OmegaSearch implements Runnable {
      */
     private void printCurrentVariation(int i, int ply, int size, int value) {
         if (_omegaEngine._CONFIGURATION.VERBOSE_VARIATION) {
-            String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: %s (%d) (%s)%n"
+            String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: CV: %s (%d) (PV-%3$d: %s)%n"
                     , _currentMoveNumber
                     , _rootMoves.getSize()
                     , ply+1
@@ -474,7 +475,7 @@ public class OmegaSearch implements Runnable {
                     , size
                     , _currentVariation.toNotationString()
                     , value
-                    , _principalVariation[ply]);
+                    , _principalVariation[ply].toNotationString());
             _omegaEngine.printVerboseInfo(info);
             _log.fine(info);
         }

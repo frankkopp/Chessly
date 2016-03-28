@@ -172,9 +172,9 @@ public class TestSimpleIntList {
         sortList.add(10);
         sortList.add(5);
         sortList.add(80);
-        sortList.sort();
+        sortList.sort((a,b) -> a-b);
 
-        cloneList.sort();
+        cloneList.sort((a,b) -> a-b);
 
         // clear
         list.clear();

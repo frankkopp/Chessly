@@ -49,9 +49,6 @@ public class OmegaMoveValueList  {
      * Creates and initializes list with NOMOVE entries
      */
     public OmegaMoveValueList() {
-        // prepare principal variation lists
-        IntStream.rangeClosed(0, MAX_MOVES-1)
-        .forEach((i) -> entries[i]= new Entry());
     }
 
     /**
@@ -69,8 +66,9 @@ public class OmegaMoveValueList  {
      */
     public void set(int i, int move, int value) {
         if (i>=size) throw new ArrayIndexOutOfBoundsException();
-        entries[i].move = move;
-        entries[i].value = value;
+        final Entry e = new Entry(move);
+        e.value = value;
+        entries[i] = e;
     }
 
     /**
@@ -109,34 +107,21 @@ public class OmegaMoveValueList  {
      * Resets the list
      */
     public void clear() {
-        IntStream.rangeClosed(0, MAX_MOVES-1)
-        .forEach((i) -> entries[i]= new Entry());
         size=0;
     }
 
     static class Entry {
-        int move = OmegaMove.NOMOVE;
+        final int move;
         int value = OmegaEvaluation.Value.NOVALUE;
+
+        public Entry(int m) {
+            move = m;
+        }
 
         @Override
         public String toString() {
             return "" + OmegaMove.toString(move) + " (" + value + ") ";
         }
-    }
-
-    /**
-     * Copies the content of src array into dest array at index 1
-     * and sets index 0 of dest array to the specified move.
-     * @param move
-     * @param value
-     * @param src
-     * @param dest
-     */
-    static void savePV(int move, int value, OmegaMoveValueList src, OmegaMoveValueList dest) {
-        dest.entries[0].move = move;
-        dest.entries[0].value = value;
-        System.arraycopy(src.entries, 0, dest.entries, 1, src.size);
-        dest.size = src.size + 1;
     }
 
     /* (non-Javadoc)
@@ -154,7 +139,5 @@ public class OmegaMoveValueList  {
         });
         return s.toString();
     }
-
-
 
 }

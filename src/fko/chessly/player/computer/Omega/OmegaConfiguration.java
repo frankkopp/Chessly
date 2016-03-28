@@ -53,6 +53,9 @@ public class OmegaConfiguration {
     /** verbose variation **/
     boolean VERBOSE_VARIATION = false;
 
+    /** null evaluation **/
+    boolean DO_NULL_EVALUATION = false;
+
     /** test the search without any pruning and count perft value **/
     static public final boolean PERFT = true;
 

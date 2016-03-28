@@ -27,6 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
+import fko.chessly.player.computer.Omega.OmegaMoveValueList.Entry;
 import fko.chessly.util.SimpleIntList;
 
 /**
@@ -106,5 +107,19 @@ public class OmegaMoveList extends SimpleIntList {
         OmegaMoveList n = new OmegaMoveList();
         n.add(this);
         return n;
+    }
+
+    /**
+     * Copies the content of src array into dest array at index 1
+     * and sets index 0 of dest array to the specified move.
+     * @param move
+     * @param value
+     * @param src
+     * @param dest
+     */
+    static void savePV(int move, OmegaMoveList src, OmegaMoveList dest) {
+        dest._list[dest._head] = move;
+        System.arraycopy(src._list, src._head, dest._list, 1, src.size());
+        dest._tail = src.size() + 1;
     }
 }
