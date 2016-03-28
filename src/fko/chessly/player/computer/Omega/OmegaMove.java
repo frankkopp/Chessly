@@ -173,6 +173,7 @@ public class OmegaMove {
      * @return String for move
      */
     static String toString(int move) {
+        if (move==NOMOVE) return "NOMOVE";
         String s = "";
         if (getMoveType(move) == OmegaMoveType.CASTLING) {
             switch (getEnd(move)) {
@@ -202,6 +203,7 @@ public class OmegaMove {
      * @return String for move
      */
     public static String toSimpleString(int move) {
+        if (move==NOMOVE) return "NOMOVE";
         String s = "";
         s += getStart(move).toString();
         s += getEnd(move).toString();

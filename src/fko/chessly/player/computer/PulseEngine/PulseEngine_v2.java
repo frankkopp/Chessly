@@ -797,7 +797,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
                             String info = String.format("%n ==> CUT value (%d) >=  beta(%d) @ Depth: %d ", value, beta, ply);
                             printVerboseInfo(info);
                         }
-                        // Extremly influences PERF counter test
+                        // Extremely influences PERF counter test
                         if (_config._USE_PRUNING && !_config.PERF_TEST) {
                             // Cut-off
                             hashType = Bound.LOWER;

@@ -106,7 +106,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     public void init(Player player) {
         // setup our player and color
         if (!(player instanceof ComputerPlayer)) {
-            Chessly.fatalError("Engine objext can only be used with an instance of ComputerPlayer!");
+            Chessly.fatalError("Engine object can only be used with an instance of ComputerPlayer!");
         }
         this._player = (ComputerPlayer) player;
         _activeColor = player.getColor();

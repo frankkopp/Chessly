@@ -33,9 +33,42 @@ package fko.chessly.player.computer.Omega;
  */
 public class OmegaEvaluation {
 
+    private OmegaMoveGenerator _omegaMoveGenerator;
+    private OmegaEngine _omegaEngine;
 
 
 
+    /**
+     * @param omegaEngine
+     * @param omegaMoveGenerator
+     */
+    public OmegaEvaluation(OmegaEngine omegaEngine, OmegaMoveGenerator omegaMoveGenerator) {
+        super();
+        this._omegaEngine = omegaEngine;
+        this._omegaMoveGenerator = omegaMoveGenerator;
+    }
+
+    /**
+     * @param board
+     * @return
+     */
+    public int evaluate(OmegaBoardPosition board) {
+        int value = OmegaEvaluation.Value.MIN_VALUE;
+        if (_omegaMoveGenerator.hasLegalMove(board)) {
+            int sideFactor = _omegaEngine.getPlayer().getColor().isWhite() ? 1 : -1;
+            value = sideFactor * board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK);
+        } else {
+            // no moves - mate position?
+            if (board.hasCheck()) {
+                // We have a check mate. Return a -CHECKMATE.
+                value = -OmegaEvaluation.Value.CHECKMATE;
+            } else {
+                // We have a stale mate. Return the draw value.
+                value = OmegaEvaluation.Value.DRAW;
+            }
+        }
+        return value;
+    }
 
     /**
      * Predefined values for Evaluation of positions.
@@ -44,6 +77,7 @@ public class OmegaEvaluation {
     public static class Value {
         static public final int NOVALUE = Integer.MIN_VALUE;
         static public final int INFINITE = Integer.MAX_VALUE;
+        static public final int MIN_VALUE = -200000;
         static public final int DRAW = 0;
         static public final int CHECKMATE = 100000;
     }

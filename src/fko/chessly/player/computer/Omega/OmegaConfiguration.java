@@ -48,10 +48,10 @@ public class OmegaConfiguration {
     boolean _USE_PONDERER = true;
 
     /** verbose alphabeta search **/
-    boolean VERBOSE_ALPHABETA = true;
+    boolean VERBOSE_ALPHABETA = false;
 
     /** verbose variation **/
-    boolean VERBOSE_VARIATION = true;
+    boolean VERBOSE_VARIATION = false;
 
     /** test the search without any pruning and count perft value **/
     static public final boolean PERFT = true;

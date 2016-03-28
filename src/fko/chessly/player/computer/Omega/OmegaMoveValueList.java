@@ -27,6 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
@@ -98,9 +99,18 @@ public class OmegaMoveValueList  {
     }
 
     /**
+     * @return true is size == 0
+     */
+    public boolean isEmpty() {
+        return size==0;
+    }
+
+    /**
      * Resets the list
      */
     public void clear() {
+        IntStream.rangeClosed(0, MAX_MOVES-1)
+        .forEach((i) -> entries[i]= new Entry());
         size=0;
     }
 
