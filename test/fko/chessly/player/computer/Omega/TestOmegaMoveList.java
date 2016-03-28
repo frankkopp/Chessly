@@ -93,8 +93,8 @@ public class TestOmegaMoveList {
         // get one entry
         assertTrue(list.get(4)==OmegaMove.createMove(
                 OmegaMoveType.NORMAL,
-                OmegaSquare.values()[4],
-                OmegaSquare.values()[4],
+                OmegaSquare.values[4],
+                OmegaSquare.values[4],
                 OmegaPiece.WHITE_PAWN,
                 OmegaPiece.NOPIECE,
                 OmegaPiece.NOPIECE

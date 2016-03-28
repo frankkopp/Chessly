@@ -74,7 +74,7 @@ public class OmegaBoardPosition {
     // we can recreate the board through the last move - no need for history of board itself
     int[] _moveHistory = new int[MAX_HISTORY];
     // hash for pieces - piece, board
-    static final long[][] _piece_Zobrist = new long[OmegaPiece.values().length][OmegaSquare.values().length];
+    static final long[][] _piece_Zobrist = new long[OmegaPiece.values.length][OmegaSquare.values.length];
 
     // Castling rights
     EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
@@ -86,7 +86,7 @@ public class OmegaBoardPosition {
     OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
     OmegaSquare[] _enPassantSquare_History = new OmegaSquare[MAX_HISTORY];
     // hash for castling rights
-    static final long[] _enPassantSquare_Zobrist = new long[OmegaSquare.values().length];
+    static final long[] _enPassantSquare_Zobrist = new long[OmegaSquare.values.length];
 
     // half move clock - number of half moves since last capture
     int _halfMoveClock = 0;
@@ -139,8 +139,8 @@ public class OmegaBoardPosition {
     // static initialization
     static {
         // all pieces on all squares
-        for (OmegaPiece p : OmegaPiece.values()) {
-            for (OmegaSquare s : OmegaSquare.values()) {
+        for (OmegaPiece p : OmegaPiece.values) {
+            for (OmegaSquare s : OmegaSquare.values) {
                 _piece_Zobrist[p.ordinal()][s.ordinal()] = Math.abs(random.nextLong());
             }
         }
@@ -150,7 +150,7 @@ public class OmegaBoardPosition {
         }
         // all possible positions of the en passant square (easiest to use all fields and not just the
         // ones where en passant is indeed possible)
-        for (OmegaSquare s : OmegaSquare.values()) {
+        for (OmegaSquare s : OmegaSquare.values) {
             _enPassantSquare_Zobrist[s.ordinal()] = Math.abs(random.nextLong());
         }
         // set or unset this for the two color options

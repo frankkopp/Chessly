@@ -56,6 +56,21 @@ public enum OmegaPiece {
     BLACK_QUEEN  (OmegaPieceType.QUEEN,  OmegaColor.BLACK, "q"), // 11
     BLACK_KING   (OmegaPieceType.KING,   OmegaColor.BLACK, "k"); // 12
 
+    static final OmegaPiece[] values = {
+            NOPIECE      ,
+            WHITE_PAWN   ,
+            WHITE_KNIGHT ,
+            WHITE_BISHOP ,
+            WHITE_ROOK   ,
+            WHITE_QUEEN  ,
+            WHITE_KING   ,
+            BLACK_PAWN   ,
+            BLACK_KNIGHT ,
+            BLACK_BISHOP ,
+            BLACK_ROOK   ,
+            BLACK_QUEEN  ,
+            BLACK_KING
+    };
 
     private final OmegaPieceType _type;
     private final OmegaColor _color;
@@ -102,7 +117,7 @@ public enum OmegaPiece {
     public static OmegaPiece getPiece(OmegaPieceType type, OmegaColor color) {
         // this only works if the ordinal of all enums stay the same - if they change this
         // has to be changed as well
-        return OmegaPiece.values() [ (color.ordinal()*6) + type.ordinal() ];
+        return OmegaPiece.values[ (color.ordinal()*6) + type.ordinal() ];
     }
 
     /**

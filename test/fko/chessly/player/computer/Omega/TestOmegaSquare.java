@@ -97,7 +97,7 @@ public class TestOmegaSquare {
 
         // iteration
         int counter = 0;
-        for ( OmegaSquare sq : OmegaSquare.values() ) {
+        for ( OmegaSquare sq : OmegaSquare.values ) {
             if (!sq.isValidSquare()) continue;
             counter++;
         }

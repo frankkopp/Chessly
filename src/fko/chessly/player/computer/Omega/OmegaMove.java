@@ -126,7 +126,7 @@ public class OmegaMove {
     static OmegaPiece getPiece(int move) {
         assert move != NOMOVE;
         int chessman = (move & PIECE_MASK) >>> PIECE_SHIFT;
-        return OmegaPiece.values()[chessman];
+        return OmegaPiece.values[chessman];
     }
 
     /**
@@ -138,7 +138,7 @@ public class OmegaMove {
     static OmegaPiece getTarget(int move) {
         assert move != NOMOVE;
         int chessman = (move & TARGET_MASK) >>> TARGET_SHIFT;
-        return OmegaPiece.values()[chessman];
+        return OmegaPiece.values[chessman];
     }
 
     /**
@@ -150,7 +150,7 @@ public class OmegaMove {
     static OmegaPiece getPromotion(int move) {
         assert move != NOMOVE;
         int promotion = ((move & PROMOTION_MASK) >>> PROMOTION_SHIFT);
-        return OmegaPiece.values()[promotion];
+        return OmegaPiece.values[promotion];
     }
 
     /**

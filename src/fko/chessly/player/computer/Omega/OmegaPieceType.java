@@ -27,8 +27,6 @@
 
 package fko.chessly.player.computer.Omega;
 
-import javax.swing.plaf.SliderUI;
-
 /**
  * Enumeration of all piece types in chess
  */
@@ -43,6 +41,16 @@ public enum OmegaPieceType {
     ROOK   ("R", true,  500),  // 4
     QUEEN  ("Q", true,  975),  // 5
     KING   ("K", false, 20000);// 6
+
+    static final OmegaPieceType[] values = {
+            NOTYPE,
+            PAWN  ,
+            KNIGHT,
+            BISHOP,
+            ROOK  ,
+            QUEEN ,
+            KING  ,
+    };
 
     private final String _shortName;
     private final int _value;
