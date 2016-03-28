@@ -47,16 +47,21 @@ public class OmegaEvaluation {
     }
 
     /**
+     * Always from the view of the active (next) player.
+     *
      * @param board
-     * @return
+     * @return value of the position from active player's view.
      */
     public int evaluate(OmegaBoardPosition board) {
         int value = OmegaEvaluation.Value.MIN_VALUE;
+
         if (_omegaMoveGenerator.hasLegalMove(board)) {
-            int sideFactor = _omegaEngine.getPlayer().getColor().isWhite() ? 1 : -1;
-            value = sideFactor * board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK);
-        } else {
-            // no moves - mate position?
+            final OmegaColor activePlayer = board.getNextPlayer();
+            final int sideFactor = activePlayer.isWhite() ? 1 : -1;
+            value = sideFactor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
+        }
+        // no moves - mate position?
+        else {
             if (board.hasCheck()) {
                 // We have a check mate. Return a -CHECKMATE.
                 value = -OmegaEvaluation.Value.CHECKMATE;
@@ -65,6 +70,7 @@ public class OmegaEvaluation {
                 value = OmegaEvaluation.Value.DRAW;
             }
         }
+
         return value;
     }
 

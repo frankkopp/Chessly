@@ -163,7 +163,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
                 _statusInfo = "Book move. Engine waiting.";
                 _engineState  = ObservableEngine.IDLE;
                 setChanged();
-                notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
+                notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating",
+                        _player, SIG_ENGINE_FINISHED_CALCULATING));
+
                 return bookMove;
             }
         }
@@ -242,7 +244,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     public void storeResult(SearchResult searchResult) {
         _searchResult = searchResult;
-        //System.out.println("Store Result: "+searchResult);
         // result received - release the latch
         _waitForMoveLatch.countDown();
     }

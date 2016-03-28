@@ -131,7 +131,6 @@ public class OmegaSearch implements Runnable {
     // time control
     Instant _startTime = null;
 
-
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
      * Before using the search you need to configure it through <code>configure(...)</code><br/>
@@ -238,8 +237,10 @@ public class OmegaSearch implements Runnable {
         SearchResult searchResult = iterativeSearch();
 
         System.out.println(Duration.between(_startTime,Instant.now()).toString());
-        System.out.println(String.format("Nodes/sec: %,d", (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
-        System.out.println(String.format("Boards/sec: %,d", (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+        System.out.println(String.format("Nodes/sec: %,d",
+                (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+        System.out.println(String.format("Boards/sec: %,d",
+                (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
 
         // send the result
         _omegaEngine.storeResult(searchResult);

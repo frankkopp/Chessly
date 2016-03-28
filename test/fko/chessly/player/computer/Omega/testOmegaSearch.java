@@ -36,6 +36,7 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 
 import fko.chessly.game.GameColor;
+import fko.chessly.game.NotationHelper;
 import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
@@ -95,22 +96,26 @@ public class testOmegaSearch {
 
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
-        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
-        _omegaSearch.configure(false, 0, 0, 6, 6);
-        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition();
-
-        // init the engine
         _omegaEngine.init(_player);
 
+        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+
+        String fen = NotationHelper.StandardBoardFEN;
+        //fen = "k6n/7p/6P1/7K/8/8/8/8 w - - 0 1"; // white
+        //fen = "8/8/8/8/k7/1p6/P7/N6K b - - 0 1"; // black
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(fen);
+
         System.out.println("Start search and wait for result");
+
         // test search
-        _omegaSearch.configure(false, 0, 0, 6, 6);
+        _omegaSearch.configure(false, 0, 0, 5, 5);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {
             try { Thread.sleep(200);
             } catch (InterruptedException e) {/* */}
         }
+
         System.out.println("Nodes / Evaluations: "+ _omegaSearch._nodesVisited +" / "+_omegaSearch._boardsEvaluated);
         System.out.println("Move: "+_omegaEngine.getSearchResult()+" ("+_omegaEngine.getSearchResult().resultValue+")");
         System.out.println("PV: "+_omegaSearch._principalVariation[0].toNotationString());
