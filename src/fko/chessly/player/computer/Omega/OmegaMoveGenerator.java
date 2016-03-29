@@ -365,32 +365,58 @@ public class OmegaMoveGenerator {
         clearLists();
 
         /*
-         * Find a move by generating moves for piece types. If a the move list contains
+         * Find a move by generating moves for piece types. If a move list contains
          * at least one legal move return true.
          * This could be further optimized by having the methods for piece types return
          * as soon as they have found a move.
          */
-        generateKingMoves();
-        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        generatePawnMoves();
-        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        generateQueenMoves();
-        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        generateKnightMoves();
-        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        generateBishopMoves();
-        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        generateRookMoves();
-        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        generateCastlingMoves();
-        if (_castlingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generateKingMoves();
+        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generatePawnMoves();
+        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generateQueenMoves();
+        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generateKnightMoves();
+        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generateBishopMoves();
+        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generateRookMoves();
+        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
+        //        generateCastlingMoves();
+        //        if (_castlingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
 
+        generateKingMoves();
+        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
+        generatePawnMoves();
+        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
+        generateQueenMoves();
+        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
+        generateKnightMoves();
+        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
+        generateBishopMoves();
+        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
+        generateRookMoves();
+        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
+        generateCastlingMoves();
+        if (hasLegalMove(_castlingMoves)) return true;
+
+        return false;
+    }
+
+    /**
+     * @param nonCapturingMoves
+     * @return
+     */
+    private boolean hasLegalMove(OmegaMoveList list) {
+        for (int i=0; i<list.size();i++) {
+            if (isLegalMove(list.get(i))) return true;
+        }
         return false;
     }
 
