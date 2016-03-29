@@ -43,9 +43,18 @@ import fko.chessly.game.GameColor;
 public enum OmegaColor {
 
     // order has influence on OmegaPiece
-    WHITE,   // 0
-    BLACK,   // 1
-    NOCOLOR; // 2
+    WHITE       (1),      // 0
+    BLACK      (-1),      // 1
+    NOCOLOR     (0);      // 2
+
+    /**
+     * This is 1 for white and -1 for black. Useful in evaluation and pawn directions
+     */
+    public final int factor;
+
+    private OmegaColor(int factor) {
+        this.factor = factor;
+    }
 
     public static final OmegaColor[] values = {
             WHITE, BLACK
