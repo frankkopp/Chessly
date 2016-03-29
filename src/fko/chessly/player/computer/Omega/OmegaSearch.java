@@ -35,7 +35,6 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import fko.chessly.util.ChesslyLogger;
-import sun.net.www.content.text.plain;
 
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
@@ -105,7 +104,7 @@ public class OmegaSearch implements Runnable {
     private int _currentEngineLevelBlack = 99;
 
     // root move evaluation fields
-    OmegaMoveValueList _rootMoves = new OmegaMoveValueList();
+    OmegaRootMoveList _rootMoves = new OmegaRootMoveList();
 
     int _currentBestRootMove= OmegaMove.NOMOVE;
     int _currentBestRootValue = OmegaEvaluation.Value.NOVALUE;
@@ -203,6 +202,7 @@ public class OmegaSearch implements Runnable {
         // Wait for initialization in run() before returning from call
         try { _waitForInitializaitonLatch.await();
         } catch (InterruptedException e) {/* empty*/}
+
     }
 
     /**
@@ -229,16 +229,23 @@ public class OmegaSearch implements Runnable {
         // release latch so the caller can continue
         _waitForInitializaitonLatch.countDown();
 
+        // remember the start of the search
         _startTime = Instant.now();
 
         // run the search itself
         SearchResult searchResult = iterativeSearch();
 
-        System.out.println(Duration.between(_startTime,Instant.now()).toString());
-        System.out.println(String.format("Nodes/sec: %,d",
-                (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
-        System.out.println(String.format("Boards/sec: %,d",
-                (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+        if (_omegaEngine._CONFIGURATION.VERBOSE_STATS) {
+            _omegaEngine.printVerboseInfo(String.format("Evaluations in total  : %,12d ", _boardsEvaluated));
+            _omegaEngine.printVerboseInfo(String.format("Duration: %s", Duration.between(_startTime, Instant.now()).toString()));
+            _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
+                    (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+            _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d",
+                    (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+            _omegaEngine.printVerboseInfo("\tMove: "+OmegaMove.toString(searchResult.bestMove)+" ("+searchResult.resultValue+")  ");
+            _omegaEngine.printVerboseInfo("\tPV: "+_principalVariation[0].toNotationString()+"\n");
+
+        }
 
         // send the result
         _omegaEngine.storeResult(searchResult);
@@ -324,7 +331,9 @@ public class OmegaSearch implements Runnable {
 
         final int rootply = 0;
 
+        // some stats for iteration
         int boardsCounter = -_boardsEvaluated;
+        Instant iterationStart = Instant.now();
 
         int bestValue = OmegaEvaluation.Value.NOVALUE;
 
@@ -370,8 +379,15 @@ public class OmegaSearch implements Runnable {
 
         boardsCounter += _boardsEvaluated;
 
-        if (_omegaEngine._CONFIGURATION.VERBOSE_VARIATION) {
-            System.out.println(String.format("Evaluations in depth %d: %d", depth, boardsCounter));
+        if (_omegaEngine._CONFIGURATION.VERBOSE_STATS) {
+            _omegaEngine.printVerboseInfo(String.format("Evaluations in depth %d: %,12d ", depth, boardsCounter));
+            _omegaEngine.printVerboseInfo(String.format("Duration: %s ", Duration.between(iterationStart, Instant.now()).toString()));
+            _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
+                    (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+            _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d ",
+                    (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+            _omegaEngine.printVerboseInfo("\tMove: "+OmegaMove.toString(_rootMoves.getMove(0))+" ("+_rootMoves.getValue(0)+")  ");
+            _omegaEngine.printVerboseInfo("\tPV: "+_principalVariation[0].toNotationString()+"\n");
         }
 
     }

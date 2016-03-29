@@ -30,7 +30,7 @@ package fko.chessly.player.computer.Omega;
 /**
  * Class to store a move and value pair.
  */
-public class OmegaMoveValueEntry {
+public class OmegaRootMoveEntry {
 
     final int move;
     final int value;
@@ -39,7 +39,7 @@ public class OmegaMoveValueEntry {
      * @param move
      * @param value
      */
-    public OmegaMoveValueEntry(int move, int value) {
+    public OmegaRootMoveEntry(int move, int value) {
         this.move = move;
         this.value = value;
     }

@@ -28,8 +28,6 @@ package fko.chessly.player.computer.Omega;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
@@ -47,7 +45,6 @@ import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.Omega.OmegaSearch.SearchResult;
-import fko.chessly.player.computer.PulseEngine.Configuration;
 
 /**
  * New engine implementation.

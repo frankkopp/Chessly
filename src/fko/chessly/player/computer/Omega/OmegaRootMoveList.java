@@ -37,7 +37,7 @@ import java.util.ArrayList;
  * This saves time during usage of this list.
  *
  */
-public class OmegaMoveValueList extends ArrayList<OmegaMoveValueEntry> {
+public class OmegaRootMoveList extends ArrayList<OmegaRootMoveEntry> {
 
     /** */
     private static final long serialVersionUID = -8905465753105752609L;
@@ -47,7 +47,7 @@ public class OmegaMoveValueList extends ArrayList<OmegaMoveValueEntry> {
      * @param value
      */
     public void add(int move, int value) {
-        final OmegaMoveValueEntry e = new OmegaMoveValueEntry(move, value);
+        final OmegaRootMoveEntry e = new OmegaRootMoveEntry(move, value);
         this.add(e);
     }
 
@@ -57,7 +57,7 @@ public class OmegaMoveValueList extends ArrayList<OmegaMoveValueEntry> {
      * @param value
      */
     public void set(int i, int move, int value) {
-        final OmegaMoveValueEntry e = new OmegaMoveValueEntry(move, value);
+        final OmegaRootMoveEntry e = new OmegaRootMoveEntry(move, value);
         this.set(i, e);
     }
 

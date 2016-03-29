@@ -53,6 +53,9 @@ public class OmegaConfiguration {
     /** verbose variation **/
     boolean VERBOSE_VARIATION = false;
 
+    /** verbose variation **/
+    boolean VERBOSE_STATS = true;
+
     /** null evaluation **/
     boolean DO_NULL_EVALUATION = false;
 
