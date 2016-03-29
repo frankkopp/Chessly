@@ -45,7 +45,7 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Thread control
  *      DONE: Move Generation
  *      DONE: Book (in the engine class)
- *      TODO: Basic iterative MiniMax search
+ *      DONE: Basic iterative MiniMax search
  *      TODO: Basic Evaluation
  *      TODO: Basic Time Control
  *      TODO: Pondering
@@ -57,7 +57,7 @@ import fko.chessly.util.ChesslyLogger;
  *      TODO: Advanced Time Control
  *      TODO: AspirationWindows
  *      TODO: Pruning: AlphaBeta_Pruning, PV, MDP,
- *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion
+ *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion, See
  *      TODO: KillerTable. HistoryTable, PawnTable
  *      TODO: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
  *
@@ -237,7 +237,7 @@ public class OmegaSearch implements Runnable {
 
         if (_omegaEngine._CONFIGURATION.VERBOSE_STATS) {
             _omegaEngine.printVerboseInfo(String.format("Evaluations in total  : %,12d ", _boardsEvaluated));
-            _omegaEngine.printVerboseInfo(String.format("Duration: %s", Duration.between(_startTime, Instant.now()).toString()));
+            _omegaEngine.printVerboseInfo(String.format("Duration: %9s", Duration.between(_startTime, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
                     (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
             _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d",
@@ -381,7 +381,7 @@ public class OmegaSearch implements Runnable {
 
         if (_omegaEngine._CONFIGURATION.VERBOSE_STATS) {
             _omegaEngine.printVerboseInfo(String.format("Evaluations in depth %d: %,12d ", depth, boardsCounter));
-            _omegaEngine.printVerboseInfo(String.format("Duration: %s ", Duration.between(iterationStart, Instant.now()).toString()));
+            _omegaEngine.printVerboseInfo(String.format("Duration: %9s ", Duration.between(iterationStart, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
                     (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
             _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d ",

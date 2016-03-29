@@ -28,10 +28,23 @@
 package fko.chessly.player.computer.Omega;
 
 /**
- * @author Frank
+ * Omega Evaluation
  *
+ * Features:
+ *      DONE: Material
+ *      TODO: Mobility
+ *      TODO: Game Phase
+ *      TODO: Tapered Eval
+ *      TODO: Piece Tables
+ *      TODO: Bishop Pair
+ *      TODO: Bishop vs. Knight
+ *      TODO: Center Control
+ *      TODO: Center Distance
+ *      TODO: Square Control
  */
 public class OmegaEvaluation {
+
+    static private final boolean MATERIAL = true;
 
     private final OmegaMoveGenerator _omegaMoveGenerator;
     private final OmegaEngine _omegaEngine;
@@ -55,11 +68,18 @@ public class OmegaEvaluation {
     public int evaluate(OmegaBoardPosition board) {
         int value = OmegaEvaluation.Value.MIN_VALUE;
 
+
+
         if (_omegaMoveGenerator.hasLegalMove(board)) {
             final OmegaColor activePlayer = board.getNextPlayer();
             final int sideFactor = activePlayer.isWhite() ? 1 : -1;
-            value = sideFactor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
-            //value += sideFactor;
+
+            // Material
+            if (MATERIAL)
+                value = material(board, sideFactor);
+
+
+
         }
         // no moves - mate position?
         else {
@@ -76,6 +96,17 @@ public class OmegaEvaluation {
     }
 
     /**
+     * @param board
+     * @param sideFactor
+     * @return
+     */
+    private int material(OmegaBoardPosition board, final int sideFactor) {
+        int value;
+        value = sideFactor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
+        return value;
+    }
+
+    /**
      * Predefined values for Evaluation of positions.
      */
     @SuppressWarnings("javadoc")
@@ -85,6 +116,21 @@ public class OmegaEvaluation {
         static public final int MIN_VALUE = -200000;
         static public final int DRAW = 0;
         static public final int CHECKMATE = 100000;
+    }
+
+    /**
+     * Game Phases
+     *
+     * OPENING: develop minor pieces, control center, center pawn structure,
+     *          castling, penalize too early queen development
+     * MIDGAME: material, mobility and pawn structure considerations, king safety
+     * ENDGAME: king to center, pawn promotion, passed pawns
+     */
+    @SuppressWarnings("javadoc")
+    public enum GamePhase {
+        OPENING,
+        MIDGAME,
+        ENDGAME
     }
 
 }

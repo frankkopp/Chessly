@@ -90,9 +90,12 @@ public class testOmegaSearch {
     @Test
     public void testSearch() {
 
+
+
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         _omegaEngine.init(_player);
+        _omegaEngine._CONFIGURATION.VERBOSE_STATS = true;
 
         OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
 
