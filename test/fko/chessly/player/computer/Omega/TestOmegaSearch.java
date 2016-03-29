@@ -110,7 +110,7 @@ public class TestOmegaSearch {
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
 
         // test search
-        _omegaSearch.configure(false, 0, 0, 6, 6);
+        _omegaSearch.configure(false, 0, 0, 5, 5);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {

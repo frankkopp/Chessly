@@ -122,7 +122,7 @@ public class TestOmegaEvaluation {
     public final void testMobility_StartPosition() {
         _omegaPosition = new OmegaBoardPosition(_fenStandard);
         int value = _evaluation.mobility(_omegaPosition);
-        System.out.println(value);
+        //System.out.println(value);
         assertEquals(0, value);
     }
 
@@ -134,20 +134,20 @@ public class TestOmegaEvaluation {
         String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
         _omegaPosition = new OmegaBoardPosition(fen);
         int value = _evaluation.mobility(_omegaPosition);
-        System.out.println(value);
-        assertEquals(54, value);
+        //System.out.println(value);
+        assertEquals(31, value);
 
         fen = "k6n/7p/6P1/7K/8/8/8/8 w - - 0 1"; // white
         _omegaPosition = new OmegaBoardPosition(fen);
         value = _evaluation.mobility(_omegaPosition);
         //System.out.println(value);
-        assertEquals(-1, value);
+        assertEquals(-2, value);
 
         fen = "8/8/8/8/k7/1p6/P7/N6K b - - 0 1"; // black
         _omegaPosition = new OmegaBoardPosition(fen);
         value = _evaluation.mobility(_omegaPosition);
         //System.out.println(value);
-        assertEquals(-1, value);
+        assertEquals(-2, value);
     }
 
     @Test

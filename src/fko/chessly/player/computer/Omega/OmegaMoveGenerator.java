@@ -338,256 +338,6 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * This method checks if the position has at least one legal move.
-     * It will mainly be used to determine mate and stale mate position.
-     * This method returns as quick as possible as it is sufficient to have
-     * found at least one legal move to see that the position is not a mate position.
-     * It only has to check all moves if it is indeed a mate position which
-     * in general is a rare case.
-     * @param position
-     * @return true if there is at least one legal move
-     */
-    public boolean hasLegalMove(OmegaBoardPosition position) {
-        if (position==null) throw new IllegalArgumentException("position may not be null to find legal moves");
-
-        // TODO zobrist could collide - then this will break.
-        if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            if (CACHE) return !_cachedLegalMoveList.empty();
-        }
-        // update position
-        _position = position;
-        _activePlayer = _position._nextPlayer;
-        // position has changed - cache is invalid
-        _cachedLegalMoveListValid = false;
-        _cachedPseudoLegalMoveListValid = false;
-
-        // clear all lists
-        clearLists();
-
-        /*
-         * Find a move by generating moves for piece types. If a move list contains
-         * at least one legal move return true.
-         * This could be further optimized by having the methods for piece types return
-         * as soon as they have found a move.
-         */
-        //        generateKingMoves();
-        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        generatePawnMoves();
-        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        generateQueenMoves();
-        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        generateKnightMoves();
-        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        generateBishopMoves();
-        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        generateRookMoves();
-        //        if (_nonCapturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        if (_capturingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-        //        generateCastlingMoves();
-        //        if (_castlingMoves.stream().filter(this::isLegalMove).findAny().isPresent()) return true;
-
-        //        generateKingMoves();
-        //        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
-        //        generatePawnMoves();
-        //        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
-        //        generateQueenMoves();
-        //        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
-        //        generateKnightMoves();
-        //        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
-        //        generateBishopMoves();
-        //        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
-        //        generateRookMoves();
-        //        if (hasLegalMove(_nonCapturingMoves) || hasLegalMove(_capturingMoves)) return true;
-        //        generateCastlingMoves();
-        //        if (hasLegalMove(_castlingMoves)) return true;
-
-        if (findKingMove()
-                || findKnightMove()
-                || findQueenMove()
-                || findRookMove()
-                || findBishopMove()
-                || findPawnMove())
-            return true;
-
-        return false;
-    }
-
-    /**
-     * @param nonCapturingMoves
-     * @return
-     */
-    private boolean hasLegalMove(OmegaMoveList list) {
-        for (int i=0; i<list.size();i++) {
-            if (isLegalMove(list.get(i))) return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    private boolean findKingMove() {
-        OmegaPieceType type = OmegaPieceType.KING;
-        OmegaSquare square = _position._kingSquares[_activePlayer.ordinal()];
-        return findMove(type, square, OmegaSquare.kingDirections);
-    }
-
-    /**
-     * @return
-     */
-    private boolean findKnightMove() {
-        OmegaPieceType type = OmegaPieceType.KNIGHT;
-        // iterate over all squares where we have this piece type
-        for (OmegaSquare os : _position._knightSquares[_activePlayer.ordinal()]) {
-            if (findMove(type, os, OmegaSquare.knightDirections)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    private boolean findQueenMove() {
-        OmegaPieceType type = OmegaPieceType.QUEEN;
-        // iterate over all squares where we have this piece type
-        for (OmegaSquare os : _position._queenSquares[_activePlayer.ordinal()]) {
-            if (findMove(type, os, OmegaSquare.queenDirections)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    private boolean findBishopMove() {
-        OmegaPieceType type = OmegaPieceType.BISHOP;
-        // iterate over all squares where we have this piece type
-        for (OmegaSquare os : _position._bishopSquares[_activePlayer.ordinal()]) {
-            if (findMove(type, os, OmegaSquare.bishopDirections)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    private boolean findRookMove() {
-        OmegaPieceType type = OmegaPieceType.ROOK;
-        // iterate over all squares where we have this piece type
-        for (OmegaSquare os : _position._rookSquares[_activePlayer.ordinal()]) {
-            if (findMove(type, os, OmegaSquare.rookDirections)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param type
-     * @param square
-     * @param kingdirections
-     * @return
-     */
-    private boolean findMove(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
-        int move = OmegaMove.NOMOVE;
-        int[] directions = pieceDirections;
-        for (int d : directions) {
-            int to = square.ordinal() + d;
-            if ((to & 0x88) == 0) { // slide while valid square
-                final OmegaPiece target = _position._x88Board[to];
-                // free square or opponents piece
-                if (target == OmegaPiece.NOPIECE || target.getColor() == _activePlayer.getInverseColor()) {
-                    move = OmegaMove.createMove(
-                            OmegaMoveType.NORMAL,
-                            OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                            OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE);
-                    if (isLegalMove(move)) return true;
-                }
-                // no need to slide - if one move is found we return
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    private boolean findPawnMove() {
-        int move = OmegaMove.NOMOVE;
-
-        // reverse direction of pawns for black
-        final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
-
-        // iterate over all squares where we have a pawn
-        for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
-
-            // get all possible x88 index values for pawn moves
-            // these are basically int values to add or subtract from the
-            // current square index. Very efficient with a x88 board.
-            int[] directions = OmegaSquare.pawnDirections;
-            for (int d : directions) {
-                // calculate the to square
-                final int to = square.ordinal() + d * pawnDir;
-                if ((to & 0x88) == 0) { // valid square
-                    final OmegaMoveType type = OmegaMoveType.NORMAL;
-                    final OmegaSquare fromSquare = OmegaSquare.getSquare(square.ordinal());
-                    final OmegaSquare toSquare = OmegaSquare.getSquare(to);
-                    final OmegaPiece piece = OmegaPiece.getPiece(OmegaPieceType.PAWN, _activePlayer);
-                    final OmegaPiece target = _position._x88Board[to];
-                    final OmegaPiece promotion = OmegaPiece.NOPIECE;
-                    // capture
-                    if (d != OmegaSquare.N) { // not straight
-                        if (target != OmegaPiece.NOPIECE // not empty
-                                && (target.getColor() == _activePlayer.getInverseColor())) { // opponents color
-                            move = OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion);
-                            if (isLegalMove(move)) return true;
-                        } else { // empty but maybe en passant
-                            if (toSquare == _position._enPassantSquare) { //  en passant capture
-                                // which target?
-                                final int t = _activePlayer.isWhite() ? _position._enPassantSquare.getSouth().ordinal() : _position._enPassantSquare.getNorth().ordinal();
-                                move = OmegaMove.createMove(OmegaMoveType.ENPASSANT,fromSquare,toSquare,piece,_position._x88Board[t],promotion);
-                                if (isLegalMove(move)) return true;
-                            }
-                        }
-                    }
-                    // no capture
-                    else if (d == OmegaSquare.N) { // straight
-                        if (target == OmegaPiece.NOPIECE) { // way needs to be free
-                            move = OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion);
-                            if (isLegalMove(move)) return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Test if move is legal on the current position for the next player.
-     * TODO: Improve - is there a way to avoid make/unmake?
-     *
-     * @param move
-     * @return true if king of active player is not attacked after the move
-     */
-    private boolean isLegalMove(int move) {
-        assert OmegaMove.isValid(move);
-        // make the move on the position
-        _position.makeMove(move);
-        // check if the move leaves the king in check
-        if (!_position.isAttacked(_activePlayer.getInverseColor(),
-                _position._kingSquares[_activePlayer.ordinal()])) {
-            _position.undoMove();
-            return true;
-        }
-        _position.undoMove();
-        return false;
-    }
-
-    /**
      * Generates all pseudo legal moves from the given position.
      */
     private void generatePseudoLegaMoves() {
@@ -627,8 +377,8 @@ public class OmegaMoveGenerator {
         final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
 
         // iterate over all squares where we have a pawn
-        _position._pawnSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
-            //for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
+        //_position._pawnSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+        for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[square.ordinal()].getType() == OmegaPieceType.PAWN;
 
             // get all possible x88 index values for pawn moves
@@ -715,44 +465,44 @@ public class OmegaMoveGenerator {
                     }
                 }
             }
-            //}
-        });
+        }
+        //});
     }
 
     private void generateKnightMoves() {
         OmegaPieceType type = OmegaPieceType.KNIGHT;
         // iterate over all squares where we have a piece
-        _position._knightSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+        for (OmegaSquare square : _position._knightSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.knightDirections);
-        });
+        }
     }
 
     private void generateBishopMoves() {
         OmegaPieceType type = OmegaPieceType.BISHOP;
         // iterate over all squares where we have this piece type
-        _position._bishopSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+        for (OmegaSquare square : _position._bishopSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.bishopDirections);
-        });
+        }
     }
 
     private void generateRookMoves() {
         OmegaPieceType type = OmegaPieceType.ROOK;
         // iterate over all squares where we have this piece type
-        _position._rookSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+        for (OmegaSquare square : _position._rookSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.rookDirections);
-        });
+        }
     }
 
     private void generateQueenMoves() {
         OmegaPieceType type = OmegaPieceType.QUEEN;
         // iterate over all squares where we have this piece type
-        _position._queenSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+        for (OmegaSquare square : _position._queenSquares[_activePlayer.ordinal()]) {
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.queenDirections);
-        });
+        }
     }
 
     private void generateKingMoves() {
@@ -871,6 +621,231 @@ public class OmegaMoveGenerator {
                 else break; // no sliding piece type
             }
         }
+    }
+
+    /**
+     * This method checks if the position has at least one legal move.
+     * It will mainly be used to determine mate and stale mate position.
+     * This method returns as quick as possible as it is sufficient to have
+     * found at least one legal move to see that the position is not a mate position.
+     * It only has to check all moves if it is indeed a mate position which
+     * in general is a rare case.
+     * @param position
+     * @return true if there is at least one legal move
+     */
+    public boolean hasLegalMove(OmegaBoardPosition position) {
+        if (position==null) throw new IllegalArgumentException("position may not be null to find legal moves");
+
+        // TODO zobrist could collide - then this will break.
+        if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
+            if (CACHE) return !_cachedLegalMoveList.empty();
+        }
+        // update position
+        _position = position;
+        _activePlayer = _position._nextPlayer;
+        // position has changed - cache is invalid
+        _cachedLegalMoveListValid = false;
+        _cachedPseudoLegalMoveListValid = false;
+
+        // clear all lists
+        clearLists();
+
+        // DEBUG code
+        //if (!getLegalMoves(position, false).empty()) return true;
+
+        /*
+         * Find a move by finding at least one moves for a piece type
+         */
+        if (findKingMove()
+                || findPawnMove()
+                || findKnightMove()
+                || findQueenMove()
+                || findRookMove()
+                || findBishopMove()
+                )
+            return true;
+
+        return false;
+    }
+
+    /**
+     * Find a King move and return immediately if found.
+     * No need to check castling extra to find a legal move.
+     * @return true if a move has been found
+     */
+    private boolean findKingMove() {
+        OmegaPieceType type = OmegaPieceType.KING;
+        OmegaSquare square = _position._kingSquares[_activePlayer.ordinal()];
+        return findMove(type, square, OmegaSquare.kingDirections);
+    }
+
+    /**
+     * Find a Knight move and return immediately if found.
+     * @return true if a move has been found
+     */
+    private boolean findKnightMove() {
+        OmegaPieceType type = OmegaPieceType.KNIGHT;
+        for (OmegaSquare os : _position._knightSquares[_activePlayer.ordinal()]) {
+            if (findMove(type, os, OmegaSquare.knightDirections)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Find a Queen move and return immediately if found.
+     * @return true if a move has been found
+     */
+    private boolean findQueenMove() {
+        OmegaPieceType type = OmegaPieceType.QUEEN;
+        for (OmegaSquare os : _position._queenSquares[_activePlayer.ordinal()]) {
+            if (findMove(type, os, OmegaSquare.queenDirections)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Find a Bishop move and return immediately if found.
+     * @return true if a move has been found
+     */
+    private boolean findBishopMove() {
+        OmegaPieceType type = OmegaPieceType.BISHOP;
+        // iterate over all squares where we have this piece type
+        for (OmegaSquare os : _position._bishopSquares[_activePlayer.ordinal()]) {
+            if (findMove(type, os, OmegaSquare.bishopDirections)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Find a Rook move and return immediately if found.
+     * @return true if a move has been found
+     */
+    private boolean findRookMove() {
+        OmegaPieceType type = OmegaPieceType.ROOK;
+        // iterate over all squares where we have this piece type
+        for (OmegaSquare os : _position._rookSquares[_activePlayer.ordinal()]) {
+            if (findMove(type, os, OmegaSquare.rookDirections)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Finds moves of the given piece type and the given square.
+     * Returns immediately if a move has been found.
+     *
+     * @param type
+     * @param square
+     * @param kingdirections
+     * @return true if a move has been found
+     */
+    private boolean findMove(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
+        int move = OmegaMove.NOMOVE;
+        int[] directions = pieceDirections;
+        for (int d : directions) {
+            int to = square.ordinal() + d;
+            while ((to & 0x88) == 0) { // slide while valid square
+                final OmegaPiece target = _position._x88Board[to];
+                // free square - non capture
+                if (target == OmegaPiece.NOPIECE) { // empty
+                    move = OmegaMove.createMove(
+                            OmegaMoveType.NORMAL,
+                            OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                            OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE);
+                    if (isLegalMove(move)) return true;
+                }
+                // occupied square - capture if opponent and stop sliding
+                else {
+                    if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
+                        move = OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE);
+                        if (isLegalMove(move)) return true;
+                    }
+                    break; // stop sliding;
+                }
+                if (type.isSliding()) to += d; // next sliding field in this direction
+                else break; // no sliding piece type
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Find a Pawn move and return immediately if found.
+     * No need to check promotions or pawn doubles.
+     * @return true if a move has been found
+     */
+    private boolean findPawnMove() {
+        int move = OmegaMove.NOMOVE;
+
+        // reverse direction of pawns for black
+        final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
+
+        // iterate over all squares where we have a pawn
+        for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
+
+            // get all possible x88 index values for pawn moves
+            // these are basically int values to add or subtract from the
+            // current square index. Very efficient with a x88 board.
+            int[] directions = OmegaSquare.pawnDirections;
+            for (int d : directions) {
+                // calculate the to square
+                final int to = square.ordinal() + d * pawnDir;
+                if ((to & 0x88) == 0) { // valid square
+                    final OmegaMoveType type = OmegaMoveType.NORMAL;
+                    final OmegaSquare fromSquare = OmegaSquare.getSquare(square.ordinal());
+                    final OmegaSquare toSquare = OmegaSquare.getSquare(to);
+                    final OmegaPiece piece = OmegaPiece.getPiece(OmegaPieceType.PAWN, _activePlayer);
+                    final OmegaPiece target = _position._x88Board[to];
+                    final OmegaPiece promotion = OmegaPiece.NOPIECE;
+                    // capture
+                    if (d != OmegaSquare.N) { // not straight
+                        if (target != OmegaPiece.NOPIECE // not empty
+                                && (target.getColor() == _activePlayer.getInverseColor())) { // opponents color
+                            move = OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion);
+                            if (isLegalMove(move)) return true;
+                        } else { // empty but maybe en passant
+                            if (toSquare == _position._enPassantSquare) { //  en passant capture
+                                // which target?
+                                final int t = _activePlayer.isWhite() ? _position._enPassantSquare.getSouth().ordinal() : _position._enPassantSquare.getNorth().ordinal();
+                                move = OmegaMove.createMove(OmegaMoveType.ENPASSANT,fromSquare,toSquare,piece,_position._x88Board[t],promotion);
+                                if (isLegalMove(move)) return true;
+                            }
+                        }
+                    }
+                    // no capture
+                    else if (d == OmegaSquare.N) { // straight
+                        if (target == OmegaPiece.NOPIECE) { // way needs to be free
+                            move = OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion);
+                            if (isLegalMove(move)) return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Test if move is legal on the current position for the next player.
+     * TODO: Improve - is there a way to avoid make/unmake?
+     *
+     * @param move
+     * @return true if king of active player is not attacked after the move
+     */
+    private boolean isLegalMove(int move) {
+        assert OmegaMove.isValid(move);
+        // make the move on the position
+        _position.makeMove(move);
+        // check if the move leaves the king in check
+        if (!_position.isAttacked(_activePlayer.getInverseColor(),
+                _position._kingSquares[_activePlayer.ordinal()])) {
+            _position.undoMove();
+            return true;
+        }
+        _position.undoMove();
+        return false;
     }
 
     /**

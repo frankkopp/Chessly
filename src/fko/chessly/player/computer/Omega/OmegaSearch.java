@@ -46,7 +46,7 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Move Generation
  *      DONE: Book (in the engine class)
  *      DONE: Basic iterative MiniMax search
- *      TODO: Basic Evaluation
+ *      DONE: Basic Evaluation
  *      TODO: Basic Time Control
  *      TODO: Pondering
  *      TODO: Transposition Table
@@ -383,9 +383,9 @@ public class OmegaSearch implements Runnable {
             _omegaEngine.printVerboseInfo(String.format("Evaluations in depth %d: %,12d ", depth, boardsCounter));
             _omegaEngine.printVerboseInfo(String.format("Duration: %9s ", Duration.between(iterationStart, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
-                    (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+                    (_boardsEvaluated*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1L)));
             _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d ",
-                    (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+                    (_nodesVisited*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1L)));
             _omegaEngine.printVerboseInfo("\tMove: "+OmegaMove.toString(_rootMoves.getMove(0))+" ("+_rootMoves.getValue(0)+")  ");
             _omegaEngine.printVerboseInfo("\tPV: "+_principalVariation[0].toNotationString()+"\n");
         }

@@ -32,7 +32,7 @@ import java.util.EnumSet;
 /**
  * Omega Evaluation
  *
- * Features:
+ * Features/Ideas:
  *      DONE: Material
  *      DONE: Mobility
  *      TODO: Piece Tables
@@ -51,6 +51,7 @@ public class OmegaEvaluation {
     static private final boolean PIECE_POSITION = false;
 
     private final OmegaMoveGenerator _omegaMoveGenerator;
+    @SuppressWarnings("unused")
     private final OmegaEngine _omegaEngine;
 
     /**
@@ -128,8 +129,6 @@ public class OmegaEvaluation {
      * @param board
      * @param sideFactor
      * @return number of pseudo legal moves for the next player
-     *
-     * TODO: Improve by not invalidating the move gen cache with this
      */
     int mobility(final OmegaBoardPosition board) {
         int mobility = 0;
@@ -165,7 +164,7 @@ public class OmegaEvaluation {
 
     /**
      * @param board
-     * @param color TODO
+     * @param color
      * @param type
      * @param pieceSquares
      * @param pieceDirections
@@ -174,10 +173,13 @@ public class OmegaEvaluation {
     private static int mobilityForPieces(OmegaBoardPosition board, OmegaColor color, OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
         int numberOfMoves = 0;
         // iterate over all squares where we have a piece
-        numberOfMoves = pieceSquares
-                .stream()
-                .mapToInt((square) -> mobilityForPiece(board, color, type, square, pieceDirections))
-                .sum();
+        for (OmegaSquare square : pieceSquares) {
+            numberOfMoves += mobilityForPiece(board, color, type, square, pieceDirections);
+        }
+        //        numberOfMoves = pieceSquares
+        //                .stream()
+        //                .mapToInt((square) -> mobilityForPiece(board, color, type, square, pieceDirections))
+        //                .sum();
         return numberOfMoves;
     }
 
@@ -211,7 +213,7 @@ public class OmegaEvaluation {
 
     /**
      * @param board
-     * @param phase TODO
+     * @param phase
      * @return
      */
     int position(OmegaBoardPosition board) {

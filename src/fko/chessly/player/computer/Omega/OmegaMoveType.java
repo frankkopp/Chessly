@@ -30,10 +30,11 @@ package fko.chessly.player.computer.Omega;
 import java.util.EnumSet;
 
 /**
- * @author Frank
- *
+ * Move types of OmegaMove
  */
+@SuppressWarnings("javadoc")
 public enum OmegaMoveType {
+
 
     NOMOVETYPE, // 0
     NORMAL,     // 1
@@ -42,10 +43,10 @@ public enum OmegaMoveType {
     ENPASSANT,  // 4
     CASTLING;   // 5
 
-    private static EnumSet<OmegaMoveType> _valid;
+    static public final OmegaMoveType[] values;
 
     static {
-        _valid = EnumSet.of(NORMAL, PAWNDOUBLE, PROMOTION, ENPASSANT, CASTLING);
+        values = OmegaMoveType.values();
     }
 
     static boolean isValid(int mt) {

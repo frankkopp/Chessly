@@ -163,7 +163,7 @@ public class OmegaMove {
         assert move != NOMOVE
                 :"STOP";
         int type = ((move & MOVETYPE_MASK) >>> MOVETYPE_SHIFT);
-        return OmegaMoveType.values()[type];
+        return OmegaMoveType.values[type];
     }
 
     /**

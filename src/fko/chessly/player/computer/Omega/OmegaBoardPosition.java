@@ -1257,7 +1257,9 @@ public class OmegaBoardPosition {
         if (_hasMate != Flag.TBD) return _hasMate == Flag.TRUE ? true : false;
         final boolean hasLegalMove = _mateCheckMG.hasLegalMove(this);
         _hasMate = hasLegalMove ? Flag.FALSE : Flag.TRUE;
-        if (!hasLegalMove) return true;
+        if (!hasLegalMove) {
+            return true;
+        }
         return false;
     }
 
