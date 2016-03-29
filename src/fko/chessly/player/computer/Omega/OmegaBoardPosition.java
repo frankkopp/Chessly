@@ -626,6 +626,72 @@ public class OmegaBoardPosition {
     }
 
     /**
+     * Makes a null move. Essentially switches sides within same position.
+     */
+    public void makeNullMove() {
+
+        // Save state for undoMove
+        _castlingRights_History[_historyCounter] = _castlingRights.clone();
+        _enPassantSquare_History[_historyCounter] = _enPassantSquare;
+        _halfMoveClock_History[_historyCounter] = _halfMoveClock;
+        _zobristKey_History[_historyCounter] = _zobristKey;
+        _hasCheckFlag_History[_historyCounter] = _hasCheck;
+        _hasMateFlag_History[_historyCounter] = _hasMate;
+        _historyCounter++;
+
+        // reset check and mate flag
+        _hasCheck = Flag.TBD;
+        _hasMate = Flag.TBD;
+
+        // clear en passant
+        if (_enPassantSquare!=OmegaSquare.NOSQUARE) {
+            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // out
+            _enPassantSquare = OmegaSquare.NOSQUARE;
+        }
+
+        // increase half move clock
+        _halfMoveClock++;
+
+        // increase halfMoveNumber
+        _nextHalfMoveNumber++;
+
+        // change color (active player)
+        _nextPlayer = _nextPlayer.getInverseColor();
+        _zobristKey ^= _nextPlayer_Zobrist;
+
+    }
+
+    /**
+     * Undo a null move. Essentially switches back sides within same position.
+     */
+    public void undoNullMove() {
+        // Get state for undoMove
+        _historyCounter--;
+
+        // restore castling rights
+        _castlingRights = _castlingRights_History[_historyCounter];
+
+        // restore en passant square
+        _enPassantSquare = _enPassantSquare_History[_historyCounter];
+
+        // restore halfMoveClock
+        _halfMoveClock = _halfMoveClock_History[_historyCounter];
+
+        // decrease _halfMoveNumber
+        _nextHalfMoveNumber--;
+
+        // change back color
+        _nextPlayer = _nextPlayer.getInverseColor();
+
+        // zobristKey - just overwrite - should be the same as before the move
+        _zobristKey = _zobristKey_History[_historyCounter];
+
+        // get the check and mate flag from history
+        _hasCheck = _hasCheckFlag_History[_historyCounter];
+        _hasMate = _hasMateFlag_History[_historyCounter];
+    }
+
+    /**
      * @param fromSquare
      * @param toSquare
      * @param piece
