@@ -59,6 +59,7 @@ public class OmegaEvaluation {
             final OmegaColor activePlayer = board.getNextPlayer();
             final int sideFactor = activePlayer.isWhite() ? 1 : -1;
             value = sideFactor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
+            //value += sideFactor;
         }
         // no moves - mate position?
         else {

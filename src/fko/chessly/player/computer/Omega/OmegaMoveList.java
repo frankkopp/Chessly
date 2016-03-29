@@ -27,7 +27,6 @@
 
 package fko.chessly.player.computer.Omega;
 
-import fko.chessly.player.computer.Omega.OmegaMoveValueList.Entry;
 import fko.chessly.util.SimpleIntList;
 
 /**

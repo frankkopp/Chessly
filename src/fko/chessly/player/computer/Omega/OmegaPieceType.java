@@ -36,10 +36,10 @@ public enum OmegaPieceType {
     // order has influence on OmegaPiece
     NOTYPE ("-", false, 0),    // 0
     PAWN   ("P", false, 100),  // 1
-    KNIGHT ("N", false, 325),  // 2
-    BISHOP ("B", true,  325),  // 3
+    KNIGHT ("N", false, 320),  // 2
+    BISHOP ("B", true,  330),  // 3
     ROOK   ("R", true,  500),  // 4
-    QUEEN  ("Q", true,  975),  // 5
+    QUEEN  ("Q", true,  900),  // 5
     KING   ("K", false, 20000);// 6
 
     static final OmegaPieceType[] values = {

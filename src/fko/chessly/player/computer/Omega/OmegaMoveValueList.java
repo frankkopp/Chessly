@@ -27,8 +27,7 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.util.Arrays;
-import java.util.stream.IntStream;
+import java.util.ArrayList;
 
 /**
  * List of OmegaMove with additional information such as value.<br/>
@@ -38,25 +37,18 @@ import java.util.stream.IntStream;
  * This saves time during usage of this list.
  *
  */
-public class OmegaMoveValueList  {
+public class OmegaMoveValueList extends ArrayList<OmegaMoveValueEntry> {
 
-    private static final int MAX_MOVES = 256;
-
-    private final Entry[] entries = new Entry[MAX_MOVES];
-    private int size = 0;
-
-    /**
-     * Creates and initializes list with NOMOVE entries
-     */
-    public OmegaMoveValueList() {
-    }
+    /** */
+    private static final long serialVersionUID = -8905465753105752609L;
 
     /**
      * @param move
      * @param value
      */
     public void add(int move, int value) {
-        set(size++, move, value);
+        final OmegaMoveValueEntry e = new OmegaMoveValueEntry(move, value);
+        this.add(e);
     }
 
     /**
@@ -65,10 +57,8 @@ public class OmegaMoveValueList  {
      * @param value
      */
     public void set(int i, int move, int value) {
-        if (i>=size) throw new ArrayIndexOutOfBoundsException();
-        final Entry e = new Entry(move);
-        e.value = value;
-        entries[i] = e;
+        final OmegaMoveValueEntry e = new OmegaMoveValueEntry(move, value);
+        this.set(i, e);
     }
 
     /**
@@ -76,8 +66,7 @@ public class OmegaMoveValueList  {
      * @return move
      */
     public int getMove(int i) {
-        if (i>=size) throw new ArrayIndexOutOfBoundsException();
-        return entries[i].move;
+        return this.get(i).move;
     }
 
     /**
@@ -85,56 +74,28 @@ public class OmegaMoveValueList  {
      * @return value
      */
     public int getValue(int i) {
-        if (i>=size) throw new ArrayIndexOutOfBoundsException();
-        return entries[i].value;
+        return this.get(i).value;
+    }
+
+
+    /**
+     * Sorts the list according to value.
+     */
+    public void sort() {
+        this.sort((a,b) -> Integer.compare(b.value, a.value));
     }
 
     /**
-     * @return the size
-     */
-    public int getSize() {
-        return this.size;
-    }
-
-    /**
-     * @return true is size == 0
-     */
-    public boolean isEmpty() {
-        return size==0;
-    }
-
-    /**
-     * Resets the list
-     */
-    public void clear() {
-        size=0;
-    }
-
-    static class Entry {
-        final int move;
-        int value = OmegaEvaluation.Value.NOVALUE;
-
-        public Entry(int m) {
-            move = m;
-        }
-
-        @Override
-        public String toString() {
-            return "" + OmegaMove.toString(move) + " (" + value + ") ";
-        }
-    }
-
-    /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
         StringBuilder s= new StringBuilder();
-        IntStream.rangeClosed(0, size-1)
+        this.stream()
         .forEach((i) -> {
-            s.append(OmegaMove.toSimpleString(entries[i].move));
+            s.append(OmegaMove.toSimpleString(i.move));
             s.append(" (");
-            s.append(entries[i].value);
+            s.append(i.value);
             s.append(") ");
         });
         return s.toString();

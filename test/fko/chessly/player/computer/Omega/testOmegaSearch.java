@@ -27,14 +27,10 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.stream.IntStream;
-
 import org.junit.Test;
 
+import fko.chessly.game.GameBoard;
+import fko.chessly.game.GameBoardImpl;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.NotationHelper;
 import fko.chessly.player.Player;
@@ -103,12 +99,17 @@ public class testOmegaSearch {
         String fen = NotationHelper.StandardBoardFEN;
         //fen = "k6n/7p/6P1/7K/8/8/8/8 w - - 0 1"; // white
         //fen = "8/8/8/8/k7/1p6/P7/N6K b - - 0 1"; // black
-        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(fen);
+        GameBoard board = new GameBoardImpl(fen);
+        //makeMoves(board, "a2a4 a7a5 b2b3 b7b6");
+
+        System.out.println(board);
 
         System.out.println("Start search and wait for result");
 
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
+
         // test search
-        _omegaSearch.configure(false, 0, 0, 5, 5);
+        _omegaSearch.configure(false, 0, 0, 6, 6);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {
@@ -119,7 +120,18 @@ public class testOmegaSearch {
         System.out.println("Nodes / Evaluations: "+ _omegaSearch._nodesVisited +" / "+_omegaSearch._boardsEvaluated);
         System.out.println("Move: "+_omegaEngine.getSearchResult()+" ("+_omegaEngine.getSearchResult().resultValue+")");
         System.out.println("PV: "+_omegaSearch._principalVariation[0].toNotationString());
+        System.out.println();
 
+    }
+
+    /**
+     * @param _omegaPosition
+     */
+    private static void makeMoves(GameBoard board, String movesString) {
+        String[] moves = movesString.split(" ");
+        for (String move : moves) {
+            board.makeMove(NotationHelper.createNewMoveFromSimpleNotation(board, move));
+        }
     }
 
     private static Player createPlayer(GameColor color) {

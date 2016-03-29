@@ -57,7 +57,7 @@ public class OmegaConfiguration {
     boolean DO_NULL_EVALUATION = false;
 
     /** test the search without any pruning and count perft value **/
-    static public final boolean PERFT = true;
+    static public final boolean PERFT = false;
 
 
     /** default value for folder to books */

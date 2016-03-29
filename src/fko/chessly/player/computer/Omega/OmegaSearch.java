@@ -29,14 +29,13 @@ package fko.chessly.player.computer.Omega;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import fko.chessly.Chessly;
 import fko.chessly.util.ChesslyLogger;
+import sun.net.www.content.text.plain;
 
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
@@ -67,7 +66,6 @@ import fko.chessly.util.ChesslyLogger;
  */
 public class OmegaSearch implements Runnable {
 
-    private static final int MAX_MOVES = 128;
     private static final int MAX_SEARCH_DEPTH = 99;
 
     Logger _log = ChesslyLogger.getLogger();
@@ -276,19 +274,19 @@ public class OmegaSearch implements Runnable {
 
         // temporary best move - take the first move available
         _currentBestRootMove = _rootMoves.getMove(0);
-        _currentBestRootValue = _rootMoves.getValue(0);
+        _currentBestRootValue = OmegaEvaluation.Value.NOVALUE;
 
         // prepare search result
         SearchResult searchResult = new SearchResult();
 
         // set start depth and max depth
         int startIterativeDepth = 1;
-        _maxIterativeDepth  = updateSearchDepth();
-        int depth = startIterativeDepth;
         // for testing of move generation and correct counting
-        if (OmegaConfiguration.PERFT) depth = _maxIterativeDepth;
+        if (OmegaConfiguration.PERFT) startIterativeDepth = _maxIterativeDepth;
+        _maxIterativeDepth  = updateSearchDepth();
 
         // ### BEGIN Iterative Deepening
+        int depth = startIterativeDepth;
         do {
             _currentIterationDepth = depth;
 
@@ -302,8 +300,8 @@ public class OmegaSearch implements Runnable {
             // we should have a sorted _rootMoves list here
             // first move is best move so far
             // create searchRestult here
-            searchResult.bestMove = _currentBestRootMove;
-            searchResult.resultValue = _currentBestRootValue;
+            searchResult.bestMove = _rootMoves.getMove(0);
+            searchResult.resultValue = _rootMoves.getValue(0);
             searchResult.depth = _currentIterationDepth;
             searchResult.ponderMove = OmegaMove.NOMOVE; // Not yet implemented
 
@@ -324,34 +322,41 @@ public class OmegaSearch implements Runnable {
      */
     private void rootMovesSearch(int depth) {
 
+        final int rootply = 0;
+
+        int boardsCounter = -_boardsEvaluated;
+
+        int bestValue = OmegaEvaluation.Value.NOVALUE;
+
         // ### Iterate through all available root moves
-        for (int i = 0; i < _rootMoves.getSize(); i++) {
+        for (int i = 0; i < _rootMoves.size(); i++) {
             int move = _rootMoves.getMove(i);
 
             // store the current move for Engine Watcher
             _currentMove = move;
-            _currentMoveNumber = i + 1;
+            _currentMoveNumber = i+1;
 
             // ### START - Commit move and go deeper into recursion
             _currentBoard.makeMove(move);
             _currentVariation.add(move);
 
-            int value = -negaMax(depth - 1, 1);
-            printCurrentVariation(i, 0, _rootMoves.getSize(), value);
-
-            _currentBoard.undoMove();
-            _currentVariation.removeLast();
-            // ###END - Commit move and go deeper into recursion
+            int value = -negaMax(depth-1, rootply+1);
 
             // write the value back to the root moves list
             _rootMoves.set(i, move, value);
 
             // Evaluate the calculated value and compare to current best move
-            if (value > _currentBestRootValue) {
-                _currentBestRootMove = move;
+            if (value > bestValue) {
+                bestValue = value;
                 _currentBestRootValue = value;
-                OmegaMoveList.savePV(move,  _principalVariation[1], _principalVariation[0]);
+                _currentBestRootMove = move;
+                OmegaMoveList.savePV(move,  _principalVariation[rootply+1], _principalVariation[rootply]);
             }
+
+            _currentBoard.undoMove();
+            printCurrentVariation(i, 0, _rootMoves.size(), value);
+            _currentVariation.removeLast();
+            // ###END - Commit move and go deeper into recursion
 
             // Time control
 
@@ -359,6 +364,15 @@ public class OmegaSearch implements Runnable {
             if (_stopSearch) break;
 
         } // ### Iterate through all available moves
+
+        // sort root moves - best first
+        _rootMoves.sort();
+
+        boardsCounter += _boardsEvaluated;
+
+        if (_omegaEngine._CONFIGURATION.VERBOSE_VARIATION) {
+            System.out.println(String.format("Evaluations in depth %d: %d", depth, boardsCounter));
+        }
 
     }
 
@@ -398,21 +412,25 @@ public class OmegaSearch implements Runnable {
                     _currentBoard._kingSquares[_currentBoard._nextPlayer.getInverseColor().ordinal()])) {
 
                 hadLegaMove = true; // needed to remember if we even had a legal move
+
                 _currentVariation.add(move);
 
                 value = -negaMax(depthLeft-1, ply+1);
-                printCurrentVariation(i, ply, moves.size(), value);
 
+                // found a better move
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                    OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
+                }
+
+                printCurrentVariation(i, ply, moves.size(), value);
                 _currentVariation.removeLast();
+
             }
             _currentBoard.undoMove();
 
-            // found a better move
-            if (value > bestValue) {
-                bestMove = move;
-                bestValue = value;
-                OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
-            }
+
         }
 
         // if we did not have a legal move then we have a mate
@@ -467,9 +485,10 @@ public class OmegaSearch implements Runnable {
      */
     private void printCurrentVariation(int i, int ply, int size, int value) {
         if (_omegaEngine._CONFIGURATION.VERBOSE_VARIATION) {
-            String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: CV: %s (%d) (PV-%3$d: %s)%n"
+            //if (ply<1 || ply>2) return;
+            String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: CV: %s (%d) \t(PV-%3$d: %s)%n"
                     , _currentMoveNumber
-                    , _rootMoves.getSize()
+                    , _rootMoves.size()
                     , ply+1
                     , _currentIterationDepth
                     , i+1
