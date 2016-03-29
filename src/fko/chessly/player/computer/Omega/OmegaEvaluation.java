@@ -45,6 +45,7 @@ package fko.chessly.player.computer.Omega;
 public class OmegaEvaluation {
 
     static private final boolean MATERIAL = true;
+    static private final boolean MOBILITY = true;
 
     private final OmegaMoveGenerator _omegaMoveGenerator;
     private final OmegaEngine _omegaEngine;
@@ -66,9 +67,7 @@ public class OmegaEvaluation {
      * @return value of the position from active player's view.
      */
     public int evaluate(OmegaBoardPosition board) {
-        int value = OmegaEvaluation.Value.MIN_VALUE;
-
-
+        int value = OmegaEvaluation.Value.DRAW;
 
         if (_omegaMoveGenerator.hasLegalMove(board)) {
             final OmegaColor activePlayer = board.getNextPlayer();
@@ -76,7 +75,12 @@ public class OmegaEvaluation {
 
             // Material
             if (MATERIAL)
-                value = material(board, sideFactor);
+                value += material(board, sideFactor);
+
+            // Material
+            if (MOBILITY)
+                value += mobility(board, sideFactor);
+
 
 
 
@@ -104,6 +108,15 @@ public class OmegaEvaluation {
         int value;
         value = sideFactor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
         return value;
+    }
+
+    /**
+     * @param board
+     * @param sideFactor
+     * @return
+     */
+    private int mobility(OmegaBoardPosition board, int sideFactor) {
+        return 0;
     }
 
     /**

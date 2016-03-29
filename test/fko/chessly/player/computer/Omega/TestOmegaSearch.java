@@ -41,7 +41,7 @@ import fko.chessly.player.PlayerType;
  * @author Frank
  *
  */
-public class testOmegaSearch {
+public class TestOmegaSearch {
 
     @Test
     public void testStartAndStopSearch() {
@@ -90,8 +90,6 @@ public class testOmegaSearch {
     @Test
     public void testSearch() {
 
-
-
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         _omegaEngine.init(_player);
@@ -112,7 +110,7 @@ public class testOmegaSearch {
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
 
         // test search
-        _omegaSearch.configure(false, 0, 0, 6, 6);
+        _omegaSearch.configure(false, 0, 0, 5, 5);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {
