@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = false;
+    static private final boolean CACHE = true;
     static private final boolean SORT = true;
 
     // remember the last position to control cache validity
@@ -72,8 +72,8 @@ public class OmegaMoveGenerator {
     private final OmegaMoveList _evasionMoves = new OmegaMoveList(); // only evasion moves
 
     // These fields control the on demand generation of moves.
-    private CycleState _generationCycleState = CycleState.NEW;
-    private enum CycleState {
+    private OnDemandState _generationCycleState = OnDemandState.NEW;
+    private enum OnDemandState {
         NEW,
         PAWN,
         KNIGHTS,
@@ -116,7 +116,7 @@ public class OmegaMoveGenerator {
 
         // TODO zobrist could collide - then this will break.
         if (position.getZobristKey() != _onDemandZobristLastPosition) {
-            _generationCycleState = CycleState.NEW;
+            _generationCycleState = OnDemandState.NEW;
             clearLists();
             // remember the last position to see when it has changed
             this._onDemandZobristLastPosition = position.getZobristKey();
@@ -136,7 +136,7 @@ public class OmegaMoveGenerator {
          * generate the next batch until we have new moves or all moves are generated
          * and there are no more moves to generate
          */
-        while (_onDemandLegalMoveList.empty() && !(_generationCycleState == CycleState.ALL)) {
+        while (_onDemandLegalMoveList.empty() && !(_generationCycleState == OnDemandState.ALL)) {
             switch (_generationCycleState) {
                 case NEW: // no moves yet generate pawn moves first
                     // generate pawn moves
@@ -144,47 +144,47 @@ public class OmegaMoveGenerator {
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
                     _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
                     _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.PAWN;
+                    _generationCycleState = OnDemandState.PAWN;
                     break;
                 case PAWN: // we have all moves but knight, bishop, rook, queen and king moves
                     generateKnightMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
                     _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
                     _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.KNIGHTS;
+                    _generationCycleState = OnDemandState.KNIGHTS;
                     break;
                 case KNIGHTS: // we have all moves but bishop, rook, queen and king moves
                     generateBishopMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
                     _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
                     _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.BISHOPS;
+                    _generationCycleState = OnDemandState.BISHOPS;
                     break;
                 case BISHOPS: // we have all moves but rook, queen and king moves
                     generateRookMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
                     _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
                     _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.ROOKS;
+                    _generationCycleState = OnDemandState.ROOKS;
                     break;
                 case ROOKS: // we have all moves but queen and king moves
                     generateQueenMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
                     _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
                     _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.QUEENS;
+                    _generationCycleState = OnDemandState.QUEENS;
                     break;
                 case QUEENS: // we have all moves but king moves
                     generateKingMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
                     _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
                     _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.KINGS;
+                    _generationCycleState = OnDemandState.KINGS;
                     break;
                 case KINGS: // we have all non capturing
                     generateCastlingMoves();
                     _castlingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _generationCycleState = CycleState.ALL;
+                    _generationCycleState = OnDemandState.ALL;
                     break;
                 case ALL: // we have all moves - do nothing
                 default:
@@ -552,15 +552,30 @@ public class OmegaMoveGenerator {
     }
 
     private void generateBishopMoves() {
-        generateSlidingMoves(OmegaPieceType.BISHOP, _position._bishopSquares[_activePlayer.ordinal()], OmegaSquare.bishopDirections);
+        OmegaPieceType type = OmegaPieceType.BISHOP;
+        // iterate over all squares where we have this piece type
+        _position._bishopSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+            assert _position._x88Board[square.ordinal()].getType() == type;
+            generateMoves(type, square, OmegaSquare.bishopDirections);
+        });
     }
 
     private void generateRookMoves() {
-        generateSlidingMoves(OmegaPieceType.ROOK, _position._rookSquares[_activePlayer.ordinal()], OmegaSquare.rookDirections);
+        OmegaPieceType type = OmegaPieceType.ROOK;
+        // iterate over all squares where we have this piece type
+        _position._rookSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+            assert _position._x88Board[square.ordinal()].getType() == type;
+            generateMoves(type, square, OmegaSquare.rookDirections);
+        });
     }
 
     private void generateQueenMoves() {
-        generateSlidingMoves(OmegaPieceType.QUEEN, _position._queenSquares[_activePlayer.ordinal()], OmegaSquare.queenDirections);
+        OmegaPieceType type = OmegaPieceType.QUEEN;
+        // iterate over all squares where we have this piece type
+        _position._queenSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
+            assert _position._x88Board[square.ordinal()].getType() == type;
+            generateMoves(type, square, OmegaSquare.queenDirections);
+        });
     }
 
     private void generateKingMoves() {
@@ -639,52 +654,6 @@ public class OmegaMoveGenerator {
     }
 
     /**
-     * For Bishop, Rook, Queen
-     *
-     * @param type
-     * @param pieceSquares
-     * @param pieceDirections
-     */
-    private void generateSlidingMoves(OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
-        // iterate over all squares where we have this piece type
-        pieceSquares.stream().forEach((square) -> {
-            //for (OmegaSquare square : pieceSquares) {
-            assert _position._x88Board[square.ordinal()].getType() == type;
-
-            // get all possible x88 index values for piece's moves
-            // these are basically int values to add or subtract from the
-            // current square index. Very efficient with a x88 board.
-            int[] directions = pieceDirections;
-            for (int d : directions) {
-                int to = square.ordinal() + d;
-
-                while ((to & 0x88) == 0) { // slide while valid square
-                    final OmegaPiece target = _position._x88Board[to];
-                    // free square - non capture
-                    if (target == OmegaPiece.NOPIECE) { // empty
-                        _nonCapturingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.NORMAL,
-                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
-                    }
-                    // occupied square - capture if opponent and stop sliding
-                    else {
-                        if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
-                            assert target.getType() != OmegaPieceType.KING; // did we miss a check?
-                            _capturingMoves.add(OmegaMove.createMove(
-                                    OmegaMoveType.NORMAL,
-                                    OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                                    OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
-                        }
-                        break; // stop sliding;
-                    }
-                    to += d; // next sliding field in this direction
-                }
-            }
-        });
-    }
-
-    /**
      * For Knight
      *
      * @param type
@@ -694,9 +663,8 @@ public class OmegaMoveGenerator {
     private void generateKnightMoves(OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
         // iterate over all squares where we have a piece
         pieceSquares.stream().forEach((square) -> {
-            //for (OmegaSquare square : pieceSquares) {
             assert _position._x88Board[square.ordinal()].getType() == type;
-            generateNonSlidingMoves(type, square, pieceDirections);
+            generateMoves(type, square, pieceDirections);
         });
     }
 
@@ -707,7 +675,7 @@ public class OmegaMoveGenerator {
      */
     private void generateKingMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
         assert _position._x88Board[square.ordinal()].getType() == type;
-        generateNonSlidingMoves(type, square, pieceDirections);
+        generateMoves(type, square, pieceDirections);
     }
 
     /**
@@ -715,15 +683,15 @@ public class OmegaMoveGenerator {
      * @param square
      * @param pieceDirections
      */
-    private void generateNonSlidingMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
-        // get all possible x88 index values for piece moves
+    private void generateMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
+        // get all possible x88 index values for piece's moves
         // these are basically int values to add or subtract from the
         // current square index. Very efficient with a x88 board.
         int[] directions = pieceDirections;
         for (int d : directions) {
             int to = square.ordinal() + d;
 
-            if ((to & 0x88) == 0) { // valid square
+            while ((to & 0x88) == 0) { // slide while valid square
                 final OmegaPiece target = _position._x88Board[to];
 
                 // free square - non capture
@@ -733,14 +701,19 @@ public class OmegaMoveGenerator {
                             OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
                             OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
                 }
-                // occupied square - capture or ignore
-                else if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
-                    assert target.getType() != OmegaPieceType.KING; // did we miss a check?
-                    _capturingMoves.add(OmegaMove.createMove(
-                            OmegaMoveType.NORMAL,
-                            OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                            OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
+                // occupied square - capture if opponent and stop sliding
+                else {
+                    if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
+                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
+                        _capturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                    break; // stop sliding;
                 }
+                if (type.isSliding()) to += d; // next sliding field in this direction
+                else break; // no sliding piece type
             }
         }
     }

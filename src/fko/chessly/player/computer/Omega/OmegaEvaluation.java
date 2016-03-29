@@ -27,15 +27,17 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.util.EnumSet;
+
 /**
  * Omega Evaluation
  *
  * Features:
  *      DONE: Material
- *      TODO: Mobility
+ *      DONE: Mobility
+ *      TODO: Piece Tables
  *      TODO: Game Phase
  *      TODO: Tapered Eval
- *      TODO: Piece Tables
  *      TODO: Bishop Pair
  *      TODO: Bishop vs. Knight
  *      TODO: Center Control
@@ -46,16 +48,25 @@ public class OmegaEvaluation {
 
     static private final boolean MATERIAL = true;
     static private final boolean MOBILITY = true;
+    static private final boolean PIECE_POSITION = false;
 
     private final OmegaMoveGenerator _omegaMoveGenerator;
     private final OmegaEngine _omegaEngine;
+
+    /**
+     * Creates an instance of the OmegaEvaluator using a new Engine
+     * and a new Move Generator.
+     */
+    public OmegaEvaluation() {
+        this._omegaEngine = new OmegaEngine();
+        this._omegaMoveGenerator = new OmegaMoveGenerator();
+    }
 
     /**
      * @param omegaEngine
      * @param omegaMoveGenerator
      */
     public OmegaEvaluation(OmegaEngine omegaEngine, OmegaMoveGenerator omegaMoveGenerator) {
-        super();
         this._omegaEngine = omegaEngine;
         this._omegaMoveGenerator = omegaMoveGenerator;
     }
@@ -70,19 +81,18 @@ public class OmegaEvaluation {
         int value = OmegaEvaluation.Value.DRAW;
 
         if (_omegaMoveGenerator.hasLegalMove(board)) {
-            final OmegaColor activePlayer = board.getNextPlayer();
-            final int sideFactor = activePlayer.isWhite() ? 1 : -1;
 
             // Material
             if (MATERIAL)
-                value += material(board, sideFactor);
+                value += material(board);
 
-            // Material
+            // Mobility
             if (MOBILITY)
-                value += mobility(board, sideFactor);
+                value += mobility(board);
 
-
-
+            // Piece Position
+            if (PIECE_POSITION)
+                value += position(board);
 
         }
         // no moves - mate position?
@@ -102,20 +112,109 @@ public class OmegaEvaluation {
     /**
      * @param board
      * @param sideFactor
-     * @return
+     * @return material balance from the view of the active player
      */
-    private int material(OmegaBoardPosition board, final int sideFactor) {
-        int value;
-        value = sideFactor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
-        return value;
+    int material(final OmegaBoardPosition board) {
+        int material = board._nextPlayer.factor * (board.getMaterial(OmegaColor.WHITE) - board.getMaterial(OmegaColor.BLACK));
+
+        // bonus/malus for bishop pair
+        if (board._bishopSquares[board._nextPlayer.ordinal()].size() >= 2) material += 50;
+        if (board._bishopSquares[board._nextPlayer.getInverseColor().ordinal()].size() >= 2) material -= 50;
+
+        return material;
     }
 
     /**
      * @param board
      * @param sideFactor
+     * @return number of pseudo legal moves for the next player
+     *
+     * TODO: Improve by not invalidating the move gen cache with this
+     */
+    int mobility(final OmegaBoardPosition board) {
+        int mobility = 0;
+
+        // to influence the weight of the piece type
+        int factor = 1;
+
+        final OmegaColor activePlayer = board._nextPlayer;
+        final OmegaColor passivePlayer = activePlayer.getInverseColor();
+
+        // knights
+        factor = 1;
+        mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.KNIGHT, board._knightSquares[activePlayer.ordinal()], OmegaSquare.knightDirections);
+        mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.KNIGHT, board._knightSquares[passivePlayer.ordinal()], OmegaSquare.knightDirections);
+
+        // bishops
+        factor = 1;
+        mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.BISHOP, board._bishopSquares[activePlayer.ordinal()], OmegaSquare.bishopDirections);
+        mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.BISHOP, board._bishopSquares[passivePlayer.ordinal()], OmegaSquare.bishopDirections);
+
+        // rooks
+        factor = 1;
+        mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.ROOK, board._rookSquares[activePlayer.ordinal()], OmegaSquare.rookDirections);
+        mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.ROOK, board._rookSquares[passivePlayer.ordinal()], OmegaSquare.rookDirections);
+
+        // queens
+        factor = 1;
+        mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.QUEEN, board._queenSquares[activePlayer.ordinal()], OmegaSquare.queenDirections);
+        mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.QUEEN, board._queenSquares[passivePlayer.ordinal()], OmegaSquare.queenDirections);
+
+        return mobility;
+    }
+
+    /**
+     * @param board
+     * @param color TODO
+     * @param type
+     * @param pieceSquares
+     * @param pieceDirections
      * @return
      */
-    private int mobility(OmegaBoardPosition board, int sideFactor) {
+    private static int mobilityForPieces(OmegaBoardPosition board, OmegaColor color, OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
+        int numberOfMoves = 0;
+        // iterate over all squares where we have a piece
+        numberOfMoves = pieceSquares
+                .stream()
+                .mapToInt((square) -> mobilityForPiece(board, color, type, square, pieceDirections))
+                .sum();
+        return numberOfMoves;
+    }
+
+    /**
+     * @param board
+     * @param color
+     * @param type
+     * @param square
+     * @param pieceDirections
+     */
+    private static int mobilityForPiece(OmegaBoardPosition board, OmegaColor color, OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
+        int numberOfMoves = 0;
+        int[] directions = pieceDirections;
+        for (int d : directions) {
+            int to = square.ordinal() + d;
+            while ((to & 0x88) == 0) { // slide while valid square
+                final OmegaPiece target = board._x88Board[to];
+                // free square - non capture
+                if (target == OmegaPiece.NOPIECE) numberOfMoves++;
+                // occupied square - capture if opponent and stop sliding
+                else {
+                    if (target.getColor() == color.getInverseColor()) numberOfMoves++;
+                    break; // stop sliding;
+                }
+                if (type.isSliding()) to += d; // next sliding field in this direction
+                else break; // no sliding piece type
+            }
+        }
+        return numberOfMoves;
+    }
+
+    /**
+     * @param board
+     * @param phase TODO
+     * @return
+     */
+    int position(OmegaBoardPosition board) {
         return 0;
     }
 
@@ -129,21 +228,6 @@ public class OmegaEvaluation {
         static public final int MIN_VALUE = -200000;
         static public final int DRAW = 0;
         static public final int CHECKMATE = 100000;
-    }
-
-    /**
-     * Game Phases
-     *
-     * OPENING: develop minor pieces, control center, center pawn structure,
-     *          castling, penalize too early queen development
-     * MIDGAME: material, mobility and pawn structure considerations, king safety
-     * ENDGAME: king to center, pawn promotion, passed pawns
-     */
-    @SuppressWarnings("javadoc")
-    public enum GamePhase {
-        OPENING,
-        MIDGAME,
-        ENDGAME
     }
 
 }
