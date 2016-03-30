@@ -28,7 +28,6 @@
 package fko.chessly.player.computer.Omega;
 
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.stream.IntStream;
 
 /**
@@ -42,7 +41,7 @@ import java.util.stream.IntStream;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = true;
+    static private final boolean CACHE = false;
     static private final boolean SORT = true;
 
     // remember the last position to control cache validity
@@ -142,48 +141,48 @@ public class OmegaMoveGenerator {
                     // generate pawn moves
                     generatePawnMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.PAWN;
                     break;
                 case PAWN: // we have all moves but knight, bishop, rook, queen and king moves
                     generateKnightMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.KNIGHTS;
                     break;
                 case KNIGHTS: // we have all moves but bishop, rook, queen and king moves
                     generateBishopMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.BISHOPS;
                     break;
                 case BISHOPS: // we have all moves but rook, queen and king moves
                     generateRookMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.ROOKS;
                     break;
                 case ROOKS: // we have all moves but queen and king moves
                     generateQueenMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.QUEENS;
                     break;
                 case QUEENS: // we have all moves but king moves
                     generateKingMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    _capturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
-                    _nonCapturingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.KINGS;
                     break;
                 case KINGS: // we have all non capturing
                     generateCastlingMoves();
-                    _castlingMoves.stream().filter(this::isLegalMove).forEachOrdered(_onDemandLegalMoveList::add);
+                    for (int move : _castlingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
                     _generationCycleState = OnDemandState.ALL;
                     break;
                 case ALL: // we have all moves - do nothing
@@ -515,8 +514,7 @@ public class OmegaMoveGenerator {
     private void generateCastlingMoves() {
         if (_position.hasCheck()) return; // no castling if we are in check
         // iterate over all available castlings at this position
-        _position._castlingRights.stream().forEach((castling) -> {
-            //for (OmegaCastling castling : _position._castlingRights) {
+        for (OmegaCastling castling : _position._castlingRights) {
             if (_activePlayer.isWhite()) {
                 if (castling == OmegaCastling.WHITE_KINGSIDE) {
                     // f1 free, g1 free and f1 not attacked
@@ -580,7 +578,7 @@ public class OmegaMoveGenerator {
                     }
                 }
             }
-        });
+        }
     }
 
     /**
