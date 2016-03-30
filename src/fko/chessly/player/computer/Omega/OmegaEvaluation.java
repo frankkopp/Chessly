@@ -176,10 +176,6 @@ public class OmegaEvaluation {
         for (OmegaSquare square : pieceSquares) {
             numberOfMoves += mobilityForPiece(board, color, type, square, pieceDirections);
         }
-        //        numberOfMoves = pieceSquares
-        //                .stream()
-        //                .mapToInt((square) -> mobilityForPiece(board, color, type, square, pieceDirections))
-        //                .sum();
         return numberOfMoves;
     }
 

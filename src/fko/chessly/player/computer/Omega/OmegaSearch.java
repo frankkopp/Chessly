@@ -47,6 +47,7 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Book (in the engine class)
  *      DONE: Basic iterative MiniMax search
  *      DONE: Basic Evaluation
+ *      TODO: DRAW 50-moves rule / repetition rule / insufficient material
  *      TODO: Basic Time Control
  *      TODO: Pondering
  *      TODO: Transposition Table
@@ -116,6 +117,9 @@ public class OmegaSearch implements Runnable {
     OmegaMoveList _currentVariation = new OmegaMoveList(MAX_SEARCH_DEPTH);
     OmegaMoveList[] _principalVariation = new OmegaMoveList[MAX_SEARCH_DEPTH];
 
+    // time control
+    Instant _startTime = null;
+
     // engine watcher fields - not private for easy access from engine
     int _currentIterationDepth = 0; // how deep will the search go in the current iteration
     int _currentSearchDepth = 0; // how deep did the search go this iteration
@@ -125,13 +129,19 @@ public class OmegaSearch implements Runnable {
     int _nodesVisited = 0;
     int _boardsEvaluated = 0;
 
-    // time control
-    Instant _startTime = null;
+    private void resetCounter() {
+        _currentIterationDepth = 0;
+        _currentSearchDepth = 0;
+        _currentExtraSearchDepth = 0;
+        _currentMove = 0;
+        _currentMoveNumber = 0;
+        _nodesVisited = 0;
+        _boardsEvaluated = 0;
+    }
 
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
      * Before using the search you need to configure it through <code>configure(...)</code><br/>
-     *
      *
      * @param omegaEngine
      */
@@ -206,7 +216,9 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     * Stops a current search. If no search is running it does nothing.
+     * Stops a current search. If no search is running it does nothing.<br/>
+     * The search will stop gracefully by storing the best move so far via
+     * <code>_omegaEngine.storeResult(searchResult);</code>.
      */
     public void stop() {
         // set stop flag - search needs to check regularly and stop accordingly
@@ -223,14 +235,21 @@ public class OmegaSearch implements Runnable {
         _searchThread=null;
     }
 
+    /**
+     * The start of the actual search after the Thread has been started.</br>
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
 
+        if (Thread.currentThread() != _searchThread)
+            throw new java.lang.UnsupportedOperationException("run() cannot be called directly!");
+
+        // reset counter
+        resetCounter();
+
         // release latch so the caller can continue
         _waitForInitializaitonLatch.countDown();
-
-        // remember the start of the search
-        _startTime = Instant.now();
 
         // run the search itself
         SearchResult searchResult = iterativeSearch();
@@ -256,10 +275,13 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     * This starts the actual search.
+     * This starts the actual iterative search.
      * @return the best move
      */
     private SearchResult iterativeSearch() {
+
+        // remember the start of the search
+        _startTime = Instant.now();
 
         // generate all root moves
         OmegaMoveList rootMoves = _omegaMoveGenerator.getLegalMoves(_currentBoard, false);
@@ -312,8 +334,6 @@ public class OmegaSearch implements Runnable {
             searchResult.depth = _currentIterationDepth;
             searchResult.ponderMove = OmegaMove.NOMOVE; // Not yet implemented
 
-            // Time control
-
             // check  for stop signal
             if (_stopSearch) break;
 
@@ -349,7 +369,7 @@ public class OmegaSearch implements Runnable {
             _currentBoard.makeMove(move);
             _currentVariation.add(move);
 
-            int value = -negaMax(depth-1, rootply+1);
+            int value = -negamax(depth-1, rootply+1);
 
             // write the value back to the root moves list
             _rootMoves.set(i, move, value);
@@ -392,7 +412,14 @@ public class OmegaSearch implements Runnable {
 
     }
 
-    private int negaMax(int depthLeft, int ply) {
+    /**
+     * A simple NegaMax search for the beginning.
+     *
+     * @param depthLeft
+     * @param ply
+     * @return value of the search
+     */
+    private int negamax(int depthLeft, int ply) {
 
         // nodes counter
         _nodesVisited++;
@@ -427,11 +454,12 @@ public class OmegaSearch implements Runnable {
             if (!_currentBoard.isAttacked(_currentBoard._nextPlayer,
                     _currentBoard._kingSquares[_currentBoard._nextPlayer.getInverseColor().ordinal()])) {
 
-                hadLegaMove = true; // needed to remember if we even had a legal move
-
+                // needed to remember if we even had a legal move
+                hadLegaMove = true;
                 _currentVariation.add(move);
 
-                value = -negaMax(depthLeft-1, ply+1);
+                // go one ply deeper into the search tree
+                value = -negamax(depthLeft-1, ply+1);
 
                 // found a better move
                 if (value > bestValue) {
@@ -445,7 +473,6 @@ public class OmegaSearch implements Runnable {
 
             }
             _currentBoard.undoMove();
-
 
         }
 
@@ -464,6 +491,9 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Calls the evaluation function for the position.<br/>
+     * Also the a board cache will be implemented here.
+     *
      * @param board
      * @return
      */
@@ -494,6 +524,7 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Helper method for stat and debug output.
      * @param i
      * @param ply
      * @param size
@@ -518,6 +549,8 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * True if currently pondering or was pondering but search is finished.
+     *
      * @return true if currently pondering or was pondering but search is finished
      */
     public boolean isPondering() {
@@ -552,8 +585,6 @@ public class OmegaSearch implements Runnable {
             sb.append("BestMove: "+OmegaMove.toString(bestMove));
             return sb.toString();
         }
-
-
     }
 
 }
