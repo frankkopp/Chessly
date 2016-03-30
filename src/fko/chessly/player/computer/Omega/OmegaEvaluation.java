@@ -140,17 +140,17 @@ public class OmegaEvaluation {
         final OmegaColor passivePlayer = activePlayer.getInverseColor();
 
         // knights
-        factor = 1;
+        factor = 2;
         mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.KNIGHT, board._knightSquares[activePlayer.ordinal()], OmegaSquare.knightDirections);
         mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.KNIGHT, board._knightSquares[passivePlayer.ordinal()], OmegaSquare.knightDirections);
 
         // bishops
-        factor = 1;
+        factor = 2;
         mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.BISHOP, board._bishopSquares[activePlayer.ordinal()], OmegaSquare.bishopDirections);
         mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.BISHOP, board._bishopSquares[passivePlayer.ordinal()], OmegaSquare.bishopDirections);
 
         // rooks
-        factor = 1;
+        factor = 2;
         mobility += factor * mobilityForPieces(board, activePlayer, OmegaPieceType.ROOK, board._rookSquares[activePlayer.ordinal()], OmegaSquare.rookDirections);
         mobility -= factor * mobilityForPieces(board, passivePlayer, OmegaPieceType.ROOK, board._rookSquares[passivePlayer.ordinal()], OmegaSquare.rookDirections);
 
@@ -197,7 +197,12 @@ public class OmegaEvaluation {
                 if (target == OmegaPiece.NOPIECE) numberOfMoves++;
                 // occupied square - capture if opponent and stop sliding
                 else {
-                    if (target.getColor() == color.getInverseColor()) numberOfMoves++;
+                    /*
+                     * Either only count moves which capture an opponent's piece or also
+                     * count moves which defend one of our own piece
+                     */
+                    //if (target.getColor() == color.getInverseColor())
+                    numberOfMoves++;
                     break; // stop sliding;
                 }
                 if (type.isSliding()) to += d; // next sliding field in this direction

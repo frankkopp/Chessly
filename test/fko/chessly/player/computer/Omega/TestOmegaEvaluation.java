@@ -135,26 +135,26 @@ public class TestOmegaEvaluation {
         _omegaPosition = new OmegaBoardPosition(fen);
         int value = _evaluation.mobility(_omegaPosition);
         //System.out.println(value);
-        assertEquals(31, value);
+        assertEquals(52, value);
 
         fen = "k6n/7p/6P1/7K/8/8/8/8 w - - 0 1"; // white
         _omegaPosition = new OmegaBoardPosition(fen);
         value = _evaluation.mobility(_omegaPosition);
         //System.out.println(value);
-        assertEquals(-2, value);
+        assertEquals(-4, value);
 
         fen = "8/8/8/8/k7/1p6/P7/N6K b - - 0 1"; // black
         _omegaPosition = new OmegaBoardPosition(fen);
         value = _evaluation.mobility(_omegaPosition);
         //System.out.println(value);
-        assertEquals(-2, value);
+        assertEquals(-4, value);
     }
 
     @Test
     public void testTiming() {
 
         int ROUNDS = 5;
-        int DURATION = 1;
+        int DURATION = 2;
 
         int ITERATIONS = 0;
 
