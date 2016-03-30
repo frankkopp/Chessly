@@ -29,6 +29,7 @@ package fko.chessly.util;
 
 import static org.junit.Assert.*;
 
+import java.util.ConcurrentModificationException;
 import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 
@@ -42,8 +43,92 @@ import fko.chessly.util.SimpleIntList;
 public class TestSimpleIntList {
 
     /**
-     *
+     * Test Iterator in a simple case
      */
+    @Test
+    public void testIterator_simpleIteration() {
+
+        SimpleIntList list = new SimpleIntList();
+
+        // add many entries
+        for (int i=1; i<=100; i++) {
+            list.add((int) (Math.random()*Integer.MAX_VALUE));
+        }
+
+        int counter=0;
+        for (int i : list) {
+            System.out.println(i);
+            counter++;
+        }
+        assertEquals(list.size(), counter);
+
+    }
+
+    /**
+     * Test modifications during Iterator use
+     */
+    @Test
+    public void testIterator_simpleIterationModification() {
+
+        SimpleIntList list = new SimpleIntList();
+
+        // add many entries
+        for (int i=1; i<=100; i++) {
+            list.add((int) (Math.random()*Integer.MAX_VALUE));
+        }
+
+        // remove during iteration
+        try {
+            for (int i : list) {
+                list.removeFirst();
+            }
+            fail();
+        } catch (ConcurrentModificationException e) {
+            // empty
+        } catch (Exception e) {
+            fail();
+        }
+
+        // remove during iteration
+        try {
+            for (int i : list) {
+                list.removeLast();
+            }
+            fail();
+        } catch (ConcurrentModificationException e) {
+            // empty
+        } catch (Exception e) {
+            fail();
+        }
+
+        // add during iteration}
+        try {
+            for (int i : list) {
+                list.add(999);
+            }
+            fail();
+        } catch (ConcurrentModificationException e) {
+            // empty
+        } catch (Exception e) {
+            fail();
+        }
+
+        // change during iteration}
+        try {
+            int i=0;
+            for (Integer x : list) {
+                list.set(i++, 999);
+            }
+        } catch (ConcurrentModificationException e) {
+            fail();
+        }
+
+        for (int x : list) {
+            assertEquals(999,x);
+        }
+    }
+
+
     @Test
     public void testListWithInts() {
         SimpleIntList list = new SimpleIntList();

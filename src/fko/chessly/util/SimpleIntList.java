@@ -29,6 +29,9 @@ package fko.chessly.util;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
 /**
@@ -37,7 +40,7 @@ import java.util.stream.IntStream;
  *
  * @author Frank Kopp
  */
-public class SimpleIntList {
+public class SimpleIntList implements Iterable<Integer> {
 
     /**
      * Max entries of a MoveList
@@ -124,6 +127,22 @@ public class SimpleIntList {
         if (_head+index > _tail)
             throw new ArrayIndexOutOfBoundsException("Index too high");
         return _list[_head+index];
+    }
+
+    /**
+     * Sets entry at a specific index
+     * @param index
+     * @param value
+     * @return old value at index
+     */
+    public int set(int index, int value) {
+        if (index < 0 || _tail<=_head)
+            throw new ArrayIndexOutOfBoundsException("List is empty");
+        if (_head+index > _tail)
+            throw new ArrayIndexOutOfBoundsException("Index too high");
+        int old = _list[_head+index];
+        _list[_head+index] = value;
+        return old;
     }
 
     /**
@@ -313,6 +332,55 @@ public class SimpleIntList {
         int t=_list[i];
         _list[i]=_list[j];
         _list[j]=t;
+    }
+
+    /**
+     * Returns an iterator over the elements contained in this list.  The
+     * iterator traverses the elements in their <i>natural order</i>.
+     *
+     * @return an iterator over the elements contained in this list
+     */
+    @Override
+    public Iterator<Integer> iterator() {
+        return new SimpleIntListIterator();
+    }
+
+    private class SimpleIntListIterator implements Iterator<Integer> {
+
+        // detect modifications
+        final int initialHead = _head;
+        final int initialTail = _tail;
+
+        int cursor = _head;
+
+        /**
+         * @see java.util.Iterator#hasNext()
+         */
+        @Override
+        public boolean hasNext() {
+            if (modified())
+                throw new ConcurrentModificationException();
+            return cursor < _tail;
+        }
+
+        /**
+         * @see java.util.Iterator#next()
+         */
+        @Override
+        public Integer next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
+            return  _list[cursor++];
+
+        }
+
+        /**
+         * @return
+         */
+        private boolean modified() {
+            return initialTail != _tail || initialHead != _head;
+        }
+
     }
 
 
