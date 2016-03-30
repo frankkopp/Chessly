@@ -101,6 +101,7 @@ public class TestOmegaMoveGenerator {
 
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
         OmegaBoardPosition board = null;
+        Instant start = null;
 
         int i=0;
         String[] fens = getFENs();
@@ -111,7 +112,7 @@ public class TestOmegaMoveGenerator {
 
             // Pseudo Legal Moves
             OmegaMoveList moves = new OmegaMoveList();
-            Instant start = Instant.now();
+            start = Instant.now();
             while (true) {
                 ITERATIONS++;
                 moves = moveGenerator.getPseudoLegalMoves(board, false);
