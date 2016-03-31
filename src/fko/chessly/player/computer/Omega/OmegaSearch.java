@@ -308,11 +308,14 @@ public class OmegaSearch implements Runnable {
         // prepare search result
         SearchResult searchResult = new SearchResult();
 
+        // get latest level from UI;
+        _maxIterativeDepth  = updateSearchDepth();
+
         // set start depth and max depth
         int startIterativeDepth = 1;
         // for testing of move generation and correct counting
-        if (OmegaConfiguration.PERFT) startIterativeDepth = _maxIterativeDepth;
-        _maxIterativeDepth  = updateSearchDepth();
+        if (OmegaConfiguration.PERFT || !_isTimedGame)
+            startIterativeDepth = _maxIterativeDepth;
 
         // ### BEGIN Iterative Deepening
         int depth = startIterativeDepth;
@@ -427,6 +430,15 @@ public class OmegaSearch implements Runnable {
         // current search depth
         if (ply > _currentSearchDepth) _currentSearchDepth = ply;
 
+        // check draw through 50-moves-rule, 3-fold-repetition, insufficient material
+        if (!OmegaConfiguration.PERFT) {
+            if (_currentBoard.check50Moves()
+                    || _currentBoard.check3Repetitions()
+                    || _currentBoard.checkInsufficientMaterial()) {
+                return OmegaEvaluation.Value.DRAW;
+            }
+        }
+
         // on leaf node evaluate the position from the view of the active player
         if (depthLeft == 0) {
             return evaluate(_currentBoard);
@@ -480,7 +492,7 @@ public class OmegaSearch implements Runnable {
         if (!hadLegaMove) {
             if (_currentBoard.hasCheck()) {
                 // We have a check mate. Return a -CHECKMATE.
-                bestValue = OmegaEvaluation.Value.CHECKMATE;
+                bestValue = -OmegaEvaluation.Value.CHECKMATE;
             } else {
                 // We have a stale mate. Return the draw value.
                 bestValue = OmegaEvaluation.Value.DRAW;
