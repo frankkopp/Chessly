@@ -27,6 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 import fko.chessly.game.GameBoard;
@@ -80,26 +82,43 @@ public class TestOmegaSearch {
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         _omegaEngine.init(_player);
-        _omegaEngine._CONFIGURATION.VERBOSE_STATS = true;
-        _omegaEngine._CONFIGURATION.VERBOSE_VARIATION= true;
+        _omegaEngine._CONFIGURATION.VERBOSE_STATS = false;
+        _omegaEngine._CONFIGURATION.VERBOSE_VARIATION= false;
         OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
         String fen = NotationHelper.StandardBoardFEN;
-        fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white
         GameBoard board = new GameBoardImpl(fen);
-
-        System.out.println(board);
-        System.out.println("Start search and wait for result");
-
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
 
-        // test search
+        // Mate in 3 half moves
+        fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white
+        board = new GameBoardImpl(fen);
+        _omegaPosition = new OmegaBoardPosition(board);
         _omegaSearch.configure(false, 0, 0, 4, 4);
         _omegaSearch.startSearch(_omegaPosition);
-        // what was the move?
         while (_omegaSearch.isSearching()) {
             try { Thread.sleep(200);
             } catch (InterruptedException e) {/* */}
         }
+        //System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        //System.out.println(_omegaSearch._principalVariation[0].toNotationString());
+        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        assertEquals("h7h8 g7h8 h1h8 ",_omegaSearch._principalVariation[0].toNotationString());
+
+        // Mate in 6 half moves
+        fen = "4rk2/p5p1/1p2P2N/7R/nP5P/5PQ1/b6K/q7 w - - 0 1"; // white
+        board = new GameBoardImpl(fen);
+        _omegaPosition = new OmegaBoardPosition(board);
+        _omegaSearch.configure(false, 0, 0, 5, 5);
+        _omegaSearch.startSearch(_omegaPosition);
+        while (_omegaSearch.isSearching()) {
+            try { Thread.sleep(200);
+            } catch (InterruptedException e) {/* */}
+        }
+        System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        System.out.println(_omegaSearch._principalVariation[0].toNotationString());
+        assertEquals("NORMAL Qg3-d6", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        assertEquals("g3d6 e8e7 d6d8 e7e8 e6e7 ",_omegaSearch._principalVariation[0].toNotationString());
+
 
     }
 
