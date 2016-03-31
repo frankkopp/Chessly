@@ -811,14 +811,14 @@ public class OmegaBoardPosition {
     public boolean isAttacked(OmegaColor attackerColor, OmegaSquare kingPosition) {
         assert (kingPosition != OmegaSquare.NOSQUARE);
         assert (!attackerColor.isNone());
-    
+
         final int os_Index = kingPosition.ordinal();
         final boolean isWhite = attackerColor.isWhite();
-    
+
         /*
          * Checks are ordered for likelihood to return from this as fast as possible
          */
-    
+
         // check pawns
         // reverse direction to look for pawns which could attack
         final int pawnDir = isWhite ? -1 : 1;
@@ -827,7 +827,7 @@ public class OmegaBoardPosition {
             final int i = os_Index+d*pawnDir;
             if ((i & 0x88) == 0 && _x88Board[i] == attackerPawn) return true;
         }
-    
+
         // check sliding horizontal (rook + queen) if there are any
         if (!(_rookSquares[attackerColor.ordinal()].isEmpty() && _queenSquares[attackerColor.ordinal()].isEmpty())) {
             for (int d : OmegaSquare.rookDirections) {
@@ -845,7 +845,7 @@ public class OmegaBoardPosition {
                 }
             }
         }
-    
+
         // check sliding diagonal (bishop + queen) if there are any
         if (!(_bishopSquares[attackerColor.ordinal()].isEmpty() && _queenSquares[attackerColor.ordinal()].isEmpty())) {
             for (int d : OmegaSquare.bishopDirections) {
@@ -863,7 +863,7 @@ public class OmegaBoardPosition {
                 }
             }
         }
-    
+
         // check knights if there are any
         if (!(_knightSquares[attackerColor.ordinal()].isEmpty())) {
             for (int d : OmegaSquare.knightDirections) {
@@ -878,7 +878,7 @@ public class OmegaBoardPosition {
                 }
             }
         }
-    
+
         // check king
         for (int d : OmegaSquare.kingDirections) {
             int i = os_Index+d;
@@ -891,7 +891,7 @@ public class OmegaBoardPosition {
                 }
             }
         }
-    
+
         // check en passant
         if (this._enPassantSquare != OmegaSquare.NOSQUARE){
             if (isWhite // white is attacker
@@ -915,7 +915,7 @@ public class OmegaBoardPosition {
                 if ((i & 0x88) == 0 && _x88Board[i] == OmegaPiece.BLACK_PAWN) return true;
             }
         }
-    
+
         return false;
     }
 
@@ -944,6 +944,164 @@ public class OmegaBoardPosition {
             return true;
         }
         return false;
+    }
+
+    /**
+     * The fifty-move rule – if during the previous 50 moves no pawn has been
+     * moved and no capture has been made, either player may claim a draw.
+     *
+     * @return true if during the previous 50 moves no pawn has been
+     * moved and no capture has been made
+     */
+    public boolean check50Moves() {
+        return this._halfMoveClock >= 100;
+    }
+
+    /**
+     * Threefold repetition of a position – this most commonly occurs when
+     * neither side is able to avoid repeating moves without incurring a
+     * disadvantage.
+     * The three occurrences of the position need not occur on consecutive
+     * moves for a claim to be valid. FIDE rules make no mention of perpetual
+     * check; this is merely a specific type of draw by threefold repetition.
+     *
+     * @return true if this position has been played three times
+     */
+    public boolean check3Repetitions() {
+
+        /*
+        [0]     3185849660387886977 << 1st
+        [1]     447745478729458041
+        [2]     3230145143131659788
+        [3]     491763876012767476
+        [4]     3185849660387886977 << 2nd
+        [5]     447745478729458041
+        [6]     3230145143131659788
+        [7]     491763876012767476  <<< history
+        [8]     3185849660387886977 <<< 3rd REPETITION from current zobrist
+         */
+
+        if (_historyCounter < 8) return false;
+        int counter = 0;
+        int i=_historyCounter-4;
+        while (i>=0) {
+            if (_zobristKey == _zobristKey_History[i])
+                counter++;
+            if (counter >= 2)
+                return true;
+            i -= 4;
+        }
+        return false;
+    }
+
+    /**
+     * FIDE Draws - Evaluation might define some more draw values.
+     * @return true if neither side can win
+     */
+    public boolean checkInsufficientMaterial() {
+
+        /*
+         * both sides have a bare king
+         * one side has a king and a minor piece against a bare king
+         * one side has two knights against the bare king
+         * both sides have a king and a bishop, the bishops being the same color
+         */
+        if (_pawnSquares[OmegaColor.WHITE.ordinal()].size() == 0
+                && _pawnSquares[OmegaColor.BLACK.ordinal()].size() == 0
+                && _rookSquares[OmegaColor.WHITE.ordinal()].size() == 0
+                && _rookSquares[OmegaColor.BLACK.ordinal()].size() == 0
+                && _queenSquares[OmegaColor.WHITE.ordinal()].size() == 0
+                && _queenSquares[OmegaColor.BLACK.ordinal()].size() == 0) {
+
+            // white king bare KK*
+            if (_knightSquares[OmegaColor.WHITE.ordinal()].size() == 0
+                    && _bishopSquares[OmegaColor.WHITE.ordinal()].size() == 0) {
+
+                // both kings bare KK, KKN, KKNN
+                if (_knightSquares[OmegaColor.BLACK.ordinal()].size() <= 2
+                        && _bishopSquares[OmegaColor.BLACK.ordinal()].size() == 0) {
+                    return true;
+                }
+
+                // KKB
+                if (_knightSquares[OmegaColor.BLACK.ordinal()].size() == 0
+                        && _bishopSquares[OmegaColor.BLACK.ordinal()].size() == 1) {
+                    return true;
+                }
+
+            }
+            // only black king bare K*K
+            else if (_knightSquares[OmegaColor.BLACK.ordinal()].size() == 0
+                    && _bishopSquares[OmegaColor.BLACK.ordinal()].size() == 0) {
+
+                // both kings bare KK, KNK, KNNK
+                if (_knightSquares[OmegaColor.WHITE.ordinal()].size() <= 2
+                        && _bishopSquares[OmegaColor.WHITE.ordinal()].size() == 0) {
+                    return true;
+                }
+
+                // KBK
+                if (_knightSquares[OmegaColor.BLACK.ordinal()].size() == 0
+                        && _bishopSquares[OmegaColor.BLACK.ordinal()].size() == 1) {
+                    return true;
+                }
+            }
+
+            // KBKB - B same field color
+            else if (_knightSquares[OmegaColor.BLACK.ordinal()].size() == 0
+                    && _bishopSquares[OmegaColor.BLACK.ordinal()].size() == 1
+                    && _knightSquares[OmegaColor.WHITE.ordinal()].size() == 0
+                    && _bishopSquares[OmegaColor.WHITE.ordinal()].size() == 1) {
+
+                /*
+                 * Bishops are on the same field color if the sum of the
+                 * rank and file of the fields are on both even or both odd :
+                 * (file + rank) % 2 == 0 = black field
+                 * (file + rank) % 2 == 1 = white field
+                 */
+                final OmegaSquare whiteBishop = _bishopSquares[OmegaColor.WHITE.ordinal()].iterator().next();
+                int file_w = whiteBishop.getFile().get();
+                int rank_w = whiteBishop.getRank().get();
+                final OmegaSquare blackBishop = _bishopSquares[OmegaColor.BLACK.ordinal()].iterator().next();
+                int file_b = blackBishop.getFile().get();
+                int rank_b = blackBishop.getRank().get();
+                if (((file_w+rank_w)%2) == ((file_b+rank_b)%2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return the zobristKey
+     */
+    public long getZobristKey() {
+        return this._zobristKey;
+    }
+
+    /**
+     * @param c OmegaColor
+     * @return the material value
+     */
+    public int getMaterial(OmegaColor c) {
+        return this._material[c.ordinal()];
+    }
+
+    /**
+     * @return color of next player
+     */
+    public OmegaColor getNextPlayer() {
+        return _nextPlayer;
+    }
+
+    /**
+     * Returns the last move. Returns OmegaMove.NOMOVE if there is no last move.
+     * @return int representing a move
+     */
+    public int getLastMove() {
+        if (_historyCounter == 0) return OmegaMove.NOMOVE;
+        return _moveHistory[_historyCounter-1];
     }
 
     /**
@@ -1243,37 +1401,6 @@ public class OmegaBoardPosition {
         if (this._halfMoveClock != other._halfMoveClock) { return false; }
         if (this._nextHalfMoveNumber != other._nextHalfMoveNumber) { return false; }
         return true;
-    }
-
-    /**
-     * @return the zobristKey
-     */
-    public long getZobristKey() {
-        return this._zobristKey;
-    }
-
-    /**
-     * @param c OmegaColor
-     * @return the material value
-     */
-    public int getMaterial(OmegaColor c) {
-        return this._material[c.ordinal()];
-    }
-
-    /**
-     * @return color of next player
-     */
-    public OmegaColor getNextPlayer() {
-        return _nextPlayer;
-    }
-
-    /**
-     * Returns the last move. Returns OmegaMove.NOMOVE if there is no last move.
-     * @return int representing a move
-     */
-    public int getLastMove() {
-        if (_historyCounter == 0) return OmegaMove.NOMOVE;
-        return _moveHistory[_historyCounter-1];
     }
 
 

@@ -52,6 +52,115 @@ public class TestOmegaBoardPosition {
     private static final int ITERATIONS = 99;
 
     /**
+     * Test insufficient material
+     */
+    @Test
+    public void testInsufficientMaterial() {
+
+        String fen;
+        OmegaBoardPosition omegaBoard;
+
+        // KK
+        fen = "8/3k4/8/8/8/8/4K3/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertTrue(omegaBoard.checkInsufficientMaterial());
+
+        // KQK
+        fen = "8/3k4/8/8/8/8/4KQ2/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertFalse(omegaBoard.checkInsufficientMaterial());
+
+        // KNK
+        fen = "8/3k4/8/8/8/8/4KN2/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertTrue(omegaBoard.checkInsufficientMaterial());
+
+        // KNNK
+        fen = "8/3k4/8/8/8/8/4KNN1/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertTrue(omegaBoard.checkInsufficientMaterial());
+
+        // KKN
+        fen = "8/2nk4/8/8/8/8/4K3/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertTrue(omegaBoard.checkInsufficientMaterial());
+
+        // KNNK
+        fen = "8/1nnk4/8/8/8/8/4K3/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertTrue(omegaBoard.checkInsufficientMaterial());
+
+        // KBKB - B same field color
+        fen = "8/3k1b2/8/8/8/8/4K1B1/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertTrue(omegaBoard.checkInsufficientMaterial());
+
+        // KBKB - B different field color
+        fen = "8/3k2b1/8/8/8/8/4K1B1/8 w - -";
+        omegaBoard = new OmegaBoardPosition(fen);
+        assertFalse(omegaBoard.checkInsufficientMaterial());
+
+    }
+
+    /**
+     * Test Null Move
+     */
+    @Test
+    public void test3Repetitions() {
+        OmegaBoardPosition omegaBoard = new OmegaBoardPosition();
+
+        int move;
+
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.e2, OmegaSquare.e4
+                , OmegaPiece.WHITE_PAWN, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        omegaBoard.makeMove(move);
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.e7, OmegaSquare.e5
+                , OmegaPiece.BLACK_PAWN, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        omegaBoard.makeMove(move);
+
+        System.out.println("3-Repetitions: "+ omegaBoard.check3Repetitions());
+        assertFalse(omegaBoard.check3Repetitions());
+
+        // Simple repetition
+        for (int i=0; i<2; i++) {
+            move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.b1, OmegaSquare.c3
+                    , OmegaPiece.WHITE_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+            omegaBoard.makeMove(move);
+            move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.b8, OmegaSquare.c6
+                    , OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+            omegaBoard.makeMove(move);
+            move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.c3, OmegaSquare.b1
+                    , OmegaPiece.WHITE_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+            omegaBoard.makeMove(move);
+            move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.c6, OmegaSquare.b8
+                    , OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+            omegaBoard.makeMove(move);
+        }
+        System.out.println("3-Repetitions: "+ omegaBoard.check3Repetitions());
+        assertTrue(omegaBoard.check3Repetitions());
+
+        // Simple repetition
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.g1, OmegaSquare.f3
+                , OmegaPiece.WHITE_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        omegaBoard.makeMove(move);
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.g8, OmegaSquare.f6
+                , OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        omegaBoard.makeMove(move);
+        System.out.println("3-Repetitions: "+ omegaBoard.check3Repetitions());
+        assertFalse(omegaBoard.check3Repetitions());
+
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.f3, OmegaSquare.g1
+                , OmegaPiece.WHITE_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        omegaBoard.makeMove(move);
+        move = OmegaMove.createMove(OmegaMoveType.NORMAL, OmegaSquare.f6, OmegaSquare.g8
+                , OmegaPiece.BLACK_KNIGHT, OmegaPiece.NOPIECE, OmegaPiece.NOPIECE);
+        omegaBoard.makeMove(move);
+        System.out.println("3-Repetitions: "+ omegaBoard.check3Repetitions());
+        assertTrue(omegaBoard.check3Repetitions());
+
+    }
+
+    /**
      * Test Null Move
      */
     @Test
