@@ -33,6 +33,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.sun.corba.se.spi.activation._LocatorStub;
+
 import fko.chessly.Playroom;
 import fko.chessly.util.ChesslyLogger;
 
@@ -48,7 +50,9 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Basic iterative MiniMax search
  *      DONE: Basic Evaluation
  *      DONE: DRAW 50-moves rule / repetition rule / insufficient material
- *      TODO: Basic Time Control
+ *      DONE: Basic Time Control
+ *      TODO: Engine Watcher
+ *      TODO: Extend UI for Time Per Move
  *      TODO: Pondering
  *      TODO: Transposition Table
  *      TODO: Evaluation Table
@@ -109,7 +113,7 @@ public class OmegaSearch implements Runnable {
 
     private boolean _softTimeLimitReached = false;
     private boolean _hardTimeLimitReached = false;
-    private TimeKeeper _timer = null;
+    TimeKeeper _timer = null;
 
     /*
      * The following fields are package wide to allow the engine to access these fields directly.
@@ -396,6 +400,9 @@ public class OmegaSearch implements Runnable {
         } while (++depth <= _maxIterativeDepth);
         // ### ENDOF Iterative Deepening
 
+        _timer.stop();
+        _timer=null;
+
         return searchResult;
     }
 
@@ -416,6 +423,10 @@ public class OmegaSearch implements Runnable {
         // ### Iterate through all available root moves
         for (int i = 0; i < _rootMoves.size(); i++) {
             int move = _rootMoves.getMove(i);
+
+            // check for game paused
+            if (_omegaEngine.getGame().isPresent())
+                _omegaEngine.getGame().get().waitWhileGamePaused();
 
             // store the current move for Engine Watcher
             _currentRootMove = move;
@@ -495,6 +506,10 @@ public class OmegaSearch implements Runnable {
         if (depthLeft == 0) {
             return evaluate(_currentBoard);
         }
+
+        // check for game paused
+        if (_omegaEngine.getGame().isPresent())
+            _omegaEngine.getGame().get().waitWhileGamePaused();
 
         // clear principal Variation for this depth
         _principalVariation[ply].clear();
@@ -684,7 +699,7 @@ public class OmegaSearch implements Runnable {
      * @return true is search thread is still running
      */
     public boolean isSearching() {
-        return _searchThread.isAlive();
+        return (_searchThread != null && _searchThread.isAlive());
     }
 
     /**
@@ -729,7 +744,7 @@ public class OmegaSearch implements Runnable {
         PONDERING
     }
 
-    private class TimeKeeper implements Runnable {
+    class TimeKeeper implements Runnable {
 
         static private final int GRANULARITY = 10;
 
@@ -737,7 +752,8 @@ public class OmegaSearch implements Runnable {
         private long soft;
         private long hard;
 
-        private long timeAccumulator = 0;
+        volatile private long timeAccumulator = 0;
+        private Instant lastStartTime = null;
 
         /**
          * @param softLimit in ms
@@ -773,12 +789,25 @@ public class OmegaSearch implements Runnable {
         @Override
         public void run() {
 
-            timeAccumulator = Duration.between(_startTime, Instant.now()).toMillis();
-            while (timeAccumulator <= hard && !myThread.isInterrupted()) {
-                timeAccumulator = Duration.between(_startTime, Instant.now()).toMillis();
+            lastStartTime = _startTime;
+
+            while (timeAccumulator + Duration.between(lastStartTime, Instant.now()).toMillis() <= hard
+                    && !myThread.isInterrupted()) {
+
+
                 if (timeAccumulator >= soft)
                     // signal that soft time limit was reached
                     _softTimeLimitReached = true;
+
+                final Instant now = Instant.now();
+
+                // check for game paused
+                if (_omegaEngine.getGame().isPresent() && _omegaEngine.getGame().get().isPaused()) {
+                    timeAccumulator += Duration.between(lastStartTime, now).toMillis();
+                    _omegaEngine.getGame().get().waitWhileGamePaused();
+                    lastStartTime = Instant.now();
+                }
+
                 try { Thread.sleep(GRANULARITY); }
                 catch (InterruptedException e) { break;}
             }
@@ -787,6 +816,13 @@ public class OmegaSearch implements Runnable {
             // stop the search
             _stopSearch = true;
 
+        }
+
+        /**
+         * @return the timeAccumulator
+         */
+        public long getUsedTime() {
+            return timeAccumulator + Duration.between(lastStartTime, Instant.now()).toMillis();
         }
     }
 

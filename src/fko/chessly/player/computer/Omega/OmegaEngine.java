@@ -28,6 +28,8 @@ package fko.chessly.player.computer.Omega;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
@@ -72,6 +74,10 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     // the opening book
     private OpeningBookImpl _openingBook = null;
+
+    // to have a value when the engine is not thinking
+    private long _lastUsedTime = 0;
+    private long _lastNodesPerSecond = 0;
 
     /**********************************************************************
      * Engine Interface
@@ -200,6 +206,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // convert result OmegaMove to GameMove
         GameMove bestMove = OmegaMove.convertToGameMove(_searchResult.bestMove);
+        bestMove.setValue(_searchResult.resultValue);
 
         // tell the ui and the observers out state
         _statusInfo = "Engine waiting.";
@@ -280,61 +287,59 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      * ObservableEngine Interface
      **********************************************************************/
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getNumberOfMoves()
      */
     @Override
     public int getNumberOfMoves() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._rootMoves.size();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentMoveNumber()
      */
     @Override
     public int getCurrentMoveNumber() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._currentRootMoveNumber;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentMove()
      */
     @Override
     public GameMove getCurrentMove() {
-        // TODO Auto-generated method stub
-        return null;
+        return OmegaMove.convertToGameMove(_omegaSearch._currentRootMove);
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentMaxValueMove()
      */
     @Override
     public GameMove getCurrentMaxValueMove() {
-        // TODO Auto-generated method stub
-        return null;
+        final GameMove bestMove = OmegaMove.convertToGameMove(_omegaSearch._currentBestRootMove);
+        if (bestMove != null) {
+            bestMove.setValue(_omegaSearch._currentBestRootValue);
+        }
+        return bestMove;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentSearchDepth()
      */
     @Override
     public int getCurrentSearchDepth() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._currentIterationDepth;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentMaxSearchDepth()
      */
     @Override
     public int getCurrentMaxSearchDepth() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._currentSearchDepth;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getTotalNodes()
      */
     @Override
@@ -342,31 +347,36 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return _omegaSearch._nodesVisited;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentNodesPerSecond()
      */
     @Override
     public long getCurrentNodesPerSecond() {
-        // TODO Auto-generated method stub
-        return 0;
+        if (_omegaSearch.isSearching()) {
+            _lastNodesPerSecond = (long) ((_omegaSearch._nodesVisited*1000.0F) / (float) Duration.between(_omegaSearch._startTime, Instant.now()).toMillis());
+            return _lastNodesPerSecond;
+        }
+        return _lastNodesPerSecond;
+
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentUsedTime()
      */
     @Override
     public long getCurrentUsedTime() {
-        // TODO Auto-generated method stub
-        return 0;
+        if (_omegaSearch._timer != null) {
+            _lastUsedTime = _omegaSearch._timer.getUsedTime();
+        }
+        return _lastUsedTime;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getTotalBoards()
      */
     @Override
     public long getTotalBoards() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._boardsEvaluated;
     }
 
     /* (non-Javadoc)
@@ -473,8 +483,16 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public GameMoveList getCurrentPV() {
-        // TODO Auto-generated method stub
-        return null;
+        OmegaMoveList pv = _omegaSearch._principalVariation[0];
+        int size = pv != null ? pv.size() : 0;
+        GameMoveList l = new GameMoveList(size);
+        if (size == 0) return l;
+        for (int i = 0; i < size; i++) {
+            if (pv != null) {
+                l.add(OmegaMove.convertToGameMove(pv.get(i)));
+            }
+        }
+        return l;
     }
 
     private String _statusInfo = "";

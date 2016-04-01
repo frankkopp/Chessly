@@ -211,12 +211,14 @@ public class OmegaMove {
     }
 
     /**
-     * Converts move to GameMove
+     * Converts move to GameMove. If the move is invalid or NOMOVE
+     * it returns null:
+     *
      * @param move
      * @return the matching GameMove
      */
     static GameMove convertToGameMove(int move) {
-        assert move != NOMOVE;
+        if (move == NOMOVE || !OmegaMove.isValid(move)) return null;
         GameMove gameMove = new GameMoveImpl(
                 getStart(move).convertToGamePosition(),
                 getEnd(move).convertToGamePosition(),
