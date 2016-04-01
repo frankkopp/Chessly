@@ -104,7 +104,7 @@ public class TestOmegaSearch {
         assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
         assertEquals("h7h8 g7h8 h1h8 ",_omegaSearch._principalVariation[0].toNotationString());
 
-        // Mate in 6 half moves
+        // Mate in 5 half moves
         fen = "4rk2/p5p1/1p2P2N/7R/nP5P/5PQ1/b6K/q7 w - - 0 1"; // white
         board = new GameBoardImpl(fen);
         _omegaPosition = new OmegaBoardPosition(board);
@@ -114,12 +114,26 @@ public class TestOmegaSearch {
             try { Thread.sleep(200);
             } catch (InterruptedException e) {/* */}
         }
-        System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
-        System.out.println(_omegaSearch._principalVariation[0].toNotationString());
+        //System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        //System.out.println(_omegaSearch._principalVariation[0].toNotationString());
         assertEquals("NORMAL Qg3-d6", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
         assertEquals("g3d6 e8e7 d6d8 e7e8 e6e7 ",_omegaSearch._principalVariation[0].toNotationString());
 
 
+        // Mate in 6 half moves
+        fen = "1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - 0 1"; // black
+        board = new GameBoardImpl(fen);
+        _omegaPosition = new OmegaBoardPosition(board);
+        _omegaSearch.configure(false, 0, 0, 5, 5);
+        _omegaSearch.startSearch(_omegaPosition);
+        while (_omegaSearch.isSearching()) {
+            try { Thread.sleep(200);
+            } catch (InterruptedException e) {/* */}
+        }
+        //System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        //System.out.println(_omegaSearch._principalVariation[0].toNotationString());
+        assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
+        assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
     }
 
 
