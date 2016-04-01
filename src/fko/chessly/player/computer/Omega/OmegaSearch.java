@@ -349,8 +349,6 @@ public class OmegaSearch implements Runnable {
          * Setup Time Control
          */
 
-        _softTimeLimitReached = _hardTimeLimitReached = false;
-
         // no time control or PERFT test
         if (OmegaConfiguration.PERFT
                 || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
@@ -364,6 +362,7 @@ public class OmegaSearch implements Runnable {
         // use remaining time to calculate time for move
         else if (_timedControlMode == TimeControlMode.REMAINING_TIME) {
             calculateTimePerMove();
+            configureTimeControl();
         }
         // use time per move as a hard limit
         else if (_timedControlMode == TimeControlMode.TIME_PER_MOVE) {
@@ -600,10 +599,20 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     *
+     * Approximates the time available for the next move.
      */
     private void calculateTimePerMove() {
-        // TODO Auto-generated method stub
+
+        // reset flags
+        long timeLeft = _remainingTime.toMillis();
+
+        // Give some overhead time so that in games with very low available time we do not run out of time
+        timeLeft -= 1000; // this should do
+
+        // simple for now - assume 40 moves to go
+        _timePerMove = Duration.ofMillis((long) ((timeLeft/40) * 1.0f));
+
+        System.out.println(_timePerMove);
 
     }
 
@@ -613,6 +622,9 @@ public class OmegaSearch implements Runnable {
      * FIXME: Bug - TimeKeeper does not Pause when game paused!
      */
     private void configureTimeControl() {
+
+        _softTimeLimitReached = false;
+        _hardTimeLimitReached = false;
 
         long hardLimit = _timePerMove.toMillis();
         long softLimit = (long) (hardLimit * 0.8f);

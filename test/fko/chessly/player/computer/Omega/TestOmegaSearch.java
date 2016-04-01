@@ -49,7 +49,29 @@ import fko.chessly.player.PlayerType;
 public class TestOmegaSearch {
 
     @Test
-    public void testBasicTimeControl() {
+    public void testBasicTimeControl_RemainingTime() {
+        Player _player = createPlayer(GameColor.WHITE);
+        OmegaEngine _omegaEngine = new OmegaEngine();
+        _omegaEngine.init(_player);
+        _omegaEngine._CONFIGURATION.VERBOSE_STATS = true;
+        _omegaEngine._CONFIGURATION.VERBOSE_VARIATION= false;
+
+        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+        String fen = NotationHelper.StandardBoardFEN;
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(fen);
+
+        _omegaSearch.configureRemainingTime(300, 99);
+
+        _omegaSearch.startSearch(_omegaPosition);
+
+        while (_omegaSearch.isSearching()) {
+            try { Thread.sleep(200);
+            } catch (InterruptedException e) {/* */}
+        }
+    }
+
+    @Test
+    public void testBasicTimeControl_TimePerMove() {
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         _omegaEngine.init(_player);
