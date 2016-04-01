@@ -29,6 +29,9 @@ package fko.chessly.player.computer.Omega;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.junit.Test;
 
 import fko.chessly.game.GameBoard;
@@ -45,6 +48,27 @@ import fko.chessly.player.PlayerType;
  */
 public class TestOmegaSearch {
 
+    @Test
+    public void testBasicTimeControl() {
+        Player _player = createPlayer(GameColor.WHITE);
+        OmegaEngine _omegaEngine = new OmegaEngine();
+        _omegaEngine.init(_player);
+        _omegaEngine._CONFIGURATION.VERBOSE_STATS = true;
+        _omegaEngine._CONFIGURATION.VERBOSE_VARIATION= false;
+
+        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+        String fen = NotationHelper.StandardBoardFEN;
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(fen);
+
+        _omegaSearch.configureTimePerMove(15);
+
+        _omegaSearch.startSearch(_omegaPosition);
+
+        while (_omegaSearch.isSearching()) {
+            try { Thread.sleep(200);
+            } catch (InterruptedException e) {/* */}
+        }
+    }
 
     @Test
     public void testMateSearch() {
@@ -84,16 +108,15 @@ public class TestOmegaSearch {
         _omegaEngine.init(_player);
         _omegaEngine._CONFIGURATION.VERBOSE_STATS = false;
         _omegaEngine._CONFIGURATION.VERBOSE_VARIATION= false;
-        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
-        String fen = NotationHelper.StandardBoardFEN;
-        GameBoard board = new GameBoardImpl(fen);
-        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
+
+        //String fen = NotationHelper.StandardBoardFEN;
+        //OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
 
         // Mate in 3 half moves
-        fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white
-        board = new GameBoardImpl(fen);
-        _omegaPosition = new OmegaBoardPosition(board);
-        _omegaSearch.configure(false, 0, 0, 4, 4);
+        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+        String fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(fen);
+        _omegaSearch.configureMaxDepth(4);
         _omegaSearch.startSearch(_omegaPosition);
         while (_omegaSearch.isSearching()) {
             try { Thread.sleep(200);
@@ -105,10 +128,10 @@ public class TestOmegaSearch {
         assertEquals("h7h8 g7h8 h1h8 ",_omegaSearch._principalVariation[0].toNotationString());
 
         // Mate in 5 half moves
+        _omegaSearch = new OmegaSearch(_omegaEngine);
         fen = "4rk2/p5p1/1p2P2N/7R/nP5P/5PQ1/b6K/q7 w - - 0 1"; // white
-        board = new GameBoardImpl(fen);
-        _omegaPosition = new OmegaBoardPosition(board);
-        _omegaSearch.configure(false, 0, 0, 5, 5);
+        _omegaPosition = new OmegaBoardPosition(fen);
+        _omegaSearch.configureMaxDepth(5);
         _omegaSearch.startSearch(_omegaPosition);
         while (_omegaSearch.isSearching()) {
             try { Thread.sleep(200);
@@ -120,11 +143,11 @@ public class TestOmegaSearch {
         assertEquals("g3d6 e8e7 d6d8 e7e8 e6e7 ",_omegaSearch._principalVariation[0].toNotationString());
 
 
-        // Mate in 6 half moves
+        // Mate in 65half moves
+        _omegaSearch = new OmegaSearch(_omegaEngine);
         fen = "1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - 0 1"; // black
-        board = new GameBoardImpl(fen);
-        _omegaPosition = new OmegaBoardPosition(board);
-        _omegaSearch.configure(false, 0, 0, 5, 5);
+        _omegaPosition = new OmegaBoardPosition(fen);
+        _omegaSearch.configureMaxDepth(5);
         _omegaSearch.startSearch(_omegaPosition);
         while (_omegaSearch.isSearching()) {
             try { Thread.sleep(200);
@@ -134,8 +157,8 @@ public class TestOmegaSearch {
         //System.out.println(_omegaSearch._principalVariation[0].toNotationString());
         assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
         assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
-    }
 
+    }
 
     @Test
     public void testSearch() {
@@ -160,7 +183,7 @@ public class TestOmegaSearch {
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition(board);
 
         // test search
-        _omegaSearch.configure(false, 0, 0, 7, 7);
+        _omegaSearch.configureMaxDepth(5);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {
@@ -176,7 +199,7 @@ public class TestOmegaSearch {
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
-        _omegaSearch.configure(false, 0, 0, 6, 6);
+        _omegaSearch.configureTimePerMove(5);
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition();
 
         // init the engine
@@ -189,7 +212,7 @@ public class TestOmegaSearch {
         System.out.println("Start and stop search");
         _omegaSearch.startSearch(_omegaPosition);
         try {
-            Thread.sleep(200);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -200,7 +223,7 @@ public class TestOmegaSearch {
 
         System.out.println("Start search and wait for result");
         // test search
-        _omegaSearch.configure(false, 0, 0, 4, 4);
+        _omegaSearch.configureTimePerMove(2);
         _omegaSearch.startSearch(_omegaPosition);
         // what was the move?
         while (_omegaSearch.isSearching()) {

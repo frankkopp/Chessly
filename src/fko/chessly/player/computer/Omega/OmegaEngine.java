@@ -168,14 +168,24 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         }
 
         // configure the search
+        int maxDepth; long remainingTime;
+        if (_player.getColor().isWhite()) {
+            maxDepth = Playroom.getInstance().getCurrentEngineLevelWhite();
+            remainingTime = (_game.get().getWhiteTime()-_game.get().getWhiteClock().getTime())/1000;
+        } else if (_player.getColor().isBlack()) {
+            maxDepth = Playroom.getInstance().getCurrentEngineLevelBlack();
+            remainingTime = (_game.get().getBlackTime()-_game.get().getBlackClock().getTime())/1000;
+        } else
+            throw new RuntimeException("Invalid next player color. Was " + _player.getColor());
+
         // if not configured will used default mode
-        _omegaSearch.configure(
-                _game.get().isTimedGame(),
-                _game.get().getWhiteTime()-_game.get().getWhiteClock().getTime(),
-                _game.get().getBlackTime()-_game.get().getBlackClock().getTime(),
-                Playroom.getInstance().getCurrentEngineLevelWhite(),
-                Playroom.getInstance().getCurrentEngineLevelBlack()
-                );
+        if (_game.get().isTimedGame()) {
+            _omegaSearch.configureRemainingTime(
+                    remainingTime,
+                    maxDepth);
+        } else {
+            _omegaSearch.configureMaxDepth(maxDepth);
+        }
 
         // set latch to wait until the OmegaSearch stored a move through
         // the callback to storeResult().

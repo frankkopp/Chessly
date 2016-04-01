@@ -32,8 +32,8 @@ import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
+import fko.chessly.Playroom;
 import fko.chessly.util.ChesslyLogger;
 
 /**
@@ -47,7 +47,7 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Book (in the engine class)
  *      DONE: Basic iterative MiniMax search
  *      DONE: Basic Evaluation
- *      TODO: DRAW 50-moves rule / repetition rule / insufficient material
+ *      DONE: DRAW 50-moves rule / repetition rule / insufficient material
  *      TODO: Basic Time Control
  *      TODO: Pondering
  *      TODO: Transposition Table
@@ -61,14 +61,12 @@ import fko.chessly.util.ChesslyLogger;
  *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion, See
  *      TODO: KillerTable. HistoryTable, PawnTable
  *      TODO: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
- *
- * @author Frank
  */
 public class OmegaSearch implements Runnable {
 
     private static final int MAX_SEARCH_DEPTH = 99;
 
-    Logger _log = ChesslyLogger.getLogger();
+    private Logger _log = ChesslyLogger.getLogger();
 
     // back reference to the engine
     private OmegaEngine _omegaEngine;
@@ -97,44 +95,57 @@ public class OmegaSearch implements Runnable {
     // flag to indicate that the search is currently pondering
     private boolean _isPondering = false;
 
-    // search configuration (with defaults)
-    private boolean _isTimedGame = true;
-    private Duration _remainingTimeWhite = Duration.ofSeconds(300);
-    private Duration _remainingTimeBlack = Duration.ofSeconds(300);
-    private int _currentEngineLevelWhite = 99;
-    private int _currentEngineLevelBlack = 99;
+    /*
+     * Search configuration (with defaults)
+     *
+     * If remaining time is set to >0 then time per move is ignored.
+     * If time per move is set then level is set to max.
+     * if neither remaining time nor time per move is set then we use level only.
+     */
+    private TimeControlMode _timedControlMode = TimeControlMode.TIME_PER_MOVE;
+    private Duration _remainingTime = Duration.ofSeconds(0);
+    private Duration _timePerMove = Duration.ofSeconds(5);
+    private int _currentEngineLevel = 0;
+
+    private boolean _softTimeLimitReached = false;
+    private boolean _hardTimeLimitReached = false;
+    private TimeKeeper _timer = null;
+
+    /*
+     * The following fields are package wide to allow the engine to access these fields directly.
+     */
+
+    // time control
+    Instant _startTime = null;
 
     // root move evaluation fields
     OmegaRootMoveList _rootMoves = new OmegaRootMoveList();
-
-    int _currentBestRootMove= OmegaMove.NOMOVE;
-    int _currentBestRootValue = OmegaEvaluation.Value.NOVALUE;
-
-    /* max depth for search iteration - will be set with values from the UI */
-    int _maxIterativeDepth = MAX_SEARCH_DEPTH;
 
     // current variation of the search
     OmegaMoveList _currentVariation = new OmegaMoveList(MAX_SEARCH_DEPTH);
     OmegaMoveList[] _principalVariation = new OmegaMoveList[MAX_SEARCH_DEPTH];
 
-    // time control
-    Instant _startTime = null;
+    /* max depth for search iteration - will be set with values from the UI */
+    int _maxIterativeDepth = MAX_SEARCH_DEPTH;
 
     // engine watcher fields - not private for easy access from engine
+    int _currentBestRootMove= OmegaMove.NOMOVE; // current best move found by search
+    int _currentBestRootValue = OmegaEvaluation.Value.NOVALUE; // value of the current best move
     int _currentIterationDepth = 0; // how deep will the search go in the current iteration
     int _currentSearchDepth = 0; // how deep did the search go this iteration
     int _currentExtraSearchDepth = 0; // how deep did we search including quiescence depth this iteration
-    int _currentMove = 0;
-    int _currentMoveNumber = 0;
-    int _nodesVisited = 0;
-    int _boardsEvaluated = 0;
+    int _currentRootMove = 0; // current root move that is searched
+    int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
+    int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
+    int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
+
 
     private void resetCounter() {
         _currentIterationDepth = 0;
         _currentSearchDepth = 0;
         _currentExtraSearchDepth = 0;
-        _currentMove = 0;
-        _currentMoveNumber = 0;
+        _currentRootMove = 0;
+        _currentRootMoveNumber = 0;
         _nodesVisited = 0;
         _boardsEvaluated = 0;
     }
@@ -146,6 +157,7 @@ public class OmegaSearch implements Runnable {
      * @param omegaEngine
      */
     public OmegaSearch(OmegaEngine omegaEngine) {
+
         _omegaEngine = omegaEngine;
         _omegaMoveGenerator = new OmegaMoveGenerator();
         _omegaEvaluation = new OmegaEvaluation(_omegaEngine, _omegaMoveGenerator);
@@ -153,24 +165,46 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     * Setup the Search with all necessary level and time settings.
+     * Setup the Search for time based game with remaining time per player.
      *
-     * @param timedGame
-     * @param remainingTimeWhite in ms
-     * @param remainingTimeBlack in ms
-     * @param currentEngineLevelWhite max search depth white
-     * @param currentEngineLevelBlack max search depth black
+     * @param remainingTime in sec
+     * @param maxDepth
      */
-    public void configure(boolean timedGame,
-            long remainingTimeWhite, long remainingTimeBlack,
-            int currentEngineLevelWhite, int currentEngineLevelBlack) {
+    public void configureRemainingTime(long remainingTime, int maxDepth) {
+        _timedControlMode = TimeControlMode.REMAINING_TIME;
+        _remainingTime = Duration.ofSeconds(remainingTime);
+        updateSearchDepth();
+        _isConfigured = true;
+    }
 
-        _isTimedGame = timedGame;
-        _remainingTimeWhite = Duration.ofSeconds(remainingTimeWhite);
-        _remainingTimeBlack = Duration.ofSeconds(remainingTimeBlack);
-        _currentEngineLevelWhite = currentEngineLevelWhite;
-        _currentEngineLevelBlack = currentEngineLevelBlack;
+    /**
+     * Setup the Search for time based game with time per move per player.
+     * @param time time for white in seconds
+     */
+    public void configureTimePerMove(long time) {
+        _timedControlMode = TimeControlMode.TIME_PER_MOVE;
+        _timePerMove = Duration.ofSeconds(time);
+        _currentEngineLevel = MAX_SEARCH_DEPTH;
+        _isConfigured = true;
+    }
 
+    /**
+     * Setup the Search for depth based level
+     * @param currentEngineLevel
+     */
+    public void configureMaxDepth(int currentEngineLevel) {
+        _timedControlMode = TimeControlMode.NO_TIMECONTROL;
+        _remainingTime = Duration.ofSeconds(0);
+        _currentEngineLevel = currentEngineLevel;
+        _isConfigured = true;
+    }
+
+    /**
+     * Setup the Search for pondering
+     */
+    public void configurePondering() {
+        _timedControlMode = TimeControlMode.PONDERING;
+        _currentEngineLevel = MAX_SEARCH_DEPTH;
         _isConfigured = true;
     }
 
@@ -263,7 +297,6 @@ public class OmegaSearch implements Runnable {
                     (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
             _omegaEngine.printVerboseInfo("\tMove: "+OmegaMove.toString(searchResult.bestMove)+" ("+searchResult.resultValue+")  ");
             _omegaEngine.printVerboseInfo("\tPV: "+_principalVariation[0].toNotationString()+"\n");
-
         }
 
         // send the result
@@ -289,17 +322,15 @@ public class OmegaSearch implements Runnable {
         assert !rootMoves.empty() : "no legal root moves - game already ended!";
 
         // prepare principal variation lists
-        IntStream.rangeClosed(0, MAX_SEARCH_DEPTH-1)
-        .forEach((i) -> {
+        for (int i=0; i< MAX_SEARCH_DEPTH; i++) {
             _principalVariation[i]= new OmegaMoveList(MAX_SEARCH_DEPTH);
-        });
+        }
 
         // create _rootMoves list
         _rootMoves.clear();
-        IntStream.rangeClosed(0, rootMoves.size()-1)
-        .forEach((i) -> {
+        for (int i=0; i< rootMoves.size(); i++) {
             _rootMoves.add(rootMoves.get(i), OmegaEvaluation.Value.NOVALUE);
-        });
+        }
 
         // temporary best move - take the first move available
         _currentBestRootMove = _rootMoves.getMove(0);
@@ -311,15 +342,41 @@ public class OmegaSearch implements Runnable {
         // get latest level from UI;
         _maxIterativeDepth  = updateSearchDepth();
 
-        // set start depth and max depth
+        // start with depth 1
         int startIterativeDepth = 1;
-        // for testing of move generation and correct counting
-        if (OmegaConfiguration.PERFT || !_isTimedGame)
-            startIterativeDepth = _maxIterativeDepth;
+
+        /*
+         * Setup Time Control
+         */
+
+        _softTimeLimitReached = _hardTimeLimitReached = false;
+
+        // no time control or PERFT test
+        if (OmegaConfiguration.PERFT
+                || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
+            // directly start iteration with deepest depth
+            startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
+        }
+        // use remaining time to calculate time for move
+        else if (_timedControlMode == TimeControlMode.PONDERING) {
+            updateSearchDepth();
+        }
+        // use remaining time to calculate time for move
+        else if (_timedControlMode == TimeControlMode.REMAINING_TIME) {
+            calculateTimePerMove();
+        }
+        // use time per move as a hard limit
+        else if (_timedControlMode == TimeControlMode.TIME_PER_MOVE) {
+            configureTimeControl();
+        }
 
         // ### BEGIN Iterative Deepening
         int depth = startIterativeDepth;
         do {
+
+            // check if we need to stop search - could be external or time.
+            if (_stopSearch || _softTimeLimitReached) break;
+
             _currentIterationDepth = depth;
 
             // check for game paused
@@ -336,9 +393,6 @@ public class OmegaSearch implements Runnable {
             searchResult.resultValue = _rootMoves.getValue(0);
             searchResult.depth = _currentIterationDepth;
             searchResult.ponderMove = OmegaMove.NOMOVE; // Not yet implemented
-
-            // check  for stop signal
-            if (_stopSearch) break;
 
         } while (++depth <= _maxIterativeDepth);
         // ### ENDOF Iterative Deepening
@@ -365,8 +419,8 @@ public class OmegaSearch implements Runnable {
             int move = _rootMoves.getMove(i);
 
             // store the current move for Engine Watcher
-            _currentMove = move;
-            _currentMoveNumber = i+1;
+            _currentRootMove = move;
+            _currentRootMoveNumber = i+1;
 
             // ### START - Commit move and go deeper into recursion
             _currentBoard.makeMove(move);
@@ -378,7 +432,7 @@ public class OmegaSearch implements Runnable {
             _rootMoves.set(i, move, value);
 
             // Evaluate the calculated value and compare to current best move
-            if (value > bestValue) {
+            if (value > bestValue && value != -OmegaEvaluation.Value.NOVALUE) {
                 bestValue = value;
                 _currentBestRootValue = value;
                 _currentBestRootMove = move;
@@ -390,9 +444,8 @@ public class OmegaSearch implements Runnable {
             _currentVariation.removeLast();
             // ###END - Commit move and go deeper into recursion
 
-            // Time control
-
-            // check  for stop signal
+            // check if we need to stop search - could be external or time.
+            // we should have any best move here
             if (_stopSearch) break;
 
         } // ### Iterate through all available moves
@@ -474,7 +527,7 @@ public class OmegaSearch implements Runnable {
                 value = -negamax(depthLeft-1, ply+1);
 
                 // found a better move
-                if (value > bestValue) {
+                if (value > bestValue && value != -OmegaEvaluation.Value.NOVALUE ) {
                     bestValue = value;
                     bestMove = move;
                     OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
@@ -486,10 +539,14 @@ public class OmegaSearch implements Runnable {
             }
             _currentBoard.undoMove();
 
+            // check if we need to stop search - could be external or time.
+            // we should have any best move here
+            if (_stopSearch) break;
+
         }
 
         // if we did not have a legal move then we have a mate
-        if (!hadLegaMove) {
+        if (!hadLegaMove && !_stopSearch) {
             if (_currentBoard.hasCheck()) {
                 // We have a check mate. Return a -CHECKMATE.
                 bestValue = -OmegaEvaluation.Value.CHECKMATE;
@@ -525,14 +582,53 @@ public class OmegaSearch implements Runnable {
      * @return current search depth
      */
     private int updateSearchDepth() {
+        // for perft tests we use max depth
+        if (_timedControlMode == TimeControlMode.PONDERING) return MAX_SEARCH_DEPTH;
+
+        // did we set an explicit level for this search - then keep it
+        if (_currentEngineLevel > 0) return _currentEngineLevel;
+
+        // no explicit level set
         int maxDepth;
         if (_omegaEngine.getPlayer().getColor().isBlack()) {
-            maxDepth = _currentEngineLevelBlack;
+            maxDepth = Playroom.getInstance().getCurrentEngineLevelBlack();
         } else if (_omegaEngine.getPlayer().getColor().isWhite()) {
-            maxDepth = _currentEngineLevelWhite;
+            maxDepth = Playroom.getInstance().getCurrentEngineLevelWhite();
         } else
             throw new RuntimeException("Invalid next player color. Was " + _omegaEngine.getPlayer().getColor());
         return maxDepth;
+    }
+
+    /**
+     *
+     */
+    private void calculateTimePerMove() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * Configure and start time keepers
+     * @param approxTime
+     * FIXME: Bug - TimeKeeper does not Pause when game paused!
+     */
+    private void configureTimeControl() {
+
+        long hardLimit = _timePerMove.toMillis();
+        long softLimit = (long) (hardLimit * 0.8f);
+
+        // limits for very short available time
+        if (hardLimit < 100) {
+            hardLimit = (long) (hardLimit * 0.9f);
+            softLimit = (long) (hardLimit * 0.8f);
+        }
+        // limits for higher available time
+        else if (hardLimit > 10000) {
+            softLimit = hardLimit;
+        }
+
+        _timer = new TimeKeeper(softLimit, hardLimit);
+        _timer.start();
     }
 
     /**
@@ -546,7 +642,7 @@ public class OmegaSearch implements Runnable {
         if (_omegaEngine._CONFIGURATION.VERBOSE_VARIATION) {
             //if (ply<1 || ply>2) return;
             String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: CV: %s (%d) \t(PV-%3$d: %s)%n"
-                    , _currentMoveNumber
+                    , _currentRootMoveNumber
                     , _rootMoves.size()
                     , ply+1
                     , _currentIterationDepth
@@ -596,6 +692,89 @@ public class OmegaSearch implements Runnable {
             StringBuilder sb = new StringBuilder();
             sb.append("BestMove: "+OmegaMove.toString(bestMove));
             return sb.toString();
+        }
+    }
+
+    /**
+     * Modes for different time or level controls.
+     */
+    static public enum TimeControlMode {
+        /**
+         * Search is configured with the time left for the player
+         */
+        REMAINING_TIME,
+        /**
+         * search is configured with a time per move for player
+         */
+        TIME_PER_MOVE,
+        /**
+         * Search is configured to not do time control but use depth setting for player
+         */
+        NO_TIMECONTROL,
+        /**
+         * Search is configured to not do time control but use max depth setting
+         */
+        PONDERING
+    }
+
+    private class TimeKeeper implements Runnable {
+
+        static private final int GRANULARITY = 10;
+
+        private Thread myThread;
+        private long soft;
+        private long hard;
+
+        private long timeAccumulator = 0;
+
+        /**
+         * @param softLimit in ms
+         * @param hardLimit in ms
+         */
+        public TimeKeeper(long softLimit, long hardLimit) {
+            this.soft = softLimit;
+            this.hard = hardLimit;
+        }
+
+        /**
+         * Starts the time
+         */
+        public void start() {
+            // create new search thread
+            myThread = new Thread(this, "TimeKeeper "+_currentBoard._nextPlayer.toString()+" " + "ApproxTime Soft:" + soft + " Hard:" + hard);
+            myThread.setDaemon(true);
+            // start the search thread
+            myThread.start();
+        }
+
+        /**
+         * Stops the timer
+         */
+        @SuppressWarnings("unused")
+        public void stop() {
+            myThread.interrupt();
+        }
+
+        /**
+         * @see java.lang.Runnable#run()
+         */
+        @Override
+        public void run() {
+
+            timeAccumulator = Duration.between(_startTime, Instant.now()).toMillis();
+            while (timeAccumulator <= hard && !myThread.isInterrupted()) {
+                timeAccumulator = Duration.between(_startTime, Instant.now()).toMillis();
+                if (timeAccumulator >= soft)
+                    // signal that soft time limit was reached
+                    _softTimeLimitReached = true;
+                try { Thread.sleep(GRANULARITY); }
+                catch (InterruptedException e) { break;}
+            }
+            // signal that hard time limit was reached
+            _hardTimeLimitReached = true;
+            // stop the search
+            _stopSearch = true;
+
         }
     }
 
