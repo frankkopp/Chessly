@@ -32,7 +32,10 @@
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem fx:id="resumeGame_menu" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume Game" />
+                        <MenuItem fx:id="resumeGame_menu" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
                         <SeparatorMenuItem mnemonicParsing="false" />
                     <MenuItem fx:id="close_menu" mnemonicParsing="false" onAction="#close_action" text="Close">
                            <accelerator>
@@ -115,7 +118,7 @@
                     <items>
                       <MenuItem fx:id="flip_menu" mnemonicParsing="false" onAction="#flipButton_action" text="Flip Board">
                            <accelerator>
-                              <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                              <KeyCodeCombination alt="UP" code="F" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
                         <CheckMenuItem fx:id="showLastMove_menu" mnemonicParsing="false" onAction="#showLastMove_action" selected="true" text="Show Last Move">
