@@ -27,6 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.util.Comparator;
+
 import fko.chessly.util.SimpleIntList;
 
 /**
@@ -69,6 +71,25 @@ public class OmegaMoveList extends SimpleIntList {
         if (!(newList instanceof OmegaMoveList))
             throw new IllegalArgumentException("not a valid OmegaMoveList: "+newList);
         super.add(newList);
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.util.SimpleIntList#sort(java.util.Comparator)
+     */
+    @Override
+    public void sort(Comparator<Integer> comparator) {
+        //super.sort(comparator);
+        int temp;
+        for (int i = _head + 1; i < _tail; i++) {
+            for (int j = i; j > _head; j--) {
+                if (OmegaMove.getPiece(_list[j]).getType().getValue() - OmegaMove.getTarget(_list[j]).getType().getValue()
+                        -(OmegaMove.getPiece(_list[j-1]).getType().getValue() - OmegaMove.getTarget(_list[j-1]).getType().getValue()) < 0) {
+                    temp = _list[j];
+                    _list[j] = _list[j-1];
+                    _list[j-1] = temp;
+                }
+            }
+        }
     }
 
     /* (non-Javadoc)
