@@ -27,8 +27,6 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.util.EnumSet;
-
 /**
  * Move types of OmegaMove
  */

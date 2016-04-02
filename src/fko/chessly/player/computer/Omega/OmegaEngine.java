@@ -353,7 +353,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     @Override
     public long getCurrentNodesPerSecond() {
         if (_omegaSearch.isSearching()) {
-            _lastNodesPerSecond = (long) ((_omegaSearch._nodesVisited*1000.0F) / (float) Duration.between(_omegaSearch._startTime, Instant.now()).toMillis());
+            _lastNodesPerSecond = (long) ((_omegaSearch._nodesVisited*1000.0F) / (float) Duration.between(_omegaSearch._startTime, Instant.now()).toMillis()+1);
             return _lastNodesPerSecond;
         }
         return _lastNodesPerSecond;

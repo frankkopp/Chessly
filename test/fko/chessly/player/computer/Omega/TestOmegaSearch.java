@@ -165,7 +165,7 @@ public class TestOmegaSearch {
         assertEquals("g3d6 e8e7 d6d8 e7e8 e6e7 ",_omegaSearch._principalVariation[0].toNotationString());
 
 
-        // Mate in 65half moves
+        // Mate in 5half moves
         _omegaSearch = new OmegaSearch(_omegaEngine);
         fen = "1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - 0 1"; // black
         _omegaPosition = new OmegaBoardPosition(fen);

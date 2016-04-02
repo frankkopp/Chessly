@@ -51,7 +51,7 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Basic Evaluation
  *      DONE: DRAW 50-moves rule / repetition rule / insufficient material
  *      DONE: Basic Time Control
- *      TODO: Engine Watcher
+ *      DONE: Engine Watcher
  *      TODO: Extend UI for Time Per Move
  *      TODO: Pondering
  *      TODO: Transposition Table
@@ -400,8 +400,10 @@ public class OmegaSearch implements Runnable {
         } while (++depth <= _maxIterativeDepth);
         // ### ENDOF Iterative Deepening
 
-        _timer.stop();
-        _timer=null;
+        if (_timer != null) {
+            _timer.stop();
+            _timer=null;
+        }
 
         return searchResult;
     }
@@ -753,7 +755,7 @@ public class OmegaSearch implements Runnable {
         private long hard;
 
         volatile private long timeAccumulator = 0;
-        private Instant lastStartTime = null;
+        private Instant lastStartTime = Instant.now();
 
         /**
          * @param softLimit in ms

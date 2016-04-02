@@ -27,8 +27,6 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.util.EnumSet;
-
 /**
  * Omega Evaluation
  *
@@ -166,14 +164,16 @@ public class OmegaEvaluation {
      * @param board
      * @param color
      * @param type
-     * @param pieceSquares
+     * @param squareList
      * @param pieceDirections
      * @return
      */
-    private static int mobilityForPieces(OmegaBoardPosition board, OmegaColor color, OmegaPieceType type, EnumSet<OmegaSquare> pieceSquares, int[] pieceDirections) {
+    private static int mobilityForPieces(OmegaBoardPosition board, OmegaColor color, OmegaPieceType type, OmegaSquareList squareList, int[] pieceDirections) {
         int numberOfMoves = 0;
         // iterate over all squares where we have a piece
-        for (OmegaSquare square : pieceSquares) {
+        final int size = squareList.size();
+        for (int i=0; i<size; i++) {
+            OmegaSquare square = squareList.get(i);
             numberOfMoves += mobilityForPiece(board, color, type, square, pieceDirections);
         }
         return numberOfMoves;

@@ -28,20 +28,61 @@
 package fko.chessly.player.computer.Omega;
 
 /**
- * @author Frank
- *
+ * A simple and fast list for OmegaSquares for use as piece lists.</br>
  */
 public class OmegaSquareList {
 
-    final OmegaSquare[] list = new OmegaSquare[64];
-    int size = 0;
+    private static final int MAX_SIZE = 65;
+
+    private final OmegaSquare[] elements = new OmegaSquare[MAX_SIZE];
+    /**
+     * @param i
+     * @return the element at index i
+     */
+    public OmegaSquare get(int i) {
+        if (i>=size) throw new ArrayIndexOutOfBoundsException();
+        return this.elements[i];
+    }
+
+    private int size = 0;
+    /**
+     * @return the size
+     */
+    public int size() {
+        return size;
+    }
 
     /**
      * Adds the given square to the beginning of the list
      * @param square
      */
     public void add(OmegaSquare square) {
-        list[size++] = square;
+        if (size >= MAX_SIZE-1)
+            throw new ArrayStoreException("OmegaSquareList is full");
+
+        /*
+         * we need to keep the order stable because when
+         * iterating over the list and removing and adding
+         * the same element should not change the list at all!
+         * (e.g. when makeMove/undoMove happens)
+         */
+
+        final int ordinal = square.ordinal();
+
+        // go backward and move all elements one place to the right
+        // when the right place is found insert the new element.
+        for (int i = size-1; i >= 0; i--) {
+            if (ordinal > elements[i].ordinal()) {
+                elements[i+1] = square;
+                size++;
+                return;
+            }
+            elements[i+1] = elements[i]; // move the element to the right
+        }
+        // we did not a place -> element seams to be first in order
+        // add it to place 0 as this is now free
+        elements[0] = square;
+        size++;
     }
 
     /**
@@ -50,38 +91,50 @@ public class OmegaSquareList {
      * @param square
      */
     public void remove(OmegaSquare square) {
+
         /*
-         * We need to go over the whole array ones as the element can
-         * be in the list several times.
-         * If we find the element we check the last element and if this is
-         * not the element we exchange the elements and reduce the size by one.
-         * If the last is also the element, we reduce the size and try again.
-         *
+         * Go over the array from left to right until you found the element.
+         * copy the next element to the elements place (overwriting it).
+         * Done.
          */
+        OmegaSquare toBeRemoved = square;
         for (int i=0; i<size; i++) {
-            // found the element
-            if (list[i] == square) {
-                // is last also element then remove it be reducing size by 1
-                while (list[size-1] == square) {
-                    size--;
-                    if (size<=i) return; // list empty
-                }
-                // now exchange with last
-                list[i] = list[size-1];
-                size--;
-                if (size<=i) return; // list empty
+            if (toBeRemoved == elements[i]) { // hit
+                elements[i] = elements[i+1]; // overwrite the element with the one from the right
+                toBeRemoved = elements[i+1]; // now the next to the right can be removed
             }
         }
+        // only reduce if we found our element in the list
+        if (toBeRemoved!=square)
+            size--;
 
+    }
+
+    /**
+     * @return true if size == 0
+     */
+    public boolean isEmpty() {
+        return size()==0;
     }
 
     @Override
     public String toString() {
-        String s = "["+size+"] ";
-        for (int i=0; i<size; i++) {
-            s += list[i] + " ";
+        String s = "["+size()+"] ";
+        for (int i=0; i<size(); i++) {
+            s += elements[i] + " ";
         }
         return s;
+    }
+
+    /**
+     * Returns a deep copy of the list
+     */
+    @Override
+    public OmegaSquareList clone() {
+        OmegaSquareList clone = new OmegaSquareList();
+        System.arraycopy(this.elements, 0, clone.elements, 0, elements.length);
+        clone.size = this.size;
+        return clone;
     }
 
 

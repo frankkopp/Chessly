@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
  */
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = false;
+    static private final boolean CACHE = true;
     static private final boolean SORT = true;
 
     // remember the last position to control cache validity
@@ -264,7 +264,10 @@ public class OmegaMoveGenerator {
 
         // filter legal moves
         assert _legalMoves.size() == 0;
-        streamPseudoLegalMoves(position, capturingOnly).filter(this::isLegalMove).forEachOrdered(_legalMoves::add);
+        getPseudoLegalMoves(position, capturingOnly);
+        for(int move : _pseudoLegalMoves) {
+            if (isLegalMove(move)) _legalMoves.add(move);
+        }
 
         // cache the list of legal moves
         _cachedLegalMoveList = _legalMoves;
@@ -376,8 +379,11 @@ public class OmegaMoveGenerator {
         final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
 
         // iterate over all squares where we have a pawn
-        //_position._pawnSquares[_activePlayer.ordinal()].stream().forEach((square) -> {
-        for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._pawnSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare square = omegaSquareList.get(i);
+
             assert _position._x88Board[square.ordinal()].getType() == OmegaPieceType.PAWN;
 
             // get all possible x88 index values for pawn moves
@@ -471,7 +477,10 @@ public class OmegaMoveGenerator {
     private void generateKnightMoves() {
         OmegaPieceType type = OmegaPieceType.KNIGHT;
         // iterate over all squares where we have a piece
-        for (OmegaSquare square : _position._knightSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._knightSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare square = omegaSquareList.get(i);
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.knightDirections);
         }
@@ -480,7 +489,10 @@ public class OmegaMoveGenerator {
     private void generateBishopMoves() {
         OmegaPieceType type = OmegaPieceType.BISHOP;
         // iterate over all squares where we have this piece type
-        for (OmegaSquare square : _position._bishopSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._bishopSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare square = omegaSquareList.get(i);
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.bishopDirections);
         }
@@ -489,7 +501,10 @@ public class OmegaMoveGenerator {
     private void generateRookMoves() {
         OmegaPieceType type = OmegaPieceType.ROOK;
         // iterate over all squares where we have this piece type
-        for (OmegaSquare square : _position._rookSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._rookSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare square = omegaSquareList.get(i);
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.rookDirections);
         }
@@ -498,7 +513,10 @@ public class OmegaMoveGenerator {
     private void generateQueenMoves() {
         OmegaPieceType type = OmegaPieceType.QUEEN;
         // iterate over all squares where we have this piece type
-        for (OmegaSquare square : _position._queenSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._queenSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare square = omegaSquareList.get(i);
             assert _position._x88Board[square.ordinal()].getType() == type;
             generateMoves(type, square, OmegaSquare.queenDirections);
         }
@@ -638,6 +656,7 @@ public class OmegaMoveGenerator {
         if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
             if (CACHE) return !_cachedLegalMoveList.empty();
         }
+
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
@@ -660,9 +679,10 @@ public class OmegaMoveGenerator {
                 || findQueenMove()
                 || findRookMove()
                 || findBishopMove()
-                )
-            return true;
+                ) {
 
+            return true;
+        }
         return false;
     }
 
@@ -683,7 +703,10 @@ public class OmegaMoveGenerator {
      */
     private boolean findKnightMove() {
         OmegaPieceType type = OmegaPieceType.KNIGHT;
-        for (OmegaSquare os : _position._knightSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._knightSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare os = omegaSquareList.get(i);
             if (findMove(type, os, OmegaSquare.knightDirections)) return true;
         }
         return false;
@@ -695,7 +718,10 @@ public class OmegaMoveGenerator {
      */
     private boolean findQueenMove() {
         OmegaPieceType type = OmegaPieceType.QUEEN;
-        for (OmegaSquare os : _position._queenSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._queenSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare os = omegaSquareList.get(i);
             if (findMove(type, os, OmegaSquare.queenDirections)) return true;
         }
         return false;
@@ -708,7 +734,10 @@ public class OmegaMoveGenerator {
     private boolean findBishopMove() {
         OmegaPieceType type = OmegaPieceType.BISHOP;
         // iterate over all squares where we have this piece type
-        for (OmegaSquare os : _position._bishopSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._bishopSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare os = omegaSquareList.get(i);
             if (findMove(type, os, OmegaSquare.bishopDirections)) return true;
         }
         return false;
@@ -721,7 +750,10 @@ public class OmegaMoveGenerator {
     private boolean findRookMove() {
         OmegaPieceType type = OmegaPieceType.ROOK;
         // iterate over all squares where we have this piece type
-        for (OmegaSquare os : _position._rookSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._rookSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare os = omegaSquareList.get(i);
             if (findMove(type, os, OmegaSquare.rookDirections)) return true;
         }
         return false;
@@ -781,7 +813,10 @@ public class OmegaMoveGenerator {
         final int pawnDir = _activePlayer.isBlack() ? -1 : 1;
 
         // iterate over all squares where we have a pawn
-        for (OmegaSquare square : _position._pawnSquares[_activePlayer.ordinal()]) {
+        final OmegaSquareList omegaSquareList = _position._pawnSquares[_activePlayer.ordinal()];
+        final int size = omegaSquareList.size();
+        for (int i=0; i<size; i++) {
+            final OmegaSquare square = omegaSquareList.get(i);
 
             // get all possible x88 index values for pawn moves
             // these are basically int values to add or subtract from the
@@ -802,13 +837,15 @@ public class OmegaMoveGenerator {
                         if (target != OmegaPiece.NOPIECE // not empty
                                 && (target.getColor() == _activePlayer.getInverseColor())) { // opponents color
                             move = OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion);
-                            if (isLegalMove(move)) return true;
+                            if (isLegalMove(move))
+                                return true;
                         } else { // empty but maybe en passant
                             if (toSquare == _position._enPassantSquare) { //  en passant capture
                                 // which target?
                                 final int t = _activePlayer.isWhite() ? _position._enPassantSquare.getSouth().ordinal() : _position._enPassantSquare.getNorth().ordinal();
                                 move = OmegaMove.createMove(OmegaMoveType.ENPASSANT,fromSquare,toSquare,piece,_position._x88Board[t],promotion);
-                                if (isLegalMove(move)) return true;
+                                if (isLegalMove(move))
+                                    return true;
                             }
                         }
                     }
@@ -816,7 +853,8 @@ public class OmegaMoveGenerator {
                     else if (d == OmegaSquare.N) { // straight
                         if (target == OmegaPiece.NOPIECE) { // way needs to be free
                             move = OmegaMove.createMove(type,fromSquare,toSquare,piece,target,promotion);
-                            if (isLegalMove(move)) return true;
+                            if (isLegalMove(move))
+                                return true;
                         }
                     }
                 }
@@ -837,8 +875,10 @@ public class OmegaMoveGenerator {
         // make the move on the position
         _position.makeMove(move);
         // check if the move leaves the king in check
-        if (!_position.isAttacked(_activePlayer.getInverseColor(),
-                _position._kingSquares[_activePlayer.ordinal()])) {
+        if (!_position.isAttacked(
+                _activePlayer.getInverseColor(),
+                _position._kingSquares[_activePlayer.ordinal()])
+                ) {
             _position.undoMove();
             return true;
         }

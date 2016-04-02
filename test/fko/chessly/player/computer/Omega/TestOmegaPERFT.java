@@ -29,6 +29,7 @@ package fko.chessly.player.computer.Omega;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -36,34 +37,6 @@ import org.junit.Test;
  *
  */
 public class TestOmegaPERFT {
-
-    /**
-     * Perft Timing Test
-     * https://chessprogramming.wikispaces.com/Perft+Results
-     */
-    @Test
-    public void testStandardPerftTiming() {
-
-        int maxDepth = 6;
-        long[][] results = {
-                //N  Nodes      Captures EP     Checks  Mates
-                { 0, 1,         0,       0,     0,      0},
-                { 1, 20,        0,       0,     0,      0},
-                { 2, 400,       0,       0,     0,      0},
-                { 3, 8902,      34,      0,     12,     0},
-                { 4, 197281,    1576,    0,     469,    8},
-                { 5, 4865609,   82719,   258,   27351,  347},
-                { 6, 119060324, 2812008, 5248,  809099, 10828},
-        };
-
-        OmegaPERFT perftTest = new OmegaPERFT();
-        perftTest.testPerft(maxDepth);
-        assertTrue(perftTest.get_nodes() == results[maxDepth][1]);
-        assertTrue(perftTest.get_captureCounter() == results[maxDepth][2]);
-        assertTrue(perftTest.get_enpassantCounter() == results[maxDepth][3]);
-        assertTrue(perftTest.get_checkCounter() == results[maxDepth][4]);
-        assertTrue(perftTest.get_checkMateCounter() == results[maxDepth][5]);
-    }
 
     /**
      * Perft Test
@@ -86,11 +59,11 @@ public class TestOmegaPERFT {
                 { 6, 119060324, 2812008, 5248,  809099, 10828},
         };
 
-        int maxDepth = 5;
+        int maxDepth = 4;
 
         OmegaPERFT perftTest = new OmegaPERFT();
 
-        for (int i=1;i<=maxDepth;i++) {
+        for (int i=4;i<=maxDepth;i++) {
             perftTest.testPerft(i);
 
             assertTrue(perftTest.get_nodes() == results[i][1]);
@@ -284,6 +257,34 @@ public class TestOmegaPERFT {
         }
 
         System.out.println("==============================");
+    }
+
+    /**
+     * Perft Timing Test
+     * https://chessprogramming.wikispaces.com/Perft+Results
+     */
+    @Ignore
+    public void testStandardPerftTiming() {
+
+        int maxDepth = 6;
+        long[][] results = {
+                //N  Nodes      Captures EP     Checks  Mates
+                { 0, 1,         0,       0,     0,      0},
+                { 1, 20,        0,       0,     0,      0},
+                { 2, 400,       0,       0,     0,      0},
+                { 3, 8902,      34,      0,     12,     0},
+                { 4, 197281,    1576,    0,     469,    8},
+                { 5, 4865609,   82719,   258,   27351,  347},
+                { 6, 119060324, 2812008, 5248,  809099, 10828},
+        };
+
+        OmegaPERFT perftTest = new OmegaPERFT();
+        perftTest.testPerft(maxDepth);
+        assertTrue(perftTest.get_nodes() == results[maxDepth][1]);
+        assertTrue(perftTest.get_captureCounter() == results[maxDepth][2]);
+        assertTrue(perftTest.get_enpassantCounter() == results[maxDepth][3]);
+        assertTrue(perftTest.get_checkCounter() == results[maxDepth][4]);
+        assertTrue(perftTest.get_checkMateCounter() == results[maxDepth][5]);
     }
 
 }

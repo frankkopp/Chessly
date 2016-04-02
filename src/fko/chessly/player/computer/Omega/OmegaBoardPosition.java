@@ -115,11 +115,11 @@ public class OmegaBoardPosition {
     /**
      * Lists for all pieces
      */
-    final EnumSet<OmegaSquare>[] _pawnSquares = new EnumSet[OmegaColor.values.length];
-    final EnumSet<OmegaSquare>[] _knightSquares = new EnumSet[OmegaColor.values.length];
-    final EnumSet<OmegaSquare>[] _bishopSquares = new EnumSet[OmegaColor.values.length];
-    final EnumSet<OmegaSquare>[] _rookSquares = new EnumSet[OmegaColor.values.length];
-    final EnumSet<OmegaSquare>[] _queenSquares = new EnumSet[OmegaColor.values.length];
+    final OmegaSquareList[] _pawnSquares = new OmegaSquareList[OmegaColor.values.length];
+    final OmegaSquareList[] _knightSquares = new OmegaSquareList[OmegaColor.values.length];
+    final OmegaSquareList[] _bishopSquares = new OmegaSquareList[OmegaColor.values.length];
+    final OmegaSquareList[] _rookSquares = new OmegaSquareList[OmegaColor.values.length];
+    final OmegaSquareList[] _queenSquares = new OmegaSquareList[OmegaColor.values.length];
     final OmegaSquare[] _kingSquares = new OmegaSquare[OmegaColor.values.length];
 
     // Material value will always be up to date
@@ -273,11 +273,11 @@ public class OmegaBoardPosition {
      */
     private void initializeLists() {
         for (int i=0; i<=1; i++) { // foreach color
-            _pawnSquares[i] = EnumSet.noneOf(OmegaSquare.class);
-            _knightSquares[i] = EnumSet.noneOf(OmegaSquare.class);
-            _bishopSquares[i] = EnumSet.noneOf(OmegaSquare.class);
-            _rookSquares[i] = EnumSet.noneOf(OmegaSquare.class);
-            _queenSquares[i] = EnumSet.noneOf(OmegaSquare.class);
+            _pawnSquares[i] = new OmegaSquareList();
+            _knightSquares[i] = new OmegaSquareList();
+            _bishopSquares[i] = new OmegaSquareList();
+            _rookSquares[i] = new OmegaSquareList();
+            _queenSquares[i] = new OmegaSquareList();
             _kingSquares[i] = OmegaSquare.NOSQUARE;
         }
         _material = new int[2];
@@ -828,8 +828,10 @@ public class OmegaBoardPosition {
             if ((i & 0x88) == 0 && _x88Board[i] == attackerPawn) return true;
         }
 
+        final int attackerColorIndex = attackerColor.ordinal();
+
         // check sliding horizontal (rook + queen) if there are any
-        if (!(_rookSquares[attackerColor.ordinal()].isEmpty() && _queenSquares[attackerColor.ordinal()].isEmpty())) {
+        if (!(_rookSquares[attackerColorIndex].isEmpty() && _queenSquares[attackerColorIndex].isEmpty())) {
             for (int d : OmegaSquare.rookDirections) {
                 int i = os_Index+d;
                 while ((i & 0x88) == 0) { // slide while valid square
@@ -847,7 +849,7 @@ public class OmegaBoardPosition {
         }
 
         // check sliding diagonal (bishop + queen) if there are any
-        if (!(_bishopSquares[attackerColor.ordinal()].isEmpty() && _queenSquares[attackerColor.ordinal()].isEmpty())) {
+        if (!(_bishopSquares[attackerColorIndex].isEmpty() && _queenSquares[attackerColorIndex].isEmpty())) {
             for (int d : OmegaSquare.bishopDirections) {
                 int i = os_Index+d;
                 while ((i & 0x88) == 0) { // slide while valid square
@@ -865,7 +867,7 @@ public class OmegaBoardPosition {
         }
 
         // check knights if there are any
-        if (!(_knightSquares[attackerColor.ordinal()].isEmpty())) {
+        if (!(_knightSquares[attackerColorIndex].isEmpty())) {
             for (int d : OmegaSquare.knightDirections) {
                 int i = os_Index+d;
                 if ((i & 0x88) == 0) { // valid square
@@ -932,19 +934,19 @@ public class OmegaBoardPosition {
     /**
      * Tests for mate on this position. If true the next player has lost.
      * Expensive test as all legal moves have to be generated.
-     * TODO: could be optimized as it would be enough to find one legal move.
      * @return true if current position is mate for next player
      */
     public boolean hasCheckMate() {
         if (!hasCheck()) return false;
         if (_hasMate != Flag.TBD) return _hasMate == Flag.TRUE ? true : false;
-        final boolean hasLegalMove = _mateCheckMG.hasLegalMove(this);
-        _hasMate = hasLegalMove ? Flag.FALSE : Flag.TRUE;
-        if (!hasLegalMove) {
+        if (!_mateCheckMG.hasLegalMove(this)) {
+            _hasMate = Flag.TRUE;
             return true;
         }
+        _hasMate = Flag.FALSE;
         return false;
     }
+
 
     /**
      * The fifty-move rule – if during the previous 50 moves no pawn has been
@@ -1059,10 +1061,10 @@ public class OmegaBoardPosition {
                  * (file + rank) % 2 == 0 = black field
                  * (file + rank) % 2 == 1 = white field
                  */
-                final OmegaSquare whiteBishop = _bishopSquares[OmegaColor.WHITE.ordinal()].iterator().next();
+                final OmegaSquare whiteBishop = _bishopSquares[OmegaColor.WHITE.ordinal()].get(0);
                 int file_w = whiteBishop.getFile().get();
                 int rank_w = whiteBishop.getRank().get();
-                final OmegaSquare blackBishop = _bishopSquares[OmegaColor.BLACK.ordinal()].iterator().next();
+                final OmegaSquare blackBishop = _bishopSquares[OmegaColor.BLACK.ordinal()].get(0);
                 int file_b = blackBishop.getFile().get();
                 int rank_b = blackBishop.getRank().get();
                 if (((file_w+rank_w)%2) == ((file_b+rank_b)%2)) {

@@ -105,7 +105,7 @@ public enum OmegaCastling {
     /**
      * Returns an index between 0-15 for all the combinations of castlings
      * to easily create a zobrist key for it
-     * @return an index between 0 and 15 representing the combination of casltings
+     * @return an index between 0 and 15 representing the combination of castlings
      */
     public static int getCombinationIndex(EnumSet<OmegaCastling> set) {
         return _permutationList.indexOf(set);

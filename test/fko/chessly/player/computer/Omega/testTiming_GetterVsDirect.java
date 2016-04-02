@@ -36,7 +36,7 @@ import org.junit.Test;
  * @author Frank
  *
  */
-public class testTimings {
+public class testTiming_GetterVsDirect {
 
     final OmegaSquareList      _squareList = new OmegaSquareList();
 

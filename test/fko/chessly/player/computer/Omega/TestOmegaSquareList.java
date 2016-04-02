@@ -57,13 +57,15 @@ public class TestOmegaSquareList {
     public final void testAdd() {
 
         System.out.println(list);
-        list.add(OmegaSquare.a1);
+        list.add(OmegaSquare.a8);
         System.out.println(list);
-        list.add(OmegaSquare.a2);
+        list.add(OmegaSquare.b2);
         System.out.println(list);
         list.add(OmegaSquare.a3);
         System.out.println(list);
-        list.add(OmegaSquare.a4);
+        list.add(OmegaSquare.c1);
+        System.out.println(list);
+        list.add(OmegaSquare.a1);
         System.out.println(list);
 
         System.out.println(list);
@@ -71,7 +73,7 @@ public class TestOmegaSquareList {
         System.out.println(list);
         list.remove(OmegaSquare.a1);
         System.out.println(list);
-        list.remove(OmegaSquare.a2);
+        list.remove(OmegaSquare.b2);
         System.out.println(list);
         list.remove(OmegaSquare.a3);
         System.out.println(list);
@@ -89,8 +91,32 @@ public class TestOmegaSquareList {
      *
      */
     @Test
-    public final void testRemove() {
+    public final void testIterate() {
 
+        list.add(OmegaSquare.a1);
+        list.add(OmegaSquare.a2);
+        list.add(OmegaSquare.a3);
+        list.add(OmegaSquare.a4);
+
+        System.out.println(list);
+        for (int i=0; i<list.size(); i++) {
+            System.out.print(list.get(i) + " ");
+            // remove and add element - should not influence the iteration
+            // (we had a bug because of this)
+            list.remove(OmegaSquare.a1);
+            list.add(OmegaSquare.a1);
+        }
+        System.out.println();
+        System.out.println(list);
+
+        list.remove(OmegaSquare.a1);
+        list.remove(OmegaSquare.a3);
+
+        System.out.println(list);
+        for (int i=0; i<list.size(); i++) {
+            System.out.print(list.get(i) + " ");
+        }
+        System.out.println();
     }
 
 

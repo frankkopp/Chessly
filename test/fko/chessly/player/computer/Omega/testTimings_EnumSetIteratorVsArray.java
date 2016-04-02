@@ -40,7 +40,7 @@ import org.junit.Test;
  * @author Frank
  *
  */
-public class testTimings {
+public class testTimings_EnumSetIteratorVsArray {
 
     final EnumSet<OmegaSquare> _squareSet = EnumSet.noneOf(OmegaSquare.class);
     final OmegaSquareList      _squareList = new OmegaSquareList();
@@ -51,8 +51,8 @@ public class testTimings {
 
         prepare();
 
-        int ROUNDS = 10;
-        int DURATION = 10;
+        int ROUNDS = 5;
+        int DURATION = 5;
 
         int ITERATIONS = 0;
 
@@ -91,23 +91,19 @@ public class testTimings {
      */
     private void prepare() {
 
-        for (OmegaSquare s : OmegaSquare.values) {
-            if (s.isValidSquare()) {
-                _squareSet.add(s);
-                //                System.out.println(_squareSet);
-            }
-        }
 
-        for (OmegaSquare s : OmegaSquare.values) {
-            if (s.isValidSquare()) {
-                _squareList.add(s);
-                //                System.out.println(_squareList);
-            }
-        }
+
+
 
     }
 
     private void test1() {
+
+        for (OmegaSquare s : OmegaSquare.values) {
+            if (s.isValidSquare()) {
+                _squareSet.add(s);
+            }
+        }
 
         OmegaSquare tempa, tempb;
         for(OmegaSquare s : _squareSet) {
@@ -117,17 +113,37 @@ public class testTimings {
             }
         }
 
+        for (OmegaSquare s : OmegaSquare.values) {
+            if (s.isValidSquare()) {
+                _squareSet.remove(s);
+            }
+        }
+
     }
 
     private void test2() {
 
-        OmegaSquare tempa, tempb;
-        for (int i=0; i<_squareList.size; i++) {
-            for (int j=0; j<_squareList.size; j++) {
-                tempa = _squareList.list[i];
-                tempb = _squareList.list[j];
+        for (OmegaSquare s : OmegaSquare.values) {
+            if (s.isValidSquare()) {
+                _squareList.add(s);
             }
         }
+
+        OmegaSquare tempa, tempb;
+        for (int i=0; i<_squareList.size(); i++) {
+            for (int j=0; j<_squareList.size(); j++) {
+                tempa = _squareList.get(i);
+                tempb = _squareList.get(j);
+            }
+        }
+
+        for (OmegaSquare s : OmegaSquare.values) {
+            if (s.isValidSquare()) {
+                _squareList.remove(s);
+            }
+        }
+
+
 
     }
 
