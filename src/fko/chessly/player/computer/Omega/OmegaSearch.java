@@ -120,7 +120,7 @@ public class OmegaSearch implements Runnable {
      */
 
     // time control
-    Instant _startTime = null;
+    Instant _startTime = Instant.now();
 
     // root move evaluation fields
     OmegaRootMoveList _rootMoves = new OmegaRootMoveList();
