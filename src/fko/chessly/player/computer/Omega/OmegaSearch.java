@@ -33,8 +33,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.corba.se.spi.activation._LocatorStub;
-
 import fko.chessly.Playroom;
 import fko.chessly.util.ChesslyLogger;
 
@@ -52,7 +50,6 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: DRAW 50-moves rule / repetition rule / insufficient material
  *      DONE: Basic Time Control
  *      DONE: Engine Watcher
- *      TODO: Extend UI for Time Per Move
  *      TODO: Pondering
  *      TODO: Transposition Table
  *      TODO: Evaluation Table
@@ -65,6 +62,7 @@ import fko.chessly.util.ChesslyLogger;
  *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion, See
  *      TODO: KillerTable. HistoryTable, PawnTable
  *      TODO: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
+ *      TODO: Extend UI for Time Per Move
  */
 public class OmegaSearch implements Runnable {
 
@@ -297,9 +295,9 @@ public class OmegaSearch implements Runnable {
             _omegaEngine.printVerboseInfo(String.format("Evaluations in total  : %,12d ", _boardsEvaluated));
             _omegaEngine.printVerboseInfo(String.format("Duration: %9s", Duration.between(_startTime, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
-                    (_boardsEvaluated*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+                    (_boardsEvaluated*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1)));
             _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d",
-                    (_nodesVisited*1000L)/Duration.between(_startTime,Instant.now()).toMillis()));
+                    (_nodesVisited*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1)));
             _omegaEngine.printVerboseInfo("\tMove: "+OmegaMove.toString(searchResult.bestMove)+" ("+searchResult.resultValue+")  ");
             _omegaEngine.printVerboseInfo("\tPV: "+_principalVariation[0].toNotationString()+"\n");
         }
@@ -629,8 +627,6 @@ public class OmegaSearch implements Runnable {
 
         // simple for now - assume 40 moves to go
         _timePerMove = Duration.ofMillis((long) ((timeLeft/40) * 1.0f));
-
-        System.out.println(_timePerMove);
 
     }
 

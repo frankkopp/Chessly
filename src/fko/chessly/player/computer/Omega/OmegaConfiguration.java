@@ -39,7 +39,7 @@ public class OmegaConfiguration {
 
     // Verbose
     /** If set to true this object will produce info output to System.out */
-    boolean VERBOSE_TO_SYSOUT = true;
+    boolean VERBOSE_TO_SYSOUT = false;
 
     /** If set to true we will use the opening book */
     boolean _USE_BOOK = true;

@@ -49,7 +49,9 @@ import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.Omega.OmegaSearch.SearchResult;
 
 /**
- * New engine implementation.
+ * Chessly Engine implementation using enum and ints instead of objects.</br>
+ * Object creation and gc is too expensive for minimax searches.
+ *
  */
 public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
@@ -154,7 +156,8 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         resetCounters();
 
         // reset last search result
-        _searchResult = null;
+        _searchResult = new SearchResult();
+        _searchResult.bestMove = OmegaMove.NOMOVE;
 
         // check for move from opening book
         GameMove bookMove = null;
@@ -206,7 +209,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // convert result OmegaMove to GameMove
         GameMove bestMove = OmegaMove.convertToGameMove(_searchResult.bestMove);
-        bestMove.setValue(_searchResult.resultValue);
+        if (bestMove!=null) bestMove.setValue(_searchResult.resultValue);
 
         // tell the ui and the observers out state
         _statusInfo = "Engine waiting.";
@@ -246,6 +249,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      * @param gameBoard
      * @return
      */
+    @SuppressWarnings("static-method")
     private boolean ponderHit(GameBoard gameBoard) {
         return false;
     }
@@ -353,7 +357,8 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     @Override
     public long getCurrentNodesPerSecond() {
         if (_omegaSearch.isSearching()) {
-            _lastNodesPerSecond = (long) ((_omegaSearch._nodesVisited*1000.0F) / (float) Duration.between(_omegaSearch._startTime, Instant.now()).toMillis()+1);
+            _lastNodesPerSecond = (long) ((_omegaSearch._nodesVisited*1000.0F)
+                    / Duration.between(_omegaSearch._startTime, Instant.now()).toMillis()+1);
             return _lastNodesPerSecond;
         }
         return _lastNodesPerSecond;

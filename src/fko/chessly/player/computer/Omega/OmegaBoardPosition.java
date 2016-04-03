@@ -28,7 +28,6 @@
 package fko.chessly.player.computer.Omega;
 
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.Random;
 
 import fko.chessly.game.GameBoard;
@@ -44,7 +43,6 @@ import fko.chessly.player.computer.Omega.OmegaSquare.File;
  * Can be created with any FEN notation and also from GameBoards or as a copy from another
  * OmegaBoardPosition.
  */
-@SuppressWarnings("unchecked")
 public class OmegaBoardPosition {
 
     /* Size of 0x88 board */
