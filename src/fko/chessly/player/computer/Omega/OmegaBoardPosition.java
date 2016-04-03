@@ -81,7 +81,6 @@ public class OmegaBoardPosition {
     static final long[][] _piece_Zobrist = new long[OmegaPiece.values.length][OmegaSquare.values.length];
 
     // Castling rights
-    // TODO: Maybe use four distinct booleans for castling?
     boolean _castlingWK = true;
     boolean[] _castlingWK_history = new boolean[MAX_HISTORY];
     static final long _castlingWK_Zobrist;
@@ -94,10 +93,6 @@ public class OmegaBoardPosition {
     boolean _castlingBQ = true;
     boolean[] _castlingBQ_history = new boolean[MAX_HISTORY];
     static final long _castlingBQ_Zobrist;
-    //    EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
-    //    EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
-    //    // hash for castling rights
-    //    static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
 
     // en passant field - if NOSQUARE then we do not have an en passant option
     OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
@@ -166,9 +161,7 @@ public class OmegaBoardPosition {
         _castlingWQ_Zobrist = Math.abs(random.nextLong());
         _castlingBK_Zobrist = Math.abs(random.nextLong());
         _castlingBQ_Zobrist = Math.abs(random.nextLong());
-        //        for (EnumSet<OmegaCastling> es : OmegaCastling.getCombinationList()) {
-        //            _castlingRights_Zobrist[OmegaCastling.getCombinationList().indexOf(es)] = Math.abs(random.nextLong());
-        //        }
+
         // all possible positions of the en passant square (easiest to use all fields and not just the
         // ones where en passant is indeed possible)
         for (OmegaSquare s : OmegaSquare.values) {
@@ -206,7 +199,7 @@ public class OmegaBoardPosition {
             throw new NullPointerException("Parameter op may not be null");
 
         System.arraycopy(op._x88Board, 0, this._x88Board, 0, op._x88Board.length);
-        //this._castlingRights = op._castlingRights.clone();
+
         this._castlingWK = op._castlingWK;
         this._castlingWQ = op._castlingWQ;
         this._castlingBK = op._castlingBK;
@@ -266,29 +259,23 @@ public class OmegaBoardPosition {
         this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
 
         // -- copy castling flags
-        //_castlingRights = EnumSet.noneOf(OmegaCastling.class);
         _castlingWK = _castlingWQ = _castlingBK = _castlingBQ = false;
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
-            //_castlingRights.add(OmegaCastling.WHITE_KINGSIDE);
             _castlingWK=true;
             _zobristKey ^= _castlingWK_Zobrist;
         }
         if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
-            //_castlingRights.add(OmegaCastling.WHITE_QUEENSIDE);
             _castlingWQ=true;
             _zobristKey ^= _castlingWQ_Zobrist;
         }
         if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
-            //_castlingRights.add(OmegaCastling.BLACK_KINGSIDE);
             _castlingBK=true;
             _zobristKey ^= _castlingBK_Zobrist;
         }
         if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
-            //_castlingRights.add(OmegaCastling.BLACK_QUEENSIDE);
             _castlingBQ=true;
             _zobristKey ^= _castlingBQ_Zobrist;
         }
-        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)];
 
         // en passant
         this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
@@ -333,7 +320,7 @@ public class OmegaBoardPosition {
 
         // Save state for undoMove
         _moveHistory[_historyCounter] = move;
-        //_castlingRights_History[_historyCounter] = _castlingRights.clone();
+
         _castlingWK_history[_historyCounter] = _castlingWK;
         _castlingWQ_history[_historyCounter] = _castlingWQ;
         _castlingBK_history[_historyCounter] = _castlingBK;
@@ -460,7 +447,6 @@ public class OmegaBoardPosition {
         }
 
         // restore castling rights
-        //_castlingRights = _castlingRights_History[_historyCounter];
         _castlingWK = _castlingWK_history[_historyCounter];
         _castlingWQ = _castlingWQ_history[_historyCounter];
         _castlingBK = _castlingBK_history[_historyCounter];
@@ -518,8 +504,6 @@ public class OmegaBoardPosition {
      * @param toSquare
      */
     private void invalidateCastlingRights(OmegaSquare fromSquare, OmegaSquare toSquare) {
-        // _take out castling rights from zobrist to set new later
-        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
         // check for castling rights invalidation
         if (fromSquare == OmegaSquare.e1 || toSquare == OmegaSquare.e1) {
             _castlingWK=false;
@@ -558,12 +542,12 @@ public class OmegaBoardPosition {
      */
     private void makeCastlingMove(OmegaSquare fromSquare, OmegaSquare toSquare, OmegaPiece piece) {
         assert piece.getType()==OmegaPieceType.KING;
+
         // update castling rights
         OmegaPiece  rook = OmegaPiece.NOPIECE;
         OmegaSquare rookFromSquare = OmegaSquare.NOSQUARE;
         OmegaSquare rookToSquare = OmegaSquare.NOSQUARE;
-        // _take out castling rights from zobrist to set new later
-        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
+
         switch (toSquare) {
             case g1: // white kingside
                 rook = OmegaPiece.WHITE_ROOK;
@@ -649,7 +633,6 @@ public class OmegaBoardPosition {
     public void makeNullMove() {
 
         // Save state for undoMove
-        //_castlingRights_History[_historyCounter] = _castlingRights.clone();
         _castlingWK_history[_historyCounter] = _castlingWK;
         _castlingWQ_history[_historyCounter] = _castlingWQ;
         _castlingBK_history[_historyCounter] = _castlingBK;
@@ -691,7 +674,6 @@ public class OmegaBoardPosition {
         _historyCounter--;
 
         // restore castling rights
-        //_castlingRights = _castlingRights_History[_historyCounter];
         _castlingWK = _castlingWK_history[_historyCounter];
         _castlingWQ = _castlingWQ_history[_historyCounter];
         _castlingBK = _castlingBK_history[_historyCounter];
