@@ -125,7 +125,9 @@ public class OmegaMoveList extends SimpleIntList {
     @Override
     public OmegaMoveList clone() {
         OmegaMoveList n = new OmegaMoveList();
-        n.add(this);
+        System.arraycopy(this._list, _head, n._list, 0, this._tail-this._head);
+        n._head = 0;
+        n._tail = this._tail-this._head;
         return n;
     }
 

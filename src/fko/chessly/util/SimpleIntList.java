@@ -34,6 +34,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
+import fko.chessly.player.computer.Omega.OmegaMoveList;
+
 /**
  * Simple and fast list class for integers.
  * It has a fixed size and does not grow.
@@ -212,7 +214,9 @@ public class SimpleIntList implements Iterable<Integer> {
     @Override
     public SimpleIntList clone() {
         SimpleIntList n = new SimpleIntList();
-        n.add(this);
+        System.arraycopy(this._list, _head, n._list, 0, this._tail-this._head);
+        n._head = 0;
+        n._tail = this._tail-this._head;
         return n;
     }
 

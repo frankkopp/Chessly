@@ -42,6 +42,40 @@ import fko.chessly.util.SimpleIntList;
  */
 public class TestSimpleIntList {
 
+
+    /**
+     * Test Iterator in a simple case
+     */
+    @Test
+    public void testClone() {
+
+        SimpleIntList list = new SimpleIntList();
+
+        // add many entries
+        for (int i=1; i<=100; i++) {
+            list.add((int) (Math.random()*Integer.MAX_VALUE));
+        }
+
+        SimpleIntList clone = list.clone();
+        for (int i=0; i<list.size(); i++) {
+            assertEquals(list.get(i), clone.get(i));
+        }
+
+        // delete some
+        for (int i=1; i<=10; i++) {
+            list.removeFirst();
+        }
+
+        // test again
+        SimpleIntList clone2 = list.clone();
+        for (int i=0; i<list.size(); i++) {
+            assertEquals(list.get(i), clone2.get(i));
+        }
+
+    }
+
+
+
     /**
      * Test Iterator in a simple case
      */
