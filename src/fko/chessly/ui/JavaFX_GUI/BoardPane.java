@@ -209,7 +209,7 @@ public class BoardPane extends Pane {
      */
     private void drawBoard(GameBoard curBoard) {
 
-        Thread.dumpStack();
+        //Thread.dumpStack();
 
         // clear the node to redraw everything
         this.getChildren().clear();
