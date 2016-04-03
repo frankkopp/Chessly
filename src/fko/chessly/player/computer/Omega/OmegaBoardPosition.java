@@ -81,6 +81,7 @@ public class OmegaBoardPosition {
     static final long[][] _piece_Zobrist = new long[OmegaPiece.values.length][OmegaSquare.values.length];
 
     // Castling rights
+    // TODO: Maybe use four distinct booleans for castling?
     EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
     EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
     // hash for castling rights

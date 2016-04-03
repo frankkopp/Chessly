@@ -112,6 +112,7 @@ public class OmegaSearch implements Runnable {
     private int _currentEngineLevel = 0;
 
     private boolean _softTimeLimitReached = false;
+    @SuppressWarnings("unused")
     private boolean _hardTimeLimitReached = false;
     TimeKeeper _timer = null;
 
@@ -780,7 +781,6 @@ public class OmegaSearch implements Runnable {
         /**
          * Stops the timer
          */
-        @SuppressWarnings("unused")
         public void stop() {
             myThread.interrupt();
         }

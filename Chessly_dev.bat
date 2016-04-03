@@ -1,4 +1,4 @@
-java -cp "bin" -Xms128m -Xmx1500m fko.chessly.Chessly
+java -cp "./bin" -Xms128m -Xmx1500m fko.chessly.Chessly
 pause
 REM GPL Disclaimer
 
