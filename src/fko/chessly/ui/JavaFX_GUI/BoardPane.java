@@ -685,7 +685,7 @@ public class BoardPane extends Pane {
         for (Piece p : _pieces) {
             //System.out.print(p.getPosition()+" ");
             if (pos.equals(p.getPosition())) {
-                System.out.print("HIT ");
+                //System.out.print("HIT ");
                 // found piece
                 _dragOffsetX = event.getX() - p.pieceView.xProperty().doubleValue();
                 _dragOffsetY = event.getY() - p.pieceView.yProperty().doubleValue();
