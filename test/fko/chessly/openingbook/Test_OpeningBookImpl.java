@@ -20,8 +20,11 @@ import fko.chessly.util.HelperTools;
  * @author fkopp
  *
  */
-public class OpeningBookImpl_Test {
+public class Test_OpeningBookImpl {
 
+    /**
+     *
+     */
     @Test
     public void testBook() {
 
@@ -60,7 +63,10 @@ public class OpeningBookImpl_Test {
 
     }
 
-    //@Test
+    /**
+     *
+     */
+    @Test
     public void timingTest() {
 
         int runs = 0, runsPerRound = 1;

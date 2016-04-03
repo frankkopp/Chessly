@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import fko.chessly.Chessly;
 import fko.chessly.game.GameBoard;
@@ -283,6 +284,33 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         return lines;
     }
 
+    /**
+     * Reads all lines from a file into list and returns it as a List<String>.
+     *
+     * @param path
+     * @return List<String> allLines
+     */
+    private Stream<String> getStreamOfLinesFromFile(Path path) {
+
+        long start = System.currentTimeMillis();
+        Charset charset = Charset.forName("ISO-8859-1");
+        Stream<String> lines = null;
+        try {
+            if (_config.VERBOSE)
+                printInfo(String.format("Reading Opening Book...: %s%n",path));
+            lines = Files.lines(path, charset);
+            long time = System.currentTimeMillis() - start;
+            if (_config.VERBOSE)
+                printInfo(String.format("Finished creating stream of lines. (%f sec)%n",(time / 1000f)));
+        } catch (CharacterCodingException e) {
+            Chessly.criticalError("Opening Book file '" + path + "' has wrong charset (needs to be ISO-8859-1) - not loaded!");
+        } catch (IOException e) {
+            Chessly.criticalError("Opening Book file '" + path + "' could not be loaded!");
+        }
+
+        return lines;
+    }
+
     private void processBookfromPGNFile(Path path) {
 
         List<String> lines = readAllLinesFromFile(path);
@@ -327,7 +355,8 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      */
     private void processAllLines(Path path) {
 
-        List<String> lines = readAllLinesFromFile(path);
+        //List<String> lines = readAllLinesFromFile(path);
+        Stream<String> lines = getStreamOfLinesFromFile(path);
 
         long start = System.currentTimeMillis();
         if (_config.VERBOSE) {
@@ -336,7 +365,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
         synchronized (_counterLock) { _counter = 0; }
         // parallel lambda expression - very fast and cool - needs some synchronizing though
-        lines.parallelStream().forEach(line -> {
+        lines.parallel().forEach(line -> {
             processLine(line);
         });
 
@@ -356,13 +385,14 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
      * @param line
      */
     private void processLine(String line) {
+        final int c;
         synchronized (_counterLock) {
-            _counter++;
-            if (_config.VERBOSE && _counter % 1000 == 0) {
-                printInfo(String.format("%7d ", _counter));
-                if (_config.VERBOSE && _counter % 10000 == 0) {
-                    printInfo(String.format("%n"));
-                }
+            c = ++_counter;
+        }
+        if (_config.VERBOSE && c % 1000 == 0) {
+            printInfo(String.format("%7d ", c));
+            if (_config.VERBOSE && c % 10000 == 0) {
+                printInfo(String.format("%n"));
             }
         }
 
