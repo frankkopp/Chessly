@@ -444,21 +444,6 @@ public class TestOmegaBoardPosition {
      *
      */
     @Test
-    public void testCastlingRights() {
-        // Castling rights
-        EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
-        _castlingRights.forEach(c -> System.out.print(c));
-        System.out.println();
-        _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-        _castlingRights.forEach(c -> System.out.print(c));
-        System.out.println();
-        System.out.println(_castlingRights.contains(OmegaCastling.BLACK_QUEENSIDE));
-    }
-
-    /**
-     *
-     */
-    @Test
     public void testContructorFromFEN() {
 
         String fen = NotationHelper.StandardBoardFEN;

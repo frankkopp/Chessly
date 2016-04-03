@@ -177,13 +177,13 @@ public class OmegaMove {
         String s = "";
         if (getMoveType(move) == OmegaMoveType.CASTLING) {
             switch (getEnd(move)) {
-                case g1: s += OmegaCastling.WHITE_KINGSIDE.getNotation();
+                case g1: s += "O-O";
                 break;
-                case c1: s += OmegaCastling.WHITE_QUEENSIDE.getNotation();
+                case c1: s += "O-O-O";
                 break;
-                case g8: s += OmegaCastling.BLACK_KINGSIDE.getNotation();
+                case g8: s += "o-o";
                 break;
-                case c8: s += OmegaCastling.BLACK_QUEENSIDE.getNotation();
+                case c8: s += "o-o-o";
                 break;
                 default:
                     break;

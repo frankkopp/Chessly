@@ -532,68 +532,68 @@ public class OmegaMoveGenerator {
     private void generateCastlingMoves() {
         if (_position.hasCheck()) return; // no castling if we are in check
         // iterate over all available castlings at this position
-        for (OmegaCastling castling : _position._castlingRights) {
-            if (_activePlayer.isWhite()) {
-                if (castling == OmegaCastling.WHITE_KINGSIDE) {
-                    // f1 free, g1 free and f1 not attacked
-                    // we will not check if g1 is attacked as this is a pseudo legal move
-                    // and this to be checked separately e.g. when filtering for legal moves
-                    if (_position._x88Board[OmegaSquare.f1.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.f1) // passing square not attacked
-                            && _position._x88Board[OmegaSquare.g1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
-                    {
-                        _castlingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.CASTLING,
-                                OmegaSquare.e1,OmegaSquare.g1,
-                                OmegaPiece.WHITE_KING,
-                                OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
-                    }
-                } else if (castling == OmegaCastling.WHITE_QUEENSIDE) {
-                    // d1 free, c1 free and d1 not attacked
-                    // we will not check if d1 is attacked as this is a pseudo legal move
-                    // and this to be checked separately e.g. when filtering for legal moves
-                    if (_position._x88Board[OmegaSquare.d1.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && _position._x88Board[OmegaSquare.b1.ordinal()] == OmegaPiece.NOPIECE // rook passing square free
-                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d1) // passing square not attacked
-                            && _position._x88Board[OmegaSquare.c1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
-                    {
-                        _castlingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.CASTLING,
-                                OmegaSquare.e1,OmegaSquare.c1,
-                                OmegaPiece.WHITE_KING,
-                                OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
-                    }
+        if (_activePlayer.isWhite()) {
+            if (_position._castlingWK) {
+                // f1 free, g1 free and f1 not attacked
+                // we will not check if g1 is attacked as this is a pseudo legal move
+                // and this to be checked separately e.g. when filtering for legal moves
+                if (_position._x88Board[OmegaSquare.f1.ordinal()] == OmegaPiece.NOPIECE // passing square free
+                        && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.f1) // passing square not attacked
+                        && _position._x88Board[OmegaSquare.g1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
+                {
+                    _castlingMoves.add(OmegaMove.createMove(
+                            OmegaMoveType.CASTLING,
+                            OmegaSquare.e1,OmegaSquare.g1,
+                            OmegaPiece.WHITE_KING,
+                            OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
                 }
-            } else {
-                if (castling == OmegaCastling.BLACK_KINGSIDE) {
-                    // f8 free, g8 free and f8 not attacked
-                    // we will not check if g8 is attacked as this is a pseudo legal move
-                    // and this to be checked separately e.g. when filtering for legal moves
-                    if (_position._x88Board[OmegaSquare.f8.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.f8) // passing square not attacked
-                            && _position._x88Board[OmegaSquare.g8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
-                    {
-                        _castlingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.CASTLING,
-                                OmegaSquare.e8,OmegaSquare.g8,
-                                OmegaPiece.BLACK_KING,
-                                OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
-                    }
-                } else if (castling == OmegaCastling.BLACK_QUEENSIDE) {
-                    // d8 free, c8 free and d8 not attacked
-                    // we will not check if d8 is attacked as this is a pseudo legal move
-                    // and this to be checked separately e.g. when filtering for legal moves
-                    if (_position._x88Board[OmegaSquare.d8.ordinal()] == OmegaPiece.NOPIECE // passing square free
-                            && _position._x88Board[OmegaSquare.b8.ordinal()] == OmegaPiece.NOPIECE // rook passing square free
-                            && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d8) // passing square not attacked
-                            && _position._x88Board[OmegaSquare.c8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
-                    {
-                        _castlingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.CASTLING,
-                                OmegaSquare.e8,OmegaSquare.c8,
-                                OmegaPiece.BLACK_KING,
-                                OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
-                    }
+            }
+            if (_position._castlingWQ) {
+                // d1 free, c1 free and d1 not attacked
+                // we will not check if d1 is attacked as this is a pseudo legal move
+                // and this to be checked separately e.g. when filtering for legal moves
+                if (_position._x88Board[OmegaSquare.d1.ordinal()] == OmegaPiece.NOPIECE // passing square free
+                        && _position._x88Board[OmegaSquare.b1.ordinal()] == OmegaPiece.NOPIECE // rook passing square free
+                        && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d1) // passing square not attacked
+                        && _position._x88Board[OmegaSquare.c1.ordinal()] == OmegaPiece.NOPIECE)  // to square free
+                {
+                    _castlingMoves.add(OmegaMove.createMove(
+                            OmegaMoveType.CASTLING,
+                            OmegaSquare.e1,OmegaSquare.c1,
+                            OmegaPiece.WHITE_KING,
+                            OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
+                }
+            }
+        } else {
+            if (_position._castlingBK) {
+                // f8 free, g8 free and f8 not attacked
+                // we will not check if g8 is attacked as this is a pseudo legal move
+                // and this to be checked separately e.g. when filtering for legal moves
+                if (_position._x88Board[OmegaSquare.f8.ordinal()] == OmegaPiece.NOPIECE // passing square free
+                        && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.f8) // passing square not attacked
+                        && _position._x88Board[OmegaSquare.g8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
+                {
+                    _castlingMoves.add(OmegaMove.createMove(
+                            OmegaMoveType.CASTLING,
+                            OmegaSquare.e8,OmegaSquare.g8,
+                            OmegaPiece.BLACK_KING,
+                            OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
+                }
+            }
+            if (_position._castlingBQ) {
+                // d8 free, c8 free and d8 not attacked
+                // we will not check if d8 is attacked as this is a pseudo legal move
+                // and this to be checked separately e.g. when filtering for legal moves
+                if (_position._x88Board[OmegaSquare.d8.ordinal()] == OmegaPiece.NOPIECE // passing square free
+                        && _position._x88Board[OmegaSquare.b8.ordinal()] == OmegaPiece.NOPIECE // rook passing square free
+                        && !_position.isAttacked(_activePlayer.getInverseColor(), OmegaSquare.d8) // passing square not attacked
+                        && _position._x88Board[OmegaSquare.c8.ordinal()] == OmegaPiece.NOPIECE)  // to square free
+                {
+                    _castlingMoves.add(OmegaMove.createMove(
+                            OmegaMoveType.CASTLING,
+                            OmegaSquare.e8,OmegaSquare.c8,
+                            OmegaPiece.BLACK_KING,
+                            OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
                 }
             }
         }

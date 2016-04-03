@@ -82,10 +82,22 @@ public class OmegaBoardPosition {
 
     // Castling rights
     // TODO: Maybe use four distinct booleans for castling?
-    EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
-    EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
-    // hash for castling rights
-    static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
+    boolean _castlingWK = true;
+    boolean[] _castlingWK_history = new boolean[MAX_HISTORY];
+    static final long _castlingWK_Zobrist;
+    boolean _castlingWQ = true;
+    boolean[] _castlingWQ_history = new boolean[MAX_HISTORY];
+    static final long _castlingWQ_Zobrist;
+    boolean _castlingBK = true;
+    boolean[] _castlingBK_history = new boolean[MAX_HISTORY];
+    static final long _castlingBK_Zobrist;
+    boolean _castlingBQ = true;
+    boolean[] _castlingBQ_history = new boolean[MAX_HISTORY];
+    static final long _castlingBQ_Zobrist;
+    //    EnumSet<OmegaCastling> _castlingRights = EnumSet.allOf(OmegaCastling.class);
+    //    EnumSet<OmegaCastling>[] _castlingRights_History = new EnumSet[MAX_HISTORY];
+    //    // hash for castling rights
+    //    static final long[] _castlingRights_Zobrist = new long[OmegaCastling.values().length*OmegaCastling.values().length];
 
     // en passant field - if NOSQUARE then we do not have an en passant option
     OmegaSquare _enPassantSquare = OmegaSquare.NOSQUARE;
@@ -150,9 +162,13 @@ public class OmegaBoardPosition {
             }
         }
         // all castling combinations
-        for (EnumSet<OmegaCastling> es : OmegaCastling.getCombinationList()) {
-            _castlingRights_Zobrist[OmegaCastling.getCombinationList().indexOf(es)] = Math.abs(random.nextLong());
-        }
+        _castlingWK_Zobrist = Math.abs(random.nextLong());
+        _castlingWQ_Zobrist = Math.abs(random.nextLong());
+        _castlingBK_Zobrist = Math.abs(random.nextLong());
+        _castlingBQ_Zobrist = Math.abs(random.nextLong());
+        //        for (EnumSet<OmegaCastling> es : OmegaCastling.getCombinationList()) {
+        //            _castlingRights_Zobrist[OmegaCastling.getCombinationList().indexOf(es)] = Math.abs(random.nextLong());
+        //        }
         // all possible positions of the en passant square (easiest to use all fields and not just the
         // ones where en passant is indeed possible)
         for (OmegaSquare s : OmegaSquare.values) {
@@ -190,7 +206,11 @@ public class OmegaBoardPosition {
             throw new NullPointerException("Parameter op may not be null");
 
         System.arraycopy(op._x88Board, 0, this._x88Board, 0, op._x88Board.length);
-        this._castlingRights = op._castlingRights.clone();
+        //this._castlingRights = op._castlingRights.clone();
+        this._castlingWK = op._castlingWK;
+        this._castlingWQ = op._castlingWQ;
+        this._castlingBK = op._castlingBK;
+        this._castlingBQ = op._castlingBQ;
         this._enPassantSquare = op._enPassantSquare;
         this._halfMoveClock = op._halfMoveClock;
         this._nextHalfMoveNumber = op._nextHalfMoveNumber;
@@ -246,20 +266,29 @@ public class OmegaBoardPosition {
         this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
 
         // -- copy castling flags
-        _castlingRights = EnumSet.noneOf(OmegaCastling.class);
+        //_castlingRights = EnumSet.noneOf(OmegaCastling.class);
+        _castlingWK = _castlingWQ = _castlingBK = _castlingBQ = false;
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
-            _castlingRights.add(OmegaCastling.WHITE_KINGSIDE);
+            //_castlingRights.add(OmegaCastling.WHITE_KINGSIDE);
+            _castlingWK=true;
+            _zobristKey ^= _castlingWK_Zobrist;
         }
         if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
-            _castlingRights.add(OmegaCastling.WHITE_QUEENSIDE);
+            //_castlingRights.add(OmegaCastling.WHITE_QUEENSIDE);
+            _castlingWQ=true;
+            _zobristKey ^= _castlingWQ_Zobrist;
         }
         if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
-            _castlingRights.add(OmegaCastling.BLACK_KINGSIDE);
+            //_castlingRights.add(OmegaCastling.BLACK_KINGSIDE);
+            _castlingBK=true;
+            _zobristKey ^= _castlingBK_Zobrist;
         }
         if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
-            _castlingRights.add(OmegaCastling.BLACK_QUEENSIDE);
+            //_castlingRights.add(OmegaCastling.BLACK_QUEENSIDE);
+            _castlingBQ=true;
+            _zobristKey ^= _castlingBQ_Zobrist;
         }
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)];
+        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)];
 
         // en passant
         this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
@@ -304,7 +333,11 @@ public class OmegaBoardPosition {
 
         // Save state for undoMove
         _moveHistory[_historyCounter] = move;
-        _castlingRights_History[_historyCounter] = _castlingRights.clone();
+        //_castlingRights_History[_historyCounter] = _castlingRights.clone();
+        _castlingWK_history[_historyCounter] = _castlingWK;
+        _castlingWQ_history[_historyCounter] = _castlingWQ;
+        _castlingBK_history[_historyCounter] = _castlingBK;
+        _castlingBQ_history[_historyCounter] = _castlingBQ;
         _enPassantSquare_History[_historyCounter] = _enPassantSquare;
         _halfMoveClock_History[_historyCounter] = _halfMoveClock;
         _zobristKey_History[_historyCounter] = _zobristKey;
@@ -427,7 +460,11 @@ public class OmegaBoardPosition {
         }
 
         // restore castling rights
-        _castlingRights = _castlingRights_History[_historyCounter];
+        //_castlingRights = _castlingRights_History[_historyCounter];
+        _castlingWK = _castlingWK_history[_historyCounter];
+        _castlingWQ = _castlingWQ_history[_historyCounter];
+        _castlingBK = _castlingBK_history[_historyCounter];
+        _castlingBQ = _castlingBQ_history[_historyCounter];
 
         // restore en passant square
         _enPassantSquare = _enPassantSquare_History[_historyCounter];
@@ -482,57 +519,36 @@ public class OmegaBoardPosition {
      */
     private void invalidateCastlingRights(OmegaSquare fromSquare, OmegaSquare toSquare) {
         // _take out castling rights from zobrist to set new later
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
+        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
         // check for castling rights invalidation
-        switch (fromSquare) {
-            case e1: // white king
-                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                break;
-            case e8: // black king
-                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                break;
-            case a1: // rook a1
-                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                break;
-            case h1: // rook h1
-                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                break;
-            case a8: // rook a8
-                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                break;
-            case h8: // rook h8
-                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                break;
-            default:
-                break;
+        if (fromSquare == OmegaSquare.e1 || toSquare == OmegaSquare.e1) {
+            _castlingWK=false;
+            _zobristKey ^= _castlingWK_Zobrist;
+            _castlingWQ=false;
+            _zobristKey ^= _castlingWQ_Zobrist;
         }
-        switch (toSquare) {
-            case e1: // white king
-                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                break;
-            case e8: // black king
-                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                break;
-            case a1: // rook a1
-                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
-                break;
-            case h1: // rook h1
-                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                break;
-            case a8: // rook a8
-                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
-                break;
-            case h8: // rook h8
-                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                break;
-            default:
-                break;
+        else if (fromSquare == OmegaSquare.e8 || toSquare == OmegaSquare.e8) {
+            _castlingBK=false;
+            _zobristKey ^= _castlingBK_Zobrist;
+            _castlingBQ=false;
+            _zobristKey ^= _castlingBQ_Zobrist;
         }
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // in
+        else if (fromSquare == OmegaSquare.a1 || toSquare == OmegaSquare.a1) {
+            _castlingWQ=false;
+            _zobristKey ^= _castlingWQ_Zobrist;
+        }
+        else if (fromSquare == OmegaSquare.h1 || toSquare == OmegaSquare.h1) {
+            _castlingWK=false;
+            _zobristKey ^= _castlingWK_Zobrist;
+        }
+        else if (fromSquare == OmegaSquare.a8 || toSquare == OmegaSquare.a8) {
+            _castlingBQ=false;
+            _zobristKey ^= _castlingBQ_Zobrist;
+        }
+        else if (fromSquare == OmegaSquare.h8 || toSquare == OmegaSquare.h8) {
+            _castlingBK=false;
+            _zobristKey ^= _castlingBK_Zobrist;
+        }
     }
 
     /**
@@ -547,40 +563,36 @@ public class OmegaBoardPosition {
         OmegaSquare rookFromSquare = OmegaSquare.NOSQUARE;
         OmegaSquare rookToSquare = OmegaSquare.NOSQUARE;
         // _take out castling rights from zobrist to set new later
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
+        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
         switch (toSquare) {
             case g1: // white kingside
                 rook = OmegaPiece.WHITE_ROOK;
                 rookFromSquare = OmegaSquare.h1;
                 rookToSquare = OmegaSquare.f1;
-                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
+                invalidateCastlingRights(fromSquare, toSquare);
                 break;
             case c1: // white queenside
                 rook = OmegaPiece.WHITE_ROOK;
                 rookFromSquare = OmegaSquare.a1;
                 rookToSquare = OmegaSquare.d1;
-                _castlingRights.remove(OmegaCastling.WHITE_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.WHITE_QUEENSIDE);
+                invalidateCastlingRights(fromSquare, toSquare);
                 break;
             case g8: // black kingside
                 rook = OmegaPiece.BLACK_ROOK;
                 rookFromSquare = OmegaSquare.h8;
                 rookToSquare = OmegaSquare.f8;
-                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
+                invalidateCastlingRights(fromSquare, toSquare);
                 break;
             case c8: // black queenside
                 rook = OmegaPiece.BLACK_ROOK;
                 rookFromSquare = OmegaSquare.a8;
                 rookToSquare = OmegaSquare.d8;
-                _castlingRights.remove(OmegaCastling.BLACK_KINGSIDE);
-                _castlingRights.remove(OmegaCastling.BLACK_QUEENSIDE);
+                invalidateCastlingRights(fromSquare, toSquare);
                 break;
             default:
                 throw new IllegalArgumentException("Castling to wrong square "+toSquare.toString());
         }
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // in
+        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // in
         // King
         movePiece(fromSquare, toSquare, piece);
         // Rook
@@ -597,8 +609,7 @@ public class OmegaBoardPosition {
         OmegaPiece  rook = OmegaPiece.NOPIECE;
         OmegaSquare rookFromSquare = OmegaSquare.NOSQUARE;
         OmegaSquare rookToSquare = OmegaSquare.NOSQUARE;
-        // _take out castling rights from zobrist to set new later
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // out
+
         switch (toSquare) {
             case g1: // white kingside
                 rook = OmegaPiece.WHITE_ROOK;
@@ -623,7 +634,9 @@ public class OmegaBoardPosition {
             default:
                 throw new IllegalArgumentException("Castling to wrong square "+toSquare.toString());
         }
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // in
+
+        // ignore Zobrist Key as it will be restored in undoMove!!
+
         // King
         movePiece(toSquare, fromSquare, piece);
         // Rook
@@ -636,7 +649,11 @@ public class OmegaBoardPosition {
     public void makeNullMove() {
 
         // Save state for undoMove
-        _castlingRights_History[_historyCounter] = _castlingRights.clone();
+        //_castlingRights_History[_historyCounter] = _castlingRights.clone();
+        _castlingWK_history[_historyCounter] = _castlingWK;
+        _castlingWQ_history[_historyCounter] = _castlingWQ;
+        _castlingBK_history[_historyCounter] = _castlingBK;
+        _castlingBQ_history[_historyCounter] = _castlingBQ;
         _enPassantSquare_History[_historyCounter] = _enPassantSquare;
         _halfMoveClock_History[_historyCounter] = _halfMoveClock;
         _zobristKey_History[_historyCounter] = _zobristKey;
@@ -674,7 +691,11 @@ public class OmegaBoardPosition {
         _historyCounter--;
 
         // restore castling rights
-        _castlingRights = _castlingRights_History[_historyCounter];
+        //_castlingRights = _castlingRights_History[_historyCounter];
+        _castlingWK = _castlingWK_history[_historyCounter];
+        _castlingWQ = _castlingWQ_history[_historyCounter];
+        _castlingBK = _castlingBK_history[_historyCounter];
+        _castlingBQ = _castlingBQ_history[_historyCounter];
 
         // restore en passant square
         _enPassantSquare = _enPassantSquare_History[_historyCounter];
@@ -1194,21 +1215,32 @@ public class OmegaBoardPosition {
 
         // castling
         // reset all castling first
-        _castlingRights = EnumSet.noneOf(OmegaCastling.class);
+        _castlingWK = _castlingWQ = _castlingBK = _castlingBQ = false;
         if (parts.length >= 3) { // default "-"
             for (i=0; i<parts[2].length(); i++) {
                 s = parts[2].substring(i, i+1);
                 switch (s) {
-                    case "K": _castlingRights.add(OmegaCastling.WHITE_KINGSIDE); break;
-                    case "Q": _castlingRights.add(OmegaCastling.WHITE_QUEENSIDE); break;
-                    case "k": _castlingRights.add(OmegaCastling.BLACK_KINGSIDE); break;
-                    case "q": _castlingRights.add(OmegaCastling.BLACK_QUEENSIDE); break;
+                    case "K":
+                        _castlingWK = true;
+                        _zobristKey ^= _castlingWK_Zobrist;
+                        break;
+                    case "Q":
+                        _castlingWQ = true;
+                        _zobristKey ^= _castlingWQ_Zobrist;
+                        break;
+                    case "k":
+                        _castlingBK = true;
+                        _zobristKey ^= _castlingBK_Zobrist;
+                        break;
+                    case "q":
+                        _castlingBQ = true;
+                        _zobristKey ^= _castlingBQ_Zobrist;
+                        break;
                     case "-":
                     default:
                 }
             }
         }
-        _zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)];
 
         // en passant - which filed and if null no en passant option
         if (parts.length >= 4) { // default "-"
@@ -1295,9 +1327,21 @@ public class OmegaBoardPosition {
 
         // Castling
         boolean castlingAvailable = false;
-        for (OmegaCastling oc : _castlingRights) {
+        if (_castlingWK) {
             castlingAvailable = true;
-            fen += oc.getShortName();
+            fen += "K";
+        }
+        if (_castlingWQ) {
+            castlingAvailable = true;
+            fen += "Q";
+        }
+        if (_castlingBK) {
+            castlingAvailable = true;
+            fen += "k";
+        }
+        if (_castlingBQ) {
+            castlingAvailable = true;
+            fen += "q";
         }
         if (!castlingAvailable) {
             fen += '-';
@@ -1367,6 +1411,7 @@ public class OmegaBoardPosition {
         return boardString.toString();
     }
 
+
     /**
      * @see java.lang.Object#hashCode()
      */
@@ -1374,12 +1419,7 @@ public class OmegaBoardPosition {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((this._castlingRights == null) ? 0 : this._castlingRights.hashCode());
-        result = prime * result + ((this._enPassantSquare == null) ? 0 : this._enPassantSquare.hashCode());
-        result = prime * result + this._halfMoveClock;
-        result = prime * result + this._nextHalfMoveNumber;
-        result = prime * result + ((this._nextPlayer == null) ? 0 : this._nextPlayer.hashCode());
-        result = prime * result + Arrays.hashCode(this._x88Board);
+        result = prime * result + (int) (this._zobristKey ^ (this._zobristKey >>> 32));
         return result;
     }
 
@@ -1393,16 +1433,6 @@ public class OmegaBoardPosition {
         if (!(obj instanceof OmegaBoardPosition)) { return false; }
         OmegaBoardPosition other = (OmegaBoardPosition) obj;
         if (this._zobristKey != other._zobristKey) { return false; }
-        /* these should be covered by the zobrist key
-        if (this._castlingRights == null) {
-            if (other._castlingRights != null) { return false; }
-        } else if (!this._castlingRights.equals(other._castlingRights)) { return false; }
-        if (this._enPassantSquare != other._enPassantSquare) { return false; }
-        if (this._nextPlayer != other._nextPlayer) { return false; }
-        if (!Arrays.equals(this._x88Board, other._x88Board)) { return false; }
-         */
-        if (this._halfMoveClock != other._halfMoveClock) { return false; }
-        if (this._nextHalfMoveNumber != other._nextHalfMoveNumber) { return false; }
         return true;
     }
 
