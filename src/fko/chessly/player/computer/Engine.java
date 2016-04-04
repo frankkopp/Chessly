@@ -61,4 +61,9 @@ public interface Engine {
      */
     public void setNumberOfThreads(int n);
 
+    /**
+     * Forwards a stop signal for the player to the engine to also stop all calculations.
+     */
+    public void stopEngine();
+
 }

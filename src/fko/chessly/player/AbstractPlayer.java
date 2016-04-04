@@ -34,13 +34,12 @@ import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.mvc.ModelObservable;
-import fko.chessly.mvc.ModelEvents.ModelEvent;
 import fko.chessly.mvc.ModelEvents.PlayerDependendModelEvent;
 import fko.chessly.util.StatusController;
 
 /**
- * <p>This class is the abstract core implementation of a reversi player.
- * It implements the thread handling and accessors to fields.</p>
+ * <p>This class is the abstract core implementation of a Chessly player.
+ * It implements the thread handling and getters to fields.</p>
  *
  * <p>A player has always a certain state:
  * <b>WAITING, THINKING, HAS_MOVE, STOPPED</b></p>

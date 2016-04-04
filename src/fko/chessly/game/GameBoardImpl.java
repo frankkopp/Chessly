@@ -28,8 +28,6 @@ package fko.chessly.game;
 
 import java.util.Arrays;
 
-import com.sun.org.glassfish.gmbal.GmbalException;
-
 import fko.chessly.game.pieces.Bishop;
 import fko.chessly.game.pieces.King;
 import fko.chessly.game.pieces.Knight;

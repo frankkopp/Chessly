@@ -29,6 +29,8 @@ package fko.chessly.player.computer.Omega;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.junit.Test;
 
@@ -38,8 +40,9 @@ import org.junit.Test;
  */
 public class testTimings {
 
-    final OmegaSquareList      _squareList = new OmegaSquareList();
-
+    final AtomicLong a_long = new AtomicLong();
+    final LongAdder long_a = new LongAdder();
+    long a = 0;
 
     @Test
     public void testTiming() {
@@ -61,7 +64,7 @@ public class testTimings {
 
             start = Instant.now();
             ITERATIONS=0;
-            while (true) {
+            for(;;) {
                 ITERATIONS++;
                 test1();
                 if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) break;
@@ -70,7 +73,7 @@ public class testTimings {
 
             start = Instant.now();
             ITERATIONS=0;
-            while (true) {
+            for(;;) {
                 ITERATIONS++;
                 test2();
                 if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) break;
@@ -86,37 +89,17 @@ public class testTimings {
      */
     private void prepare() {
 
-        for (OmegaSquare s : OmegaSquare.values) {
-            if (s.isValidSquare()) {
-                _squareList.add(s);
-            }
-        }
-
     }
 
     private void test1() {
 
-        //        OmegaSquare tempa, tempb;
-        //        final int size = _squareList.size;
-        //        for (int i=0; i<size; i++) {
-        //            for (int j=0; j<size; j++) {
-        //                tempa = _squareList.elements[i];
-        //                tempb = _squareList.elements[j];
-        //            }
-        //        }
+        a_long.getAndIncrement();
 
     }
 
     private void test2() {
 
-        OmegaSquare tempa, tempb;
-        final int size = _squareList.size();
-        for (int i=0; i<size; i++) {
-            for (int j=0; j<size; j++) {
-                tempa = _squareList.get(i);
-                tempb = _squareList.get(j);
-            }
-        }
+        long_a.add(1L);
 
     }
 

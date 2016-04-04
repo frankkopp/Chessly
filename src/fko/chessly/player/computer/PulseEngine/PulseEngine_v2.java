@@ -275,6 +275,14 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     /**
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
+        // empty
+    }
+
+    /**
      * Starts calculation and returns next move.
      *
      * @param board
