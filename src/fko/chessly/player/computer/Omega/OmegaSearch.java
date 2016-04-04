@@ -105,13 +105,11 @@ public class OmegaSearch implements Runnable {
      * if neither remaining time nor time per move is set then we use level only.
      */
     private TimeControlMode _timedControlMode = TimeControlMode.TIME_PER_MOVE;
-    private TimeControlMode _lastTimeControlMode = _timedControlMode;
     private Duration _remainingTime = Duration.ofSeconds(0);
     private Duration _timePerMove = Duration.ofSeconds(5);
     private int _currentEngineLevel = 0;
 
     private boolean _softTimeLimitReached = false;
-    @SuppressWarnings("unused")
     private boolean _hardTimeLimitReached = false;
     TimeKeeper _timer = null;
 
@@ -121,6 +119,8 @@ public class OmegaSearch implements Runnable {
 
     // time control
     Instant _startTime = Instant.now();
+    // remembers the time pondering started after we had a ponderhit
+    Instant _ponderStartTime = Instant.now();
 
     // root move evaluation fields
     OmegaRootMoveList _rootMoves = new OmegaRootMoveList();
@@ -142,6 +142,7 @@ public class OmegaSearch implements Runnable {
     int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
     int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
     int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
+
 
 
 
@@ -344,6 +345,7 @@ public class OmegaSearch implements Runnable {
 
         // remember the start of the search
         _startTime = Instant.now();
+        _ponderStartTime = Instant.now();
 
         // generate all root moves
         OmegaMoveList rootMoves = _omegaMoveGenerator.getLegalMoves(_currentBoard, false);
@@ -414,46 +416,6 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     * @return
-     */
-    private int setupTimeControl() {
-        /*
-         * Setup Time Control
-         */
-
-        // start with depth 1
-        int startIterativeDepth = 1;
-
-        // get latest level from UI;
-        _maxIterativeDepth  = updateSearchDepth();
-
-        // reset time limits
-        _softTimeLimitReached = false;
-        _hardTimeLimitReached = false;
-
-        // no time control or PERFT test
-        if (OmegaConfiguration.PERFT
-                || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
-            // directly start iteration with deepest depth
-            startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
-        }
-        // use remaining time to calculate time for move
-        else if (_timedControlMode == TimeControlMode.PONDERING) {
-            updateSearchDepth();
-        }
-        // use remaining time to calculate time for move
-        else if (_timedControlMode == TimeControlMode.REMAINING_TIME) {
-            calculateTimePerMove();
-            configureTimeControl();
-        }
-        // use time per move as a hard limit
-        else if (_timedControlMode == TimeControlMode.TIME_PER_MOVE) {
-            configureTimeControl();
-        }
-        return startIterativeDepth;
-    }
-
-    /**
      * @param depth
      * @param omegaBoard
      */
@@ -516,9 +478,9 @@ public class OmegaSearch implements Runnable {
             _omegaEngine.printVerboseInfo(String.format("Evaluations in depth %d: %,12d ", depth, boardsCounter));
             _omegaEngine.printVerboseInfo(String.format("Duration: %9s ", Duration.between(iterationStart, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
-                    (_boardsEvaluated*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1L)));
+                    (_boardsEvaluated*1000L)/(Duration.between(_ponderStartTime,Instant.now()).toMillis()+1L)));
             _omegaEngine.printVerboseInfo(String.format("\tNodes/sec: %,10d ",
-                    (_nodesVisited*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1L)));
+                    (_nodesVisited*1000L)/(Duration.between(_ponderStartTime,Instant.now()).toMillis()+1L)));
             _omegaEngine.printVerboseInfo("\tMove: "+OmegaMove.toString(_rootMoves.getMove(0))+" ("+_rootMoves.getValue(0)+")  ");
             _omegaEngine.printVerboseInfo("\tPV: "+_principalVariation[0].toNotationString()+"\n");
         }
@@ -632,6 +594,46 @@ public class OmegaSearch implements Runnable {
         if (_omegaEngine._CONFIGURATION.DO_NULL_EVALUATION) return 0;
         final int value = _omegaEvaluation.evaluate(board);
         return value;
+    }
+
+    /**
+     * @return
+     */
+    private int setupTimeControl() {
+        /*
+         * Setup Time Control
+         */
+
+        // start with depth 1
+        int startIterativeDepth = 1;
+
+        // get latest level from UI;
+        _maxIterativeDepth  = updateSearchDepth();
+
+        // reset time limits
+        _softTimeLimitReached = false;
+        _hardTimeLimitReached = false;
+
+        // no time control or PERFT test
+        if (OmegaConfiguration.PERFT
+                || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
+            // directly start iteration with deepest depth
+            startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
+        }
+        // use remaining time to calculate time for move
+        else if (_timedControlMode == TimeControlMode.PONDERING) {
+            updateSearchDepth();
+        }
+        // use remaining time to calculate time for move
+        else if (_timedControlMode == TimeControlMode.REMAINING_TIME) {
+            calculateTimePerMove();
+            configureTimeControl();
+        }
+        // use time per move as a hard limit
+        else if (_timedControlMode == TimeControlMode.TIME_PER_MOVE) {
+            configureTimeControl();
+        }
+        return startIterativeDepth;
     }
 
     /**
