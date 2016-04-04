@@ -137,12 +137,13 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     public GameMove getNextMove(GameBoard gameBoard) {
         assert gameBoard !=null : "gameBoard must not be null";
 
+        boolean ponderHit = ponderHit(gameBoard);
+
         // have we been pondering
-        if (_CONFIGURATION._USE_PONDERER && ponderHit(gameBoard)) {
+        if (!_CONFIGURATION._USE_PONDERER || OmegaConfiguration.PERFT || !ponderHit) {
+            // or ponder miss
             _omegaSearch.stop();
-        } // or ponder miss
-        else {
-            _omegaSearch.stop();
+            _ponderMove = null;
         }
 
         // convert GameBoard to OmegaBoard
@@ -164,7 +165,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // check for move from opening book
         GameMove bookMove = null;
-        if (_CONFIGURATION._USE_BOOK) {
+        if (_CONFIGURATION._USE_BOOK && !ponderHit) {
             _openingBook.initialize();
             bookMove = _openingBook.getBookMove(gameBoard.toFENString());
             if (bookMove != null) {
@@ -190,9 +191,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         } else
             throw new RuntimeException("Invalid next player color. Was " + _player.getColor());
 
-        // Create Search
-        //_omegaSearch = new OmegaSearch(this);
-
         // if not configured will used default mode
         if (_game.get().isTimedGame()) {
             _omegaSearch.configureRemainingTime(
@@ -206,8 +204,18 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         // the callback to storeResult().
         _waitForMoveLatch = new CountDownLatch(1);
 
-        // do search
-        _omegaSearch.startSearch(omegaBoard);
+        /*
+         * If we have a ponderhit we call _omegaSearch.ponderHit() to reset the
+         * search parameters while the search is running.
+         * If we do not have a ponderhit we start a regular search
+         */
+        if (ponderHit) {
+            printVerboseInfo(String.format("PONDER HIT%n"));
+            _omegaSearch.ponderHit();
+        } else {
+            printVerboseInfo(String.format("PONDER MISS%n"));
+            _omegaSearch.startSearch(omegaBoard);
+        }
 
         // wait for the result to come in from the search
         try { _waitForMoveLatch.await();
@@ -227,7 +235,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating", _player, SIG_ENGINE_FINISHED_CALCULATING));
 
         // pondering
-        if (_CONFIGURATION._USE_PONDERER) {
+        if (_CONFIGURATION._USE_PONDERER && !OmegaConfiguration.PERFT) {
 
             if (_searchResult != null && OmegaMove.isValid(_searchResult.ponderMove)) {
 
@@ -275,6 +283,11 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      * @return
      */
     private boolean ponderHit(GameBoard gameBoard) {
+        GameMove lastMove = gameBoard.getLastMove();
+        if (lastMove != null && lastMove.equals(_ponderMove)) {
+            //System.out.println("PONDERHIT!");
+            return true;
+        }
         return false;
     }
 

@@ -105,6 +105,7 @@ public class OmegaSearch implements Runnable {
      * if neither remaining time nor time per move is set then we use level only.
      */
     private TimeControlMode _timedControlMode = TimeControlMode.TIME_PER_MOVE;
+    private TimeControlMode _lastTimeControlMode = _timedControlMode;
     private Duration _remainingTime = Duration.ofSeconds(0);
     private Duration _timePerMove = Duration.ofSeconds(5);
     private int _currentEngineLevel = 0;
@@ -141,6 +142,8 @@ public class OmegaSearch implements Runnable {
     int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
     int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
     int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
+
+
 
 
     private void resetCounter() {
@@ -209,6 +212,21 @@ public class OmegaSearch implements Runnable {
         _currentEngineLevel = MAX_SEARCH_DEPTH;
         _isConfigured = true;
     }
+
+    /**
+     * Signals the search to continue after a ponder hit.
+     * It is important to configure the search before this call!
+     */
+    public void ponderHit() {
+
+        // remember the start of the search
+        _startTime = Instant.now();
+
+        // setup Time Control
+        setupTimeControl();
+
+    }
+
 
     /**
      * Start the search in a separate thread.<br/>
@@ -352,38 +370,8 @@ public class OmegaSearch implements Runnable {
         // prepare search result
         SearchResult searchResult = new SearchResult();
 
-        // get latest level from UI;
-        _maxIterativeDepth  = updateSearchDepth();
-
-        // start with depth 1
-        int startIterativeDepth = 1;
-
-        /*
-         * Setup Time Control
-         */
-
-        _softTimeLimitReached = false;
-        _hardTimeLimitReached = false;
-
-        // no time control or PERFT test
-        if (OmegaConfiguration.PERFT
-                || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
-            // directly start iteration with deepest depth
-            startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
-        }
-        // use remaining time to calculate time for move
-        else if (_timedControlMode == TimeControlMode.PONDERING) {
-            updateSearchDepth();
-        }
-        // use remaining time to calculate time for move
-        else if (_timedControlMode == TimeControlMode.REMAINING_TIME) {
-            calculateTimePerMove();
-            configureTimeControl();
-        }
-        // use time per move as a hard limit
-        else if (_timedControlMode == TimeControlMode.TIME_PER_MOVE) {
-            configureTimeControl();
-        }
+        // setup Time Control
+        int startIterativeDepth = setupTimeControl();
 
         // ### BEGIN Iterative Deepening
         int depth = startIterativeDepth;
@@ -423,6 +411,46 @@ public class OmegaSearch implements Runnable {
         }
 
         return searchResult;
+    }
+
+    /**
+     * @return
+     */
+    private int setupTimeControl() {
+        /*
+         * Setup Time Control
+         */
+
+        // start with depth 1
+        int startIterativeDepth = 1;
+
+        // get latest level from UI;
+        _maxIterativeDepth  = updateSearchDepth();
+
+        // reset time limits
+        _softTimeLimitReached = false;
+        _hardTimeLimitReached = false;
+
+        // no time control or PERFT test
+        if (OmegaConfiguration.PERFT
+                || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
+            // directly start iteration with deepest depth
+            startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
+        }
+        // use remaining time to calculate time for move
+        else if (_timedControlMode == TimeControlMode.PONDERING) {
+            updateSearchDepth();
+        }
+        // use remaining time to calculate time for move
+        else if (_timedControlMode == TimeControlMode.REMAINING_TIME) {
+            calculateTimePerMove();
+            configureTimeControl();
+        }
+        // use time per move as a hard limit
+        else if (_timedControlMode == TimeControlMode.TIME_PER_MOVE) {
+            configureTimeControl();
+        }
+        return startIterativeDepth;
     }
 
     /**
