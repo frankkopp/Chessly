@@ -109,6 +109,7 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
             if (_playerThread == null) {
                 _playerThread = new Thread(this, "Player: " + _name);
                 _playerThread.setPriority(Thread.MIN_PRIORITY);
+                _playerThread.setDaemon(true);
                 _playerThread.start();
             }
         }

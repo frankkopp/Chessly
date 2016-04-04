@@ -150,6 +150,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
             if (isInitialized() && _gameThread == null) {
                 _gameThread = new Thread(this, "Game");
                 _gameThread.setPriority(Thread.MIN_PRIORITY);
+                _gameThread.setDaemon(true);
                 _gameThread.start();
             } else {
                 throw new IllegalStateException("Start game failed - not initialized or thread already running.");

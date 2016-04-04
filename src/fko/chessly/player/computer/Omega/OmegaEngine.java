@@ -65,7 +65,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
 
     // the search engine itself
-    private OmegaSearch _omegaSearch;
+    private OmegaSearch _omegaSearch = new OmegaSearch(this);
 
     // the search result of the search - null when no result yet
     private SearchResult _searchResult = null;
@@ -80,6 +80,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     // to have a value when the engine is not thinking
     private long _lastUsedTime = 0;
     private long _lastNodesPerSecond = 0;
+
+    // fields used for pondering
+    private GameMove _ponderMove;
 
     /**********************************************************************
      * Engine Interface
@@ -116,9 +119,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         this._player = (ComputerPlayer) player;
         _activeColor = player.getColor();
 
-        // Create Search
-        _omegaSearch = new OmegaSearch(this);
-
         // initialize opening book
         if (_CONFIGURATION._USE_BOOK) {
             Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
@@ -139,8 +139,11 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // have we been pondering
         if (_CONFIGURATION._USE_PONDERER && ponderHit(gameBoard)) {
-            // ponder hit
+            _omegaSearch.stop();
         } // or ponder miss
+        else {
+            _omegaSearch.stop();
+        }
 
         // convert GameBoard to OmegaBoard
         OmegaBoardPosition omegaBoard = new OmegaBoardPosition(gameBoard);
@@ -187,6 +190,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         } else
             throw new RuntimeException("Invalid next player color. Was " + _player.getColor());
 
+        // Create Search
+        //_omegaSearch = new OmegaSearch(this);
+
         // if not configured will used default mode
         if (_game.get().isTimedGame()) {
             _omegaSearch.configureRemainingTime(
@@ -207,6 +213,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         try { _waitForMoveLatch.await();
         } catch (InterruptedException e) { /*empty*/ }
 
+        // stop the search thread and wait until finished
+        _omegaSearch.stop();
+
         // convert result OmegaMove to GameMove
         GameMove bestMove = OmegaMove.convertToGameMove(_searchResult.bestMove);
         if (bestMove!=null) bestMove.setValue(_searchResult.resultValue);
@@ -219,37 +228,52 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // pondering
         if (_CONFIGURATION._USE_PONDERER) {
-            /*
-            if (_searchResult != null && _searchResult.ponderMove != 0) {
-                _ponderMove = Move.toGameMove(_moveResult.ponderMove);
+
+            if (_searchResult != null && OmegaMove.isValid(_searchResult.ponderMove)) {
+
+                _ponderMove = OmegaMove.convertToGameMove(_searchResult.ponderMove);
+
                 _engineState  = ObservableEngine.PONDERING;
                 _statusInfo = "Engine pondering.";
+
                 // ponder search
+                OmegaBoardPosition ponderBoard = new OmegaBoardPosition(omegaBoard);
                 // make best move
-                assert gameBoard.isLegalMove(bestMove);
-                gameBoard.makeMove(bestMove);
+                ponderBoard.makeMove(_searchResult.bestMove);
                 // make ponder move
-                assert gameBoard.isLegalMove(_ponderMove);
-                gameBoard.makeMove(_ponderMove);
-                startPondering();
+                ponderBoard.makeMove(_searchResult.ponderMove);
+
+                // no time control - just depth
+                _omegaSearch.configurePondering();
+
+                // now ponder...
+                _omegaSearch.startSearch(ponderBoard);
+
             } else {
                 _ponderMove = null;
             }
-             */
         }
 
         return bestMove;
+    }
+
+    /**
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
+        _omegaSearch.stop();
     }
 
     /**********************************************************************
      * Omega Engine Methods
      **********************************************************************/
 
+
     /**
      * @param gameBoard
      * @return
      */
-    @SuppressWarnings("static-method")
     private boolean ponderHit(GameBoard gameBoard) {
         return false;
     }
@@ -517,8 +541,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public GameMove getPonderMove() {
-        // TODO Auto-generated method stub
-        return null;
+        return _ponderMove;
     }
 
     @Override
@@ -572,5 +595,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     public static final int SIG_ENGINE_FINISHED_PONDERING = 6030;
     /** */
     public static final int SIG_ENGINE_NO_PONDERING = 6040;
+
 
 }

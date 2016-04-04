@@ -72,7 +72,7 @@ public class OmegaMoveGenerator {
 
     // These fields control the on demand generation of moves.
     private OnDemandState _generationCycleState = OnDemandState.NEW;
-    private enum OnDemandState {
+    static private enum OnDemandState {
         NEW,
         PAWN,
         KNIGHTS,

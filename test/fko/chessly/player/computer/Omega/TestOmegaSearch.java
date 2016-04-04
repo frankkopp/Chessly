@@ -29,6 +29,7 @@ package fko.chessly.player.computer.Omega;
 
 import static org.junit.Assert.*;
 
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -211,6 +212,43 @@ public class TestOmegaSearch {
         while (_omegaSearch.isSearching()) {
             try { Thread.sleep(200);
             } catch (InterruptedException e) {/* */}
+        }
+
+    }
+
+
+    @Test
+    public void testMulitpleStartAndStopSearch() {
+
+        Player _player = createPlayer(GameColor.WHITE);
+
+        OmegaEngine _omegaEngine = new OmegaEngine();
+        _omegaEngine.init(_player);
+
+        OmegaBoardPosition _omegaPosition = new OmegaBoardPosition();
+        OmegaBoardPosition _omegaPosition2 = new OmegaBoardPosition();
+
+        OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
+        OmegaSearch _omegaSearch2 = new OmegaSearch(_omegaEngine);
+
+        // Test start and stop search
+        System.out.println("Start and stop search");
+
+        for(int i=0;i<1000;i++) {
+            System.out.print("Search...");
+            _omegaSearch.configurePondering();
+            _omegaSearch2.configurePondering();
+            _omegaSearch.startSearch(_omegaPosition);
+            _omegaSearch2.startSearch(_omegaPosition);
+            try { Thread.sleep(new Random().nextInt(1000));}
+            catch (InterruptedException e) {/* */}
+
+            // Test stopping during searching
+            _omegaSearch.stop();
+            _omegaSearch2.stop();
+
+            System.out.println(_omegaEngine.getSearchResult());
+            System.out.flush();
         }
 
     }

@@ -41,7 +41,7 @@ public class OmegaMove {
 
     // NOMOVE
     /** */
-    public static final int NOMOVE = -1;
+    public static final int NOMOVE = -99;
     // MASKs
     private static final int SQUARE_bitMASK = 0x7F;
     private static final int PIECE_bitMASK = 0xF;

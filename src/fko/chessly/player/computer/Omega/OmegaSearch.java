@@ -160,7 +160,6 @@ public class OmegaSearch implements Runnable {
      * @param omegaEngine
      */
     public OmegaSearch(OmegaEngine omegaEngine) {
-
         _omegaEngine = omegaEngine;
         _omegaMoveGenerator = new OmegaMoveGenerator();
         _omegaEvaluation = new OmegaEvaluation(_omegaEngine, _omegaMoveGenerator);
@@ -226,7 +225,12 @@ public class OmegaSearch implements Runnable {
      */
     public void startSearch(OmegaBoardPosition omegaBoard) {
         assert omegaBoard != null : "omegaBoard must not be null";
-        _currentBoard = omegaBoard;
+
+        if (_searchThread!=null)
+            throw new IllegalStateException("OmegaSearch already running - can only be started once");
+
+        // make private copy of the board to avoid concurrent access
+        _currentBoard = new OmegaBoardPosition(omegaBoard);
 
         // has OmegaSearch.configure been called?
         if (!_isConfigured) {
@@ -240,7 +244,7 @@ public class OmegaSearch implements Runnable {
         _stopSearch = false;
 
         // create new search thread
-        _searchThread = new Thread(this, "OmegaEngine"+_omegaEngine.getActiveColor().toString());
+        _searchThread = new Thread(this, "OmegaEngine: "+omegaBoard._nextPlayer.toString());
         _searchThread.setDaemon(true);
 
         // start the search thread
@@ -279,6 +283,8 @@ public class OmegaSearch implements Runnable {
     @Override
     public void run() {
 
+        //System.out.print("Run()...");
+
         if (Thread.currentThread() != _searchThread)
             throw new java.lang.UnsupportedOperationException("run() cannot be called directly!");
 
@@ -308,6 +314,8 @@ public class OmegaSearch implements Runnable {
         // reset configuration flag
         _isConfigured = false;
 
+        // System.out.println("...end");
+
     }
 
     /**
@@ -322,7 +330,9 @@ public class OmegaSearch implements Runnable {
         // generate all root moves
         OmegaMoveList rootMoves = _omegaMoveGenerator.getLegalMoves(_currentBoard, false);
 
-        assert !rootMoves.empty() : "no legal root moves - game already ended!";
+        //assert !rootMoves.empty() : "no legal root moves - game already ended!";
+        if (rootMoves.size() == 0)
+            return new SearchResult();
 
         // prepare principal variation lists
         for (int i=0; i< MAX_SEARCH_DEPTH; i++) {
@@ -352,6 +362,9 @@ public class OmegaSearch implements Runnable {
          * Setup Time Control
          */
 
+        _softTimeLimitReached = false;
+        _hardTimeLimitReached = false;
+
         // no time control or PERFT test
         if (OmegaConfiguration.PERFT
                 || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
@@ -375,10 +388,6 @@ public class OmegaSearch implements Runnable {
         // ### BEGIN Iterative Deepening
         int depth = startIterativeDepth;
         do {
-
-            // check if we need to stop search - could be external or time.
-            if (_stopSearch || _softTimeLimitReached) break;
-
             _currentIterationDepth = depth;
 
             // check for game paused
@@ -388,13 +397,8 @@ public class OmegaSearch implements Runnable {
             // do search
             rootMovesSearch(depth);
 
-            // we should have a sorted _rootMoves list here
-            // first move is best move so far
-            // create searchRestult here
-            searchResult.bestMove = _rootMoves.getMove(0);
-            searchResult.resultValue = _rootMoves.getValue(0);
-            searchResult.depth = _currentIterationDepth;
-            searchResult.ponderMove = OmegaMove.NOMOVE; // Not yet implemented
+            // check if we need to stop search - could be external or time.
+            if (_stopSearch || _softTimeLimitReached || _hardTimeLimitReached) break;
 
         } while (++depth <= _maxIterativeDepth);
         // ### ENDOF Iterative Deepening
@@ -402,6 +406,20 @@ public class OmegaSearch implements Runnable {
         if (_timer != null) {
             _timer.stop();
             _timer=null;
+        }
+
+        // we should have a sorted _rootMoves list here
+        // first move is best move so far
+        // create searchRestult here
+        searchResult.bestMove = _rootMoves.getMove(0);
+        searchResult.resultValue = _rootMoves.getValue(0);
+        searchResult.depth = _currentIterationDepth;
+        int p_move;
+        if (_principalVariation[0].size()>1 && (p_move = _principalVariation[0].get(1))!=OmegaMove.NOMOVE) {
+            //System.out.println("We could ponder on: "+OmegaMove.toString(p_move));
+            searchResult.ponderMove = p_move;
+        } else {
+            searchResult.ponderMove = OmegaMove.NOMOVE; // Not yet implemented
         }
 
         return searchResult;
@@ -457,7 +475,7 @@ public class OmegaSearch implements Runnable {
 
             // check if we need to stop search - could be external or time.
             // we should have any best move here
-            if (_stopSearch) break;
+            if (_stopSearch || _hardTimeLimitReached) break;
 
         } // ### Iterate through all available moves
 
@@ -520,7 +538,6 @@ public class OmegaSearch implements Runnable {
         int bestValue = OmegaEvaluation.Value.NOVALUE;
 
         // Generate all PseudoLegalMoves
-
         boolean hadLegaMove = false;
         OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(_currentBoard, false);
 
@@ -556,7 +573,7 @@ public class OmegaSearch implements Runnable {
 
             // check if we need to stop search - could be external or time.
             // we should have any best move here
-            if (_stopSearch) break;
+            if (_stopSearch || _hardTimeLimitReached) break;
 
         }
 
@@ -636,9 +653,6 @@ public class OmegaSearch implements Runnable {
      * FIXME: Bug - TimeKeeper does not Pause when game paused!
      */
     private void configureTimeControl() {
-
-        _softTimeLimitReached = false;
-        _hardTimeLimitReached = false;
 
         long hardLimit = _timePerMove.toMillis();
         long softLimit = (long) (hardLimit * 0.8f);
@@ -768,7 +782,7 @@ public class OmegaSearch implements Runnable {
          */
         public void start() {
             // create new search thread
-            myThread = new Thread(this, "TimeKeeper "+_currentBoard._nextPlayer.toString()+" " + "ApproxTime Soft:" + soft + " Hard:" + hard);
+            myThread = new Thread(this, "TimeKeeper: "+_currentBoard._nextPlayer.toString()+" " + "ApproxTime Soft:" + soft + " Hard:" + hard);
             myThread.setDaemon(true);
             // start the search thread
             myThread.start();
@@ -811,8 +825,6 @@ public class OmegaSearch implements Runnable {
             }
             // signal that hard time limit was reached
             _hardTimeLimitReached = true;
-            // stop the search
-            _stopSearch = true;
 
         }
 
