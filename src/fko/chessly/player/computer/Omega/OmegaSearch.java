@@ -263,7 +263,9 @@ public class OmegaSearch implements Runnable {
         _stopSearch = false;
 
         // create new search thread
-        _searchThread = new Thread(this, "OmegaEngine: "+omegaBoard._nextPlayer.toString());
+        String threadName = "OmegaEngine: "+omegaBoard._nextPlayer.toString();
+        if (_timedControlMode==TimeControlMode.PONDERING) threadName += " (Pondering)";
+        _searchThread = new Thread(this, threadName);
         _searchThread.setDaemon(true);
 
         // start the search thread

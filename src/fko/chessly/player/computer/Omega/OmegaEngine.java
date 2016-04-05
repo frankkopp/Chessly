@@ -516,8 +516,17 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public String getCurConfig() {
-        // TODO Auto-generated method stub
-        return null;
+        String s = "";
+        if (_CONFIGURATION._USE_PONDERER) {
+            s += "P,";
+        }
+        if (_CONFIGURATION._USE_BOOK) {
+            s += "OB,";
+        }
+        if (OmegaConfiguration.PERFT) {
+            s = "PERF TEST";
+        }
+        return s;
     }
 
     /* (non-Javadoc)
