@@ -50,9 +50,9 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: DRAW 50-moves rule / repetition rule / insufficient material
  *      DONE: Basic Time Control
  *      DONE: Engine Watcher
- *      TODO: Pondering
- *      TODO: Transposition Table
+ *      DONE: Pondering
  *      TODO: Evaluation Table
+ *      TODO: Transposition Table
  *      TODO: Quiescence
  *      TODO: Advanced iterative AlphaBeta search
  *      TODO: Advanced Evaluation
@@ -408,7 +408,7 @@ public class OmegaSearch implements Runnable {
         searchResult.depth = _currentIterationDepth;
         int p_move;
         if (_principalVariation[0].size()>1 && (p_move = _principalVariation[0].get(1))!=OmegaMove.NOMOVE) {
-            System.out.println("Best Move: "+OmegaMove.toString(searchResult.bestMove)+" Ponder Move: "+OmegaMove.toString(p_move)+" ("+_principalVariation[0].toNotationString()+")");
+            //System.out.println("Best Move: "+OmegaMove.toString(searchResult.bestMove)+" Ponder Move: "+OmegaMove.toString(p_move)+" ("+_principalVariation[0].toNotationString()+")");
             searchResult.ponderMove = p_move;
         } else {
             searchResult.ponderMove = OmegaMove.NOMOVE;
@@ -458,14 +458,7 @@ public class OmegaSearch implements Runnable {
                 _currentBestRootValue = value;
                 _currentBestRootMove = move;
                 OmegaMoveList.savePV(move,  _principalVariation[rootply+1], _principalVariation[rootply]);
-                if (_rootMoves.getMove(i) != _principalVariation[0].get(0)) {
-                    System.out.println("HAEH1?");
-                }
             }
-            if (_currentBestRootMove != _principalVariation[0].get(0)) {
-                System.out.println("HAEH2?");
-            }
-
 
             _currentBoard.undoMove();
             printCurrentVariation(i, 0, _rootMoves.size(), value);
@@ -478,13 +471,10 @@ public class OmegaSearch implements Runnable {
 
         } // ### Iterate through all available moves
 
-        // sort root moves - best first
+        // sort root moves - higher values first
+        // best move is not necessarily at index 0
+        // best move is in _currentBestMove or _principalVariation[0].get(0)
         _rootMoves.sort();
-
-
-        if (_rootMoves.getMove(0) != _principalVariation[0].get(0)) {
-            System.out.println("HAEH3?");
-        }
 
         boardsCounter += _boardsEvaluated;
 

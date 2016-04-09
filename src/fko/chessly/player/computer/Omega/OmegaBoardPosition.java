@@ -240,58 +240,6 @@ public class OmegaBoardPosition {
      */
     public OmegaBoardPosition(GameBoard oldBoard) {
         this(oldBoard.toFENString());
-        //        if (oldBoard == null)
-        //            throw new NullPointerException("Parameter oldBoard may not be null");
-        //
-        //        initializeLists();
-        //
-        //        // fill board with NOPIECE
-        //        Arrays.fill(_x88Board,  OmegaPiece.NOPIECE);
-        //
-        //        // -- fields --
-        //        for (int file = 1; file <= 8; file++) {
-        //            for (int rank = 1; rank <= 8; rank++) {
-        //                // we can't do an arraycopy here as we do not know the
-        //                // Implementation of the old board
-        //                GamePiece gp = oldBoard.getPiece(file, rank) == null ? null : oldBoard.getPiece(file, rank);
-        //                OmegaPiece op = OmegaPiece.convertFromGamePiece(gp);
-        //                if (op != OmegaPiece.NOPIECE) putPiece(OmegaSquare.getSquare(file, rank), op);
-        //            }
-        //        }
-        //
-        //        // next player
-        //        this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
-        //        if (_nextPlayer == OmegaColor.BLACK) {
-        //            _zobristKey ^= _nextPlayer_Zobrist; // only when black to have the right in/out rhythm
-        //        }
-        //        this._halfMoveClock = oldBoard.getHalfmoveClock();
-        //        this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
-        //
-        //        // -- copy castling flags
-        //        _castlingWK = _castlingWQ = _castlingBK = _castlingBQ = false;
-        //        if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
-        //            _castlingWK=true;
-        //            _zobristKey ^= _castlingWK_Zobrist;
-        //        }
-        //        if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
-        //            _castlingWQ=true;
-        //            _zobristKey ^= _castlingWQ_Zobrist;
-        //        }
-        //        if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
-        //            _castlingBK=true;
-        //            _zobristKey ^= _castlingBK_Zobrist;
-        //        }
-        //        if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
-        //            _castlingBQ=true;
-        //            _zobristKey ^= _castlingBQ_Zobrist;
-        //        }
-        //
-        //        // en passant
-        //        this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
-        //        if (_enPassantSquare!=OmegaSquare.NOSQUARE) {
-        //            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // in
-        //        }
-        //
     }
 
     /**
@@ -715,8 +663,11 @@ public class OmegaBoardPosition {
         assert fromSquare.isValidSquare();
         assert toSquare.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
-        assert _x88Board[fromSquare.ordinal()] == piece; // check if moved piece is indeed there
-        assert _x88Board[toSquare.ordinal()] == OmegaPiece.NOPIECE; // should be empty
+        //assert
+        if (_x88Board[fromSquare.ordinal()] != piece) // check if moved piece is indeed there
+            System.err.println("piece to move not there");
+        if (_x88Board[toSquare.ordinal()] != OmegaPiece.NOPIECE) // // should be empty
+            System.err.println("piece to move not there");
         // due to performance we do not call remove and put
         // no need to update counters when moving
         // remove

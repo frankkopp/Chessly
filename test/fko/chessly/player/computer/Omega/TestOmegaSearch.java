@@ -234,7 +234,7 @@ public class TestOmegaSearch {
         // Test start and stop search
         System.out.println("Start and stop search");
 
-        for(int i=0;i<1000;i++) {
+        for(int i=0;i<100;i++) {
             System.out.print("Search...");
             _omegaSearch.configurePondering();
             _omegaSearch2.configurePondering();
