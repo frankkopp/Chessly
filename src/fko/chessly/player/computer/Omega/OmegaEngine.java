@@ -210,10 +210,10 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
          * If we do not have a ponderhit we start a regular search
          */
         if (ponderHit) {
-            printVerboseInfo(String.format("PONDER HIT%n"));
+            //printVerboseInfo(String.format("PONDER HIT%n"));
             _omegaSearch.ponderHit();
         } else {
-            printVerboseInfo(String.format("PONDER MISS%n"));
+            //printVerboseInfo(String.format("PONDER MISS%n"));
             _omegaSearch.startSearch(omegaBoard);
         }
 
@@ -285,7 +285,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     private boolean ponderHit(GameBoard gameBoard) {
         GameMove lastMove = gameBoard.getLastMove();
         if (lastMove != null && lastMove.equals(_ponderMove)) {
-            //System.out.println("PONDERHIT!");
             return true;
         }
         return false;

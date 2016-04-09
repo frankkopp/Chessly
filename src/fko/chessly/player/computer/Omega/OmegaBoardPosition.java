@@ -199,14 +199,24 @@ public class OmegaBoardPosition {
         System.arraycopy(op._x88Board, 0, this._x88Board, 0, op._x88Board.length);
 
         this._castlingWK = op._castlingWK;
+        System.arraycopy(op._castlingWK_history, 0, _castlingWK_history, 0, _castlingWK_history.length);
         this._castlingWQ = op._castlingWQ;
+        System.arraycopy(op._castlingWQ_history, 0, _castlingWQ_history, 0, _castlingWQ_history.length);
         this._castlingBK = op._castlingBK;
+        System.arraycopy(op._castlingBK_history, 0, _castlingBK_history, 0, _castlingBK_history.length);
         this._castlingBQ = op._castlingBQ;
+        System.arraycopy(op._castlingBQ_history, 0, _castlingBQ_history, 0, _castlingBQ_history.length);
         this._enPassantSquare = op._enPassantSquare;
+        System.arraycopy(op._enPassantSquare_History, 0, _enPassantSquare_History, 0, _enPassantSquare_History.length);
         this._halfMoveClock = op._halfMoveClock;
+        System.arraycopy(op._halfMoveClock_History, 0, _halfMoveClock_History, 0, _halfMoveClock_History.length);
         this._nextHalfMoveNumber = op._nextHalfMoveNumber;
         this._nextPlayer = op._nextPlayer;
         this._zobristKey = op._zobristKey;
+        System.arraycopy(op._zobristKey_History, 0, _zobristKey_History, 0, _zobristKey_History.length);
+
+        System.arraycopy(op._hasCheckFlag_History, 0, _hasCheckFlag_History, 0, _hasCheckFlag_History.length);
+        System.arraycopy(op._hasMateFlag_History, 0, _hasMateFlag_History, 0, _hasMateFlag_History.length);
 
         initializeLists();
         // copy piece lists
@@ -229,58 +239,59 @@ public class OmegaBoardPosition {
      * @param oldBoard
      */
     public OmegaBoardPosition(GameBoard oldBoard) {
-        if (oldBoard == null)
-            throw new NullPointerException("Parameter oldBoard may not be null");
-
-        initializeLists();
-
-        // fill board with NOPIECE
-        Arrays.fill(_x88Board,  OmegaPiece.NOPIECE);
-
-        // -- fields --
-        for (int file = 1; file <= 8; file++) {
-            for (int rank = 1; rank <= 8; rank++) {
-                // we can't do an arraycopy here as we do not know the
-                // Implementation of the old board
-                GamePiece gp = oldBoard.getPiece(file, rank) == null ? null : oldBoard.getPiece(file, rank);
-                OmegaPiece op = OmegaPiece.convertFromGamePiece(gp);
-                if (op != OmegaPiece.NOPIECE) putPiece(OmegaSquare.getSquare(file, rank), op);
-            }
-        }
-
-        // next player
-        this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
-        if (_nextPlayer == OmegaColor.BLACK) {
-            _zobristKey ^= _nextPlayer_Zobrist; // only when black to have the right in/out rhythm
-        }
-        this._halfMoveClock = oldBoard.getHalfmoveClock();
-        this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
-
-        // -- copy castling flags
-        _castlingWK = _castlingWQ = _castlingBK = _castlingBQ = false;
-        if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
-            _castlingWK=true;
-            _zobristKey ^= _castlingWK_Zobrist;
-        }
-        if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
-            _castlingWQ=true;
-            _zobristKey ^= _castlingWQ_Zobrist;
-        }
-        if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
-            _castlingBK=true;
-            _zobristKey ^= _castlingBK_Zobrist;
-        }
-        if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
-            _castlingBQ=true;
-            _zobristKey ^= _castlingBQ_Zobrist;
-        }
-
-        // en passant
-        this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
-        if (_enPassantSquare!=OmegaSquare.NOSQUARE) {
-            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // in
-        }
-
+        this(oldBoard.toFENString());
+        //        if (oldBoard == null)
+        //            throw new NullPointerException("Parameter oldBoard may not be null");
+        //
+        //        initializeLists();
+        //
+        //        // fill board with NOPIECE
+        //        Arrays.fill(_x88Board,  OmegaPiece.NOPIECE);
+        //
+        //        // -- fields --
+        //        for (int file = 1; file <= 8; file++) {
+        //            for (int rank = 1; rank <= 8; rank++) {
+        //                // we can't do an arraycopy here as we do not know the
+        //                // Implementation of the old board
+        //                GamePiece gp = oldBoard.getPiece(file, rank) == null ? null : oldBoard.getPiece(file, rank);
+        //                OmegaPiece op = OmegaPiece.convertFromGamePiece(gp);
+        //                if (op != OmegaPiece.NOPIECE) putPiece(OmegaSquare.getSquare(file, rank), op);
+        //            }
+        //        }
+        //
+        //        // next player
+        //        this._nextPlayer = OmegaColor.convertFromGameColor(oldBoard.getNextPlayerColor());
+        //        if (_nextPlayer == OmegaColor.BLACK) {
+        //            _zobristKey ^= _nextPlayer_Zobrist; // only when black to have the right in/out rhythm
+        //        }
+        //        this._halfMoveClock = oldBoard.getHalfmoveClock();
+        //        this._nextHalfMoveNumber = oldBoard.getNextHalfMoveNumber();
+        //
+        //        // -- copy castling flags
+        //        _castlingWK = _castlingWQ = _castlingBK = _castlingBQ = false;
+        //        if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
+        //            _castlingWK=true;
+        //            _zobristKey ^= _castlingWK_Zobrist;
+        //        }
+        //        if (oldBoard.isCastlingQueenSideAllowed(GameColor.WHITE)) {
+        //            _castlingWQ=true;
+        //            _zobristKey ^= _castlingWQ_Zobrist;
+        //        }
+        //        if (oldBoard.isCastlingKingSideAllowed(GameColor.BLACK)) {
+        //            _castlingBK=true;
+        //            _zobristKey ^= _castlingBK_Zobrist;
+        //        }
+        //        if (oldBoard.isCastlingQueenSideAllowed(GameColor.BLACK)) {
+        //            _castlingBQ=true;
+        //            _zobristKey ^= _castlingBQ_Zobrist;
+        //        }
+        //
+        //        // en passant
+        //        this._enPassantSquare = OmegaSquare.convertFromGamePosition(oldBoard.getEnPassantCapturable());
+        //        if (_enPassantSquare!=OmegaSquare.NOSQUARE) {
+        //            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // in
+        //        }
+        //
     }
 
     /**
@@ -541,7 +552,6 @@ public class OmegaBoardPosition {
     private void makeCastlingMove(OmegaSquare fromSquare, OmegaSquare toSquare, OmegaPiece piece) {
         assert piece.getType()==OmegaPieceType.KING;
 
-        // update castling rights
         OmegaPiece  rook = OmegaPiece.NOPIECE;
         OmegaSquare rookFromSquare = OmegaSquare.NOSQUARE;
         OmegaSquare rookToSquare = OmegaSquare.NOSQUARE;
@@ -574,7 +584,6 @@ public class OmegaBoardPosition {
             default:
                 throw new IllegalArgumentException("Castling to wrong square "+toSquare.toString());
         }
-        //_zobristKey ^= _castlingRights_Zobrist[OmegaCastling.getCombinationIndex(_castlingRights)]; // in
         // King
         movePiece(fromSquare, toSquare, piece);
         // Rook

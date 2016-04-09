@@ -78,7 +78,6 @@ public class OmegaMoveList extends SimpleIntList {
      */
     @Override
     public void sort(Comparator<Integer> comparator) {
-        //super.sort(comparator);
         int temp;
         for (int i = _head + 1; i < _tail; i++) {
             for (int j = i; j > _head; j--) {
@@ -140,7 +139,7 @@ public class OmegaMoveList extends SimpleIntList {
      * @param dest
      */
     static void savePV(int move, OmegaMoveList src, OmegaMoveList dest) {
-        dest._list[dest._head] = move;
+        dest._list[0] = move;
         System.arraycopy(src._list, src._head, dest._list, 1, src.size());
         dest._tail = src.size() + 1;
     }

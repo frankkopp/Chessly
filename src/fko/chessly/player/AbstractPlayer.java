@@ -126,6 +126,7 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
             }
         }
         _playerStatus.setStatus(Player.STOPPED);
+        joinPlayerThread();
     }
 
     /**
@@ -203,13 +204,13 @@ public abstract class AbstractPlayer extends ModelObservable implements Player, 
             e.printStackTrace(System.out);
             throw new RuntimeException(e);
 
-        } finally {
-            _playerThread = null;
-            // -- tell the views that model has changed --
-            // -- the player thread is actually ended now --
-            setChanged();
-            notifyObservers(new PlayerDependendModelEvent("PLAYER "+_color+ " Thread finished", this, SIG_PLAYER_THREAD_FINISHED));
         }
+        _playerThread = null;
+        // -- tell the views that model has changed --
+        // -- the player thread is actually ended now --
+        setChanged();
+        notifyObservers(new PlayerDependendModelEvent("PLAYER "+_color+ " Thread finished", this, SIG_PLAYER_THREAD_FINISHED));
+
 
     }
 
