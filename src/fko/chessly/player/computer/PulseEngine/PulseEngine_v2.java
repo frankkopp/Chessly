@@ -1598,7 +1598,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public int getCurBoardsInCache() {
+    public int getCurrentBoardsInCache() {
         return _cacheEnabled && _config._USE_BOARD_CACHE ? _evaluationTable.getNumberOfEntries() : 0;
     }
 

@@ -466,12 +466,27 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     }
 
     /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentBoardCacheSize()
+     */
+    @Override
+    public int getCurrentBoardCacheSize() {
+        return _omegaSearch._evalCache.getMaxEntries();
+    }
+
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
+     */
+    @Override
+    public int getCurrentBoardsInCache() {
+        return _omegaSearch._evalCache.getNumberOfEntries();
+    }
+
+    /* (non-Javadoc)
      * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheHits()
      */
     @Override
     public long getBoardCacheHits() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._evalCache_Hits;
     }
 
     /* (non-Javadoc)
@@ -479,26 +494,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public long getBoardCacheMisses() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getCurrentBoardCacheSize()
-     */
-    @Override
-    public int getCurrentBoardCacheSize() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
-     */
-    @Override
-    public int getCurBoardsInCache() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._evalCache_Misses;
     }
 
     /* (non-Javadoc)

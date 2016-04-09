@@ -540,10 +540,10 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     }
 
     /**
-     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentBoardsInCache()
      */
     @Override
-    public int getCurBoardsInCache() {
+    public int getCurrentBoardsInCache() {
         return _search.getCurBoardsInCache();
     }
 

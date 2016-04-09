@@ -59,6 +59,12 @@ public class OmegaConfiguration {
     /** null evaluation **/
     boolean DO_NULL_EVALUATION = false;
 
+    /** Use Transposition Tables for visited nodes */
+    boolean _USE_NODE_CACHE = true;
+
+    /** Use Cache for Board evaluations - very expensive, only worth with expensive eval */
+    boolean _USE_BOARD_CACHE = true;
+
     /** test the search without any pruning and count perft value **/
     static public final boolean PERFT = false;
 
@@ -71,5 +77,6 @@ public class OmegaConfiguration {
     /** default opening book value */
     //public Mode _OB_Mode = Mode.PGN;
     Mode _OB_Mode = Mode.SAN;
+
 
 }

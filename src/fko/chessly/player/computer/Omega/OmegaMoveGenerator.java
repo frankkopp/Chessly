@@ -335,7 +335,7 @@ public class OmegaMoveGenerator {
         _cachedPseudoLegalMoveList = _pseudoLegalMoves;
         _cachedPseudoLegalMoveListValid = true;
 
-        // return a clone of the list as we will continue to use the list as a static list
+        // return a clone of the list as we will continue to reuse
         return _pseudoLegalMoves.clone();
     }
 

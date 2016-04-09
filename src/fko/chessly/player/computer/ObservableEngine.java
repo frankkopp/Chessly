@@ -148,7 +148,7 @@ public interface ObservableEngine extends Engine {
      * return the current number of boards in cache
      * @return int
      */
-    int getCurBoardsInCache();
+    int getCurrentBoardsInCache();
 
     /**
      * Returns the configured number of threads to use
