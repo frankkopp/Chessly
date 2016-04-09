@@ -28,8 +28,11 @@
 package fko.chessly.player.computer.Omega;
 
 /**
- * @author Frank
- *
+ * A cache for board evaluation values to reduce evaluation calculation during
+ * search. Implementation uses a simple array of an Entry class. The array indexes
+ * are calculated by using the modulo of the max number of entries from the key.
+ * <code>entries[key%maxNumberOfEntries]</code>. As long as key is randomly distributed
+ * this works just fine.
  */
 public class OmegaEvaluationCache {
 
@@ -42,8 +45,6 @@ public class OmegaEvaluationCache {
     private long _numberOfCollisions = 0L;
 
     private final Entry[] entries;
-
-
 
     /**
      * Creates a hash table with a approximated number of entries calculated by

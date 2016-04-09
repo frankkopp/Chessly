@@ -27,12 +27,15 @@
 
 package fko.chessly.player.computer.Omega;
 
+import static java.lang.Integer.parseInt;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.util.ChesslyLogger;
 
@@ -51,7 +54,7 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: Basic Time Control
  *      DONE: Engine Watcher
  *      DONE: Pondering
- *      TODO: Evaluation Table
+ *      DONE: Evaluation Table
  *      TODO: Transposition Table
  *      TODO: Quiescence
  *      TODO: Advanced iterative AlphaBeta search
@@ -142,11 +145,8 @@ public class OmegaSearch implements Runnable {
     int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
     int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
     int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
-
-
-
-
-
+    long _evalCache_Hits = 0;
+    long _evalCache_Misses = 0;
     private void resetCounter() {
         _currentIterationDepth = 0;
         _currentSearchDepth = 0;
@@ -155,7 +155,17 @@ public class OmegaSearch implements Runnable {
         _currentRootMoveNumber = 0;
         _nodesVisited = 0;
         _boardsEvaluated = 0;
+        _evalCache_Hits = 0;
+        _evalCache_Misses = 0;
+
     }
+
+    /*
+     * Caches
+     */
+    Boolean _cacheEnabled;
+    OmegaEvaluationCache _evalCache;
+
 
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
@@ -168,6 +178,12 @@ public class OmegaSearch implements Runnable {
         _omegaMoveGenerator = new OmegaMoveGenerator();
         _omegaEvaluation = new OmegaEvaluation(_omegaEngine, _omegaMoveGenerator);
         _log.setLevel(Level.ALL);
+
+        // cache setup
+        _cacheEnabled = Boolean.valueOf(Chessly.getProperties().getProperty("engine.cacheEnabled"));
+        if (_cacheEnabled) {
+            initializeCacheTables(); // create a cache
+        }
     }
 
     /**
@@ -596,7 +612,19 @@ public class OmegaSearch implements Runnable {
         // count all leaf nodes evaluated
         _boardsEvaluated++;
         if (_omegaEngine._CONFIGURATION.DO_NULL_EVALUATION) return 0;
+        if (OmegaConfiguration.PERFT) return 1;
+        if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
+            final int value = _evalCache.get(board.getZobristKey());
+            if (value > Integer.MIN_VALUE) {
+                _evalCache_Hits++;
+                return value;
+            }
+            _evalCache_Misses++;
+        }
         final int value = _omegaEvaluation.evaluate(board);
+        if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
+            _evalCache.put(board.getZobristKey(), value);
+        }
         return value;
     }
 
@@ -747,6 +775,20 @@ public class OmegaSearch implements Runnable {
      */
     public boolean isSearching() {
         return (_searchThread != null && _searchThread.isAlive());
+    }
+
+    /**
+     * Initialize the transposition table so that we do not need to create
+     * new objects in the recursion.
+     */
+    private void initializeCacheTables() {
+        if (_omegaEngine._CONFIGURATION._USE_NODE_CACHE) {
+            //_transpositionTable = new TranspositionTable(numberOfEntries);
+        }
+        if (_omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
+            _evalCache = new OmegaEvaluationCache(parseInt(Chessly.getProperties().getProperty("engine.boardsCacheSize", "2")));
+        }
+        System.gc();
     }
 
     /**
