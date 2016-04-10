@@ -34,12 +34,12 @@ package fko.chessly.player.computer.Omega;
  * <code>entries[key%maxNumberOfEntries]</code>. As long as key is randomly distributed
  * this works just fine.
  */
-public class OmegaEvaluationCache {
+public class OmegaTranspositionTable {
 
     static private final int MB = 1024;
 
     private int _size;
-    private int _max_entries;
+    private final int _max_entries;
 
     private int _numberOfEntries = 0;
     private long _numberOfCollisions = 0L;
@@ -52,7 +52,7 @@ public class OmegaEvaluationCache {
      * The hash function is very simple using the modulo of number of entries on the key
      * @param size in MB (1024^2)
      */
-    public OmegaEvaluationCache(int size) {
+    public OmegaTranspositionTable(int size) {
         _size = size;
 
         // check mem - add some head room
@@ -74,10 +74,13 @@ public class OmegaEvaluationCache {
     }
 
     /**
+     * Stores the node value and the depth it has been calculated at.
+     *
      * @param key
      * @param value
+     * @param depth
      */
-    public void put(long key, int value) {
+    public void put(long key, int value, int depth) {
         final int hash = getHash(key);
         if (entries[hash].key == 0) { // new value
             _numberOfEntries++;
@@ -86,15 +89,21 @@ public class OmegaEvaluationCache {
         }
         entries[hash].key = key;
         entries[hash].value = value;
+        entries[hash].depth = depth;
     }
 
     /**
+     * This retrieves the cached value of this node from cache if the
+     * cached value has been calculated at a depth equal or deeper as the
+     * depth value provided.
+     *
      * @param key
+     * @param depth after this node
      * @return value for key or <tt>Integer.MIN_VALUE</tt> if not found
      */
-    public int get(long key) {
+    public int get(long key, int depth) {
         final int hash = getHash(key);
-        if (entries[hash].key == key) { // hash hit
+        if (entries[hash].key == key && entries[hash].depth >= depth ) { // hash hit
             return entries[hash].value;
         }
         // cache miss or collision
@@ -112,8 +121,9 @@ public class OmegaEvaluationCache {
     public void clear() {
         // initialize
         for (int i=0; i<_max_entries; i++) {
-            entries[i].key = 0;
+            entries[i].key = 0L;
             entries[i].value = Integer.MIN_VALUE;
+            entries[i].depth = 0;
         }
         _numberOfEntries = 0;
         _numberOfCollisions = 0;
@@ -148,9 +158,10 @@ public class OmegaEvaluationCache {
     }
 
     private static final class Entry {
-        static final int SIZE = (Long.BYTES+Integer.BYTES) *2;
+        static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES) *2;
         long key   = 0L;
         int  value = Integer.MIN_VALUE;
+        int  depth = 0;
     }
 
 

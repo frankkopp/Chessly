@@ -147,6 +147,8 @@ public class OmegaSearch implements Runnable {
     int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
     long _evalCache_Hits = 0;
     long _evalCache_Misses = 0;
+    long _nodeCache_Hits = 0;
+    long _nodeCache_Misses = 0;
     private void resetCounter() {
         _currentIterationDepth = 0;
         _currentSearchDepth = 0;
@@ -157,7 +159,8 @@ public class OmegaSearch implements Runnable {
         _boardsEvaluated = 0;
         _evalCache_Hits = 0;
         _evalCache_Misses = 0;
-
+        _nodeCache_Hits = 0;
+        _nodeCache_Misses = 0;
     }
 
     /*
@@ -165,7 +168,7 @@ public class OmegaSearch implements Runnable {
      */
     Boolean _cacheEnabled;
     OmegaEvaluationCache _evalCache;
-
+    OmegaTranspositionTable _transpositionTable;
 
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
@@ -543,6 +546,19 @@ public class OmegaSearch implements Runnable {
         // clear principal Variation for this depth
         _principalVariation[ply].clear();
 
+        // TT Lookup
+        if (_cacheEnabled
+                && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
+                && !OmegaConfiguration.PERFT) {
+
+            final int v = _transpositionTable.get(_currentBoard._zobristKey, depthLeft);
+            if (v > Integer.MIN_VALUE) { // TT Hit
+                _nodeCache_Hits++;
+                return v;
+            }
+            _nodeCache_Misses++;
+        }
+
         // Initialize
         int bestMove = OmegaMove.NOMOVE;
         int bestValue = OmegaEvaluation.Value.NOVALUE;
@@ -596,6 +612,13 @@ public class OmegaSearch implements Runnable {
                 // We have a stale mate. Return the draw value.
                 bestValue = OmegaEvaluation.Value.DRAW;
             }
+        }
+
+        // TT Store
+        if (_cacheEnabled
+                && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
+                && !OmegaConfiguration.PERFT) {
+            _transpositionTable.put(_currentBoard._zobristKey, bestValue, depthLeft);
         }
 
         return bestValue;
@@ -783,10 +806,12 @@ public class OmegaSearch implements Runnable {
      */
     private void initializeCacheTables() {
         if (_omegaEngine._CONFIGURATION._USE_NODE_CACHE) {
-            //_transpositionTable = new TranspositionTable(numberOfEntries);
+            _transpositionTable = new OmegaTranspositionTable(
+                    parseInt(Chessly.getProperties().getProperty("engine.nodesCacheSize", "2")));
         }
         if (_omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
-            _evalCache = new OmegaEvaluationCache(parseInt(Chessly.getProperties().getProperty("engine.boardsCacheSize", "2")));
+            _evalCache = new OmegaEvaluationCache(
+                    parseInt(Chessly.getProperties().getProperty("engine.boardsCacheSize", "2")));
         }
         System.gc();
     }

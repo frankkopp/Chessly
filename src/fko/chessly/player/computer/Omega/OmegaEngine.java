@@ -429,43 +429,39 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return 0;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getNodeCacheHits()
      */
     @Override
     public long getNodeCacheHits() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._nodeCache_Hits;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getNodeCacheMisses()
      */
     @Override
     public long getNodeCacheMisses() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._nodeCache_Misses;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentNodeCacheSize()
      */
     @Override
     public int getCurrentNodeCacheSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._transpositionTable.getMaxEntries();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentNodesInCache()
      */
     @Override
     public int getCurrentNodesInCache() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._transpositionTable.getNumberOfEntries();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentBoardCacheSize()
      */
     @Override
@@ -473,15 +469,15 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return _omegaSearch._evalCache.getMaxEntries();
     }
 
-    /* (non-Javadoc)
-     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
+    /**
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentBoardsInCache()
      */
     @Override
     public int getCurrentBoardsInCache() {
         return _omegaSearch._evalCache.getNumberOfEntries();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheHits()
      */
     @Override
@@ -489,7 +485,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return _omegaSearch._evalCache_Hits;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getBoardCacheMisses()
      */
     @Override
@@ -497,7 +493,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return _omegaSearch._evalCache_Misses;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentNumberOfThreads()
      */
     @Override
@@ -506,7 +502,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return 0;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurConfig()
      */
     @Override
@@ -518,13 +514,19 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION._USE_BOOK) {
             s += "OB,";
         }
+        if (_CONFIGURATION._USE_NODE_CACHE) {
+            s += "NC,";
+        }
+        if (_CONFIGURATION._USE_BOARD_CACHE) {
+            s += "BC,";
+        }
         if (OmegaConfiguration.PERFT) {
             s = "PERF TEST";
         }
         return s;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getCurrentPV()
      */
     @Override
@@ -553,7 +555,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return _engineState;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getPonderMove()
      */
     @Override
