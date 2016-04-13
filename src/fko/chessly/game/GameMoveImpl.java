@@ -483,6 +483,8 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
             }
         } else if (!_toField.equals(other._toField)) {
             return false;
+        } else if (!_promotedTo.equals(other._promotedTo)) {
+            return false;
         }
         return true;
     }
