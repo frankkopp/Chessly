@@ -148,6 +148,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // convert GameBoard to OmegaBoard
         OmegaBoardPosition omegaBoard = new OmegaBoardPosition(gameBoard);
+        assert(gameBoard.toFENString().equals(omegaBoard.toFENString()));
 
         // tell the ui and the observers out state
         _engineState  = ObservableEngine.THINKING;
@@ -450,6 +451,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentNodeCacheSize() {
+        if (_omegaSearch._transpositionTable == null) return 0;
         return _omegaSearch._transpositionTable.getMaxEntries();
     }
 
@@ -458,6 +460,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentNodesInCache() {
+        if (_omegaSearch._transpositionTable == null) return 0;
         return _omegaSearch._transpositionTable.getNumberOfEntries();
     }
 
@@ -466,6 +469,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentBoardCacheSize() {
+        if (_omegaSearch._evalCache == null) return 0;
         return _omegaSearch._evalCache.getMaxEntries();
     }
 
@@ -474,6 +478,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentBoardsInCache() {
+        if (_omegaSearch._evalCache == null) return 0;
         return _omegaSearch._evalCache.getNumberOfEntries();
     }
 

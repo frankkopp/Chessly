@@ -31,8 +31,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 import fko.chessly.game.GameBoard;
-import fko.chessly.game.GameColor;
-import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePosition;
 import fko.chessly.player.computer.Omega.OmegaSquare.File;
 
@@ -73,8 +71,6 @@ public class OmegaBoardPosition {
     //
     // 0x88 Board
     OmegaPiece[] _x88Board = new OmegaPiece[BOARDSIZE];
-    // we can recreate the board through the last move - no need for history of board itself
-    int[] _moveHistory = new int[MAX_HISTORY];
     // hash for pieces - piece, board
     static final long[][] _piece_Zobrist = new long[OmegaPiece.values.length][OmegaSquare.values.length];
 
@@ -114,7 +110,10 @@ public class OmegaBoardPosition {
     // **********************************************************
     // Extended Board State ----------------------------------
     // not necessary for a unique position
-    //
+
+    // we can recreate the board through the last move - no need for history of board itself
+    int[] _moveHistory = new int[MAX_HISTORY];
+
     // half move number - the actual half move number to determine the full move number
     int _nextHalfMoveNumber = 1;
 
@@ -196,29 +195,42 @@ public class OmegaBoardPosition {
         if (op == null)
             throw new NullPointerException("Parameter op may not be null");
 
+        // x88 board
         System.arraycopy(op._x88Board, 0, this._x88Board, 0, op._x88Board.length);
 
-        this._castlingWK = op._castlingWK;
-        System.arraycopy(op._castlingWK_history, 0, _castlingWK_history, 0, _castlingWK_history.length);
-        this._castlingWQ = op._castlingWQ;
-        System.arraycopy(op._castlingWQ_history, 0, _castlingWQ_history, 0, _castlingWQ_history.length);
-        this._castlingBK = op._castlingBK;
-        System.arraycopy(op._castlingBK_history, 0, _castlingBK_history, 0, _castlingBK_history.length);
-        this._castlingBQ = op._castlingBQ;
-        System.arraycopy(op._castlingBQ_history, 0, _castlingBQ_history, 0, _castlingBQ_history.length);
-        this._enPassantSquare = op._enPassantSquare;
-        System.arraycopy(op._enPassantSquare_History, 0, _enPassantSquare_History, 0, _enPassantSquare_History.length);
-        this._halfMoveClock = op._halfMoveClock;
-        System.arraycopy(op._halfMoveClock_History, 0, _halfMoveClock_History, 0, _halfMoveClock_History.length);
+        // game state
         this._nextHalfMoveNumber = op._nextHalfMoveNumber;
         this._nextPlayer = op._nextPlayer;
         this._zobristKey = op._zobristKey;
+
+        this._castlingWK = op._castlingWK;
+        this._castlingWQ = op._castlingWQ;
+        this._castlingBK = op._castlingBK;
+        this._castlingBQ = op._castlingBQ;
+        this._enPassantSquare = op._enPassantSquare;
+        this._halfMoveClock = op._halfMoveClock;
+
+        this._hasCheck = op._hasCheck;
+        this._hasMate = op._hasMate;
+
+        // history
+        this._historyCounter = op._historyCounter;
         System.arraycopy(op._zobristKey_History, 0, _zobristKey_History, 0, _zobristKey_History.length);
+
+        System.arraycopy(op._castlingWK_history, 0, _castlingWK_history, 0, _castlingWK_history.length);
+        System.arraycopy(op._castlingWQ_history, 0, _castlingWQ_history, 0, _castlingWQ_history.length);
+        System.arraycopy(op._castlingBK_history, 0, _castlingBK_history, 0, _castlingBK_history.length);
+        System.arraycopy(op._castlingBQ_history, 0, _castlingBQ_history, 0, _castlingBQ_history.length);
+        System.arraycopy(op._enPassantSquare_History, 0, _enPassantSquare_History, 0, _enPassantSquare_History.length);
+        System.arraycopy(op._halfMoveClock_History, 0, _halfMoveClock_History, 0, _halfMoveClock_History.length);
 
         System.arraycopy(op._hasCheckFlag_History, 0, _hasCheckFlag_History, 0, _hasCheckFlag_History.length);
         System.arraycopy(op._hasMateFlag_History, 0, _hasMateFlag_History, 0, _hasMateFlag_History.length);
 
-        initializeLists();
+        // move history
+        System.arraycopy(op._moveHistory, 0, _moveHistory, 0, op._moveHistory.length);
+
+        //initializeLists();
         // copy piece lists
         for (int i=0; i<=1; i++) { // foreach color
             this._pawnSquares[i] = op._pawnSquares[i].clone();
@@ -228,6 +240,7 @@ public class OmegaBoardPosition {
             this._queenSquares[i] = op._queenSquares[i].clone();
             this._kingSquares[i] = op._kingSquares[i];
         }
+        _material = new int[2];
         this._material[0] = op._material[0];
         this._material[1] = op._material[1];
 
@@ -296,6 +309,7 @@ public class OmegaBoardPosition {
         // make move
         switch (OmegaMove.getMoveType(move)) {
             case NORMAL:
+                invalidateCastlingRights(fromSquare, toSquare);
                 makeNormalMove(fromSquare, toSquare, piece, target);
                 break;
             case PAWNDOUBLE:
@@ -367,6 +381,9 @@ public class OmegaBoardPosition {
 
         int move = _moveHistory[_historyCounter];
 
+        // reset move history
+        _moveHistory[_historyCounter] = OmegaMove.NOMOVE;
+
         // undo piece move / restore board
         OmegaSquare fromSquare = OmegaMove.getStart(move); assert fromSquare.isValidSquare();
         OmegaSquare toSquare   = OmegaMove.getEnd(move); assert toSquare.isValidSquare();
@@ -383,7 +400,6 @@ public class OmegaBoardPosition {
                 break;
             case PAWNDOUBLE:
                 movePiece(toSquare, fromSquare, piece);
-                // set en passant target field - always one "behind" the toSquare
                 break;
             case ENPASSANT:
                 OmegaSquare targetSquare = target.getColor().isWhite() ? toSquare.getNorth() : toSquare.getSouth();
@@ -437,7 +453,6 @@ public class OmegaBoardPosition {
      * @param target
      */
     private void makeNormalMove(OmegaSquare fromSquare, OmegaSquare toSquare, OmegaPiece piece, OmegaPiece target) {
-        invalidateCastlingRights(fromSquare, toSquare);
 
         if (target != OmegaPiece.NOPIECE) {
             removePiece(toSquare, target);
@@ -447,7 +462,9 @@ public class OmegaBoardPosition {
         } else {
             _halfMoveClock++;
         }
+
         movePiece(fromSquare, toSquare, piece);
+
         // clear en passant
         if (_enPassantSquare != OmegaSquare.NOSQUARE) {
             _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // out
@@ -462,31 +479,32 @@ public class OmegaBoardPosition {
      */
     private void invalidateCastlingRights(OmegaSquare fromSquare, OmegaSquare toSquare) {
         // check for castling rights invalidation
+        // no else here - combination of these can occur! BIG BUG before :)
         if (fromSquare == OmegaSquare.e1 || toSquare == OmegaSquare.e1) {
             _castlingWK=false;
             _zobristKey ^= _castlingWK_Zobrist;
             _castlingWQ=false;
             _zobristKey ^= _castlingWQ_Zobrist;
         }
-        else if (fromSquare == OmegaSquare.e8 || toSquare == OmegaSquare.e8) {
+        if (fromSquare == OmegaSquare.e8 || toSquare == OmegaSquare.e8) {
             _castlingBK=false;
             _zobristKey ^= _castlingBK_Zobrist;
             _castlingBQ=false;
             _zobristKey ^= _castlingBQ_Zobrist;
         }
-        else if (fromSquare == OmegaSquare.a1 || toSquare == OmegaSquare.a1) {
+        if (fromSquare == OmegaSquare.a1 || toSquare == OmegaSquare.a1) {
             _castlingWQ=false;
             _zobristKey ^= _castlingWQ_Zobrist;
         }
-        else if (fromSquare == OmegaSquare.h1 || toSquare == OmegaSquare.h1) {
+        if (fromSquare == OmegaSquare.h1 || toSquare == OmegaSquare.h1) {
             _castlingWK=false;
             _zobristKey ^= _castlingWK_Zobrist;
         }
-        else if (fromSquare == OmegaSquare.a8 || toSquare == OmegaSquare.a8) {
+        if (fromSquare == OmegaSquare.a8 || toSquare == OmegaSquare.a8) {
             _castlingBQ=false;
             _zobristKey ^= _castlingBQ_Zobrist;
         }
-        else if (fromSquare == OmegaSquare.h8 || toSquare == OmegaSquare.h8) {
+        if (fromSquare == OmegaSquare.h8 || toSquare == OmegaSquare.h8) {
             _castlingBK=false;
             _zobristKey ^= _castlingBK_Zobrist;
         }
@@ -506,26 +524,38 @@ public class OmegaBoardPosition {
 
         switch (toSquare) {
             case g1: // white kingside
+                assert(_castlingWK);
                 rook = OmegaPiece.WHITE_ROOK;
                 rookFromSquare = OmegaSquare.h1;
+                assert(_x88Board[rookFromSquare.ordinal()] == rook) // check if rook is indeed there
+                : "rook to castle not there";
                 rookToSquare = OmegaSquare.f1;
                 invalidateCastlingRights(fromSquare, toSquare);
                 break;
             case c1: // white queenside
+                assert(_castlingWQ);
                 rook = OmegaPiece.WHITE_ROOK;
                 rookFromSquare = OmegaSquare.a1;
+                assert(_x88Board[rookFromSquare.ordinal()] == rook) // check if rook is indeed there
+                : "rook to castle not there";
                 rookToSquare = OmegaSquare.d1;
                 invalidateCastlingRights(fromSquare, toSquare);
                 break;
             case g8: // black kingside
+                assert(_castlingBK);
                 rook = OmegaPiece.BLACK_ROOK;
                 rookFromSquare = OmegaSquare.h8;
+                assert(_x88Board[rookFromSquare.ordinal()] == rook) // check if rook is indeed there
+                : "rook to castle not there";
                 rookToSquare = OmegaSquare.f8;
                 invalidateCastlingRights(fromSquare, toSquare);
                 break;
             case c8: // black queenside
+                assert(_castlingBQ);
                 rook = OmegaPiece.BLACK_ROOK;
                 rookFromSquare = OmegaSquare.a8;
+                assert(_x88Board[rookFromSquare.ordinal()] == rook) // check if rook is indeed there
+                : "rook to castle not there";
                 rookToSquare = OmegaSquare.d8;
                 invalidateCastlingRights(fromSquare, toSquare);
                 break;
@@ -664,10 +694,10 @@ public class OmegaBoardPosition {
         assert toSquare.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
         //assert
-        if (_x88Board[fromSquare.ordinal()] != piece) // check if moved piece is indeed there
-            System.err.println("piece to move not there");
-        if (_x88Board[toSquare.ordinal()] != OmegaPiece.NOPIECE) // // should be empty
-            System.err.println("piece to move not there");
+        assert(_x88Board[fromSquare.ordinal()] == piece) // check if moved piece is indeed there
+        : "piece to move not there";
+        assert(_x88Board[toSquare.ordinal()] == OmegaPiece.NOPIECE) // // should be empty
+        : "to square should be empty";
         // due to performance we do not call remove and put
         // no need to update counters when moving
         // remove
@@ -710,7 +740,8 @@ public class OmegaBoardPosition {
     private OmegaPiece removePiece(OmegaSquare square, OmegaPiece piece) {
         assert square.isValidSquare();
         assert piece!=OmegaPiece.NOPIECE;
-        assert _x88Board[square.ordinal()] == piece; // check if removed piece is indeed there
+        assert _x88Board[square.ordinal()] == piece // check if removed piece is indeed there
+                : "piece to be removed not there";
         // remove
         OmegaPiece old = _x88Board[square.ordinal()];
         _x88Board[square.ordinal()] = OmegaPiece.NOPIECE;

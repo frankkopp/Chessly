@@ -39,9 +39,10 @@ import java.util.stream.IntStream;
  * during each object creation.</b><br/>
  * @author Frank Kopp
  */
+@SuppressWarnings("unused")
 public class OmegaMoveGenerator {
 
-    static private final boolean CACHE = true;
+    static private final boolean CACHE = false;
     static private final boolean SORT = true;
 
     // remember the last position to control cache validity
@@ -244,8 +245,8 @@ public class OmegaMoveGenerator {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
         // TODO zobrist could collide - then this will break.
-        if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            if (CACHE) return _cachedLegalMoveList;
+        if (CACHE && _cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
+            return _cachedLegalMoveList;
         }
 
         // update position
@@ -306,8 +307,8 @@ public class OmegaMoveGenerator {
     public OmegaMoveList getPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
-        if (_cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            if (CACHE) return _cachedPseudoLegalMoveList;
+        if (CACHE && _cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
+            return _cachedPseudoLegalMoveList;
         }
 
         // update position
@@ -438,13 +439,13 @@ public class OmegaMoveGenerator {
                         if (target == OmegaPiece.NOPIECE){ // way needs to be free
                             // promotion
                             if (to > 111) { // rank 8
-                                assert _activePlayer.isWhite(); // checking for  color is probably redundant
+                                assert _activePlayer.isWhite(); // checking for color is probably redundant
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_QUEEN));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_ROOK));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_BISHOP));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.WHITE_KNIGHT));
                             } else if (to < 8) { // rank 1
-                                assert _activePlayer.isBlack(); // checking for  color is probably redundant
+                                assert _activePlayer.isBlack(); // checking for color is probably redundant
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_QUEEN));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_ROOK));
                                 _nonCapturingMoves.add(OmegaMove.createMove(OmegaMoveType.PROMOTION,fromSquare,toSquare,piece,target,OmegaPiece.BLACK_BISHOP));
