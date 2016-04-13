@@ -441,7 +441,6 @@ public class EngineInfoUpdater {
                     // ignore
                     // easier and cleaner that to avoid all timing issues by checking
                     // for != null
-
                 }
             }
 
