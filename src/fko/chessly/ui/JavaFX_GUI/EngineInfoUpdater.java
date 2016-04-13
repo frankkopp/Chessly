@@ -29,7 +29,6 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.text.DecimalFormat;
 import java.text.Format;
-import java.util.List;
 
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
@@ -435,7 +434,15 @@ public class EngineInfoUpdater {
         private class updateRunnable implements Runnable {
             @Override
             public void run() {
-                updateUI();
+
+                try {
+                    updateUI();
+                } catch (NullPointerException e) {
+                    // ignore
+                    // easier and cleaner that to avoid all timing issues by checking
+                    // for != null
+
+                }
             }
 
         }
