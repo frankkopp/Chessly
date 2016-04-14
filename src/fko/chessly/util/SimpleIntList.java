@@ -34,8 +34,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
-import fko.chessly.player.computer.Omega.OmegaMoveList;
-
 /**
  * Simple and fast list class for integers.
  * It has a fixed size and does not grow.
@@ -49,25 +47,40 @@ public class SimpleIntList implements Iterable<Integer> {
      */
     public static final int DEFAULT_MAX_ENTRIES = 256;
 
+    protected int _arraySize = DEFAULT_MAX_ENTRIES;
     protected int[] _list;
     protected int _head = 0;
     protected int _tail = 0;
 
+
+
     /**
-     * Creates a list with a maximum of MAX_ENTRIES elements
+     * Creates a list with a maximum of <tt>DEFAULT_MAX_ENTRIES</tt> elements
      */
     public SimpleIntList() {
         this(DEFAULT_MAX_ENTRIES);
     }
 
     /**
-     * Creates a list with a maximum of max_site elements
+     * Creates a list with a maximum of <tt>max_size</tt> elements
      * @param max_size
      */
     public SimpleIntList(int max_size) {
+        this._arraySize = max_size;
         _list = new int[max_size];
     }
 
+    /**
+     * Creates a list as a copy of the provided list.
+     * @param old
+     */
+    public SimpleIntList(SimpleIntList old) {
+        this._arraySize = old._arraySize;
+        _list = new int[_arraySize];
+        System.arraycopy(old._list, old._head, this._list, 0, old._tail-old._head);
+        this._head = 0;
+        this._tail = old._tail-old._head;
+    }
     /**
      * Clear the list
      */
@@ -213,11 +226,7 @@ public class SimpleIntList implements Iterable<Integer> {
      */
     @Override
     public SimpleIntList clone() {
-        SimpleIntList n = new SimpleIntList();
-        System.arraycopy(this._list, _head, n._list, 0, this._tail-this._head);
-        n._head = 0;
-        n._tail = this._tail-this._head;
-        return n;
+        return new SimpleIntList(this);
     }
 
     /* (non-Javadoc)
