@@ -55,9 +55,9 @@ import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
  *      DONE: Pondering
  *      DONE: Evaluation Table
  *      DONE: Basic Transposition Table
- *      TODO: Advanced iterative AlphaBeta search
+ *      DONE: Iterative AlphaBeta search
+ *      DONE: Advanced Transposition Table
  *      TODO: Quiescence
- *      TODO: Advanced Transposition Table
  *      TODO: Advanced Evaluation
  *      TODO: Advanced Time Control
  *      TODO: Advanced Move Gen (On Demand)
@@ -170,6 +170,9 @@ public class OmegaSearch implements Runnable {
     Boolean _cacheEnabled;
     OmegaEvaluationCache _evalCache;
     OmegaTranspositionTable _transpositionTable;
+
+    private int _c_cache=0;
+    private int _c_gen=0;
 
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
@@ -557,32 +560,37 @@ public class OmegaSearch implements Runnable {
 
         // *****************************************************
         // TT Lookup
+        OmegaMoveList tt_moves = null;
         if (_cacheEnabled
                 && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
                 && !OmegaConfiguration.PERFT) {
 
-            final TT_Entry entry = _transpositionTable.get(position._zobristKey, depthLeft);
+            final TT_Entry entry = _transpositionTable.get(position._zobristKey);
 
             if (entry != null) { // possible TT Hit
-                switch (entry.type) {
-                    case EXACT:
-                        _nodeCache_Hits++;
-                        return entry.value;
-                    case ALPHA:
-                        if (entry.value <= alpha) {
+                if (entry.depth >= depthLeft) { // only if tt depth was equal or deeper
+                    switch (entry.type) {
+                        case EXACT:
                             _nodeCache_Hits++;
-                            return alpha;
-                        }
-                        break;
-                    case BETA:
-                        if (entry.value >= beta) {
-                            _nodeCache_Hits++;
-                            return beta;
-                        }
-                        break;
-                    default:
-                        break;
+                            return entry.value;
+                        case ALPHA:
+                            if (entry.value <= alpha) {
+                                _nodeCache_Hits++;
+                                return alpha;
+                            }
+                            break;
+                        case BETA:
+                            if (entry.value >= beta) {
+                                _nodeCache_Hits++;
+                                return beta;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
+                // move list is independent from depth
+                tt_moves = entry.move_list;
             }
             _nodeCache_Misses++;
         }
@@ -595,7 +603,16 @@ public class OmegaSearch implements Runnable {
 
         // Generate all PseudoLegalMoves
         boolean hadLegaMove = false;
-        OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(position, false);
+
+        // generate moves or get them from cache
+        OmegaMoveList moves;
+        if (_omegaEngine._CONFIGURATION._USE_MOVE_CACHE && tt_moves != null) {
+            moves = tt_moves;
+            _c_cache++;
+        } else {
+            moves = _omegaMoveGenerator.getPseudoLegalMoves(position, false);
+            _c_gen++;
+        }
 
         // moves to search recursively
         for(int i = 0; i < moves.size(); i++) {
@@ -609,6 +626,8 @@ public class OmegaSearch implements Runnable {
 
                 // needed to remember if we even had a legal move
                 hadLegaMove = true;
+
+                // keep track of current variation
                 _currentVariation.add(move);
 
                 // go one ply deeper into the search tree
@@ -663,7 +682,21 @@ public class OmegaSearch implements Runnable {
         if (_cacheEnabled
                 && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
                 && !OmegaConfiguration.PERFT) {
-            _transpositionTable.put(position._zobristKey, bestValue, tt_Type, depthLeft);
+
+            // we create a minimal list to not waste space - list will not change any more
+            OmegaMoveList m = null;
+            if (_omegaEngine._CONFIGURATION._USE_MOVE_CACHE) {
+                m = new OmegaMoveList(moves.size());
+                m.add(moves);
+            }
+
+            // now store to tt
+            _transpositionTable.put(
+                    position._zobristKey,
+                    bestValue,
+                    tt_Type,
+                    depthLeft,
+                    m);
         }
 
         return bestValue;

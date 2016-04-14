@@ -78,9 +78,11 @@ public class OmegaTranspositionTable {
      *
      * @param key
      * @param value
+     * @param type
      * @param depth
+     * @param moveList
      */
-    public void put(long key, int value, TT_EntryType type, int depth) {
+    public void put(long key, int value, TT_EntryType type, int depth, OmegaMoveList moveList) {
         final int hash = getHash(key);
         if (entries[hash].key == 0) { // new value
             _numberOfEntries++;
@@ -88,6 +90,7 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
+            entries[hash].move_list = moveList;
         } else { // collision
             if (key == entries[hash].key  // same position
                     && depth >= entries[hash].depth) { // value from same or deeper depth?
@@ -96,6 +99,7 @@ public class OmegaTranspositionTable {
                 entries[hash].value = value;
                 entries[hash].type = type;
                 entries[hash].depth = depth;
+                entries[hash].move_list = moveList;
             }
             // ignore new values for cache
         }
@@ -107,12 +111,11 @@ public class OmegaTranspositionTable {
      * depth value provided.
      *
      * @param key
-     * @param depth after this node
      * @return value for key or <tt>Integer.MIN_VALUE</tt> if not found
      */
-    public TT_Entry get(long key, int depth) {
+    public TT_Entry get(long key) {
         final int hash = getHash(key);
-        if (entries[hash].key == key && entries[hash].depth >= depth ) { // hash hit
+        if (entries[hash].key == key) { // hash hit
             return entries[hash];
         }
         // cache miss or collision
@@ -172,11 +175,12 @@ public class OmegaTranspositionTable {
      * Contains a key, value and an entry type.
      */
     public static final class TT_Entry {
-        static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES) *2;
+        static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES)*2 + 8;
         long key   = 0L;
         int  value = Integer.MIN_VALUE;
         int  depth = 0;
         TT_EntryType type = TT_EntryType.ALPHA;
+        OmegaMoveList move_list = null;
     }
 
     /**

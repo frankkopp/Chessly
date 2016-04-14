@@ -62,6 +62,9 @@ public class OmegaConfiguration {
     /** Use Transposition Tables for visited nodes */
     boolean _USE_NODE_CACHE = true;
 
+    /** Use Transposition Tables to store move list */
+    boolean _USE_MOVE_CACHE = true;
+
     /** Use Cache for Board evaluations - very expensive, only worth with expensive eval */
     boolean _USE_BOARD_CACHE = true;
 
@@ -81,6 +84,8 @@ public class OmegaConfiguration {
     //Mode _OB_Mode = Mode.PGN;
     Mode _OB_Mode = Mode.SAN;
     //Mode _OB_Mode = Mode.SIMPLE;
+
+
 
 
 
