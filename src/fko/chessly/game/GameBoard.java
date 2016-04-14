@@ -80,7 +80,7 @@ public interface GameBoard {
      * Can be used to save or exchange a position.
      * @return String representing the board's position as defined by FEN
      */
-    String toFEN();
+    String toFENString();
 
     /**
      * Return reference to a piece on a field on col, row
@@ -155,7 +155,7 @@ public interface GameBoard {
      *
      * FIDE rules:
      * Positions are considered the same if and only if the same player has the move, pieces of
-     * the same kind and colour occupy the same squares and the possible moves of all the
+     * the same kind and color occupy the same squares and the possible moves of all the
      * pieces of both players are the same. Thus positions are not the same if:
      * 	- at the start of the sequence a pawn could have been captured en passant.
      *  - a king or rook had castling rights, but forfeited these after moving. The castling
@@ -212,7 +212,7 @@ public interface GameBoard {
 
     /**
      * Checks if there is another piece between the from field
-     * and the to field along the alowed move path.
+     * and the to field along the allowed move path.
      * @param from
      * @param to
      * @return true when path is free
@@ -221,7 +221,7 @@ public interface GameBoard {
 
     /**
      * Checks if there is another piece between the from field
-     * and the to field along the alowed move path.
+     * and the to field along the allowed move path.
      * @param move
      * @return true if no other piece blocking the way - false otherwise
      */

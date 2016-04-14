@@ -29,13 +29,13 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import java.text.DecimalFormat;
 import java.text.Format;
-import java.util.List;
 
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.game.Game;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.ObservableEngine;
@@ -144,44 +144,44 @@ public class EngineInfoUpdater {
             _engineLabels.pv_label.setText(printCurPV(game, player));
 
             // -- current move in calculation --
-            if (engine.getCurMove() != null) {
+            if (engine.getCurrentMove() != null) {
                 engineShowCurMove(
                         game.getCurBoard().getNextHalfMoveNumber(),
-                        engine.getCurMove(),
-                        engine.getCurMoveNumber(),
+                        engine.getCurrentMove(),
+                        engine.getCurrentMoveNumber(),
                         engine.getNumberOfMoves()
                         );
             }
 
             // -- current calculated value for the best move so far --
-            if (engine.getMaxValueMove() != null) {
-                engineShowCurValue(engine.getMaxValueMove());
+            if (engine.getCurrentMaxValueMove() != null) {
+                engineShowCurValue(engine.getCurrentMaxValueMove());
             }
 
             // -- current search depth --
-            _engineLabels.depth_label.setText(engine.getCurSearchDepth()+"/"+engine.getCurExtraSearchDepth());
+            _engineLabels.depth_label.setText(engine.getCurrentSearchDepth()+"/"+engine.getCurrentMaxSearchDepth());
 
             // -- current time used for the move --
-            engineShowCurTime(engine.getCurUsedTime());
+            engineShowCurTime(engine.getCurrentUsedTime());
 
             // -- current number of checked nodes --
-            _engineLabels.nodes_label.setText(numberFormat.format(engine.getNodesChecked()) + " N");
+            _engineLabels.nodes_label.setText(numberFormat.format(engine.getTotalNodes()) + " N");
 
             // -- current number of nodes per second --
-            _engineLabels.speed_label.setText(numberFormat.format(engine.getCurNodesPerSecond()) + " N/s");
+            _engineLabels.speed_label.setText(numberFormat.format(engine.getCurrentNodesPerSecond()) + " N/s");
 
             // -- show the number of boards analyzed so far --
-            _engineLabels.boards_label.setText(numberFormat.format(engine.getBoardsChecked()) + " B");
+            _engineLabels.boards_label.setText(numberFormat.format(engine.getTotalBoards()) + " B");
 
             // -- show the number of non-quiet boards found so far --
-            _engineLabels.nonQuiet_label.setText(numberFormat.format(engine.getBoardsNonQuiet()) + " NB");
+            _engineLabels.nonQuiet_label.setText(numberFormat.format(engine.getTotalNonQuietBoards()) + " NB");
 
             // -- show the current capacity of the node cache --
-            final int curNodeCacheSize = engine.getCurNodeCacheSize();
+            final int curNodeCacheSize = engine.getCurrentNodeCacheSize();
             _engineLabels.ncSize_label.setText(numberFormat.format(curNodeCacheSize));
 
             // -- show the number of nodes in the cache --
-            final int curNodesInCache = engine.getCurNodesInCache();
+            final int curNodesInCache = engine.getCurrentNodesInCache();
             int percent = (int)(100.F * curNodesInCache / curNodeCacheSize);
             _engineLabels.ncUse_label.setText(numberFormat.format(curNodesInCache)+" ("+percent+"%)");
 
@@ -193,11 +193,11 @@ public class EngineInfoUpdater {
             _engineLabels.ncMisses_label.setText(numberFormat.format(cachemisses));
 
             // -- show the current capacity of the board cache --
-            final int curBoardCacheSize2 = engine.getCurBoardCacheSize();
+            final int curBoardCacheSize2 = engine.getCurrentBoardCacheSize();
             _engineLabels.bcSize_label.setText(numberFormat.format(curBoardCacheSize2));
 
             // -- show the number of boards in the cache --
-            final int curBoardsInCache = engine.getCurBoardsInCache();
+            final int curBoardsInCache = engine.getCurrentBoardsInCache();
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             _engineLabels.bcUse_label.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");
 
@@ -303,15 +303,19 @@ public class EngineInfoUpdater {
      * @param game
      * @param player
      * @return String with formatted PV
+     *
+     * FIXME: fix the numbering
      */
     public String printCurPV(Game game, Player player ) {
 
         // get the engine and the PV list
         ObservableEngine engine = (ObservableEngine) ((ComputerPlayer) player).getEngine();
-        List<GameMove> list = engine.getPV();
 
-        // PV list should not be empty
-        if (list == null || list.size() == 0) return "";
+        // retrieve copy of PV list
+        GameMoveList list = engine.getCurrentPV();
+        if (list == null || list.isEmpty()) {
+            return "";
+        }
 
         StringBuilder s = new StringBuilder();
 
@@ -326,6 +330,7 @@ public class EngineInfoUpdater {
         // are we watching white or black
         if (_color.isWhite()) { // we are white
             switch (engineState) {
+                case ObservableEngine.IDLE:
                 case ObservableEngine.THINKING:
                     // here white has next move
 
@@ -397,7 +402,7 @@ public class EngineInfoUpdater {
             nextColor = nextColor.getInverseColor();
         }
 
-        s.append(printCurValue(engine.getMaxValueMove()));
+        s.append(printCurValue(engine.getCurrentMaxValueMove()));
 
         return s.toString();
     }
@@ -429,7 +434,14 @@ public class EngineInfoUpdater {
         private class updateRunnable implements Runnable {
             @Override
             public void run() {
-                updateUI();
+
+                try {
+                    updateUI();
+                } catch (NullPointerException e) {
+                    // ignore
+                    // easier and cleaner that to avoid all timing issues by checking
+                    // for != null
+                }
             }
 
         }

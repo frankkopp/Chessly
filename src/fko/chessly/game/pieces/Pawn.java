@@ -44,6 +44,7 @@
 
      private static final long serialVersionUID = 6979893115895070545L;
 
+     @SuppressWarnings("hiding")
      private static final GamePieceType _pieceType = GamePieceType.PAWN;
 
      private static final int[][] blackPawnMoveVectors = { { -1, -1 }, { 1, -1 } };
@@ -64,7 +65,7 @@
       * @param color
       * @return A reference to a Pawn object of the given color.
       */
-     public static Pawn createPawn(GameColor color) {
+     public static Pawn create(GameColor color) {
          return color==GameColor.WHITE ? whitePawn : blackPawn;
      }
 
@@ -113,8 +114,7 @@
 
          if (!capturingOnly) {
              // allow 1 field forward
-             forwardOneField(board, fromPos, legalMoves, pawnColor, direction,
-                     promotionRow);
+             forwardOneField(board, fromPos, legalMoves, pawnColor, direction, promotionRow);
 
              // if on base line allow 2 fields
              forwardTwoFields(board, fromPos, legalMoves, direction, pawnBase);
@@ -153,21 +153,21 @@
              GameMoveList legalMoves, GameColor pawnColor, int direction,
              int promotionRow) {
 
-         int new_row = fromPos.y + direction;
-         if (board.getPiece(fromPos.x, new_row) == null) {
-             final GamePosition newPos = GamePosition.getGamePosition(fromPos.x, new_row);
+         int new_row = fromPos.getRank() + direction;
+         if (board.getPiece(fromPos.getFile(), new_row) == null) {
+             final GamePosition newPos = GamePosition.getGamePosition(fromPos.getFile(), new_row);
              GameMoveImpl m = new GameMoveImpl(fromPos, newPos, this);
              if (new_row == promotionRow) {
-                 m.setPromotedTo(Queen.createQueen(pawnColor));
+                 m.setPromotedTo(Queen.create(pawnColor));
                  legalMoves.add(m);
                  m = new GameMoveImpl(fromPos, newPos, this);
-                 m.setPromotedTo(Rook.createRook(pawnColor));
+                 m.setPromotedTo(Rook.create(pawnColor));
                  legalMoves.add(m);
                  m = new GameMoveImpl(fromPos, newPos, this);
-                 m.setPromotedTo(Bishop.createBishop(pawnColor));
+                 m.setPromotedTo(Bishop.create(pawnColor));
                  legalMoves.add(m);
                  m = new GameMoveImpl(fromPos, newPos, this);
-                 m.setPromotedTo(Knight.createKnight(pawnColor));
+                 m.setPromotedTo(Knight.create(pawnColor));
                  legalMoves.add(m);
              } else {
                  legalMoves.add(m);
@@ -179,12 +179,12 @@
      private void forwardTwoFields(GameBoard board, GamePosition fromPos,
              GameMoveList legalMoves, int direction, int pawnBase) {
 
-         if (fromPos.y == pawnBase) {
-             int new_row = fromPos.y + (2 * direction);
-             if (board.getPiece(fromPos.x, pawnBase + direction) == null
-                     && board.getPiece(fromPos.x, new_row) == null) {
+         if (fromPos.getRank() == pawnBase) {
+             int new_row = fromPos.getRank() + (2 * direction);
+             if (board.getPiece(fromPos.getFile(), pawnBase + direction) == null
+                     && board.getPiece(fromPos.getFile(), new_row) == null) {
                  final GameMoveImpl m = new GameMoveImpl(fromPos,
-                         GamePosition.getGamePosition(fromPos.x, new_row), this);
+                         GamePosition.getGamePosition(fromPos.getFile(), new_row), this);
                  m.setEnPassantNextMovePossible(true);
                  // TODO: we could set en passant position here but this will be done later
                  // when move is actually done as it would require creating
@@ -199,44 +199,50 @@
              int[][] deltas) {
 
          for (int i = 0; i < deltas.length; i++) {
-             int col_inc = deltas[i][0];
-             int row_inc = deltas[i][1];
-             int new_col = fromPos.x + col_inc;
-             int new_row = fromPos.y + row_inc;
-             GamePosition newPos = GamePosition.getGamePosition(new_col, new_row);
+             int file_inc = deltas[i][0];
+             int rank_inc = deltas[i][1];
+             int new_file = fromPos.getFile() + file_inc;
+             int new_rank = fromPos.getRank() + rank_inc;
+             GamePosition newPos = GamePosition.getGamePosition(new_file, new_rank);
 
              if (board.isWithinBoard(newPos)) {
-                 if (board.getPiece(new_col, new_row) != null) {
-                     if (board.getPiece(new_col, new_row).getColor()
+                 if (board.getPiece(new_file, new_rank) != null) {
+                     if (board.getPiece(new_file, new_rank).getColor()
                              .equals(this._color.getInverseColor())) {
                          GameMoveImpl m = new GameMoveImpl(fromPos, newPos, this);
-                         if (newPos.y == promotionRow) {
-                             m.setPromotedTo(Queen.createQueen(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                         if (newPos.getRank() == promotionRow) {
+                             m.setPromotedTo(Queen.create(pawnColor));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                              m = new GameMoveImpl(fromPos, newPos, this);
-                             m.setPromotedTo(Rook.createRook(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setPromotedTo(Rook.create(pawnColor));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                              m = new GameMoveImpl(fromPos, newPos, this);
-                             m.setPromotedTo(Bishop.createBishop(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setPromotedTo(Bishop.create(pawnColor));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                              m = new GameMoveImpl(fromPos, newPos, this);
-                             m.setPromotedTo(Knight.createKnight(pawnColor));
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setPromotedTo(Knight.create(pawnColor));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                          } else {
-                             m.setCapturedPiece(board.getPiece(new_col, new_row));
+                             m.setCapturedPiece(board.getPiece(new_file, new_rank));
                              legalMoves.add(m);
                          }
                      }
                  } else { // en passant
-                     if (board.hasEnPassantCapturable()
-                             && board.getEnPassantCapturable().x == new_col
-                             && board.getEnPassantCapturable().y == fromPos.y) {
+
+                     if (board.hasEnPassantCapturable() // is en passant possible
+                             && board.getEnPassantCapturable().getFile() == new_file // same file as en passant pawn
+                             && board.getEnPassantCapturable().getRank() == new_rank // correct rank
+                             && fromPos.getRank() == (pawnColor.isWhite() ? 5 : 4)
+
+                             ){
+
                          final GameMoveImpl m = new GameMoveImpl(fromPos, newPos, this);
-                         m.setCapturedPiece(board.getPiece(new_col, fromPos.y));
+                         m.setCapturedPiece(board.getPiece(new_file, fromPos.getRank()));
+                         m.setEnPassantCapturePosition(GamePosition.getGamePosition(new_file, fromPos.getRank()));
                          m.setWasEnPassantCapture(true);
                          legalMoves.add(m);
                      }

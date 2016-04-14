@@ -300,16 +300,16 @@ public class NotationHelperTest {
     
         GameBoard b = new GameBoardImpl();
         GameMove m1 = NotationHelper.createNewMoveFromSimpleNotation("e2-e4",
-        	Pawn.createPawn(GameColor.WHITE));
+        	Pawn.create(GameColor.WHITE));
         GameMove m1twin = NotationHelper.createNewMoveFromSimpleNotation("e2-e4",
-        	Pawn.createPawn(GameColor.WHITE));
+        	Pawn.create(GameColor.WHITE));
         GameMove m1copy = new GameMoveImpl(m1);
         GameMove m2 = NotationHelper.createNewMoveFromSimpleNotation("d2-d4",
-        	Pawn.createPawn(GameColor.WHITE));
+        	Pawn.create(GameColor.WHITE));
         GameMove m3 = NotationHelper.createNewMoveFromSimpleNotation("e2-e3",
-        	Pawn.createPawn(GameColor.WHITE));
+        	Pawn.create(GameColor.WHITE));
         GameMove m4 = NotationHelper.createNewMoveFromSimpleNotation("a2a4",
-        	Pawn.createPawn(GameColor.WHITE));
+        	Pawn.create(GameColor.WHITE));
     
         System.out
         	.println("Move Orig: " + m1.toString() + ": " + m1.hashCode());

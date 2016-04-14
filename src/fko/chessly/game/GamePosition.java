@@ -29,7 +29,7 @@ package fko.chessly.game;
 import java.io.Serializable;
 
 /**
- * Simply and lightwight class for x and Y coordinates.
+ * Class for x and Y coordinates.
  * Coordinates are int value.
  * Immutable.
  *
@@ -40,15 +40,12 @@ public class GamePosition implements Serializable {
     private static final long serialVersionUID = -5250164431718958510L;
 
     // immutable
-    /** */
-    public final int x;
-    /** */
-    public final int y;
-    /** */
-    public final String name;
+    private final int file;
+    private final int rank;
+    private final String name;
 
     /**
-     * An aray with all 64 possible chess position plus on e extra [0] to indicate invalid positions
+     * An array with all 64 possible chess position plus on e extra [0] to indicate invalid positions
      */
     public final static GamePosition[] positions = {
             new GamePosition(0, 0, ""),   // non-valid
@@ -119,45 +116,66 @@ public class GamePosition implements Serializable {
     };
 
     /**
-     * @param x
+     * @param file
      *            (must be between 1 and 8)
-     * @param y
+     * @param rank
      *            (must be between 1 and 8)
      */
-    private GamePosition(int x, int y, String name) {
-        this.x = x;
-        this.y = y;
+    private GamePosition(int file, int rank, String name) {
+        this.file = file;
+        this.rank = rank;
         this.name = name;
     }
 
     /**
-     * Returns GamePostion for given x,y - will null if not a valid
-     * chess position.
-     *
-     * @param x
-     * @param y
-     * @return GamePosition for x,y or null for invalid position
+     * @return the x
      */
-    public static GamePosition getGamePosition(int x, int y) {
-        if (x<1 || x>8 || y<1 || y>8) return positions[0];
-        return positions[getIndex(x, y)];
+    public int getFile() {
+        return file;
     }
 
     /**
-     * @param x
-     * @param y
+     * @return the y
+     */
+    public int getRank() {
+        return rank;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Returns GamePostion for given file and rank - will be null if not a valid
+     * chess position.
+     *
+     * @param file (1..8)
+     * @param rank (1..8)
+     * @return GamePosition for x,y or null for invalid position
+     */
+    public static GamePosition getGamePosition(int file, int rank) {
+        if (file<1 || file>8 || rank<1 || rank>8) return positions[0];
+        return positions[getIndex(file, rank)];
+    }
+
+    /**
+     * @param file
+     * @param rank
      * @return
      */
-    private static int getIndex(int x, int y) {
-        return (y-1)*8 + x;
+    private static int getIndex(int file, int rank) {
+        return (rank-1)*8 + file;
     }
 
     /**
      * Factory method for GamePosition - so we can return one 64
-     * pregenerated GamePosition objects.
+     * pre-generated GamePosition objects.
      *
      * @param s
-     * @return
+     * @return the game position from the string s
      */
     public static GamePosition getGamePosition(String s) {
         if (!s.matches("[a-h][1-8]")) throw new IllegalArgumentException("Not a valid move string: " + s);
@@ -197,30 +215,34 @@ public class GamePosition implements Serializable {
 
     /**
      * @param c
-     * @return
+     * @return true if this is the promotion row for color c
      */
-    @SuppressWarnings("fallthrough")
     public boolean isPromotionRow(GameColor c) {
         switch (c) {
             case WHITE:
-                if (this.x == 8) return true;
+                if (this.getFile() == 8) return true;
+                return false;
             case BLACK:
-                if (this.x == 1) return true;
+                if (this.getFile() == 1) return true;
+                return false;
             default:
                 throw new IllegalArgumentException("Invalid Color");
         }
     }
 
     /**
-     * @return
+     * @return string representing the position
      */
     public String toNotationString() {
-        return name;
+        return getName();
     }
 
+    /**
+     * @return string representing the position
+     */
     @Override
     public String toString() {
-        return name;
+        return getName();
     }
 
     /**
@@ -262,8 +284,8 @@ public class GamePosition implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = getIndex(prime, result) + x;
-        result = getIndex(prime, result) + y;
+        result = getIndex(prime, result) + getFile();
+        result = getIndex(prime, result) + getRank();
         return result;
     }
 
@@ -278,8 +300,8 @@ public class GamePosition implements Serializable {
         if (obj == null) { return false; }
         if (!(obj instanceof GamePosition)) { return false; }
         GamePosition other = (GamePosition) obj;
-        if (x != other.x) { return false; }
-        if (y != other.y) { return false; }
+        if (getFile() != other.getFile()) { return false; }
+        if (getRank() != other.getRank()) { return false; }
         return true;
     }
 

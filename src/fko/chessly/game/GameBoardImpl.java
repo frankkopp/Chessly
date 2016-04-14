@@ -27,8 +27,8 @@
 package fko.chessly.game;
 
 import java.util.Arrays;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+
+import com.sun.org.glassfish.gmbal.GmbalException;
 
 import fko.chessly.game.pieces.Bishop;
 import fko.chessly.game.pieces.King;
@@ -83,7 +83,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     protected GameCastling[] _castlingRights = new GameCastling[4];
 
     /**
-     * save en passant right and position of capturable pawn for one move
+     * save en passant right and position of the en passant capture fiels for one move
      */
     protected GamePosition _enPassantCapturable = null;
 
@@ -92,7 +92,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     protected int _halfmoveClock = 0;
 
-    protected int _halfMoveNumber = 0;
+    protected int _lastHalfMoveNumber = 0;
 
     // Board State END -----------------------------------------
 
@@ -126,7 +126,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     // Constructors START -----------------------------------------
 
     /**
-     * Creates a standard Chessly board and initialises it with standard chess
+     * Creates a standard Chessly board and initializes it with standard chess
      * setup.
      */
     public GameBoardImpl() {
@@ -134,7 +134,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     }
 
     /**
-     * Creates a standard Chessly board and initialises it with a fen position
+     * Creates a standard Chessly board and initializes it with a fen position
      * @param fen
      */
     public GameBoardImpl(String fen) {
@@ -163,7 +163,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- copy move history --
         this._moveHistory = oldBoard.getMoveHistory();
-        this._halfMoveNumber = oldBoard._halfMoveNumber;
+        this._lastHalfMoveNumber = oldBoard._lastHalfMoveNumber;
 
         // -- copy castling flags
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -231,7 +231,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- copy move history --
         this._moveHistory = oldBoard.getMoveHistory();
-        this._halfMoveNumber = oldBoard.getLastHalfMoveNumber();
+        this._lastHalfMoveNumber = oldBoard.getLastHalfMoveNumber();
 
         // -- copy castling flags
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -297,10 +297,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         _hasCheck = false;
 
         // -- make it more readable
-        int fromCol = move.getFromField().x - 1;
-        int fromRow = move.getFromField().y - 1;
-        int toCol = move.getToField().x - 1;
-        int toRow = move.getToField().y - 1;
+        int fromCol = move.getFromField().getFile() - 1;
+        int fromRow = move.getFromField().getRank() - 1;
+        int toCol = move.getToField().getFile() - 1;
+        int toRow = move.getToField().getRank() - 1;
 
         final GameColor activeColor = move.getMovedPiece().getColor();
         final GameColor opponentColor = activeColor.getInverseColor();
@@ -316,36 +316,47 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // -- remove from fromField
         GamePiece movedPiece = removePiece(fromCol, fromRow);
 
-        // reset en passant
-        _enPassantCapturable = null;
-
         // en passant?
         // Pawn not moving straight but no captured piece
         // we do not need to do an exhaustive check as this has been done
         // in isLegalMove - we can assume it is a legal move.
+        // TODO: Ugly Code!!!
+        move.setEnPassantCapturePosition(_enPassantCapturable);
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null) {
+                assert _enPassantCapturable != null;
+
                 // en passant capture
-                GameMove last = _moveHistory.getLast();
-                int lastToCol = last.getToField().x - 1;
-                int lastToRow = last.getToField().y - 1;
+                int epCol = _enPassantCapturable.getFile()-1;
+                int epRow = _enPassantCapturable.getRank()-1 + (movedPiece.isWhite() ? -1 : +1);
 
                 // remove the piece
-                capturedPiece = removePiece(lastToCol, lastToRow);
+                capturedPiece = removePiece(epCol, epRow);
 
                 move.setWasEnPassantCapture(true);
-                move.setEnPassantCapturePosition(GamePosition.getGamePosition(lastToCol + 1, lastToRow + 1));
+
+                // reset en passant
+                _enPassantCapturable = null;
 
             } else if (fromCol == toCol) {
                 // double pawn move - possible en passant next move
                 int baseRow = (move.getMovedPiece().getColor() == GameColor.WHITE ? 2 : 7);
-                if (move.getFromField().y == baseRow
-                        && Math.abs(move.getToField().y - baseRow) == 2) {
-                    _enPassantCapturable = move.getToField();
+                if (move.getFromField().getRank() == baseRow
+                        && Math.abs(move.getToField().getRank() - baseRow) == 2) {
+                    int enpassantrank = (move.getMovedPiece().getColor() == GameColor.WHITE ? 3 : 6);
+                    _enPassantCapturable = GamePosition.getGamePosition(move.getToField().getFile(),enpassantrank);
                     move.setEnPassantNextMovePossible(true);
+                } else {
+                    // reset en passant
+                    _enPassantCapturable = null;
                 }
-
+            } else {
+                // reset en passant
+                _enPassantCapturable = null;
             }
+        } else {
+            // reset en passant
+            _enPassantCapturable = null;
         }
 
         // -- place piece
@@ -383,19 +394,24 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             }
         }
 
+        // store half move clock
+        move.setHalfMoveClock(_halfmoveClock);
+
         // -- save last move ---
         this._moveHistory.add(move);
 
         // increase halfmovenumber
-        _halfMoveNumber++;
+        _lastHalfMoveNumber++;
 
-        if (capturedPiece == null)
-            _halfmoveClock++;
-        else
+        // half move clock - reset when pawn move or capture - otherwise increase
+        if (movedPiece instanceof Pawn || capturedPiece != null) {
             _halfmoveClock = 0;
+        } else {
+            _halfmoveClock++;
+        }
 
         // -- Update Move Object
-        move.setHalfMoveNumber(_halfMoveNumber); // save move number
+        move.setHalfMoveNumber(_lastHalfMoveNumber); // save move number
         move.setCapturedPiece(capturedPiece); // store the captured Piece in the Move
 
         // was this last move check for the opponent?
@@ -420,10 +436,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         GameMove lastMove = _moveHistory.removeLast();
 
         // decrease half move number
-        _halfMoveNumber--;
+        _lastHalfMoveNumber--;
 
         // decrease half move clock
-        _halfmoveClock--;
+        _halfmoveClock =  lastMove.getHalfMoveClock();
 
         GamePiece lastPiece = lastMove.getMovedPiece();
 
@@ -431,39 +447,24 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         GamePosition originalTarget = lastMove.getToField();
 
         // move piece back to original place
-        putPiece(removePiece(originalTarget.x - 1, originalTarget.y - 1),
-                originalSource.x - 1, originalSource.y - 1);
+        putPiece(removePiece(originalTarget.getFile() - 1, originalTarget.getRank() - 1),
+                originalSource.getFile() - 1, originalSource.getRank() - 1);
 
         // place back captured piece
         // en passant
         if (lastMove.getWasEnPassantCapture()) {
             GamePosition p = lastMove.getEnPassantCapturePosition();
-            putPiece(Pawn.createPawn(lastMove.getCapturedPiece().getColor()), p.x - 1,
-                    p.y - 1);
+            int rank = p.getRank() + (lastPiece.isWhite() ?  - 1 : 1);
+            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1, rank - 1);
         } else {
-            putPiece(lastMove.getCapturedPiece(), originalTarget.x - 1,
-                    originalTarget.y - 1);
+            putPiece(lastMove.getCapturedPiece(), originalTarget.getFile() - 1, originalTarget.getRank() - 1);
         }
 
         // undo promotion
         if (lastMove.getPromotedTo() != null) {
-            removePiece(originalSource.x - 1, originalSource.y - 1);
-            putPiece(Pawn.createPawn(lastPiece.getColor()), originalSource.x - 1,
-                    originalSource.y - 1);
-        }
-
-        // en passant possible
-        // checks the last move before the move to be undone
-        GameMove previousMove = _moveHistory.getLast();
-        if (_moveHistory.size() > 0 && previousMove.getMovedPiece() instanceof Pawn
-                && previousMove.getFromField().x == previousMove.getToField().x) {
-            // double pawn move - possible en passant next move
-            int baseRow = (previousMove.getMovedPiece().getColor() == GameColor.WHITE ? 2
-                    : 7);
-            if (previousMove.getFromField().y == baseRow
-                    && Math.abs(previousMove.getToField().y - baseRow) == 2) {
-                _enPassantCapturable = previousMove.getToField();
-            }
+            removePiece(originalSource.getFile() - 1, originalSource.getRank() - 1);
+            putPiece(Pawn.create(lastPiece.getColor()), originalSource.getFile() - 1,
+                    originalSource.getRank() - 1);
         }
 
         // castle - restore caslting rights
@@ -489,6 +490,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             }
         }
 
+        // en passant possible
+        _enPassantCapturable = lastMove.getEnPassantCapturePosition();
         // check
         _hasCheck = lastMove.getWasCheck();
         // reset Mates - not possible true if we undo a move
@@ -516,10 +519,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         boolean result = false;
 
         // -- make it more readable
-        int fromCol = move.getFromField().x - 1;
-        int fromRow = move.getFromField().y - 1;
-        int toCol = move.getToField().x - 1;
-        int toRow = move.getToField().y - 1;
+        int fromCol = move.getFromField().getFile() - 1;
+        int fromRow = move.getFromField().getRank() - 1;
+        int toCol = move.getToField().getFile() - 1;
+        int toRow = move.getToField().getRank() - 1;
 
         final GameColor activeColor = move.getMovedPiece().getColor();
 
@@ -530,8 +533,11 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- remove from fromField
         GamePiece movedPiece = this.removePiece(fromCol, fromRow);
+        // -- place piece (pawn promotion does not matter here)
+        this.putPiece(movedPiece, toCol, toRow);
 
         // en passant? Pawn not moving straight but no captured piece
+        // FIXME: not correctly checking pinned ep target
         boolean enPassantCapture = false;
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null && _enPassantCapturable != null) {
@@ -540,15 +546,16 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                 GamePosition enPassantField = _enPassantCapturable;
 
                 // remove the piece
-                capturedPiece = this.removePiece(enPassantField.x-1, enPassantField.y-1);
+                int rank = enPassantField.getRank()-1;
+                rank += movedPiece.isWhite() ? -1 : 1;
+                capturedPiece = this.removePiece(enPassantField.getFile()-1, rank);
 
                 // remember this for undo
                 enPassantCapture=true;
             }
         }
 
-        // -- place piece (pawn promotion does not matter here)
-        this.putPiece(movedPiece, toCol, toRow);
+
 
         // CHECK CHECK
 
@@ -572,7 +579,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             GamePosition enPassantField = _enPassantCapturable;
 
             // remove the piece
-            this.putPiece(capturedPiece, enPassantField.x-1, enPassantField.y-1);
+            int rank = enPassantField.getRank()-1;
+            rank += movedPiece.isWhite() ? -1 : 1;
+            this.putPiece(capturedPiece, enPassantField.getFile()-1, rank);
 
         } else {
             // put back captured piece (should be null if none)
@@ -629,10 +638,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     private boolean hasCheck(GameMove move) {
         switch (move.getMovedPiece().getColor().getInverseColor()) {
             case WHITE:
-                _hasCheck = isFieldControlledBy(GamePosition.getGamePosition(_whiteKingField.x, _whiteKingField.y), GameColor.BLACK);
+                _hasCheck = isFieldControlledBy(GamePosition.getGamePosition(_whiteKingField.getFile(), _whiteKingField.getRank()), GameColor.BLACK);
                 break;
             case BLACK:
-                _hasCheck = isFieldControlledBy(GamePosition.getGamePosition(_blackKingField.x, _blackKingField.y), GameColor.WHITE);
+                _hasCheck = isFieldControlledBy(GamePosition.getGamePosition(_blackKingField.getFile(), _blackKingField.getRank()), GameColor.WHITE);
                 break;
             default:
                 throw new IllegalArgumentException("No valid color");
@@ -718,7 +727,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     /**
      * Returns a list of all possible legal moves
      *
-     * @param capturingMovesOnly - true if only capturing moces should be generated
+     * @param capturingMovesOnly - true if only capturing moves should be generated
      * @return list of moves
      */
     public GameMoveList generateMoves(boolean capturingMovesOnly) {
@@ -834,8 +843,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         GamePiece toPiece = null;
 
         try {
-            fromPiece = _fields[move.getFromField().x - 1][move.getFromField().y - 1];
-            toPiece = _fields[move.getToField().x - 1][move.getToField().y - 1];
+            fromPiece = _fields[move.getFromField().getFile() - 1][move.getFromField().getRank() - 1];
+            toPiece = _fields[move.getToField().getFile() - 1][move.getToField().getRank() - 1];
         } catch (NullPointerException e) {
             // Chessly.criticalError(e.getMessage());
             // Happens when Game is ended - ignore
@@ -924,14 +933,14 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             return false;
 
         // if empty then ok
-        if (_fields[to.x - 1][to.y - 1] == null)
+        if (_fields[to.getFile() - 1][to.getRank() - 1] == null)
             return true;
 
         // oppenent piece
-        if (_fields[from.x - 1][from.y - 1]
+        if (_fields[from.getFile() - 1][from.getRank() - 1]
                 .getColor()
                 .equals(
-                        _fields[to.x - 1][to.y - 1].getColor().getInverseColor()))
+                        _fields[to.getFile() - 1][to.getRank() - 1].getColor().getInverseColor()))
             return true;
 
         return false;
@@ -945,13 +954,13 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     @Override
     public boolean checkForFreePath(GamePosition from, GamePosition to) {
-        int colDir = (from.x == to.x ? 0 : (from.x - to.x) < 0 ? 1 : -1);
-        int rowDir = (from.y - to.y == 0 ? 0 : (from.y - to.y) < 0 ? 1 : -1);
+        int colDir = (from.getFile() == to.getFile() ? 0 : (from.getFile() - to.getFile()) < 0 ? 1 : -1);
+        int rowDir = (from.getRank() - to.getRank() == 0 ? 0 : (from.getRank() - to.getRank()) < 0 ? 1 : -1);
 
         // -- check if something is blocking the way
-        int currentCol = from.x + colDir;
-        int currentRow = from.y + rowDir;
-        while (!(currentCol == to.x && currentRow == to.y)) {
+        int currentCol = from.getFile() + colDir;
+        int currentRow = from.getRank() + rowDir;
+        while (!(currentCol == to.getFile() && currentRow == to.getRank())) {
             if (_fields[currentCol - 1][currentRow - 1] != null) {
                 // System.out.println("Move BLOCKED!");
                 return false;
@@ -964,7 +973,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
     /**
      * Checks if there is another piece between the from field and the to field
-     * along the alowed move path.
+     * along the allowed move path.
      *
      * @param move
      * @return true if no other piece blocking the way - false otherwise
@@ -992,8 +1001,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             for (int i = 0; i < GamePiece.blackPawnAttackVectors.length; i++) {
                 int col_inc = GamePiece.blackPawnAttackVectors[i][0];
                 int row_inc = GamePiece.blackPawnAttackVectors[i][1];
-                int new_col = pos.x + col_inc;
-                int new_row = pos.y + row_inc;
+                int new_col = pos.getFile() + col_inc;
+                int new_row = pos.getRank() + row_inc;
                 if (checkForPawnAttack(this, new_col, new_row, attackingColor)) {
                     // System.out.println("Field "+getField(a_col,
                     // a_row)+" attacked by "+getField(new_col,
@@ -1005,8 +1014,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             for (int i = 0; i < GamePiece.whitePawnAttackVectors.length; i++) {
                 int col_inc = GamePiece.whitePawnAttackVectors[i][0];
                 int row_inc = GamePiece.whitePawnAttackVectors[i][1];
-                int new_col = pos.x + col_inc;
-                int new_row = pos.y + row_inc;
+                int new_col = pos.getFile() + col_inc;
+                int new_row = pos.getRank() + row_inc;
                 if (checkForPawnAttack(this, new_col, new_row, attackingColor)) {
                     // System.out.println("Field "+getField(a_col,
                     // a_row)+" attacked by "+getField(new_col,
@@ -1021,8 +1030,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         for (int i = 0; i < GamePiece.knightAttackVectors.length; i++) {
             int col_inc = GamePiece.knightAttackVectors[i][0];
             int row_inc = GamePiece.knightAttackVectors[i][1];
-            int new_col = pos.x + col_inc;
-            int new_row = pos.y + row_inc;
+            int new_col = pos.getFile() + col_inc;
+            int new_row = pos.getRank() + row_inc;
             if (checkForKnightAttack(this, new_col, new_row, attackingColor)) {
                 // System.out.println("Field "+getField(a_col,
                 // a_row)+" attacked by "+getField(new_col,
@@ -1035,8 +1044,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         for (int i = 0; i < GamePiece.clockwiseLookup.length; i++) {
             int col_inc = GamePiece.clockwiseLookup[i][0];
             int row_inc = GamePiece.clockwiseLookup[i][1];
-            int new_col = pos.x + col_inc;
-            int new_row = pos.y + row_inc;
+            int new_col = pos.getFile() + col_inc;
+            int new_row = pos.getRank() + row_inc;
 
             // check king on neighbour fields only
             if ((isWithinBoard(GamePosition.getGamePosition(new_col, new_row)))
@@ -1115,7 +1124,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
     @Override
     public GamePiece getPiece(GamePosition pos) {
-        return _fields[pos.x - 1][pos.y - 1];
+        return _fields[pos.getFile() - 1][pos.getRank() - 1];
     }
 
     /*
@@ -1126,7 +1135,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     @Override
     public boolean isWithinBoard(GamePosition p) {
         if (p == null) return false;
-        return p.x > 0 && p.x < 9 && p.y > 0 && p.y < 9;
+        return p.getFile() > 0 && p.getFile() < 9 && p.getRank() > 0 && p.getRank() < 9;
     }
 
     // Getters and Setters ---------------------------------------------------
@@ -1137,7 +1146,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     @Override
     public GameColor getNextPlayerColor() {
         // should we store next player color to be quicker
-        if (_halfMoveNumber % 2 == 0)
+        if (_lastHalfMoveNumber % 2 == 0)
             return GameColor.WHITE;
         return GameColor.BLACK;
     }
@@ -1183,7 +1192,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     @Override
     public int getLastHalfMoveNumber() {
-        return _halfMoveNumber;
+        return _lastHalfMoveNumber;
     }
 
     /*
@@ -1200,7 +1209,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      * @return full move number
      */
     public int getFullMoveNumber() {
-        return (_halfMoveNumber+1)/2;
+        return (_lastHalfMoveNumber/2)+1;
     }
 
     @Override
@@ -1366,7 +1375,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         _moveHistory = new GameMoveList(100);
         _moveListCacheValid = false;
 
-        // First set all emtpy
+        // First set all empty
         for (int row = 0; row < DIM; row++) {
             for (int col = 0; col < DIM; col++) {
                 _fields[col][row] = null;
@@ -1413,32 +1422,32 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         /**
          * bm = best move
          *
-1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - bm Qd1+; id "BK.01";
-3r1k2/4npp1/1ppr3p/p6P/P2PPPP1/1NR5/5K2/2R5 w - - bm d5; id "BK.02";
-2q1rr1k/3bbnnp/p2p1pp1/2pPp3/PpP1P1P1/1P2BNNP/2BQ1PRK/7R b - - bm f5; id "BK.03";
-rnbqkb1r/p3pppp/1p6/2ppP3/3N4/2P5/PPP1QPPP/R1B1KB1R w KQkq - bm e6; id "BK.04";
-r1b2rk1/2q1b1pp/p2ppn2/1p6/3QP3/1BN1B3/PPP3PP/R4RK1 w - - bm Nd5 a4; id "BK.05";
-2r3k1/pppR1pp1/4p3/4P1P1/5P2/1P4K1/P1P5/8 w - - bm g6; id "BK.06";
-1nk1r1r1/pp2n1pp/4p3/q2pPp1N/b1pP1P2/B1P2R2/2P1B1PP/R2Q2K1 w - - bm Nf6; id "BK.07";
-4b3/p3kp2/6p1/3pP2p/2pP1P2/4K1P1/P3N2P/8 w - - bm f5; id "BK.08";
-2kr1bnr/pbpq4/2n1pp2/3p3p/3P1P1B/2N2N1Q/PPP3PP/2KR1B1R w - - bm f5; id "BK.09";
-3rr1k1/pp3pp1/1qn2np1/8/3p4/PP1R1P2/2P1NQPP/R1B3K1 b - - bm Ne5; id "BK.10";
-2r1nrk1/p2q1ppp/bp1p4/n1pPp3/P1P1P3/2PBB1N1/4QPPP/R4RK1 w - - bm f4; id "BK.11";
-r3r1k1/ppqb1ppp/8/4p1NQ/8/2P5/PP3PPP/R3R1K1 b - - bm Bf5; id "BK.12";
-r2q1rk1/4bppp/p2p4/2pP4/3pP3/3Q4/PP1B1PPP/R3R1K1 w - - bm b4; id "BK.13";
-rnb2r1k/pp2p2p/2pp2p1/q2P1p2/8/1Pb2NP1/PB2PPBP/R2Q1RK1 w - - bm Qd2 Qe1; id "BK.14";
-2r3k1/1p2q1pp/2b1pr2/p1pp4/6Q1/1P1PP1R1/P1PN2PP/5RK1 w - - bm Qxg7+; id "BK.15";
-r1bqkb1r/4npp1/p1p4p/1p1pP1B1/8/1B6/PPPN1PPP/R2Q1RK1 w kq - bm Ne4; id "BK.16";
-r2q1rk1/1ppnbppp/p2p1nb1/3Pp3/2P1P1P1/2N2N1P/PPB1QP2/R1B2RK1 b - - bm h5; id "BK.17";
-r1bq1rk1/pp2ppbp/2np2p1/2n5/P3PP2/N1P2N2/1PB3PP/R1B1QRK1 b - - bm Nb3; id "BK.18";
-3rr3/2pq2pk/p2p1pnp/8/2QBPP2/1P6/P5PP/4RRK1 b - - bm Rxe4; id "BK.19";
-r4k2/pb2bp1r/1p1qp2p/3pNp2/3P1P2/2N3P1/PPP1Q2P/2KRR3 w - - bm g4; id "BK.20";
-3rn2k/ppb2rpp/2ppqp2/5N2/2P1P3/1P5Q/PB3PPP/3RR1K1 w - - bm Nh6; id "BK.21";
-2r2rk1/1bqnbpp1/1p1ppn1p/pP6/N1P1P3/P2B1N1P/1B2QPP1/R2R2K1 b - - bm Bxe4; id "BK.22";
-r1bqk2r/pp2bppp/2p5/3pP3/P2Q1P2/2N1B3/1PP3PP/R4RK1 b kq - bm f6; id "BK.23";
-r2qnrnk/p2b2b1/1p1p2pp/2pPpp2/1PP1P3/PRNBB3/3QNPPP/5RK1 w - - bm f4; id "BK.24";
+            1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - bm Qd1+; id "BK.01";
+            3r1k2/4npp1/1ppr3p/p6P/P2PPPP1/1NR5/5K2/2R5 w - - bm d5; id "BK.02";
+            2q1rr1k/3bbnnp/p2p1pp1/2pPp3/PpP1P1P1/1P2BNNP/2BQ1PRK/7R b - - bm f5; id "BK.03";
+            rnbqkb1r/p3pppp/1p6/2ppP3/3N4/2P5/PPP1QPPP/R1B1KB1R w KQkq - bm e6; id "BK.04";
+            r1b2rk1/2q1b1pp/p2ppn2/1p6/3QP3/1BN1B3/PPP3PP/R4RK1 w - - bm Nd5 a4; id "BK.05";
+            2r3k1/pppR1pp1/4p3/4P1P1/5P2/1P4K1/P1P5/8 w - - bm g6; id "BK.06";
+            1nk1r1r1/pp2n1pp/4p3/q2pPp1N/b1pP1P2/B1P2R2/2P1B1PP/R2Q2K1 w - - bm Nf6; id "BK.07";
+            4b3/p3kp2/6p1/3pP2p/2pP1P2/4K1P1/P3N2P/8 w - - bm f5; id "BK.08";
+            2kr1bnr/pbpq4/2n1pp2/3p3p/3P1P1B/2N2N1Q/PPP3PP/2KR1B1R w - - bm f5; id "BK.09";
+            3rr1k1/pp3pp1/1qn2np1/8/3p4/PP1R1P2/2P1NQPP/R1B3K1 b - - bm Ne5; id "BK.10";
+            2r1nrk1/p2q1ppp/bp1p4/n1pPp3/P1P1P3/2PBB1N1/4QPPP/R4RK1 w - - bm f4; id "BK.11";
+            r3r1k1/ppqb1ppp/8/4p1NQ/8/2P5/PP3PPP/R3R1K1 b - - bm Bf5; id "BK.12";
+            r2q1rk1/4bppp/p2p4/2pP4/3pP3/3Q4/PP1B1PPP/R3R1K1 w - - bm b4; id "BK.13";
+            rnb2r1k/pp2p2p/2pp2p1/q2P1p2/8/1Pb2NP1/PB2PPBP/R2Q1RK1 w - - bm Qd2 Qe1; id "BK.14";
+            2r3k1/1p2q1pp/2b1pr2/p1pp4/6Q1/1P1PP1R1/P1PN2PP/5RK1 w - - bm Qxg7+; id "BK.15";
+            r1bqkb1r/4npp1/p1p4p/1p1pP1B1/8/1B6/PPPN1PPP/R2Q1RK1 w kq - bm Ne4; id "BK.16";
+            r2q1rk1/1ppnbppp/p2p1nb1/3Pp3/2P1P1P1/2N2N1P/PPB1QP2/R1B2RK1 b - - bm h5; id "BK.17";
+            r1bq1rk1/pp2ppbp/2np2p1/2n5/P3PP2/N1P2N2/1PB3PP/R1B1QRK1 b - - bm Nb3; id "BK.18";
+            3rr3/2pq2pk/p2p1pnp/8/2QBPP2/1P6/P5PP/4RRK1 b - - bm Rxe4; id "BK.19";
+            r4k2/pb2bp1r/1p1qp2p/3pNp2/3P1P2/2N3P1/PPP1Q2P/2KRR3 w - - bm g4; id "BK.20";
+            3rn2k/ppb2rpp/2ppqp2/5N2/2P1P3/1P5Q/PB3PPP/3RR1K1 w - - bm Nh6; id "BK.21";
+            2r2rk1/1bqnbpp1/1p1ppn1p/pP6/N1P1P3/P2B1N1P/1B2QPP1/R2R2K1 b - - bm Bxe4; id "BK.22";
+            r1bqk2r/pp2bppp/2p5/3pP3/P2Q1P2/2N1B3/1PP3PP/R4RK1 b kq - bm f6; id "BK.23";
+            r2qnrnk/p2b2b1/1p1p2pp/2pPpp2/1PP1P3/PRNBB3/3QNPPP/5RK1 w - - bm f4; id "BK.24";
 
-r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
+            r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
          */
     }
 
@@ -1464,12 +1473,12 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
                 if (s.toLowerCase() == s) { // black
 
                     switch (s) {
-                        case "p": putPiece(Pawn.createPawn(GameColor.BLACK), col, row); break;
-                        case "n": putPiece(Knight.createKnight(GameColor.BLACK), col, row); break;
-                        case "b": putPiece(Bishop.createBishop(GameColor.BLACK), col, row); break;
-                        case "r": putPiece(Rook.createRook(GameColor.BLACK), col, row); break;
-                        case "q": putPiece(Queen.createQueen(GameColor.BLACK), col, row); break;
-                        case "k": putPiece(King.createKing(GameColor.BLACK), col, row); break;
+                        case "p": putPiece(Pawn.create(GameColor.BLACK), col, row); break;
+                        case "n": putPiece(Knight.create(GameColor.BLACK), col, row); break;
+                        case "b": putPiece(Bishop.create(GameColor.BLACK), col, row); break;
+                        case "r": putPiece(Rook.create(GameColor.BLACK), col, row); break;
+                        case "q": putPiece(Queen.create(GameColor.BLACK), col, row); break;
+                        case "k": putPiece(King.create(GameColor.BLACK), col, row); break;
                         default:
                             throw new IllegalArgumentException("FEN Syntax not valid - expected a-hA-H");
                     }
@@ -1477,12 +1486,12 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
                 } else if (s.toUpperCase() == s) { // white
 
                     switch (s) {
-                        case "P": putPiece(Pawn.createPawn(GameColor.WHITE), col, row); break;
-                        case "N": putPiece(Knight.createKnight(GameColor.WHITE), col, row); break;
-                        case "B": putPiece(Bishop.createBishop(GameColor.WHITE), col, row); break;
-                        case "R": putPiece(Rook.createRook(GameColor.WHITE), col, row); break;
-                        case "Q": putPiece(Queen.createQueen(GameColor.WHITE), col, row); break;
-                        case "K": putPiece(King.createKing(GameColor.WHITE), col, row); break;
+                        case "P": putPiece(Pawn.create(GameColor.WHITE), col, row); break;
+                        case "N": putPiece(Knight.create(GameColor.WHITE), col, row); break;
+                        case "B": putPiece(Bishop.create(GameColor.WHITE), col, row); break;
+                        case "R": putPiece(Rook.create(GameColor.WHITE), col, row); break;
+                        case "Q": putPiece(Queen.create(GameColor.WHITE), col, row); break;
+                        case "K": putPiece(King.create(GameColor.WHITE), col, row); break;
                         default:
                             throw new IllegalArgumentException("FEN Syntax not valid - expected a-hA-H");
                     }
@@ -1523,7 +1532,7 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
                 _castlingRights[c.ordinal()] = GameCastling.NOCASTLING;
         }
         if (parts.length < 3) { // default "-"
-            // ignore (readablility)
+            // ignore (readability)
         } else {
             for (i=0; i<parts[2].length(); i++) {
                 s = parts[2].substring(i, i+1);
@@ -1540,7 +1549,7 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
 
         // en passant
         if (parts.length < 4) { // default "-"
-            // ignore (readablility)
+            // ignore (readability)
         } else {
             s = parts[3];
             if (!s.equals("-")) {
@@ -1558,17 +1567,27 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
         }
 
         // full move number
-        if (parts.length < 6) { // default "0"
-            _halfMoveNumber = 1 ;
+        if (parts.length < 6) { // default "1"
+            _lastHalfMoveNumber = 1 ;
         } else {
             s = parts[5];
-            _halfMoveNumber = (2 * Integer.parseInt(s)) - 1;
+            _lastHalfMoveNumber = (2 * Integer.parseInt(s)) - 1;
         }
-        if (nextPlayer.isWhite()) _halfMoveNumber--;
+        if (nextPlayer.isWhite()) _lastHalfMoveNumber--;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return toBoardString();
     }
 
     @Override
-    public String toFEN() {
+    public String toFENString() {
 
         String fen = "";
 
@@ -1638,13 +1657,10 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
 
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
+    /**
+     * @return String of visual board for use in console
      */
-    @Override
-    public String toString() {
+    public String toBoardString() {
         StringBuilder boardString = new StringBuilder((DIM << 2 + 5) * DIM);
 
         // backwards as highest row is on top
@@ -1671,7 +1687,7 @@ r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1 26. Nxh6!!
                 if (p == null) {
                     boardString.append("   |");
                 } else {
-                    boardString.append(p.toString()).append(" |");
+                    boardString.append(" ").append(p.toString()).append(" |");
                 }
             }
             boardString.append("\n");

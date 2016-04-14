@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,11 +25,10 @@ import java.util.PriorityQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
-import com.fluxchess.jcpi.commands.IProtocol;
-import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
-import com.fluxchess.jcpi.models.GenericMove;
+import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 
 final class Search implements Runnable {
 
@@ -57,1778 +56,1768 @@ final class Search implements Runnable {
     private static final int FUTILITY_QUIESCENTMARGIN = Piece.VALUE_PAWN;
 
     // Objects
-    private final IProtocol protocol;
-    private final Thread thread = new Thread(this);
-    private final Semaphore semaphore = new Semaphore(0);
+    //private final IProtocol protocol;
+    private final Thread _thread = new Thread(this, "FluxEngine");
+    private final Semaphore _semaphore = new Semaphore(0);
 
     // Search control
-    private Timer timer = null;
-    private boolean canStop = false;
-    private boolean stopped = true;
-    private boolean stopFlag = false;
-    private boolean doTimeManagement = true;
-    private boolean analyzeMode = false;
+    private Timer _timer = null;
+    private boolean _canStop = false;
+    private boolean _stopped = true;
+    private boolean _stopFlag = false;
+    private boolean _doTimeManagement = true;
+    private boolean _analyzeMode = false;
 
     // Search parameters
-    private int searchDepth = 0;
-    private long searchNodes = 0;
-    private long searchTime = 0;
-    private long searchTimeHard = 0;
-    private long searchTimeStart = 0;
-    private final long[] searchClock = new long[Color.ARRAY_DIMENSION];
-    private final long[] searchClockIncrement = new long[Color.ARRAY_DIMENSION];
-    private int searchMovesToGo = 0;
-    private final MoveList searchMoveList = new MoveList();
+    private int _searchDepth = 0;
+    private long _searchNodes = 0;
+    private long _searchTime = 0;
+    private long _searchTimeHard = 0;
+    private long _searchTimeStart = 0;
+    private final long[] _searchClock = new long[Color.ARRAY_DIMENSION];
+    private final long[] _searchClockIncrement = new long[Color.ARRAY_DIMENSION];
+    private int _searchMovesToGo = 0;
+    private final MoveList _searchMoveList = new MoveList();
 
     // Analyze parameters
-    private int showPvNumber = 1;
+    private int _showPvNumber = 1;
 
     // Search logic
-    private Evaluation evaluation = new Evaluation();
-    private static Position board;
-    private final int myColor;
+    private Evaluation _evaluation = new Evaluation();
+    private static Position _board;
+    private final int _myColor;
 
     // Search tables
-    private TranspositionTable transpositionTable;
-    private static KillerTable killerTable;
-    private static HistoryTable historyTable;
+    private TranspositionTable _transpositionTable;
+    private static KillerTable _killerTable;
+    private static HistoryTable _historyTable;
 
     // Search information
-    private static final MoveList[] pvList = new MoveList[Depth.MAX_PLY + 1];
-    private static final HashMap<Integer, PrincipalVariation> multiPvMap = new HashMap<>(
-	    MAX_MOVES);
-    private Result bestResult = null;
-    private final int[] timeTable;
+    private static final MoveList[] _pvList = new MoveList[Depth.MAX_PLY + 1];
+    private static final HashMap<Integer, PrincipalVariation> _multiPvMap = new HashMap<>(MAX_MOVES);
+    private Result _bestResult = null;
+    private final int[] _timeTable;
 
-    private int currentDepth = 1;
-    private int currentMaxDepth = 0;
-    private long totalTimeStart = 0;
-    private long currentTimeStart = 0;
-    private long totalNodes = 0;
-    private GenericMove currentMove = null;
-    private int currentMoveNumber = 0;
+    private int _currentDepth = 1;
+    private int _currentMaxDepth = 0;
+    private long _totalTimeStart = 0;
+    private int _currentMoveNumber = 0;
+    private GameMove _currentMove = null;
+    private long _totalNodes = 0;
+    private long _totalBoards = 0;
+    private int _totalNonQuietBoards = 0;
 
-    private static final class Result {
-	int bestMove = Move.NOMOVE;
-	int ponderMove = Move.NOMOVE;
-	int value = Bound.NOBOUND;
-	int resultValue = -Value.INFINITY;
-	long time = -1;
-	int moveNumber = 0;
-	int depth = 0;
+    // back reference to FluxEngine to send move to
+    private FluxEngine _fluxengine;
 
-	/**
-	 * Creates a new Result.
-	 */
-	Result() {
-	}
+    // Cache statistics
+    private final AtomicLong _nodeCacheHits = new AtomicLong(0);
+    private final AtomicLong _nodeCacheMisses = new AtomicLong(0);
+
+    static final class Result {
+        int bestMove = Move.NOMOVE;
+        int ponderMove = Move.NOMOVE;
+        int value = Bound.NOBOUND;
+        int resultValue = -Value.INFINITY;
+        long time = -1;
+        int moveNumber = 0;
+        int depth = 0;
+
+        /**
+         * Creates a new Result.
+         */
+        Result() {
+        }
     }
 
     // Static initialization
     static {
-	if (Configuration.useVerifiedNullMovePruning) {
-	    NULLMOVE_REDUCTION = 3;
-	} else {
-	    NULLMOVE_REDUCTION = 2;
-	}
+        if (Configuration.useVerifiedNullMovePruning) {
+            NULLMOVE_REDUCTION = 3;
+        } else {
+            NULLMOVE_REDUCTION = 2;
+        }
 
-	for (int i = 0; i < pvList.length; i++) {
-	    pvList[i] = new MoveList();
-	}
+        for (int i = 0; i < _pvList.length; i++) {
+            _pvList[i] = new MoveList();
+        }
     }
 
-    Search(IProtocol protocol, Position newBoard,
-	    TranspositionTable newTranspositionTable, int[] timeTable) {
-	assert protocol != null;
-	assert newBoard != null;
-	assert newTranspositionTable != null;
+    Search(FluxEngine backreference, Position newBoard, TranspositionTable newTranspositionTable, EvaluationTable evaluationTable, int[] timeTable) {
+        assert newBoard != null;
+        assert newTranspositionTable != null;
 
-	this.protocol = protocol;
+        _fluxengine = backreference;
 
-	this.analyzeMode = Configuration.analyzeMode;
+        _thread.setName("FluxEngineSearch "+_fluxengine.getActiveColor().toString());
 
-	board = newBoard;
-	this.myColor = newBoard.activeColor;
+        this._analyzeMode = Configuration.analyzeMode;
 
-	this.transpositionTable = newTranspositionTable;
-	if (this.analyzeMode) {
-	    this.transpositionTable.increaseAge();
-	}
-	killerTable = new KillerTable();
-	historyTable = new HistoryTable();
+        _board = newBoard;
+        this._myColor = _board.activeColor;
 
-	new MoveGenerator(newBoard, killerTable, historyTable);
-	new See(newBoard);
+        this._transpositionTable = newTranspositionTable;
+        if (this._analyzeMode) {
+            this._transpositionTable.increaseAge();
+        }
+        this._evaluationTable = evaluationTable;
+        _killerTable = new KillerTable();
+        _historyTable = new HistoryTable();
 
-	this.timeTable = timeTable;
+        new MoveGenerator(_board, _killerTable, _historyTable);
+        new See(_board);
 
-	multiPvMap.clear();
+        this._timeTable = timeTable;
+
+        _multiPvMap.clear();
     }
 
+    @Override
     public void run() {
-	this.stopped = false;
-	this.canStop = false;
-	this.bestResult = new Result();
+        this._stopped = false;
+        this._canStop = false;
+        this._bestResult = new Result();
 
-	// Set the time managemnet
-	if (this.doTimeManagement) {
-	    setTimeManagement();
-	    this.searchTimeStart = System.currentTimeMillis();
-	}
-	if (this.searchTime > 0) {
-	    startTimer();
-	}
+        // Set the time management
+        if (this._doTimeManagement) {
+            setTimeManagement();
+            this._searchTimeStart = System.currentTimeMillis();
+        }
+        if (this._searchTime > 0) {
+            startTimer();
+        }
 
-	// Go...
-	this.semaphore.release();
+        // Go...
+        this._semaphore.release();
 
-	totalTimeStart = System.currentTimeMillis();
-	currentTimeStart = totalTimeStart;
-	Result moveResult = getBestMove();
+        _totalTimeStart = System.currentTimeMillis();
+        Result moveResult = getBestMove();
 
-	// Cancel the timer
-	if (this.timer != null) {
-	    this.timer.cancel();
-	}
+        // Cancel the timer
+        if (this._timer != null) {
+            this._timer.cancel();
+        }
 
-	// Send the result
-	if (moveResult.bestMove != Move.NOMOVE) {
-	    if (moveResult.ponderMove != Move.NOMOVE) {
-		protocol.send(new ProtocolBestMoveCommand(Move
-			.toCommandMove(moveResult.bestMove), Move
-			.toCommandMove(moveResult.ponderMove)));
-	    } else {
-		protocol.send(new ProtocolBestMoveCommand(Move
-			.toCommandMove(moveResult.bestMove), null));
-	    }
-	} else {
-	    protocol.send(new ProtocolBestMoveCommand(null, null));
-	}
+        // Send the result
+        if (moveResult.bestMove != Move.NOMOVE) {
+            if (moveResult.ponderMove != Move.NOMOVE) {
+                _fluxengine.storeResult(moveResult);
+            } else {
+                _fluxengine.storeResult(moveResult);
+            }
+        } else {
+            _fluxengine.storeResult(null);
+        }
 
-	// Cleanup manually
-	this.transpositionTable = null;
-	this.evaluation = null;
+        // Cleanup manually
+        this._transpositionTable = null;
+        this._evaluation = null;
     }
 
     void start() {
-	this.thread.start();
-	try {
-	    // Wait for initialization
-	    this.semaphore.acquire();
-	} catch (InterruptedException e) {
-	    // Do nothing
-	}
+        this._thread.start();
+        try {
+            // Wait for initialization
+            this._semaphore.acquire();
+        } catch (InterruptedException e) {
+            // Do nothing
+        }
     }
 
     void stop() {
-	this.stopped = true;
-	this.canStop = true;
-	try {
-	    // Wait for the thread to die
-	    this.thread.join();
-	} catch (InterruptedException e) {
-	    // Do nothing
-	}
+        this._stopped = true;
+        this._canStop = true;
+        try {
+            // Wait for the thread to die
+            this._thread.join();
+        } catch (InterruptedException e) {
+            // Do nothing
+        }
     }
 
+    /**
+     * This is called by the Game (or the FluxEngine) to signal that the
+     * guessed opponents move has been actually made by the opponent and
+     * that we should simply continue to think about this move until we have used up
+     * the time for this move - altogether the calculation time will be
+     * the ponder time plus the regular move time - so usually a deeper search!
+     */
     void ponderhit() {
-	// Enable time management
-	this.doTimeManagement = true;
+        // Enable time management
+        this._doTimeManagement = true;
 
-	// Set time management parameters
-	setTimeManagement();
-	this.searchTimeStart = System.currentTimeMillis();
+        // Set time management parameters
+        setTimeManagement();
+        this._searchTimeStart = System.currentTimeMillis();
 
-	// Start our hard stop timer
-	startTimer();
+        // Start our hard stop timer
+        startTimer();
 
-	// Check whether we have already a result
-	assert this.bestResult != null;
-	if (this.bestResult.bestMove != Move.NOMOVE) {
-	    this.canStop = true;
+        // Check whether we have already a result
+        assert this._bestResult != null;
+        if (this._bestResult.bestMove != Move.NOMOVE) {
+            this._canStop = true;
 
-	    // Check if we have a checkmate
-	    if (Math.abs(this.bestResult.resultValue) > Value.CHECKMATE_THRESHOLD
-		    && this.bestResult.depth >= (Value.CHECKMATE - Math
-			    .abs(this.bestResult.resultValue))) {
-		this.stopped = true;
-	    }
+            // Check if we have a checkmate
+            if (Math.abs(this._bestResult.resultValue) > Value.CHECKMATE_THRESHOLD
+                    && this._bestResult.depth >= (Value.CHECKMATE - Math
+                            .abs(this._bestResult.resultValue))) {
+                this._stopped = true;
+            }
 
-	    // Check if we have only one move to make
-	    else if (this.bestResult.moveNumber == 1) {
-		this.stopped = true;
-	    }
-	}
+            // Check if we have only one move to make
+            else if (this._bestResult.moveNumber == 1) {
+                this._stopped = true;
+            }
+        }
     }
 
     boolean isStopped() {
-	return !this.thread.isAlive();
+        return !this._thread.isAlive();
     }
 
     void setSearchDepth(int searchDepth) {
-	assert searchDepth > 0;
+        assert searchDepth > 0;
 
-	this.searchDepth = searchDepth;
-	if (this.searchDepth > Depth.MAX_DEPTH) {
-	    this.searchDepth = Depth.MAX_DEPTH;
-	}
-	this.doTimeManagement = false;
+        this._searchDepth = searchDepth;
+        if (this._searchDepth > Depth.MAX_DEPTH) {
+            this._searchDepth = Depth.MAX_DEPTH;
+        }
+        this._doTimeManagement = false;
     }
 
     void setSearchNodes(long searchNodes) {
-	assert searchNodes > 0;
+        assert searchNodes > 0;
 
-	this.searchNodes = searchNodes;
-	this.searchDepth = Depth.MAX_DEPTH;
-	this.doTimeManagement = false;
+        this._searchNodes = searchNodes;
+        this._searchDepth = Depth.MAX_DEPTH;
+        this._doTimeManagement = false;
     }
 
     void setSearchTime(long searchTime) {
-	assert searchTime > 0;
+        assert searchTime > 0;
 
-	this.searchTime = searchTime;
-	this.searchTimeHard = this.searchTime;
-	this.searchDepth = Depth.MAX_DEPTH;
-	this.doTimeManagement = false;
+        this._searchTime = searchTime;
+        this._searchTimeHard = this._searchTime;
+        this._searchDepth = Depth.MAX_DEPTH;
+        this._doTimeManagement = false;
     }
 
     void setSearchClock(int side, long timeLeft) {
-	assert timeLeft > 0;
+        assert timeLeft > 0;
 
-	this.searchClock[side] = timeLeft;
+        this._searchClock[side] = timeLeft;
     }
 
     void setSearchClockIncrement(int side, long timeIncrement) {
-	assert timeIncrement > 0;
+        assert timeIncrement > 0;
 
-	this.searchClockIncrement[side] = timeIncrement;
+        this._searchClockIncrement[side] = timeIncrement;
     }
 
     void setSearchMovesToGo(int searchMovesToGo) {
-	assert searchMovesToGo > 0;
+        assert searchMovesToGo > 0;
 
-	this.searchMovesToGo = searchMovesToGo;
+        this._searchMovesToGo = searchMovesToGo;
     }
 
     void setSearchInfinite() {
-	this.searchDepth = Depth.MAX_DEPTH;
-	this.doTimeManagement = false;
-	this.analyzeMode = true;
+        this._searchDepth = Depth.MAX_DEPTH;
+        this._doTimeManagement = false;
+        this._analyzeMode = true;
     }
 
     void setSearchPonder() {
-	this.searchDepth = Depth.MAX_DEPTH;
-	this.doTimeManagement = false;
+        this._searchDepth = Depth.MAX_DEPTH;
+        this._doTimeManagement = false;
     }
 
-    void setSearchMoveList(List<GenericMove> moveList) {
-	for (GenericMove move : moveList) {
-	    this.searchMoveList.moves[this.searchMoveList.tail++] = Move
-		    .convertMove(move, board);
-	}
+    void setSearchMoveList(List<GameMove> moveList) {
+        for (GameMove move : moveList) {
+            this._searchMoveList.moves[this._searchMoveList.tail++] = Move
+                    .convertMove(move, _board);
+        }
     }
 
     private void startTimer() {
-	// Only start timer if we have a hard time limit
-	if (this.searchTimeHard > 0) {
-	    this.timer = new Timer(true);
-	    this.timer.schedule(new TimerTask() {
-		public void run() {
-		    stop();
-		}
-	    }, this.searchTimeHard);
-	}
+        // Only start timer if we have a hard time limit
+        if (this._searchTimeHard > 0) {
+            this._timer = new Timer(_thread.getName()+" Timer hard:"+_searchTimeHard, true);
+            this._timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    stop();
+                }
+            }, this._searchTimeHard);
+        }
     }
 
     private void setTimeManagement() {
-	// Dynamic time allocation
-	this.searchDepth = Depth.MAX_DEPTH;
+        // Dynamic time allocation
+        this._searchDepth = Depth.MAX_DEPTH;
 
-	if (this.searchClock[this.myColor] > 0) {
-	    // We received a time control.
+        if (this._searchClock[this._myColor] > 0) {
+            // We received a time control.
 
-	    // Check the moves to go
-	    if (this.searchMovesToGo < 1 || this.searchMovesToGo > 40) {
-		this.searchMovesToGo = 40;
-	    }
+            // Check the moves to go
+            if (this._searchMovesToGo < 1 || this._searchMovesToGo > 40) {
+                this._searchMovesToGo = 40;
+            }
 
-	    // Check the increment
-	    if (this.searchClockIncrement[this.myColor] < 1) {
-		this.searchClockIncrement[this.myColor] = 0;
-	    }
+            // Check the increment
+            if (this._searchClockIncrement[this._myColor] < 1) {
+                this._searchClockIncrement[this._myColor] = 0;
+            }
 
-	    // Set the maximum search time
-	    long maxSearchTime = (long) (this.searchClock[this.myColor] * 0.95) - 1000L;
-	    if (maxSearchTime < 0) {
-		maxSearchTime = 0;
-	    }
+            // Set the maximum search time
+            long maxSearchTime = (long) (this._searchClock[this._myColor] * 0.95) - 1000L;
+            if (maxSearchTime < 0) {
+                maxSearchTime = 0;
+            }
 
-	    // Set the search time
-	    this.searchTime = (maxSearchTime + (this.searchMovesToGo - 1)
-		    * this.searchClockIncrement[this.myColor])
-		    / this.searchMovesToGo;
-	    if (this.searchTime > maxSearchTime) {
-		this.searchTime = maxSearchTime;
-	    }
+            // Set the search time
+            this._searchTime = (maxSearchTime + (this._searchMovesToGo - 1)
+                    * this._searchClockIncrement[this._myColor])
+                    / this._searchMovesToGo;
+            if (this._searchTime > maxSearchTime) {
+                this._searchTime = maxSearchTime;
+            }
 
-	    // Set the hard limit search time
-	    this.searchTimeHard = (maxSearchTime + (this.searchMovesToGo - 1)
-		    * this.searchClockIncrement[this.myColor]) / 8;
-	    if (this.searchTimeHard < this.searchTime) {
-		this.searchTimeHard = this.searchTime;
-	    }
-	    if (this.searchTimeHard > maxSearchTime) {
-		this.searchTimeHard = maxSearchTime;
-	    }
-	} else {
-	    // We received no time control. Search for 2 seconds.
-	    this.searchTime = 2000L;
+            // Set the hard limit search time
+            this._searchTimeHard = (maxSearchTime + (this._searchMovesToGo - 1)
+                    * this._searchClockIncrement[this._myColor]) / 8;
+            if (this._searchTimeHard < this._searchTime) {
+                this._searchTimeHard = this._searchTime;
+            }
+            if (this._searchTimeHard > maxSearchTime) {
+                this._searchTimeHard = maxSearchTime;
+            }
+        } else {
+            // We received no time control. Search for 2 seconds.
+            this._searchTime = 2000L;
 
-	    // Stop hard after +50% of the allocated time
-	    this.searchTimeHard = this.searchTime + this.searchTime / 2;
-	}
+            // Stop hard after +50% of the allocated time
+            this._searchTimeHard = this._searchTime + this._searchTime / 2;
+        }
     }
 
     private Result getBestMove() {
-	// ## BEGIN Root Move List
-	MoveList rootMoveList = new MoveList();
+        // ## BEGIN Root Move List
+        MoveList rootMoveList = new MoveList();
 
-	PrincipalVariation pv = null;
-	int transpositionMove = Move.NOMOVE;
-	int transpositionDepth = -1;
-	int transpositionValue = 0;
-	int transpositionType = Bound.NOBOUND;
-	if (Configuration.useTranspositionTable) {
-	    TranspositionTable.TranspositionTableEntry entry = this.transpositionTable
-		    .get(board.zobristCode);
-	    if (entry != null) {
-		List<GenericMove> moveList = this.transpositionTable
-			.getMoveList(board, entry.depth,
-				new ArrayList<GenericMove>());
-		if (moveList.size() != 0) {
-		    pv = new PrincipalVariation(1, entry.getValue(0),
-			    entry.type, entry.getValue(0), moveList,
-			    entry.depth, entry.depth, 0, 0, 0);
-		}
-		transpositionMove = entry.move;
-		transpositionDepth = entry.depth;
-		transpositionValue = entry.getValue(0);
-		transpositionType = entry.type;
-	    }
-	}
+        PrincipalVariation pv = null;
+        int transpositionMove = Move.NOMOVE;
+        int transpositionDepth = -1;
+        int transpositionValue = 0;
+        int transpositionType = Bound.NOBOUND;
+        if (Configuration.useTranspositionTable) {
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
+            if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
+                List<GameMove> moveList = this._transpositionTable.getMoveList(_board, entry.depth, new ArrayList<GameMove>());
+                if (moveList.size() != 0) {
+                    pv = new PrincipalVariation(1, entry.getValue(0),
+                            entry.type, entry.getValue(0), moveList,
+                            entry.depth, entry.depth, 0, 0, 0);
+                }
+                transpositionMove = entry.move;
+                transpositionDepth = entry.depth;
+                transpositionValue = entry.getValue(0);
+                transpositionType = entry.type;
+            } else {
+                _nodeCacheMisses.getAndIncrement();
+            }
+        }
 
-	Attack attack = board.getAttack(board.activeColor);
-	boolean isCheck = attack.isCheck();
+        Attack attack = _board.getAttack(_board.activeColor);
+        boolean isCheck = attack.isCheck();
 
-	if (this.searchMoveList.getLength() == 0) {
-	    MoveGenerator.initializeMain(attack, 0, transpositionMove);
+        if (this._searchMoveList.getLength() == 0) {
+            MoveGenerator.initializeMain(attack, 0, transpositionMove);
 
-	    int move;
-	    while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
-		rootMoveList.moves[rootMoveList.tail++] = move;
-	    }
+            int move;
+            while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
+                rootMoveList.moves[rootMoveList.tail++] = move;
+            }
 
-	    MoveGenerator.destroy();
-	} else {
-	    for (int i = this.searchMoveList.head; i < this.searchMoveList.tail; i++) {
-		rootMoveList.moves[rootMoveList.tail++] = this.searchMoveList.moves[i];
-	    }
-	}
+            MoveGenerator.destroy();
+        } else {
+            for (int i = this._searchMoveList.head; i < this._searchMoveList.tail; i++) {
+                rootMoveList.moves[rootMoveList.tail++] = this._searchMoveList.moves[i];
+            }
+        }
 
-	// Check if we cannot move
-	if (rootMoveList.getLength() == 0) {
-	    // This position is a checkmate or stalemate
-	    return this.bestResult;
-	}
+        // Check if we cannot move
+        if (rootMoveList.getLength() == 0) {
+            // This position is a checkmate or stalemate
+            return this._bestResult;
+        }
 
-	// Adjust pv number
-	this.showPvNumber = Configuration.showPvNumber;
-	if (Configuration.showPvNumber > rootMoveList.getLength()) {
-	    this.showPvNumber = rootMoveList.getLength();
-	}
-	// ## ENDOF Root Move List
+        // Adjust pv number
+        this._showPvNumber = Configuration.showPvNumber;
+        if (Configuration.showPvNumber > rootMoveList.getLength()) {
+            this._showPvNumber = rootMoveList.getLength();
+        }
+        // ## ENDOF Root Move List
 
-	int alpha = -Value.CHECKMATE;
-	int beta = Value.CHECKMATE;
+        int alpha = -Value.CHECKMATE;
+        int beta = Value.CHECKMATE;
 
-	int initialDepth = 1;
-	int equalResults = 0;
-	if (!this.analyzeMode && transpositionDepth > 1
-		&& transpositionType == Bound.EXACT
-		&& Math.abs(transpositionValue) < Value.CHECKMATE_THRESHOLD
-		&& pv != null) {
-	    this.bestResult.bestMove = transpositionMove;
-	    this.bestResult.resultValue = transpositionValue;
-	    this.bestResult.value = transpositionType;
-	    this.bestResult.time = 0;
-	    this.bestResult.moveNumber = rootMoveList.getLength();
+        int initialDepth = 1;
+        int equalResults = 0;
+        if (!this._analyzeMode && transpositionDepth > 1
+                && transpositionType == Bound.EXACT
+                && Math.abs(transpositionValue) < Value.CHECKMATE_THRESHOLD
+                && pv != null) {
+            this._bestResult.bestMove = transpositionMove;
+            this._bestResult.resultValue = transpositionValue;
+            this._bestResult.value = transpositionType;
+            this._bestResult.time = 0;
+            this._bestResult.moveNumber = rootMoveList.getLength();
 
-	    initialDepth = transpositionDepth;
-	    equalResults = transpositionDepth - 2;
-	}
+            initialDepth = transpositionDepth;
+            equalResults = transpositionDepth - 2;
+        }
 
-	// ## BEGIN Iterative Deepening
-	for (currentDepth = initialDepth; currentDepth <= this.searchDepth; currentDepth++) {
-	    currentMaxDepth = 0;
-	    sendInformationDepth();
+        // ## BEGIN Iterative Deepening
+        for (_currentDepth = initialDepth; _currentDepth <= this._searchDepth; _currentDepth++) {
+            _currentMaxDepth = 0;
+            sendInformationDepth();
 
-	    // Create a new result
-	    Result moveResult = new Result();
+            // Create a new result
+            Result moveResult = new Result();
 
-	    // Set the start time
-	    long startTime = System.currentTimeMillis();
+            // Set the start time
+            long startTime = System.currentTimeMillis();
 
-	    int value;
-	    if (currentDepth == initialDepth && initialDepth > 1) {
-		value = transpositionValue;
-		pvList[0].resetList();
-		sendInformation(pv, 1);
+            int value;
+            if (_currentDepth == initialDepth && initialDepth > 1) {
+                value = transpositionValue;
+                _pvList[0].resetList();
+                sendInformation(pv, 1);
 
-		moveResult.bestMove = transpositionMove;
-		moveResult.resultValue = transpositionValue;
-		moveResult.value = transpositionType;
-		moveResult.moveNumber = rootMoveList.getLength();
-	    } else {
-		// Do the Alpha-Beta search
-		value = alphaBetaRoot(currentDepth, alpha, beta, 0, rootMoveList, isCheck, moveResult);
-	    }
+                moveResult.bestMove = transpositionMove;
+                moveResult.resultValue = transpositionValue;
+                moveResult.value = transpositionType;
+                moveResult.moveNumber = rootMoveList.getLength();
+            } else {
+                // Do the Alpha-Beta search
+                value = alphaBetaRoot(_currentDepth, alpha, beta, 0, rootMoveList, isCheck, moveResult);
+            }
 
-	    // ## BEGIN Aspiration Windows
-	    // Notes: Ideas from Ed Schröder. We open the aspiration window
-	    // twice, as the first adjustment should be wide enough.
-	    if (!(this.stopped && this.canStop)
-		    && Configuration.useAspirationWindows
-		    && this.showPvNumber <= 1
-		    && currentDepth >= transpositionDepth) {
-		// First adjustment
-		if (value <= alpha || value >= beta) {
-		    if (value <= alpha) {
-			alpha -= ASPIRATIONWINDOW_ADJUSTMENT;
-		    } else if (value >= beta) {
-			beta += ASPIRATIONWINDOW_ADJUSTMENT;
-		    } else {
-			assert false : "Alpha: " + alpha + ", Beta: " + beta
-				+ ", Value: " + value;
-		    }
-		    if (alpha < -Value.CHECKMATE) {
-			alpha = -Value.CHECKMATE;
-		    }
-		    if (beta > Value.CHECKMATE) {
-			beta = Value.CHECKMATE;
-		    }
+            // ## BEGIN Aspiration Windows
+            // Notes: Ideas from Ed Schröder. We open the aspiration window
+            // twice, as the first adjustment should be wide enough.
+            if (!(this._stopped && this._canStop)
+                    && Configuration.useAspirationWindows
+                    && this._showPvNumber <= 1
+                    && _currentDepth >= transpositionDepth) {
+                // First adjustment
+                if (value <= alpha || value >= beta) {
+                    if (value <= alpha) {
+                        alpha -= ASPIRATIONWINDOW_ADJUSTMENT;
+                    } else if (value >= beta) {
+                        beta += ASPIRATIONWINDOW_ADJUSTMENT;
+                    } else {
+                        assert false : "Alpha: " + alpha + ", Beta: " + beta
+                        + ", Value: " + value;
+                    }
+                    if (alpha < -Value.CHECKMATE) {
+                        alpha = -Value.CHECKMATE;
+                    }
+                    if (beta > Value.CHECKMATE) {
+                        beta = Value.CHECKMATE;
+                    }
 
-		    // Do the Alpha-Beta search again
-		    value = alphaBetaRoot(currentDepth, alpha, beta, 0,
-			    rootMoveList, isCheck, moveResult);
+                    // Do the Alpha-Beta search again
+                    value = alphaBetaRoot(_currentDepth, alpha, beta, 0,
+                            rootMoveList, isCheck, moveResult);
 
-		    if (!(this.stopped && this.canStop)) {
-			// Second adjustment
-			// Open window to full width
-			if (value <= alpha || value >= beta) {
-			    alpha = -Value.CHECKMATE;
-			    beta = Value.CHECKMATE;
+                    if (!(this._stopped && this._canStop)) {
+                        // Second adjustment
+                        // Open window to full width
+                        if (value <= alpha || value >= beta) {
+                            alpha = -Value.CHECKMATE;
+                            beta = Value.CHECKMATE;
 
-			    // Do the Alpha-Beta search again
-			    value = alphaBetaRoot(currentDepth, alpha, beta, 0,
-				    rootMoveList, isCheck, moveResult);
-			}
-		    }
-		}
+                            // Do the Alpha-Beta search again
+                            value = alphaBetaRoot(_currentDepth, alpha, beta, 0,
+                                    rootMoveList, isCheck, moveResult);
+                        }
+                    }
+                }
 
-		// Adjust aspiration window
-		alpha = value - ASPIRATIONWINDOW;
-		beta = value + ASPIRATIONWINDOW;
-		if (alpha < -Value.CHECKMATE) {
-		    alpha = -Value.CHECKMATE;
-		}
-		if (beta > Value.CHECKMATE) {
-		    beta = Value.CHECKMATE;
-		}
-	    }
-	    // ## ENDOF Aspiration Windows
+                // Adjust aspiration window
+                alpha = value - ASPIRATIONWINDOW;
+                beta = value + ASPIRATIONWINDOW;
+                if (alpha < -Value.CHECKMATE) {
+                    alpha = -Value.CHECKMATE;
+                }
+                if (beta > Value.CHECKMATE) {
+                    beta = Value.CHECKMATE;
+                }
+            }
+            // ## ENDOF Aspiration Windows
 
-	    // Set the end time
-	    long endTime = System.currentTimeMillis();
-	    moveResult.time = endTime - startTime;
-	    moveResult.depth = currentDepth;
+            // Set the end time
+            long endTime = System.currentTimeMillis();
+            moveResult.time = endTime - startTime;
+            moveResult.depth = _currentDepth;
 
-	    // Set the used time
-	    if (currentDepth > initialDepth) {
-		if (timeTable[currentDepth] == 0) {
-		    timeTable[currentDepth] += moveResult.time;
-		} else {
-		    timeTable[currentDepth] += moveResult.time;
-		    timeTable[currentDepth] /= 2;
-		}
-	    }
+            // Set the used time
+            if (_currentDepth > initialDepth) {
+                if (_timeTable[_currentDepth] == 0) {
+                    _timeTable[_currentDepth] += moveResult.time;
+                } else {
+                    _timeTable[_currentDepth] += moveResult.time;
+                    _timeTable[_currentDepth] /= 2;
+                }
+            }
 
-	    // Prepare the move result
-	    if (moveResult.bestMove != Move.NOMOVE) {
-		// Count all equal results
-		if (moveResult.bestMove == this.bestResult.bestMove) {
-		    equalResults++;
-		} else {
-		    equalResults = 0;
-		}
+            // Prepare the move result
+            if (moveResult.bestMove != Move.NOMOVE) {
+                // Count all equal results
+                if (moveResult.bestMove == this._bestResult.bestMove) {
+                    equalResults++;
+                } else {
+                    equalResults = 0;
+                }
 
-		if (this.doTimeManagement) {
-		    // ## BEGIN Time Control
-		    boolean timeExtended = false;
+                if (this._doTimeManagement) {
+                    // ## BEGIN Time Control
+                    boolean timeExtended = false;
 
-		    // Check value change
-		    if (moveResult.resultValue + TIMEEXTENSION_MARGIN < this.bestResult.resultValue
-			    || moveResult.resultValue - TIMEEXTENSION_MARGIN > this.bestResult.resultValue) {
-			timeExtended = true;
-		    }
+                    // Check value change
+                    if (moveResult.resultValue + TIMEEXTENSION_MARGIN < this._bestResult.resultValue
+                            || moveResult.resultValue - TIMEEXTENSION_MARGIN > this._bestResult.resultValue) {
+                        timeExtended = true;
+                    }
 
-		    // Check equal results
-		    else if (equalResults < 1) {
-			timeExtended = true;
-		    }
+                    // Check equal results
+                    else if (equalResults < 1) {
+                        timeExtended = true;
+                    }
 
-		    // Set the needed time for the next iteration
-		    long nextIterationTime = timeTable[currentDepth + 1];
-		    if (timeTable[currentDepth + 1] == 0) {
-			nextIterationTime = (moveResult.time * 2);
-		    }
+                    // Set the needed time for the next iteration
+                    long nextIterationTime = _timeTable[_currentDepth + 1];
+                    if (_timeTable[_currentDepth + 1] == 0) {
+                        nextIterationTime = (moveResult.time * 2);
+                    }
 
-		    // Check if we cannot finish the next iteration on time
-		    if (this.searchTimeStart + this.searchTimeHard < System
-			    .currentTimeMillis() + nextIterationTime) {
-			// Clear table
-			if (currentDepth == initialDepth) {
-			    for (int i = currentDepth + 1; i < this.timeTable.length; i++) {
-				this.timeTable[i] = 0;
-			    }
-			} else {
-			    for (int i = currentDepth + 1; i < this.timeTable.length; i++) {
-				this.timeTable[i] += this.timeTable[i - 1] * 2;
-				this.timeTable[i] /= 2;
-			    }
-			}
-			this.stopFlag = true;
-		    }
+                    // Check if we cannot finish the next iteration on time
+                    if (this._searchTimeStart + this._searchTimeHard < System
+                            .currentTimeMillis() + nextIterationTime) {
+                        // Clear table
+                        if (_currentDepth == initialDepth) {
+                            for (int i = _currentDepth + 1; i < this._timeTable.length; i++) {
+                                this._timeTable[i] = 0;
+                            }
+                        } else {
+                            for (int i = _currentDepth + 1; i < this._timeTable.length; i++) {
+                                this._timeTable[i] += this._timeTable[i - 1] * 2;
+                                this._timeTable[i] /= 2;
+                            }
+                        }
+                        this._stopFlag = true;
+                    }
 
-		    // Check time limit
-		    else if (!timeExtended
-			    && this.searchTimeStart + this.searchTime < System
-				    .currentTimeMillis() + nextIterationTime) {
-			// Clear table
-			if (currentDepth == initialDepth) {
-			    for (int i = currentDepth + 1; i < this.timeTable.length; i++) {
-				this.timeTable[i] = 0;
-			    }
-			} else {
-			    for (int i = currentDepth + 1; i < this.timeTable.length; i++) {
-				this.timeTable[i] += this.timeTable[i - 1] * 2;
-				this.timeTable[i] /= 2;
-			    }
-			}
-			this.stopFlag = true;
-		    }
+                    // Check time limit
+                    else if (!timeExtended
+                            && this._searchTimeStart + this._searchTime < System
+                            .currentTimeMillis() + nextIterationTime) {
+                        // Clear table
+                        if (_currentDepth == initialDepth) {
+                            for (int i = _currentDepth + 1; i < this._timeTable.length; i++) {
+                                this._timeTable[i] = 0;
+                            }
+                        } else {
+                            for (int i = _currentDepth + 1; i < this._timeTable.length; i++) {
+                                this._timeTable[i] += this._timeTable[i - 1] * 2;
+                                this._timeTable[i] /= 2;
+                            }
+                        }
+                        this._stopFlag = true;
+                    }
 
-		    // Check if this is an easy recapture
-		    else if (!timeExtended
-			    && Move.getEnd(moveResult.bestMove) == board.captureSquare
-			    && Piece.getValueFromChessman(Move
-				    .getTarget(moveResult.bestMove)) >= Piece.VALUE_KNIGHT
-			    && equalResults > 4) {
-			this.stopFlag = true;
-		    }
+                    // Check if this is an easy recapture
+                    else if (!timeExtended
+                            && Move.getEnd(moveResult.bestMove) == _board.captureSquare
+                            && Piece.getValueFromChessman(Move
+                                    .getTarget(moveResult.bestMove)) >= Piece.VALUE_KNIGHT
+                                    && equalResults > 4) {
+                        this._stopFlag = true;
+                    }
 
-		    // Check if we have a checkmate
-		    else if (Math.abs(value) > Value.CHECKMATE_THRESHOLD
-			    && currentDepth >= (Value.CHECKMATE - Math
-				    .abs(value))) {
-			this.stopFlag = true;
-		    }
+                    // Check if we have a checkmate
+                    else if (Math.abs(value) > Value.CHECKMATE_THRESHOLD
+                            && _currentDepth >= (Value.CHECKMATE - Math
+                                    .abs(value))) {
+                        this._stopFlag = true;
+                    }
 
-		    // Check if we have only one move to make
-		    else if (moveResult.moveNumber == 1) {
-			this.stopFlag = true;
-		    }
-		    // ## ENDOF Time Control
-		}
+                    // Check if we have only one move to make
+                    else if (moveResult.moveNumber == 1) {
+                        this._stopFlag = true;
+                    }
+                    // ## ENDOF Time Control
+                }
 
-		// Update the best result.
-		this.bestResult = moveResult;
+                // Update the best result.
+                this._bestResult = moveResult;
 
-		if (pvList[0].tail > 1) {
-		    // We found a line. Set the ponder move.
-		    this.bestResult.ponderMove = pvList[0].moves[1];
-		}
-	    } else {
-		// We found no best move.
-		// Perhaps we have a checkmate or we got a stop request?
-		break;
-	    }
+                if (_pvList[0].tail > 1) {
+                    // We found a line. Set the ponder move.
+                    this._bestResult.ponderMove = _pvList[0].moves[1];
+                }
+            } else {
+                // We found no best move.
+                // Perhaps we have a checkmate or we got a stop request?
+                break;
+            }
 
-	    // Check if we can stop the search
-	    if (this.stopFlag) {
-		break;
-	    }
+            // Check if we can stop the search
+            if (this._stopFlag) {
+                break;
+            }
 
-	    this.canStop = true;
+            this._canStop = true;
 
-	    if (this.stopped) {
-		break;
-	    }
-	}
-	// ## ENDOF Iterative Deepening
+            if (this._stopped) {
+                break;
+            }
+        }
+        // ## ENDOF Iterative Deepening
 
-	// Update all stats
-	sendInformationSummary();
+        // Update all stats
+        sendInformationSummary();
 
-	return this.bestResult;
+        return this._bestResult;
     }
 
     private void updateSearch(int height) {
-	totalNodes++;
-	if (height > currentMaxDepth) {
-	    currentMaxDepth = height;
-	}
-	sendInformationStatus();
+        _totalNodes++;
+        if (height > _currentMaxDepth) {
+            _currentMaxDepth = height;
+        }
+        sendInformationStatus();
 
-	if (this.searchNodes > 0 && this.searchNodes <= totalNodes) {
-	    // Hard stop on number of nodes
-	    this.stopped = true;
-	}
+        if (this._searchNodes > 0 && this._searchNodes <= _totalNodes) {
+            // Hard stop on number of nodes
+            this._stopped = true;
+        }
 
-	// Reset
-	pvList[height].resetList();
+        // Reset
+        _pvList[height].resetList();
     }
 
     private int alphaBetaRoot(int depth, int alpha, int beta, int height,
-	    MoveList rootMoveList, boolean isCheck, Result moveResult) {
-	updateSearch(height);
+            MoveList rootMoveList, boolean isCheck, Result moveResult) {
 
-	// Abort conditions
-	if ((this.stopped && this.canStop) || height == Depth.MAX_PLY) {
-	    return this.evaluation.evaluate(board);
-	}
+        updateSearch(height);
 
-	// Initialize
-	int hashType = Bound.UPPER;
-	int bestValue = -Value.INFINITY;
-	int bestMove = Move.NOMOVE;
-	int oldAlpha = alpha;
-	PrincipalVariation lastMultiPv = null;
-	PrincipalVariation bestPv = null;
-	PrincipalVariation firstPv = null;
+        // Abort conditions
+        if ((this._stopped && this._canStop) || height == Depth.MAX_PLY) {
+            return evaluateBoard();
+        }
 
-	// Initialize the move number
-	int currentMoveNumber = 0;
+        // Initialize
+        int hashType = Bound.UPPER;
+        int bestValue = -Value.INFINITY;
+        int bestMove = Move.NOMOVE;
+        int oldAlpha = alpha;
+        PrincipalVariation lastMultiPv = null;
+        PrincipalVariation bestPv = null;
+        PrincipalVariation firstPv = null;
 
-	// Initialize Single-Response Extension
-	boolean isSingleReply;
-	isSingleReply = isCheck && rootMoveList.getLength() == 1;
+        // Initialize the move number
+        int currentMoveNumber = 0;
 
-	for (int j = rootMoveList.head; j < rootMoveList.tail; j++) {
-	    int move = rootMoveList.moves[j];
+        // Initialize Single-Response Extension
+        boolean isSingleReply;
+        isSingleReply = isCheck && rootMoveList.getLength() == 1;
 
-	    // Update the information if we evaluate a new move.
-	    currentMoveNumber++;
-	    sendInformationMove(Move.toCommandMove(move), currentMoveNumber);
+        for (int j = rootMoveList.head; j < rootMoveList.tail; j++) {
+            int move = rootMoveList.moves[j];
 
-	    // Extension
-	    int newDepth = getNewDepth(depth, move, isSingleReply, false);
+            // Update the information if we evaluate a new move.
+            currentMoveNumber++;
+            sendInformationMove(Move.toGameMove(move), currentMoveNumber, rootMoveList.getLength());
 
-	    // Do move
-	    board.makeMove(move);
+            // Extension
+            int newDepth = getNewDepth(depth, move, isSingleReply, false);
 
-	    // ## BEGIN Principal Variation Search
-	    int value;
-	    if (bestValue == -Value.INFINITY) {
-		// First move
-		value = -alphaBeta(newDepth, -beta, -alpha, height + 1, true,
-			true);
-	    } else {
-		value = -alphaBeta(newDepth, -alpha - 1, -alpha, height + 1,
-			false, true);
-		if (value > alpha && value < beta) {
-		    // Research again
-		    value = -alphaBeta(newDepth, -beta, -alpha, height + 1,
-			    true, true);
-		}
-	    }
-	    // ## ENDOF Principal Variation Search
+            // Do move
+            _board.makeMove(move);
 
-	    // Undo move
-	    board.undoMove(move);
+            // ## BEGIN Principal Variation Search
+            int value;
+            if (bestValue == -Value.INFINITY) {
+                // First move
+                value = -alphaBeta(newDepth, -beta, -alpha, height + 1, true,
+                        true);
+            } else {
+                value = -alphaBeta(newDepth, -alpha - 1, -alpha, height + 1,
+                        false, true);
+                if (value > alpha && value < beta) {
+                    // Research again
+                    value = -alphaBeta(newDepth, -beta, -alpha, height + 1,
+                            true, true);
+                }
+            }
+            // ## ENDOF Principal Variation Search
 
-	    if (this.stopped && this.canStop) {
-		break;
-	    }
+            // Undo move
+            _board.undoMove(move);
 
-	    // Store value
-	    int sortValue;
-	    int moveType;
-	    if (value <= alpha) {
-		value = alpha;
-		moveType = Bound.UPPER;
-		rootMoveList.values[j] = oldAlpha;
-		sortValue = -Value.INFINITY;
-	    } else if (value >= beta) {
-		value = beta;
-		moveType = Bound.LOWER;
-		rootMoveList.values[j] = beta;
-		sortValue = Value.INFINITY;
-	    } else {
-		moveType = Bound.EXACT;
-		rootMoveList.values[j] = value;
-		sortValue = value;
-	    }
+            if (this._stopped && this._canStop) {
+                break;
+            }
 
-	    // Add pv to list
-	    List<GenericMove> commandMoveList = new ArrayList<>();
-	    commandMoveList.add(Move.toCommandMove(move));
-	    for (int i = pvList[height + 1].head; i < pvList[height + 1].tail; i++) {
-		commandMoveList.add(Move
-			.toCommandMove(pvList[height + 1].moves[i]));
-	    }
-	    PrincipalVariation pv = new PrincipalVariation(currentMoveNumber,
-		    value, moveType, sortValue, commandMoveList, currentDepth,
-		    currentMaxDepth, getCurrentNps(),
-		    System.currentTimeMillis() - totalTimeStart, totalNodes);
-	    multiPvMap.put(move, pv);
+            // Store value
+            int sortValue;
+            int moveType;
+            if (value <= alpha) {
+                value = alpha;
+                moveType = Bound.UPPER;
+                rootMoveList.values[j] = oldAlpha;
+                sortValue = -Value.INFINITY;
+            } else if (value >= beta) {
+                value = beta;
+                moveType = Bound.LOWER;
+                rootMoveList.values[j] = beta;
+                sortValue = Value.INFINITY;
+            } else {
+                moveType = Bound.EXACT;
+                rootMoveList.values[j] = value;
+                sortValue = value;
+            }
 
-	    // Save first pv
-	    if (currentMoveNumber == 1) {
-		firstPv = pv;
-	    }
+            // Add pv to list
+            List<GameMove> refutationMoveList = new ArrayList<>();
+            refutationMoveList.add(Move.toGameMove(move));
+            for (int i = _pvList[height + 1].head; i < _pvList[height + 1].tail; i++) {
+                refutationMoveList.add(Move.toGameMove(_pvList[height + 1].moves[i]));
+            }
 
-	    // Show refutations
-	    if (Configuration.showRefutations) {
-		sendInformationRefutations(commandMoveList);
-	    }
+            PrincipalVariation pv = new PrincipalVariation(currentMoveNumber,
+                    value, moveType, sortValue, refutationMoveList, _currentDepth,
+                    _currentMaxDepth, getCurrentNps(),
+                    System.currentTimeMillis() - _totalTimeStart, _totalNodes);
 
-	    // Show multi pv
-	    if (this.showPvNumber > 1) {
-		assert currentMoveNumber <= this.showPvNumber
-			|| lastMultiPv != null;
-		if (currentMoveNumber <= this.showPvNumber
-			|| pv.compareTo(lastMultiPv) < 0) {
-		    PriorityQueue<PrincipalVariation> tempPvList = new PriorityQueue<>(
-			    multiPvMap.values());
-		    for (int i = 1; i <= this.showPvNumber
-			    && !tempPvList.isEmpty(); i++) {
-			lastMultiPv = tempPvList.remove();
-			sendInformation(lastMultiPv, i);
-		    }
-		}
-	    }
+            _multiPvMap.put(move, pv);
 
-	    // Pruning
-	    if (value > bestValue) {
-		bestValue = value;
-		addPv(pvList[height], pvList[height + 1], move);
+            // Save first pv
+            if (currentMoveNumber == 1) {
+                firstPv = pv;
+            }
 
-		// Do we have a better value?
-		if (value > alpha) {
-		    bestMove = move;
-		    bestPv = pv;
-		    hashType = Bound.EXACT;
-		    alpha = value;
+            // Show refutations
+            if (Configuration.showRefutations) {
+                sendInformationRefutations(refutationMoveList);
+            }
 
-		    if (depth > 1 && this.showPvNumber <= 1) {
-			// Send pv information for depth > 1
-			// Print the best move as soon as we get a new one
-			// This is really an optimistic assumption
-			sendInformation(bestPv, 1);
-		    }
+            // Show multi pv
+            if (this._showPvNumber > 1) {
+                assert currentMoveNumber <= this._showPvNumber || lastMultiPv != null;
 
-		    // Is the value higher than beta?
-		    if (value >= beta) {
-			// Cut-off
+                if (currentMoveNumber <= this._showPvNumber || pv.compareTo(lastMultiPv) < 0) {
+                    PriorityQueue<PrincipalVariation> tempPvList = new PriorityQueue<>(_multiPvMap.values());
+                    for (int i = 1; i <= this._showPvNumber && !tempPvList.isEmpty(); i++) {
+                        lastMultiPv = tempPvList.remove();
+                        sendInformation(lastMultiPv, i);
+                    }
+                }
+            }
 
-			hashType = Bound.LOWER;
-			break;
-		    }
-		}
-	    }
+            // Pruning
+            if (value > bestValue) {
+                bestValue = value;
+                addPv(_pvList[height], _pvList[height + 1], move);
 
-	    if (this.showPvNumber > 1) {
-		// Reset alpha to get the real value of the next move
-		assert oldAlpha == -Value.CHECKMATE;
-		alpha = oldAlpha;
-	    }
-	}
+                // Do we have a better value?
+                if (value > alpha) {
+                    bestMove = move;
+                    bestPv = pv;
+                    hashType = Bound.EXACT;
+                    alpha = value;
 
-	if (!(this.stopped && this.canStop)) {
-	    this.transpositionTable.put(board.zobristCode, depth, bestValue,
-		    hashType, bestMove, false, height);
-	}
+                    if (depth > 1 && this._showPvNumber <= 1) {
+                        // Send pv information for depth > 1
+                        // Print the best move as soon as we get a new one
+                        // This is really an optimistic assumption
+                        sendInformation(bestPv, 1);
+                    }
 
-	if (depth == 1 && this.showPvNumber <= 1 && bestPv != null) {
-	    // Send pv information for depth 1
-	    // On depth 1 we have no move ordering available
-	    // To reduce the output we only print the best move here
-	    sendInformation(bestPv, 1);
-	}
+                    // Is the value higher than beta?
+                    if (value >= beta) {
+                        // Cut-off
 
-	if (this.showPvNumber <= 1 && bestPv == null && firstPv != null) {
-	    // We have a fail low
-	    assert oldAlpha == alpha;
+                        hashType = Bound.LOWER;
+                        break;
+                    }
+                }
+            }
 
-	    PrincipalVariation resultPv = new PrincipalVariation(
-		    firstPv.moveNumber, firstPv.value, firstPv.type,
-		    firstPv.sortValue, firstPv.pv, firstPv.depth,
-		    currentMaxDepth, getCurrentNps(),
-		    System.currentTimeMillis() - totalTimeStart, totalNodes);
-	    sendInformation(resultPv, 1);
-	}
+            if (this._showPvNumber > 1) {
+                // Reset alpha to get the real value of the next move
+                assert oldAlpha == -Value.CHECKMATE;
+                alpha = oldAlpha;
+            }
+        }
 
-	moveResult.bestMove = bestMove;
-	moveResult.resultValue = bestValue;
-	moveResult.value = hashType;
-	moveResult.moveNumber = currentMoveNumber;
+        if (!(this._stopped && this._canStop)) {
+            this._transpositionTable.put(_board.zobristCode, depth, bestValue,
+                    hashType, bestMove, false, height);
+        }
 
-	if (Configuration.useTranspositionTable) {
-	    TranspositionTable.TranspositionTableEntry entry = this.transpositionTable
-		    .get(board.zobristCode);
-	    if (entry != null) {
-		for (int i = rootMoveList.head; i < rootMoveList.tail; i++) {
-		    if (rootMoveList.moves[i] == entry.move) {
-			rootMoveList.values[i] = Value.INFINITY;
-			break;
-		    }
-		}
-	    }
-	}
+        if (depth == 1 && this._showPvNumber <= 1 && bestPv != null) {
+            // Send pv information for depth 1
+            // On depth 1 we have no move ordering available
+            // To reduce the output we only print the best move here
+            sendInformation(bestPv, 1);
+        }
 
-	rootMoveList.sort();
+        if (this._showPvNumber <= 1 && bestPv == null && firstPv != null) {
+            // We have a fail low
+            assert oldAlpha == alpha;
 
-	return bestValue;
+            PrincipalVariation resultPv = new PrincipalVariation(
+                    firstPv.moveNumber, firstPv.value, firstPv.type,
+                    firstPv.sortValue, firstPv.pv, firstPv.depth,
+                    _currentMaxDepth, getCurrentNps(),
+                    System.currentTimeMillis() - _totalTimeStart, _totalNodes);
+            sendInformation(resultPv, 1);
+        }
+
+        moveResult.bestMove = bestMove;
+        moveResult.resultValue = bestValue;
+        moveResult.value = hashType;
+        moveResult.moveNumber = currentMoveNumber;
+
+        if (Configuration.useTranspositionTable) {
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
+            if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
+                for (int i = rootMoveList.head; i < rootMoveList.tail; i++) {
+                    if (rootMoveList.moves[i] == entry.move) {
+                        rootMoveList.values[i] = Value.INFINITY;
+                        break;
+                    }
+                }
+            } else {
+                _nodeCacheMisses.getAndIncrement();
+            }
+        }
+
+        rootMoveList.sort();
+
+        return bestValue;
     }
 
     private int alphaBeta(int depth, int alpha, int beta, int ply,
-	    boolean pvNode, boolean doNull) {
-	
-	// We are at a leaf/horizon. So calculate that value.
-	if (depth <= 0) {
-	    // Descend into quiescent
-	    return quiescent(0, alpha, beta, ply, pvNode, true);
-	}
+            boolean pvNode, boolean doNull) {
 
-	updateSearch(ply);
+        // We are at a leaf/horizon. So calculate that value.
+        if (depth <= 0) {
+            // Descend into quiescent
+            return quiescent(0, alpha, beta, ply, pvNode, true);
+        }
 
-	// Abort conditions
-	if ((this.stopped && this.canStop) || ply == Depth.MAX_PLY) {
-	    return this.evaluation.evaluate(board);
-	}
+        updateSearch(ply);
 
-	// Check the repetition table and fifty move rule
-	if (board.isRepetition() || board.halfMoveClock >= 100) {
-	    return Value.DRAW;
-	}
+        // Abort conditions
+        if ((this._stopped && this._canStop) || ply == Depth.MAX_PLY) {
+            return evaluateBoard();
+        }
 
-	// ## BEGIN Mate Distance Pruning
-	if (Configuration.useMateDistancePruning) {
-	    int value = -Value.CHECKMATE + ply;
-	    if (value > alpha) {
-		alpha = value;
-		if (value >= beta) {
-		    return value;
-		}
-	    }
-	    value = -(-Value.CHECKMATE + ply + 1);
-	    if (value < beta) {
-		beta = value;
-		if (value <= alpha) {
-		    return value;
-		}
-	    }
-	}
-	// ## ENDOF Mate Distance Pruning
+        // Check the repetition table and fifty move rule
+        if (_board.isRepetition() || _board.halfMoveClock >= 100) {
+            return Value.DRAW;
+        }
 
-	// Check the transposition table first
-	int transpositionMove = Move.NOMOVE;
-	boolean mateThreat = false;
-	if (Configuration.useTranspositionTable) {
-	    TranspositionTable.TranspositionTableEntry entry = this.transpositionTable
-		    .get(board.zobristCode);
-	    if (entry != null) {
-		transpositionMove = entry.move;
-		mateThreat = entry.mateThreat;
+        // ## BEGIN Mate Distance Pruning
+        if (Configuration.useMateDistancePruning) {
+            int value = -Value.CHECKMATE + ply;
+            if (value > alpha) {
+                alpha = value;
+                if (value >= beta) {
+                    return value;
+                }
+            }
+            value = -(-Value.CHECKMATE + ply + 1);
+            if (value < beta) {
+                beta = value;
+                if (value <= alpha) {
+                    return value;
+                }
+            }
+        }
+        // ## ENDOF Mate Distance Pruning
 
-		if (!pvNode && entry.depth >= depth) {
-		    int value = entry.getValue(ply);
-		    int type = entry.type;
+        // Check the transposition table first
+        int transpositionMove = Move.NOMOVE;
+        boolean mateThreat = false;
+        if (Configuration.useTranspositionTable) {
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
+            if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
+                transpositionMove = entry.move;
+                mateThreat = entry.mateThreat;
 
-		    switch (type) {
-		    case Bound.LOWER:
-			if (value >= beta) {
-			    return value;
-			}
-			break;
-		    case Bound.UPPER:
-			if (value <= alpha) {
-			    return value;
-			}
-			break;
-		    case Bound.EXACT:
-			return value;
-		    default:
-			assert false;
-			break;
-		    }
-		}
-	    }
-	}
+                if (!pvNode && entry.depth >= depth) {
+                    int value = entry.getValue(ply);
+                    int type = entry.type;
 
-	// Get the attack
-	// Notes: Ideas from Fruit. Storing all attacks here seems to be a good
-	// idea.
-	Attack attack = board.getAttack(board.activeColor);
-	boolean isCheck = attack.isCheck();
+                    switch (type) {
+                        case Bound.LOWER:
+                            if (value >= beta) {
+                                return value;
+                            }
+                            break;
+                        case Bound.UPPER:
+                            if (value <= alpha) {
+                                return value;
+                            }
+                            break;
+                        case Bound.EXACT:
+                            return value;
+                        default:
+                            assert false;
+                            break;
+                    }
+                }
+            } else {
+                _nodeCacheMisses.getAndIncrement();
+            }
+        }
 
-	// ## BEGIN Null-Move Pruning
-	// Notes: Ideas from
-	// http://www.cs.biu.ac.il/~davoudo/pubs/vrfd_null.html
-	int evalValue = Value.INFINITY;
-	if (Configuration.useNullMovePruning) {
-	    if (!pvNode && depth >= NULLMOVE_DEPTH && doNull && !isCheck
-		    && !mateThreat && board.getGamePhase() != GamePhase.ENDGAME
-		    && (evalValue = this.evaluation.evaluate(board)) >= beta) {
-		// Depth reduction
-		int newDepth = depth - 1 - NULLMOVE_REDUCTION;
+        // Get the attack
+        // Notes: Ideas from Fruit. Storing all attacks here seems to be a good
+        // idea.
+        Attack attack = _board.getAttack(_board.activeColor);
+        boolean isCheck = attack.isCheck();
 
-		// Make the null move
-		board.makeMoveNull();
-		int value = -alphaBeta(newDepth, -beta, -beta + 1, ply + 1,
-			false, false);
-		board.undoMoveNull();
+        // ## BEGIN Null-Move Pruning
+        // Notes: Ideas from
+        // http://www.cs.biu.ac.il/~davoudo/pubs/vrfd_null.html
+        int evalValue = Value.INFINITY;
+        if (Configuration.useNullMovePruning) {
+            if (!pvNode && depth >= NULLMOVE_DEPTH && doNull && !isCheck
+                    && !mateThreat && _board.getGamePhase() != GamePhase.ENDGAME
+                    && (evalValue = evaluateBoard()) >= beta) {
+                // Depth reduction
+                int newDepth = depth - 1 - NULLMOVE_REDUCTION;
 
-		// Verify on beta exceeding
-		if (Configuration.useVerifiedNullMovePruning) {
-		    if (depth > NULLMOVE_VERIFICATIONREDUCTION) {
-			if (value >= beta) {
-			    newDepth = depth - NULLMOVE_VERIFICATIONREDUCTION;
+                // Make the null move
+                _board.makeMoveNull();
+                int value = -alphaBeta(newDepth, -beta, -beta + 1, ply + 1,
+                        false, false);
+                _board.undoMoveNull();
 
-			    // Verify
-			    value = alphaBeta(newDepth, alpha, beta, ply,
-				    true, false);
+                // Verify on beta exceeding
+                if (Configuration.useVerifiedNullMovePruning) {
+                    if (depth > NULLMOVE_VERIFICATIONREDUCTION) {
+                        if (value >= beta) {
+                            newDepth = depth - NULLMOVE_VERIFICATIONREDUCTION;
 
-			    if (value >= beta) {
-				// Cut-off
+                            // Verify
+                            value = alphaBeta(newDepth, alpha, beta, ply,
+                                    true, false);
 
-				return value;
-			    }
-			}
-		    }
-		}
+                            if (value >= beta) {
+                                // Cut-off
 
-		// Check for mate threat
-		if (value < -Value.CHECKMATE_THRESHOLD) {
-		    mateThreat = true;
-		}
+                                return value;
+                            }
+                        }
+                    }
+                }
 
-		if (value >= beta) {
-		    // Do not return unproven mate values
-		    if (value > Value.CHECKMATE_THRESHOLD) {
-			value = Value.CHECKMATE_THRESHOLD;
-		    }
+                // Check for mate threat
+                if (value < -Value.CHECKMATE_THRESHOLD) {
+                    mateThreat = true;
+                }
 
-		    if (!(this.stopped && this.canStop)) {
-			// Store the value into the transposition table
-			this.transpositionTable.put(board.zobristCode, depth,
-				value, Bound.LOWER, Move.NOMOVE, mateThreat,
-				ply);
-		    }
+                if (value >= beta) {
+                    // Do not return unproven mate values
+                    if (value > Value.CHECKMATE_THRESHOLD) {
+                        value = Value.CHECKMATE_THRESHOLD;
+                    }
 
-		    return value;
-		}
-	    }
-	}
-	// ## ENDOF Null-Move Forward Pruning
+                    if (!(this._stopped && this._canStop)) {
+                        // Store the value into the transposition table
+                        this._transpositionTable.put(_board.zobristCode, depth,
+                                value, Bound.LOWER, Move.NOMOVE, mateThreat,
+                                ply);
+                    }
 
-	// Initialize
-	int hashType = Bound.UPPER;
-	int bestValue = -Value.INFINITY;
-	int bestMove = Move.NOMOVE;
-	int searchedMoves = 0;
+                    return value;
+                }
+            }
+        }
+        // ## ENDOF Null-Move Forward Pruning
 
-	// ## BEGIN Internal Iterative Deepening
-	if (Configuration.useInternalIterativeDeepening) {
-	    if (pvNode && depth >= IID_DEPTH
-		    && transpositionMove == Move.NOMOVE) {
-		int oldAlpha = alpha;
-		int oldBeta = beta;
-		alpha = -Value.CHECKMATE;
-		beta = Value.CHECKMATE;
+        // Initialize
+        int hashType = Bound.UPPER;
+        int bestValue = -Value.INFINITY;
+        int bestMove = Move.NOMOVE;
+        int searchedMoves = 0;
 
-		for (int newDepth = 1; newDepth < depth; newDepth++) {
-		    int value = alphaBeta(newDepth, alpha, beta, ply, true,
-			    false);
+        // ## BEGIN Internal Iterative Deepening
+        if (Configuration.useInternalIterativeDeepening) {
+            if (pvNode && depth >= IID_DEPTH
+                    && transpositionMove == Move.NOMOVE) {
+                int oldAlpha = alpha;
+                int oldBeta = beta;
+                alpha = -Value.CHECKMATE;
+                beta = Value.CHECKMATE;
 
-		    // ## BEGIN Aspiration Windows
-		    if (!(this.stopped && this.canStop)
-			    && Configuration.useAspirationWindows) {
-			// First adjustment
-			if (value <= alpha || value >= beta) {
-			    if (value <= alpha) {
-				alpha -= ASPIRATIONWINDOW_ADJUSTMENT;
-			    } else if (value >= beta) {
-				beta += ASPIRATIONWINDOW_ADJUSTMENT;
-			    } else {
-				assert false : "Alpha: " + alpha + ", Beta: "
-					+ beta + ", Value: " + value;
-			    }
-			    if (alpha < -Value.CHECKMATE) {
-				alpha = -Value.CHECKMATE;
-			    }
-			    if (beta > Value.CHECKMATE) {
-				beta = Value.CHECKMATE;
-			    }
+                for (int newDepth = 1; newDepth < depth; newDepth++) {
+                    int value = alphaBeta(newDepth, alpha, beta, ply, true,
+                            false);
 
-			    // Do the Alpha-Beta search again
-			    value = alphaBeta(newDepth, alpha, beta, ply,
-				    true, false);
+                    // ## BEGIN Aspiration Windows
+                    if (!(this._stopped && this._canStop)
+                            && Configuration.useAspirationWindows) {
+                        // First adjustment
+                        if (value <= alpha || value >= beta) {
+                            if (value <= alpha) {
+                                alpha -= ASPIRATIONWINDOW_ADJUSTMENT;
+                            } else if (value >= beta) {
+                                beta += ASPIRATIONWINDOW_ADJUSTMENT;
+                            } else {
+                                assert false : "Alpha: " + alpha + ", Beta: "
+                                        + beta + ", Value: " + value;
+                            }
+                            if (alpha < -Value.CHECKMATE) {
+                                alpha = -Value.CHECKMATE;
+                            }
+                            if (beta > Value.CHECKMATE) {
+                                beta = Value.CHECKMATE;
+                            }
 
-			    if (!(this.stopped && this.canStop)) {
-				// Second adjustment
-				// Open window to full width
-				if (value <= alpha || value >= beta) {
-				    alpha = -Value.CHECKMATE;
-				    beta = Value.CHECKMATE;
+                            // Do the Alpha-Beta search again
+                            value = alphaBeta(newDepth, alpha, beta, ply,
+                                    true, false);
 
-				    // Do the Alpha-Beta search again
-				    value = alphaBeta(newDepth, alpha, beta,
-					    ply, true, false);
-				}
-			    }
-			}
+                            if (!(this._stopped && this._canStop)) {
+                                // Second adjustment
+                                // Open window to full width
+                                if (value <= alpha || value >= beta) {
+                                    alpha = -Value.CHECKMATE;
+                                    beta = Value.CHECKMATE;
 
-			// Adjust aspiration window
-			alpha = value - ASPIRATIONWINDOW;
-			beta = value + ASPIRATIONWINDOW;
-			if (alpha < -Value.CHECKMATE) {
-			    alpha = -Value.CHECKMATE;
-			}
-			if (beta > Value.CHECKMATE) {
-			    beta = Value.CHECKMATE;
-			}
-		    }
-		    // ## ENDOF Aspiration Windows
+                                    // Do the Alpha-Beta search again
+                                    value = alphaBeta(newDepth, alpha, beta,
+                                            ply, true, false);
+                                }
+                            }
+                        }
 
-		    if (this.stopped && this.canStop) {
-			return oldAlpha;
-		    }
-		}
+                        // Adjust aspiration window
+                        alpha = value - ASPIRATIONWINDOW;
+                        beta = value + ASPIRATIONWINDOW;
+                        if (alpha < -Value.CHECKMATE) {
+                            alpha = -Value.CHECKMATE;
+                        }
+                        if (beta > Value.CHECKMATE) {
+                            beta = Value.CHECKMATE;
+                        }
+                    }
+                    // ## ENDOF Aspiration Windows
 
-		alpha = oldAlpha;
-		beta = oldBeta;
+                    if (this._stopped && this._canStop) {
+                        return oldAlpha;
+                    }
+                }
 
-		if (pvList[ply].getLength() > 0) {
-		    // Hopefully we have a transposition move now
-		    transpositionMove = pvList[ply].moves[pvList[ply].head];
-		}
-	    }
-	}
-	// ## ENDOF Internal Iterative Deepening
+                alpha = oldAlpha;
+                beta = oldBeta;
 
-	// Initialize the move generator
-	MoveGenerator.initializeMain(attack, ply, transpositionMove);
+                if (_pvList[ply].getLength() > 0) {
+                    // Hopefully we have a transposition move now
+                    transpositionMove = _pvList[ply].moves[_pvList[ply].head];
+                }
+            }
+        }
+        // ## ENDOF Internal Iterative Deepening
 
-	// Initialize Single-Response Extension
-	boolean isSingleReply;
-	isSingleReply = isCheck && attack.numberOfMoves == 1;
+        // Initialize the move generator
+        MoveGenerator.initializeMain(attack, ply, transpositionMove);
 
-	int move;
-	while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
-	    // ## BEGIN Minor Promotion Pruning
-	    if (Configuration.useMinorPromotionPruning && !this.analyzeMode
-		    && Move.getType(move) == MoveType.PAWNPROMOTION
-		    && Move.getPromotion(move) != PieceType.QUEEN) {
-		assert Move.getPromotion(move) == PieceType.ROOK
-			|| Move.getPromotion(move) == PieceType.BISHOP
-			|| Move.getPromotion(move) == PieceType.KNIGHT;
-		continue;
-	    }
-	    // ## ENDOF Minor Promotion Pruning
+        // Initialize Single-Response Extension
+        boolean isSingleReply;
+        isSingleReply = isCheck && attack.numberOfMoves == 1;
 
-	    // Extension
-	    int newDepth = getNewDepth(depth, move, isSingleReply, mateThreat);
+        int move;
+        while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
+            // ## BEGIN Minor Promotion Pruning
+            if (Configuration.useMinorPromotionPruning && !this._analyzeMode
+                    && Move.getType(move) == MoveType.PAWNPROMOTION
+                    && Move.getPromotion(move) != PieceType.QUEEN) {
+                assert Move.getPromotion(move) == PieceType.ROOK
+                        || Move.getPromotion(move) == PieceType.BISHOP
+                        || Move.getPromotion(move) == PieceType.KNIGHT;
+                continue;
+            }
+            // ## ENDOF Minor Promotion Pruning
 
-	    // ## BEGIN Extended Futility Pruning
-	    // Notes: Ideas from
-	    // http://supertech.lcs.mit.edu/~heinz/dt/node18.html
-	    if (Configuration.useExtendedFutilityPruning) {
-		if (!pvNode
-			&& depth == 2
-			&& newDepth == 1
-			&& !isCheck
-			&& (Configuration.useCheckExtension || !board
-				.isCheckingMove(move))
-			&& !isDangerousMove(move)) {
-		    assert !board.isCheckingMove(move);
-		    assert Move.getType(move) != MoveType.PAWNPROMOTION : board
-			    .getBoard() + ", " + Move.toString(move);
+            // Extension
+            int newDepth = getNewDepth(depth, move, isSingleReply, mateThreat);
 
-		    if (evalValue == Value.INFINITY) {
-			// Store evaluation
-			evalValue = this.evaluation.evaluate(board);
-		    }
-		    int value = evalValue + FUTILITY_PREFRONTIERMARGIN;
+            // ## BEGIN Extended Futility Pruning
+            // Notes: Ideas from
+            // http://supertech.lcs.mit.edu/~heinz/dt/node18.html
+            if (Configuration.useExtendedFutilityPruning) {
+                if (!pvNode
+                        && depth == 2
+                        && newDepth == 1
+                        && !isCheck
+                        && (Configuration.useCheckExtension || !_board
+                                .isCheckingMove(move))
+                        && !isDangerousMove(move)) {
+                    assert !_board.isCheckingMove(move);
+                    assert Move.getType(move) != MoveType.PAWNPROMOTION
+                            : _board.convertToGameBoard() + ", " + Move.toString(move);
 
-		    // Add the target value to the eval
-		    int target = Move.getTarget(move);
-		    if (target != Piece.NOPIECE) {
-			value += Piece.getValueFromChessman(target);
-		    }
+                    if (evalValue == Value.INFINITY) {
+                        // Store evaluation
+                        evalValue = evaluateBoard();
+                    }
+                    int value = evalValue + FUTILITY_PREFRONTIERMARGIN;
 
-		    // If we cannot reach alpha do not look at the move
-		    if (value <= alpha) {
-			if (value > bestValue) {
-			    bestValue = value;
-			}
-			continue;
-		    }
-		}
-	    }
-	    // ## ENDOF Extended Futility Pruning
+                    // Add the target value to the eval
+                    int target = Move.getTarget(move);
+                    if (target != Piece.NOPIECE) {
+                        value += Piece.getValueFromChessman(target);
+                    }
 
-	    // ## BEGIN Futility Pruning
-	    // Notes: Ideas from
-	    // http://supertech.lcs.mit.edu/~heinz/dt/node18.html
-	    if (Configuration.useFutilityPruning) {
-		if (!pvNode
-			&& depth == 1
-			&& newDepth == 0
-			&& !isCheck
-			&& (Configuration.useCheckExtension || !board
-				.isCheckingMove(move))
-			&& !isDangerousMove(move)) {
-		    assert !board.isCheckingMove(move);
-		    assert Move.getType(move) != MoveType.PAWNPROMOTION : board
-			    .getBoard() + ", " + Move.toString(move);
+                    // If we cannot reach alpha do not look at the move
+                    if (value <= alpha) {
+                        if (value > bestValue) {
+                            bestValue = value;
+                        }
+                        continue;
+                    }
+                }
+            }
+            // ## ENDOF Extended Futility Pruning
 
-		    if (evalValue == Value.INFINITY) {
-			// Store evaluation
-			evalValue = this.evaluation.evaluate(board);
-		    }
-		    int value = evalValue + FUTILITY_FRONTIERMARGIN;
+            // ## BEGIN Futility Pruning
+            // Notes: Ideas from
+            // http://supertech.lcs.mit.edu/~heinz/dt/node18.html
+            if (Configuration.useFutilityPruning) {
+                if (!pvNode
+                        && depth == 1
+                        && newDepth == 0
+                        && !isCheck
+                        && (Configuration.useCheckExtension || !_board
+                                .isCheckingMove(move))
+                        && !isDangerousMove(move)) {
+                    assert !_board.isCheckingMove(move);
+                    assert Move.getType(move) != MoveType.PAWNPROMOTION
+                            : _board.convertToGameBoard() + ", " + Move.toString(move);
 
-		    // Add the target value to the eval
-		    int target = Move.getTarget(move);
-		    if (target != Piece.NOPIECE) {
-			value += Piece.getValueFromChessman(target);
-		    }
+                    if (evalValue == Value.INFINITY) {
+                        // Store evaluation
+                        evalValue = evaluateBoard();
+                    }
+                    int value = evalValue + FUTILITY_FRONTIERMARGIN;
 
-		    // If we cannot reach alpha do not look at the move
-		    if (value <= alpha) {
-			if (value > bestValue) {
-			    bestValue = value;
-			}
-			continue;
-		    }
-		}
-	    }
-	    // ## ENDOF Futility Pruning
+                    // Add the target value to the eval
+                    int target = Move.getTarget(move);
+                    if (target != Piece.NOPIECE) {
+                        value += Piece.getValueFromChessman(target);
+                    }
 
-	    // ## BEGIN Late Move Reduction
-	    // Notes: Ideas from: http://www.glaurungchess.com/lmr.html
-	    boolean reduced = false;
-	    if (Configuration.useLateMoveReduction) {
-		if (!pvNode
-			&& searchedMoves >= LMR_MOVENUMBER_MINIMUM
-			&& depth >= LMR_DEPTH
-			&& newDepth < depth
-			&& !isCheck
-			&& (Configuration.useCheckExtension || !board
-				.isCheckingMove(move))
-			&& Move.getTarget(move) == Piece.NOPIECE
-			&& !isDangerousMove(move)) {
-		    assert !board.isCheckingMove(move);
-		    assert Move.getType(move) != MoveType.PAWNPROMOTION : board
-			    .getBoard() + ", " + Move.toString(move);
+                    // If we cannot reach alpha do not look at the move
+                    if (value <= alpha) {
+                        if (value > bestValue) {
+                            bestValue = value;
+                        }
+                        continue;
+                    }
+                }
+            }
+            // ## ENDOF Futility Pruning
 
-		    newDepth--;
-		    reduced = true;
-		}
-	    }
-	    // ## ENDOF Late Move Reduction
+            // ## BEGIN Late Move Reduction
+            // Notes: Ideas from: http://www.glaurungchess.com/lmr.html
+            boolean reduced = false;
+            if (Configuration.useLateMoveReduction) {
+                if (!pvNode
+                        && searchedMoves >= LMR_MOVENUMBER_MINIMUM
+                        && depth >= LMR_DEPTH
+                        && newDepth < depth
+                        && !isCheck
+                        && (Configuration.useCheckExtension || !_board
+                                .isCheckingMove(move))
+                        && Move.getTarget(move) == Piece.NOPIECE
+                        && !isDangerousMove(move)) {
+                    assert !_board.isCheckingMove(move);
+                    assert Move.getType(move) != MoveType.PAWNPROMOTION
+                            : _board.convertToGameBoard() + ", " + Move.toString(move);
 
-	    // Do move
-	    board.makeMove(move);
+                    newDepth--;
+                    reduced = true;
+                }
+            }
+            // ## ENDOF Late Move Reduction
 
-	    // ## BEGIN Principal Variation Search
-	    int value;
-	    if (!pvNode || bestValue == -Value.INFINITY) {
-		// First move
-		value = -alphaBeta(newDepth, -beta, -alpha, ply + 1, pvNode,
-			true);
-	    } else {
-		if (newDepth >= depth) {
-		    value = -alphaBeta(depth - 1, -alpha - 1, -alpha,
-			    ply + 1, false, true);
-		} else {
-		    value = -alphaBeta(newDepth, -alpha - 1, -alpha,
-			    ply + 1, false, true);
-		}
-		if (value > alpha && value < beta) {
-		    // Research again
-		    value = -alphaBeta(newDepth, -beta, -alpha, ply + 1,
-			    true, true);
-		}
-	    }
-	    // ## ENDOF Principal Variation Search
+            // Do move
+            _board.makeMove(move);
 
-	    // ## BEGIN Late Move Reduction Research
-	    if (Configuration.useLateMoveReductionResearch) {
-		if (reduced && value >= beta) {
-		    // Research with original depth
-		    newDepth++;
-		    value = -alphaBeta(newDepth, -beta, -alpha, ply + 1,
-			    pvNode, true);
-		}
-	    }
-	    // ## ENDOF Late Move Reduction Research
+            // ## BEGIN Principal Variation Search
+            int value;
+            if (!pvNode || bestValue == -Value.INFINITY) {
+                // First move
+                value = -alphaBeta(newDepth, -beta, -alpha, ply + 1, pvNode,
+                        true);
+            } else {
+                if (newDepth >= depth) {
+                    value = -alphaBeta(depth - 1, -alpha - 1, -alpha,
+                            ply + 1, false, true);
+                } else {
+                    value = -alphaBeta(newDepth, -alpha - 1, -alpha,
+                            ply + 1, false, true);
+                }
+                if (value > alpha && value < beta) {
+                    // Research again
+                    value = -alphaBeta(newDepth, -beta, -alpha, ply + 1,
+                            true, true);
+                }
+            }
+            // ## ENDOF Principal Variation Search
 
-	    // Undo move
-	    board.undoMove(move);
+            // ## BEGIN Late Move Reduction Research
+            if (Configuration.useLateMoveReductionResearch) {
+                if (reduced && value >= beta) {
+                    // Research with original depth
+                    newDepth++;
+                    value = -alphaBeta(newDepth, -beta, -alpha, ply + 1,
+                            pvNode, true);
+                }
+            }
+            // ## ENDOF Late Move Reduction Research
 
-	    if (this.stopped && this.canStop) {
-		break;
-	    }
+            // Undo move
+            _board.undoMove(move);
 
-	    // Update
-	    searchedMoves++;
+            if (this._stopped && this._canStop) {
+                break;
+            }
 
-	    // Pruning
-	    if (value > bestValue) {
-		bestValue = value;
-		addPv(pvList[ply], pvList[ply + 1], move);
+            // Update
+            searchedMoves++;
 
-		// Do we have a better value?
-		if (value > alpha) {
-		    bestMove = move;
-		    hashType = Bound.EXACT;
-		    alpha = value;
+            // Pruning
+            if (value > bestValue) {
+                bestValue = value;
+                addPv(_pvList[ply], _pvList[ply + 1], move);
 
-		    // Is the value higher than beta?
-		    if (value >= beta) {
-			// Cut-off
+                // Do we have a better value?
+                if (value > alpha) {
+                    bestMove = move;
+                    hashType = Bound.EXACT;
+                    alpha = value;
 
-			hashType = Bound.LOWER;
-			break;
-		    }
-		}
-	    }
-	}
+                    // Is the value higher than beta?
+                    if (value >= beta) {
+                        // Cut-off
 
-	MoveGenerator.destroy();
+                        hashType = Bound.LOWER;
+                        break;
+                    }
+                }
+            }
+        }
 
-	// If we cannot move, check for checkmate and stalemate.
-	if (bestValue == -Value.INFINITY) {
-	    if (isCheck) {
-		// We have a check mate. This is bad for us, so return a
-		// -CHECKMATE.
-		hashType = Bound.EXACT;
-		bestValue = -Value.CHECKMATE + ply;
-	    } else {
-		// We have a stale mate. Return the draw value.
-		hashType = Bound.EXACT;
-		bestValue = Value.DRAW;
-	    }
-	}
+        MoveGenerator.destroy();
 
-	if (!(this.stopped && this.canStop)) {
-	    if (bestMove != Move.NOMOVE) {
-		addGoodMove(bestMove, depth, ply);
-	    }
-	    this.transpositionTable.put(board.zobristCode, depth, bestValue,
-		    hashType, bestMove, mateThreat, ply);
-	}
+        // If we cannot move, check for checkmate and stalemate.
+        if (bestValue == -Value.INFINITY) {
+            if (isCheck) {
+                // We have a check mate. This is bad for us, so return a
+                // -CHECKMATE.
+                hashType = Bound.EXACT;
+                bestValue = -Value.CHECKMATE + ply;
+            } else {
+                // We have a stale mate. Return the draw value.
+                hashType = Bound.EXACT;
+                bestValue = Value.DRAW;
+            }
+        }
 
-	return bestValue;
+        if (!(this._stopped && this._canStop)) {
+            if (bestMove != Move.NOMOVE) {
+                addGoodMove(bestMove, depth, ply);
+            }
+            this._transpositionTable.put(_board.zobristCode, depth, bestValue,
+                    hashType, bestMove, mateThreat, ply);
+        }
+
+        return bestValue;
     }
 
     private int quiescent(int checkingDepth, int alpha, int beta, int height,
-	    boolean pvNode, boolean useTranspositionTable) {
-	
-	updateSearch(height);
+            boolean pvNode, boolean useTranspositionTable) {
 
-	// Abort conditions
-	if ((this.stopped && this.canStop) || height == Depth.MAX_PLY) {
-	    return this.evaluation.evaluate(board);
-	}
+        updateSearch(height);
 
-	// Check the repetition table and fifty move rule
-	if (board.isRepetition() || board.halfMoveClock >= 100) {
-	    return Value.DRAW;
-	}
+        // Abort conditions
+        if ((this._stopped && this._canStop) || height == Depth.MAX_PLY) {
+            return evaluateBoard();
+        }
 
-	// ## BEGIN Mate Distance Pruning
-	if (Configuration.useMateDistancePruning) {
-	    int value = -Value.CHECKMATE + height;
-	    if (value > alpha) {
-		alpha = value;
-		if (value >= beta) {
-		    return value;
-		}
-	    }
-	    value = -(-Value.CHECKMATE + height + 1);
-	    if (value < beta) {
-		beta = value;
-		if (value <= alpha) {
-		    return value;
-		}
-	    }
-	}
-	// ## ENDOF Mate Distance Pruning
+        // Check the repetition table and fifty move rule
+        if (_board.isRepetition() || _board.halfMoveClock >= 100) {
+            return Value.DRAW;
+        }
 
-	// Check the transposition table first
-	if (Configuration.useTranspositionTable && useTranspositionTable) {
-	    TranspositionTable.TranspositionTableEntry entry = this.transpositionTable.get(board.zobristCode);
-	    if (entry != null) {
-		assert entry.depth >= checkingDepth;
-		int value = entry.getValue(height);
-		int type = entry.type;
+        // ## BEGIN Mate Distance Pruning
+        if (Configuration.useMateDistancePruning) {
+            int value = -Value.CHECKMATE + height;
+            if (value > alpha) {
+                alpha = value;
+                if (value >= beta) {
+                    return value;
+                }
+            }
+            value = -(-Value.CHECKMATE + height + 1);
+            if (value < beta) {
+                beta = value;
+                if (value <= alpha) {
+                    return value;
+                }
+            }
+        }
+        // ## ENDOF Mate Distance Pruning
 
-		switch (type) {
-		case Bound.LOWER:
-		    if (value >= beta) {
-			return value;
-		    }
-		    break;
-		case Bound.UPPER:
-		    if (value <= alpha) {
-			return value;
-		    }
-		    break;
-		case Bound.EXACT:
-		    return value;
-		default:
-		    assert false;
-		    break;
-		}
-	    }
-	}
+        // Check the transposition table first
+        if (Configuration.useTranspositionTable && useTranspositionTable) {
+            TranspositionTable.TranspositionTableEntry entry = this._transpositionTable.get(_board.zobristCode);
+            if (entry != null) {
+                _nodeCacheHits.getAndIncrement();
+                assert entry.depth >= checkingDepth;
+                int value = entry.getValue(height);
+                int type = entry.type;
 
-	// Get the attack
-	// Notes: Ideas from Fruit. Storing all attacks here seems to be a good
-	// idea.
-	Attack attack = board.getAttack(board.activeColor);
-	boolean isCheck = attack.isCheck();
+                switch (type) {
+                    case Bound.LOWER:
+                        if (value >= beta) {
+                            return value;
+                        }
+                        break;
+                    case Bound.UPPER:
+                        if (value <= alpha) {
+                            return value;
+                        }
+                        break;
+                    case Bound.EXACT:
+                        return value;
+                    default:
+                        assert false;
+                        break;
+                }
+            } else {
+                _nodeCacheMisses.getAndIncrement();
+            }
+        }
 
-	// Initialize
-	int hashType = Bound.UPPER;
-	int bestValue = -Value.INFINITY;
-	int evalValue = Value.INFINITY;
+        // Get the attack
+        // Notes: Ideas from Fruit. Storing all attacks here seems to be a good
+        // idea.
+        Attack attack = _board.getAttack(_board.activeColor);
+        boolean isCheck = attack.isCheck();
 
-	if (!isCheck) {
-	    // Stand pat
-	    int value = this.evaluation.evaluate(board);
+        // Initialize
+        int hashType = Bound.UPPER;
+        int bestValue = -Value.INFINITY;
+        int evalValue = Value.INFINITY;
 
-	    // Store evaluation
-	    evalValue = value;
+        if (!isCheck) {
+            // Stand pat
+            int value = evaluateBoard();
 
-	    // Pruning
-	    bestValue = value;
+            // Store evaluation
+            evalValue = value;
 
-	    // Do we have a better value?
-	    if (value > alpha) {
-		hashType = Bound.EXACT;
-		alpha = value;
+            // Pruning
+            bestValue = value;
 
-		// Is the value higher than beta?
-		if (value >= beta) {
-		    // Cut-off
+            // Do we have a better value?
+            if (value > alpha) {
+                hashType = Bound.EXACT;
+                alpha = value;
 
-		    hashType = Bound.LOWER;
+                // Is the value higher than beta?
+                if (value >= beta) {
+                    // Cut-off
 
-		    if (useTranspositionTable) {
-			assert checkingDepth == 0;
-			this.transpositionTable
-				.put(board.zobristCode, 0, bestValue, hashType,
-					Move.NOMOVE, false, height);
-		    }
+                    hashType = Bound.LOWER;
 
-		    return bestValue;
-		}
-	    }
-	} else {
-	    // Check Extension
-	    checkingDepth++;
-	}
+                    if (useTranspositionTable) {
+                        assert checkingDepth == 0;
+                        this._transpositionTable
+                        .put(_board.zobristCode, 0, bestValue, hashType,
+                                Move.NOMOVE, false, height);
+                    }
 
-	// Initialize the move generator
-	MoveGenerator.initializeQuiescent(attack, checkingDepth >= 0);
+                    return bestValue;
+                }
+            }
+        } else {
+            // Check Extension
+            checkingDepth++;
+        }
 
-	int move;
-	while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
-	    
-	    // ## BEGIN Futility Pruning
-	    if (Configuration.useDeltaPruning) {
-		if (!pvNode && !isCheck && !board.isCheckingMove(move)
-			&& !isDangerousMove(move)) {
-		    assert Move.getTarget(move) != Piece.NOPIECE;
-		    assert Move.getType(move) != MoveType.PAWNPROMOTION : board
-			    .getBoard() + ", " + Move.toString(move);
+        // Initialize the move generator
+        MoveGenerator.initializeQuiescent(attack, checkingDepth >= 0);
 
-		    int value = evalValue + FUTILITY_QUIESCENTMARGIN;
+        int move;
+        while ((move = MoveGenerator.getNextMove()) != Move.NOMOVE) {
 
-		    // Add the target value to the eval
-		    value += Piece.getValueFromChessman(Move.getTarget(move));
+            // ## BEGIN Futility Pruning
+            if (Configuration.useDeltaPruning) {
+                if (!pvNode && !isCheck && !_board.isCheckingMove(move)
+                        && !isDangerousMove(move)) {
+                    assert Move.getTarget(move) != Piece.NOPIECE;
+                    assert Move.getType(move) != MoveType.PAWNPROMOTION
+                            : _board.convertToGameBoard() + ", " + Move.toString(move);
 
-		    // If we cannot reach alpha do not look at the move
-		    if (value <= alpha) {
-			if (value > bestValue) {
-			    bestValue = value;
-			}
-			continue;
-		    }
-		}
-	    }
-	    // ## ENDOF Futility Pruning
+                    int value = evalValue + FUTILITY_QUIESCENTMARGIN;
 
-	    // Do move
-	    board.makeMove(move);
+                    // Add the target value to the eval
+                    value += Piece.getValueFromChessman(Move.getTarget(move));
 
-	    // Recurse into Quiescent
-	    int value = -quiescent(checkingDepth - 1, -beta, -alpha,
-		    height + 1, pvNode, false);
+                    // If we cannot reach alpha do not look at the move
+                    if (value <= alpha) {
+                        if (value > bestValue) {
+                            bestValue = value;
+                        }
+                        continue;
+                    }
+                }
+            }
+            // ## ENDOF Futility Pruning
 
-	    // Undo move
-	    board.undoMove(move);
+            // Do move
+            _board.makeMove(move);
 
-	    if (this.stopped && this.canStop) {
-		break;
-	    }
+            // count non quiet boards
+            _totalNonQuietBoards++;
 
-	    // Pruning
-	    if (value > bestValue) {
-		bestValue = value;
-		addPv(pvList[height], pvList[height + 1], move);
+            // Recurse into Quiescent
+            int value = -quiescent(checkingDepth - 1, -beta, -alpha,
+                    height + 1, pvNode, false);
 
-		// Do we have a better value?
-		if (value > alpha) {
-		    hashType = Bound.EXACT;
-		    alpha = value;
+            // Undo move
+            _board.undoMove(move);
 
-		    // Is the value higher than beta?
-		    if (value >= beta) {
-			// Cut-off
+            if (this._stopped && this._canStop) {
+                break;
+            }
 
-			hashType = Bound.LOWER;
-			break;
-		    }
-		}
-	    }
-	}
+            // Pruning
+            if (value > bestValue) {
+                bestValue = value;
+                addPv(_pvList[height], _pvList[height + 1], move);
 
-	MoveGenerator.destroy();
+                // Do we have a better value?
+                if (value > alpha) {
+                    hashType = Bound.EXACT;
+                    alpha = value;
 
-	if (bestValue == -Value.INFINITY) {
-	    assert isCheck;
+                    // Is the value higher than beta?
+                    if (value >= beta) {
+                        // Cut-off
 
-	    // We have a check mate. This is bad for us, so return a -CHECKMATE.
-	    bestValue = -Value.CHECKMATE + height;
-	}
+                        hashType = Bound.LOWER;
+                        break;
+                    }
+                }
+            }
+        }
 
-	if (useTranspositionTable) {
-	    if (!(this.stopped && this.canStop)) {
-		this.transpositionTable.put(board.zobristCode, 0, bestValue,
-			hashType, Move.NOMOVE, false, height);
-	    }
-	}
+        MoveGenerator.destroy();
 
-	return bestValue;
+        if (bestValue == -Value.INFINITY) {
+            assert isCheck;
+
+            // We have a check mate. This is bad for us, so return a -CHECKMATE.
+            bestValue = -Value.CHECKMATE + height;
+        }
+
+        if (useTranspositionTable) {
+            if (!(this._stopped && this._canStop)) {
+                this._transpositionTable.put(_board.zobristCode, 0, bestValue,
+                        hashType, Move.NOMOVE, false, height);
+            }
+        }
+
+        return bestValue;
+    }
+
+    private final EvaluationTable _evaluationTable;
+    // Cache statistics
+    private final AtomicLong _boardCacheHits = new AtomicLong(0);
+    private final AtomicLong _boardCacheMisses = new AtomicLong(0);
+
+    /**
+     * @return evaluation of current board
+     */
+    private int evaluateBoard() {
+        _totalBoards++;
+        // Check the evaluation table
+        if (Configuration.useEvaluationTable) {
+            EvaluationTable.EvaluationTableEntry entry = this._evaluationTable.get(_board.zobristCode);
+            if (entry != null) {
+                _boardCacheHits.getAndIncrement();
+                return entry.evaluation;
+            }
+            _boardCacheMisses.getAndIncrement();
+        }
+        int result = this._evaluation.evaluate(_board);
+
+        // Store the result and return
+        if (Configuration.useEvaluationTable) {
+            this._evaluationTable.put(_board.zobristCode, result);
+        }
+
+        return result;
     }
 
     /**
      * Returns the new possibly extended search depth.
      *
-     * @param depth
-     *            the current depth.
-     * @param move
-     *            the current move.
-     * @param isSingleReply
-     *            whether we are in check and have only one way out.
-     * @param mateThreat
-     *            whether we have a mate threat.
+     * @param depth the current depth.
+     * @param move the current move.
+     * @param isSingleReply whether we are in check and have only one way out.
+     * @param mateThreat whether we have a mate threat.
      * @return the new possibly extended search depth.
      */
-    private int getNewDepth(int depth, int move, boolean isSingleReply,
-	    boolean mateThreat) {
-	int newDepth = depth - 1;
+    @SuppressWarnings("static-method")
+    private int getNewDepth(int depth, int move, boolean isSingleReply, boolean mateThreat) {
+        int newDepth = depth - 1;
 
-	assert (Move.getEnd(move) != board.captureSquare)
-		|| (Move.getTarget(move) != Piece.NOPIECE);
+        assert (Move.getEnd(move) != _board.captureSquare)
+        || (Move.getTarget(move) != Piece.NOPIECE);
 
-	// ## Recapture Extension
-	if (Configuration.useRecaptureExtension
-		&& Move.getEnd(move) == board.captureSquare
-		&& See.seeMove(move, Move.getChessmanColor(move)) > 0) {
-	    newDepth++;
-	}
+        // ## Recapture Extension
+        if (Configuration.useRecaptureExtension
+                && Move.getEnd(move) == _board.captureSquare
+                && See.seeMove(move, Move.getChessmanColor(move)) > 0) {
+            newDepth++;
+        }
 
-	// ## Check Extension
-	else if (Configuration.useCheckExtension && board.isCheckingMove(move)) {
-	    newDepth++;
-	}
+        // ## Check Extension
+        else if (Configuration.useCheckExtension && _board.isCheckingMove(move)) {
+            newDepth++;
+        }
 
-	// ## Pawn Extension
-	else if (Configuration.usePawnExtension
-		&& Move.getChessman(move) == PieceType.PAWN
-		&& Square.getRelativeRank(Move.getEnd(move), board.activeColor) == Rank.r7) {
-	    newDepth++;
-	}
+        // ## Pawn Extension
+        else if (Configuration.usePawnExtension
+                && Move.getChessman(move) == PieceType.PAWN
+                && Square.getRelativeRank(Move.getEnd(move), _board.activeColor) == Rank.r7) {
+            newDepth++;
+        }
 
-	// ## Single-Reply Extension
-	else if (Configuration.useSingleReplyExtension && isSingleReply) {
-	    newDepth++;
-	}
+        // ## Single-Reply Extension
+        else if (Configuration.useSingleReplyExtension && isSingleReply) {
+            newDepth++;
+        }
 
-	// ## Mate Threat Extension
-	else if (Configuration.useMateThreatExtension && mateThreat) {
-	    newDepth++;
-	}
+        // ## Mate Threat Extension
+        else if (Configuration.useMateThreatExtension && mateThreat) {
+            newDepth++;
+        }
 
-	// Extend another ply if we enter a pawn endgame
-	if (Position.materialCount[board.activeColor] == 0
-		&& Position.materialCount[Color.switchColor(board.activeColor)] == 1
-		&& Move.getTarget(move) != Piece.NOPIECE
-		&& Move.getTarget(move) != PieceType.PAWN) {
-	    newDepth++;
-	}
+        // Extend another ply if we enter a pawn endgame
+        if (Position.materialCount[_board.activeColor] == 0
+                && Position.materialCount[Color.switchColor(_board.activeColor)] == 1
+                && Move.getTarget(move) != Piece.NOPIECE
+                && Move.getTarget(move) != PieceType.PAWN) {
+            newDepth++;
+        }
 
-	return newDepth;
+        return newDepth;
     }
 
     private static boolean isDangerousMove(int move) {
-	int chessman = Move.getChessman(move);
-	int relativeRank = Square.getRelativeRank(Move.getEnd(move),
-		board.activeColor);
-	if (chessman == PieceType.PAWN && relativeRank >= Rank.r7) {
-	    return true;
-	}
+        int chessman = Move.getChessman(move);
+        int relativeRank = Square.getRelativeRank(Move.getEnd(move),
+                _board.activeColor);
+        if (chessman == PieceType.PAWN && relativeRank >= Rank.r7) {
+            return true;
+        }
 
-	int target = Move.getTarget(move);
-	if (target == PieceType.QUEEN) {
-	    return true;
-	}
+        int target = Move.getTarget(move);
+        if (target == PieceType.QUEEN) {
+            return true;
+        }
 
-	return false;
+        return false;
     }
 
     private static void addPv(MoveList destination, MoveList source, int move) {
-	assert destination != null;
-	assert source != null;
-	assert move != Move.NOMOVE;
+        assert destination != null;
+        assert source != null;
+        assert move != Move.NOMOVE;
 
-	destination.resetList();
+        destination.resetList();
 
-	destination.moves[destination.tail++] = move;
+        destination.moves[destination.tail++] = move;
 
-	for (int i = source.head; i < source.tail; i++) {
-	    destination.moves[destination.tail++] = source.moves[i];
-	}
+        for (int i = source.head; i < source.tail; i++) {
+            destination.moves[destination.tail++] = source.moves[i];
+        }
     }
 
     private static void addGoodMove(int move, int depth, int height) {
-	assert move != Move.NOMOVE;
+        assert move != Move.NOMOVE;
 
-	if (Move.getTarget(move) != Piece.NOPIECE) {
-	    return;
-	}
+        if (Move.getTarget(move) != Piece.NOPIECE) {
+            return;
+        }
 
-	int type = Move.getType(move);
-	if (type == MoveType.PAWNPROMOTION) {
-	    return;
-	}
+        int type = Move.getType(move);
+        if (type == MoveType.PAWNPROMOTION) {
+            return;
+        }
 
-	assert type != MoveType.ENPASSANT;
+        assert type != MoveType.ENPASSANT;
 
-	killerTable.add(move, height);
-	historyTable.add(move, depth);
+        _killerTable.add(move, height);
+        _historyTable.add(move, depth);
     }
 
+    /**********************************
+     * ObservableEngine support
+     **********************************/
+
     private void sendInformation(PrincipalVariation pv, int pvNumber) {
-	if (Math.abs(pv.value) > Value.CHECKMATE_THRESHOLD) {
-	    // Calculate the mate distance
-	    int mateDepth = Value.CHECKMATE - Math.abs(pv.value);
-	    sendInformationMate(pv, Integer.signum(pv.value) * (mateDepth + 1)
-		    / 2, pvNumber);
-	} else {
-	    sendInformationCentipawns(pv, pvNumber);
-	}
+        if (Math.abs(pv.value) > Value.CHECKMATE_THRESHOLD) {
+            // Calculate the mate distance
+            int mateDepth = Value.CHECKMATE - Math.abs(pv.value);
+            sendInformationMate(pv, Integer.signum(pv.value) * (mateDepth + 1) / 2, pvNumber);
+        } else {
+            sendInformationCentipawns(pv, pvNumber);
+        }
     }
 
     /**
      * Sends the current move and current move number.
      *
-     * @param currentMove
-     *            the current move.
-     * @param currentMoveNumber
-     *            the current move number.
+     * @param currentMove the current move.
+     * @param currentMoveNumber the current move number.
+     * @param numberOfMoves
      */
-    private void sendInformationMove(GenericMove currentMove,
-	    int currentMoveNumber) {
-	assert currentMove != null;
-	assert currentMoveNumber >= 0;
+    private void sendInformationMove(GameMove currentMove, int currentMoveNumber, int numberOfMoves) {
+        assert currentMove != null;
+        assert currentMoveNumber >= 0;
 
-	this.currentMove = currentMove;
-	this.currentMoveNumber = currentMoveNumber;
+        this._currentMove = currentMove;
+        this._currentMoveNumber = currentMoveNumber;
 
-	// Safety guard: Reduce output pollution
-	long currentTimeDelta = System.currentTimeMillis()
-		- this.totalTimeStart;
-	if (currentTimeDelta >= 1000) {
-	    ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	    command.setCurrentMove(this.currentMove);
-	    command.setCurrentMoveNumber(this.currentMoveNumber);
-
-	    this.protocol.send(command);
-	}
+        _fluxengine.setCurrentMove(_currentMove);
+        _fluxengine.setCurrentMoveNumber(_currentMoveNumber);
+        _fluxengine.setNumberOfMoves(numberOfMoves);
     }
 
     /**
-     * Sends the refutations information.
+     * Sends the refutation information.
      *
-     * @param refutationList
-     *            the current refutation move list.
+     * @param refutationList the current refutation move list.
      */
-    private void sendInformationRefutations(List<GenericMove> refutationList) {
-	assert refutationList != null;
-
-	// Safety guard: Reduce output pollution
-	long currentTimeDelta = System.currentTimeMillis()
-		- this.totalTimeStart;
-	if (currentTimeDelta >= 1000) {
-	    ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	    command.setRefutationList(refutationList);
-
-	    this.protocol.send(command);
-	}
+    private void sendInformationRefutations(List<GameMove> refutationList) {
+        assert refutationList != null;
+        // show refutation list in info text area of the ui or sysout
+        GameMoveList gml = new GameMoveList(refutationList);
+        _fluxengine.printVerboseInfo(String.format("%s%n", gml.toString()));
     }
 
     /**
      * Sends the current depth.
      */
     private void sendInformationDepth() {
-	// Safety guard: Reduce output pollution
-	long currentTimeDelta = System.currentTimeMillis()
-		- this.totalTimeStart;
-	if (currentTimeDelta >= 1000) {
-	    ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	    command.setDepth(this.currentDepth);
-	    command.setMaxDepth(this.currentMaxDepth);
-
-	    this.protocol.send(command);
-	}
+        _fluxengine.setCurrentSearchDepth(_currentDepth);
+        _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
     }
 
     /**
      * Sends the current status.
      */
     private void sendInformationStatus() {
-	long currentTimeDelta = System.currentTimeMillis()
-		- this.currentTimeStart;
-	if (currentTimeDelta >= 1000) {
-	    // Only output after a delay of 1 second
-	    ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	    command.setDepth(this.currentDepth);
-	    command.setMaxDepth(this.currentMaxDepth);
-	    command.setNps(getCurrentNps());
-	    command.setTime(System.currentTimeMillis() - this.totalTimeStart);
-	    command.setNodes(this.totalNodes);
-
-	    if (this.currentMove != null) {
-		command.setCurrentMove(this.currentMove);
-		command.setCurrentMoveNumber(this.currentMoveNumber);
-	    }
-
-	    this.protocol.send(command);
-
-	    this.currentTimeStart = System.currentTimeMillis();
-	}
+        _fluxengine.setCurrentSearchDepth(_currentDepth);
+        _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
+        _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
+        _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
+        _fluxengine.setTotalNodes(_totalNodes);
+        _fluxengine.setTotalBoards(_totalBoards);
+        _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
+        if (_currentMove != null) {
+            _fluxengine.setCurrentMove(_currentMove);
+            _fluxengine.setCurrentMoveNumber(_currentMoveNumber);
+        }
     }
 
     /**
      * Sends the current status.
      */
     private void sendInformationSummary() {
-	ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	command.setDepth(this.currentDepth);
-	command.setMaxDepth(this.currentMaxDepth);
-	command.setNps(getCurrentNps());
-	command.setTime(System.currentTimeMillis() - this.totalTimeStart);
-	command.setNodes(this.totalNodes);
-
-	this.protocol.send(command);
-
-	this.currentTimeStart = System.currentTimeMillis();
+        _fluxengine.setCurrentSearchDepth(_currentDepth);
+        _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
+        _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
+        _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
+        _fluxengine.setTotalNodes(_totalNodes);
+        _fluxengine.setTotalBoards(_totalBoards);
+        _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
     }
 
     /**
      * Sends the centipawn information.
      */
     private void sendInformationCentipawns(PrincipalVariation pv, int pvNumber) {
-	assert pv != null;
-	assert pvNumber >= 1;
-
-	if (pvNumber <= Configuration.showPvNumber) {
-	    ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	    command.setDepth(pv.depth);
-	    command.setMaxDepth(pv.maxDepth);
-	    command.setNps(pv.nps);
-	    command.setTime(pv.time);
-	    command.setNodes(pv.totalNodes);
-
-	    command.setCentipawns(pv.value);
-	    command.setValue(Bound.toGenericScore(pv.type));
-	    command.setMoveList(pv.pv);
-
-	    if (Configuration.showPvNumber > 1) {
-		command.setPvNumber(pvNumber);
-	    }
-
-	    this.protocol.send(command);
-
-	    this.currentTimeStart = System.currentTimeMillis();
-	}
+        assert pv != null;
+        assert pvNumber >= 1;
+        if (pvNumber <= Configuration.showPvNumber) {
+            _fluxengine.setCurrentSearchDepth(_currentDepth);
+            _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
+            _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
+            _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
+            _fluxengine.setTotalNodes(_totalNodes);
+            _fluxengine.setTotalBoards(_totalBoards);
+            _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
+            _fluxengine.setCurrentPV(pv.pv);
+            final GameMove currentBestMove = pv.pv.get(0);
+            currentBestMove.setValue(pv.value);
+            _fluxengine.setCurrentMaxValueMove(currentBestMove);
+        }
     }
 
     /**
      * Sends the mate information.
      *
-     * @param currentMateDepth
-     *            the current mate depth.
+     * @param currentMateDepth the current mate depth.
      */
     private void sendInformationMate(PrincipalVariation pv,
-	    int currentMateDepth, int pvNumber) {
-	assert pv != null;
-	assert pvNumber >= 1;
+            int currentMateDepth, int pvNumber) {
+        assert pv != null;
+        assert pvNumber >= 1;
 
-	if (pvNumber <= Configuration.showPvNumber) {
-	    ProtocolInformationCommand command = new ProtocolInformationCommand();
-
-	    command.setDepth(pv.depth);
-	    command.setMaxDepth(pv.maxDepth);
-	    command.setNps(pv.nps);
-	    command.setTime(pv.time);
-	    command.setNodes(pv.totalNodes);
-
-	    command.setMate(currentMateDepth);
-	    command.setValue(Bound.toGenericScore(pv.type));
-	    command.setMoveList(pv.pv);
-
-	    if (Configuration.showPvNumber > 1) {
-		command.setPvNumber(pvNumber);
-	    }
-
-	    this.protocol.send(command);
-
-	    this.currentTimeStart = System.currentTimeMillis();
-	}
+        if (pvNumber <= Configuration.showPvNumber) {
+            _fluxengine.setCurrentSearchDepth(_currentDepth);
+            _fluxengine.setCurrentMaxSearchDepth(_currentMaxDepth);
+            _fluxengine.setCurrentNodesPerSecond(getCurrentNps());
+            _fluxengine.setCurrentUsedTime(System.currentTimeMillis() - _totalTimeStart);
+            _fluxengine.setTotalNodes(_totalNodes);
+            _fluxengine.setTotalBoards(_totalBoards);
+            _fluxengine.setTotalNonQuietBoards(_totalNonQuietBoards);
+            _fluxengine.setCurrentPV(pv.pv);
+            final GameMove currentBestMove = pv.pv.get(0);
+            currentBestMove.setValue(pv.value);
+            _fluxengine.setCurrentMaxValueMove(currentBestMove);
+        }
     }
 
     /**
@@ -1837,14 +1826,35 @@ final class Search implements Runnable {
      * @return the current nps.
      */
     private long getCurrentNps() {
-	long currentNps = 0;
-	long currentTimeDelta = System.currentTimeMillis()
-		- this.totalTimeStart;
-	if (currentTimeDelta >= 1000) {
-	    currentNps = (this.totalNodes * 1000) / currentTimeDelta;
-	}
-
-	return currentNps;
+        long currentNps = 0;
+        long currentTimeDelta = System.currentTimeMillis() - this._totalTimeStart;
+        currentNps = (this._totalNodes * 1000) / (currentTimeDelta+1);  // +1 to avoid div 0
+        return currentNps;
     }
 
+    public long getNodeCacheHits() {
+        return _nodeCacheHits.get();
+    }
+
+    public long getNodeCacheMisses() {
+        return _nodeCacheMisses.get();
+    }
+
+    public int getCurrentBoardCacheSize() {
+        if (_evaluationTable == null) return 0;
+        return _evaluationTable.getSize();
+    }
+
+    public int getCurBoardsInCache() {
+        if (_evaluationTable == null) return 0;
+        return _evaluationTable.getNumberOfEntries();
+    }
+
+    public long getBoardCacheHits() {
+        return _boardCacheHits.get();
+    }
+
+    public long getBoardCacheMisses() {
+        return _boardCacheMisses.get();
+    }
 }

@@ -83,7 +83,7 @@ public class ChesslyLogger {
     }
 
     /**
-     * Returns the Logger object used by this class to acually do the logging.
+     * Returns the Logger object used by this class to actually do the logging.
      * @see java.util.logging.Logger
      * @return The Logger object.
      */

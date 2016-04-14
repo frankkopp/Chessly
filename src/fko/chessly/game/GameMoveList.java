@@ -31,6 +31,11 @@ import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * Extends ArrayList<GameMove> to add a few convenience methods.
+ *
+ * @author Frank Kopp
+ */
 public class GameMoveList extends ArrayList<GameMove> {
 
     private static final long serialVersionUID = 324138104775502009L;
@@ -56,18 +61,30 @@ public class GameMoveList extends ArrayList<GameMove> {
         super(initialCapacity);
     }
 
+    /**
+     * Returns a string representing the GameMoveList.
+     * @return String with each GameMove
+     */
     @Override
     public String toString() {
-
         String s = "";
+        for(GameMove m : this) {
+            s += m.toString() + " ";
+        }
+        return s;
+    }
 
+    /**
+     * Returns a string representing the GameMoveList including value per GameMove.
+     * @return String with each GameMove and its value
+     */
+    public String toStringWithValues() {
+        String s = "";
         for(GameMove m : this) {
             s += m.toString();
             s += " ("+m.getValue()+") ";
         }
-
         return s;
-
     }
 
     /**

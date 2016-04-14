@@ -39,8 +39,6 @@ import static java.lang.Integer.parseInt;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,6 +53,7 @@ import fko.chessly.game.GameCastling;
 import fko.chessly.game.GameColor;
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveImpl;
+import fko.chessly.game.GameMoveList;
 import fko.chessly.game.GamePiece;
 import fko.chessly.game.GamePosition;
 import fko.chessly.game.pieces.Bishop;
@@ -70,7 +69,6 @@ import fko.chessly.openingbook.OpeningBookImpl;
 import fko.chessly.player.AbstractPlayer.PlayerStatusController;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
-import fko.chessly.player.computer.Engine;
 import fko.chessly.player.computer.ObservableEngine;
 import fko.chessly.player.computer.PulseEngine.MoveList.Entry;
 import fko.chessly.player.computer.PulseEngine.MoveList.MoveVariation;
@@ -108,7 +106,7 @@ import fko.chessly.util.HelperTools;
  *
  * @author Frank Kopp, Phokham Nonava
  */
-public class PulseEngine_v2 extends ModelObservable implements Engine, ObservableEngine {
+public class PulseEngine_v2 extends ModelObservable implements ObservableEngine {
 
     /**
      * read in the default configuration - change the public fields if necessary
@@ -277,6 +275,14 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     /**
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
+        // empty
+    }
+
+    /**
      * Starts calculation and returns next move.
      *
      * @param board
@@ -334,8 +340,9 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
 
         GameMove move = null;
 
+
         if (_config._USE_BOOK && !_config.PERF_TEST) {
-            final GameMove bookMove = _openingBook.getBookMove(board.toFEN());
+            final GameMove bookMove = _openingBook.getBookMove(board.toFENString());
             if (bookMove != null) {
                 move = bookMove;
             }
@@ -450,7 +457,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             if (_config.VERBOSE_PV) {
                 for (int i = 0; i < _currentSearchDepth;i++) {
                     String info = String.format("PV(%d) (size=%d): %s%n", i, _pv[i].size, _pv[i]);
-                    getVerboseInfo(info);
+                    printVerboseInfo(info);
                 }
                 printInfoln();
             }
@@ -502,7 +509,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         long start = System.currentTimeMillis();
         if (_config.VERBOSE_ITERATIVE_SEARCH) {
             String info = String.format("%nSearching depth (%d)%n", depth);
-            getVerboseInfo(info);
+            printVerboseInfo(info);
         }
 
         // ### Iterate through all available root moves
@@ -525,7 +532,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 if (_config.VERBOSE_ITERATIVE_SEARCH) {
                     String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) PVS %s - current best: %s", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                             _rootMoves.size, value, _cv.toString(), _currentBestRootMove);
-                    getVerboseInfo(info);
+                    printVerboseInfo(info);
                 }
                 // value > beta - is checked below after undoMove
 
@@ -536,16 +543,16 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (_config.VERBOSE_ITERATIVE_SEARCH) {
                         String info = String.format("%n%2d/%2d depth:%d %2d/%2d (%d) PVSre %s - current best: %s", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                                 _rootMoves.size, value, _cv.toString(), _currentBestRootMove);
-                        getVerboseInfo(info);
+                        printVerboseInfo(info);
                     }
                 }
             } else {
                 // no PV null window search
                 value = -negaMax(board, depth - 1, 0, -beta, -alpha, ply + 1, check, _searchMoveGenerators);
                 if (_config.VERBOSE_ITERATIVE_SEARCH) {
-                    if (depth > 1) getVerboseInfo(String.format("%n"));
+                    if (depth > 1) printVerboseInfo(String.format("%n"));
                     String info = String.format("%2d/%2d root  (%d) %s - current best: %s", i + 1, _rootMoves.size, value, Move.toString(move), _currentBestRootMove);
-                    getVerboseInfo(info);
+                    printVerboseInfo(info);
 
                 }
             }
@@ -561,7 +568,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             if (value > alpha) {
                 if (_config.VERBOSE_ITERATIVE_SEARCH) {
                     String info = String.format("   NEW BEST PV: value(%d) > alpha(%d) %s", value, alpha, _pv[0]);
-                    getVerboseInfo(info);
+                    printVerboseInfo(info);
                 }
                 alpha = value;
 
@@ -571,7 +578,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     printInfoln();
                     for (int j = 0; j < depth;j++) {
                         String info = String.format("   PV(%d) (size=%d): %s%n", j, _pv[j].size, _pv[j]);
-                        getVerboseInfo(info);
+                        printVerboseInfo(info);
                     }
                     printInfoln();
                 }
@@ -582,7 +589,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
 
             if (_config.VERBOSE_ITERATIVE_SEARCH) {
                 printInfoln();
-                if (depth > 1) getVerboseInfo(String.format("%n"));
+                if (depth > 1) printVerboseInfo(String.format("%n"));
             }
 
             // Check for time when time enabled management
@@ -600,7 +607,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
             String info = String.format(Locale.GERMANY, "%nBest Move: %s PV: %s", _currentBestRootMove, _pv[0]);
             info += String.format(Locale.GERMANY, "%nDepth %d/%d done. %s nodes (%.4f sec) (%s nps) %n", depth, _currrentExtraSearchDepth,
                     HelperTools.getDigit(nodes), (time / 1000f), HelperTools.getDigit(nps * 1000));
-            getVerboseInfo(info);
+            printVerboseInfo(info);
         }
 
     }
@@ -741,7 +748,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                         if (_config.VERBOSE_ALPHABETA) {
                             String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) -> ", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1, moves.size, value);
                             info += String.format("quiescence extension: Current Search is %d, new extra is %d%n", _currentSearchDepth, new_extra);
-                            getVerboseInfo(info);
+                            printVerboseInfo(info);
                         }
                     }
                 }
@@ -752,7 +759,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (_config.VERBOSE_ALPHABETA) {
                         String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) PVS %s - current best: %s (%d)", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                                 moves.size, value, _cv.toString(), Move.toString(bestMove), bestValue);
-                        getVerboseInfo(info);
+                        printVerboseInfo(info);
                     }
                     // value > beta - is checked below after undoMove
 
@@ -763,7 +770,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                         if (_config.VERBOSE_ALPHABETA) {
                             String info = String.format("%n%2d/%2d depth:%d %2d/%2d (%d) PVSre %s - current best: %s (%d)", _currentMoveNumber, _rootMoves.size, ply + 1,
                                     i + 1, moves.size, value, _cv.toString(), Move.toString(bestMove), bestValue);
-                            getVerboseInfo(info);
+                            printVerboseInfo(info);
                         }
                     }
                 } else {
@@ -771,7 +778,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (_config.VERBOSE_ALPHABETA) {
                         String info = String.format("%2d/%2d depth:%d %2d/%2d (%d) %s - current best: %s (%d)", _currentMoveNumber, _rootMoves.size, ply + 1, i + 1,
                                 moves.size, value, _cv.toString(), Move.toString(bestMove), bestValue);
-                        getVerboseInfo(info);
+                        printVerboseInfo(info);
                     }
                 }
             }
@@ -787,7 +794,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 if (value > alpha) {
                     if (_config.VERBOSE_ALPHABETA) {
                         String info = String.format(" value (%d) >  alpha(%d) @ Depth: %d ", value, alpha, ply + 1);
-                        getVerboseInfo(info);
+                        printVerboseInfo(info);
                     }
                     alpha = value;
                     savePV(move, _pv[ply + 1], _pv[ply]);
@@ -796,9 +803,9 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                     if (value >= beta) {
                         if (_config.VERBOSE_ALPHABETA) {
                             String info = String.format("%n ==> CUT value (%d) >=  beta(%d) @ Depth: %d ", value, beta, ply);
-                            getVerboseInfo(info);
+                            printVerboseInfo(info);
                         }
-                        // Extremly influences PERF counter test
+                        // Extremely influences PERF counter test
                         if (_config._USE_PRUNING && !_config.PERF_TEST) {
                             // Cut-off
                             hashType = Bound.LOWER;
@@ -1286,16 +1293,16 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 GamePiece pp;
                 switch (promotionType) {
                     case PieceType.QUEEN:
-                        pp = Queen.createQueen(color);
+                        pp = Queen.create(color);
                         break;
                     case PieceType.ROOK:
-                        pp = Rook.createRook(color);
+                        pp = Rook.create(color);
                         break;
                     case PieceType.BISHOP:
-                        pp = Bishop.createBishop(color);
+                        pp = Bishop.create(color);
                         break;
                     case PieceType.KNIGHT:
-                        pp = Knight.createKnight(color);
+                        pp = Knight.create(color);
                         break;
                     default:
                         throw new RuntimeException("Invalid PieceType for Promotion during convert from Move to GameMove");
@@ -1342,40 +1349,40 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         GamePiece _convertedPiece;
         switch (oPiece) {
             case Piece.WHITE_PAWN:
-                _convertedPiece = Pawn.createPawn(GameColor.WHITE);
+                _convertedPiece = Pawn.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_KNIGHT:
-                _convertedPiece = Knight.createKnight(GameColor.WHITE);
+                _convertedPiece = Knight.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_BISHOP:
-                _convertedPiece = Bishop.createBishop(GameColor.WHITE);
+                _convertedPiece = Bishop.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_ROOK:
-                _convertedPiece = Rook.createRook(GameColor.WHITE);
+                _convertedPiece = Rook.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_QUEEN:
-                _convertedPiece = Queen.createQueen(GameColor.WHITE);
+                _convertedPiece = Queen.create(GameColor.WHITE);
                 break;
             case Piece.WHITE_KING:
-                _convertedPiece = King.createKing(GameColor.WHITE);
+                _convertedPiece = King.create(GameColor.WHITE);
                 break;
             case Piece.BLACK_PAWN:
-                _convertedPiece = Pawn.createPawn(GameColor.BLACK);
+                _convertedPiece = Pawn.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_KNIGHT:
-                _convertedPiece = Knight.createKnight(GameColor.BLACK);
+                _convertedPiece = Knight.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_BISHOP:
-                _convertedPiece = Bishop.createBishop(GameColor.BLACK);
+                _convertedPiece = Bishop.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_ROOK:
-                _convertedPiece = Rook.createRook(GameColor.BLACK);
+                _convertedPiece = Rook.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_QUEEN:
-                _convertedPiece = Queen.createQueen(GameColor.BLACK);
+                _convertedPiece = Queen.create(GameColor.BLACK);
                 break;
             case Piece.BLACK_KING:
-                _convertedPiece = King.createKing(GameColor.BLACK);
+                _convertedPiece = King.create(GameColor.BLACK);
                 break;
             case Piece.NOPIECE:
             default:
@@ -1427,7 +1434,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
      * @param info
      */
     @Override
-    public void getVerboseInfo(String info) {
+    public void printVerboseInfo(String info) {
         synchronized (_engineInfoText) {
             _engineInfoText.append(info);
             // out of memory protection if the info is not retrieved
@@ -1438,11 +1445,11 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     private void printInfoln() {
-        getVerboseInfo(String.format("%n"));
+        printVerboseInfo(String.format("%n"));
     }
 
     /**
-     * The UI can collect additional text to display. E.g. verboae output.
+     * The UI can collect additional text to display. E.g. verbose output.
      * The info will be deleted after collection.
      * The info buffer is limited and older entries will be deleted every time
      * new info is added an the maximum size is exceeded.
@@ -1457,7 +1464,6 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         return s;
     }
 
-
     /**
      * Not used in this engine.
      * @see fko.chessly.player.computer.Engine#setNumberOfThreads(int)
@@ -1468,7 +1474,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     /**
-     * @return PlayerStatusController of the durrent player
+     * @return PlayerStatusController of the current player
      */
     public PlayerStatusController getPlayerStatus() {
         return _player.getPlayerStatus();
@@ -1482,17 +1488,17 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     @Override
-    public int getCurMoveNumber() {
+    public int getCurrentMoveNumber() {
         return _currentMoveNumber;
     }
 
     @Override
-    public GameMove getCurMove() {
+    public GameMove getCurrentMove() {
         return convertMove(_currentMove);
     }
 
     @Override
-    public GameMove getMaxValueMove() {
+    public GameMove getCurrentMaxValueMove() {
         GameMove m = convertMove(_currentBestRootMove.move);
         if (m != null) {
             m.setValue(_currentBestRootMove.value);
@@ -1501,9 +1507,9 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     @Override
-    public List<GameMove> getPV() {
+    public GameMoveList getCurrentPV() {
         int size = _pv[0] != null ? _pv[0].size : 0;
-        List<GameMove> l = new ArrayList<GameMove>(size);
+        GameMoveList l = new GameMoveList(size);
         if (size == 0) return l;
         for (int i = 0; i < size; i++) {
             if (_pv[0] != null) {
@@ -1514,31 +1520,31 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     @Override
-    public int getCurSearchDepth() {
+    public int getCurrentSearchDepth() {
         return _curSearchDepth;
     }
 
     @Override
-    public int getCurExtraSearchDepth() {
+    public int getCurrentMaxSearchDepth() {
         return _currrentExtraSearchDepth;
     }
 
     @Override
-    public long getNodesChecked() {
+    public long getTotalNodes() {
         return _nodesVisited.get();
     }
 
     @Override
-    public int getCurNodesPerSecond() {
+    public long getCurrentNodesPerSecond() {
         if (_player.isThinking()) {
-            _lastNodesPerSecond = (int) (1000.0F * (_nodesVisited.get() / (float) getCurUsedTime()));
+            _lastNodesPerSecond = (int) (1000.0F * (_nodesVisited.get() / (float) getCurrentUsedTime()));
             return _lastNodesPerSecond;
         }
         return _lastNodesPerSecond;
     }
 
     @Override
-    public long getCurUsedTime() {
+    public long getCurrentUsedTime() {
         if (_player.isThinking()) {
             _lastUsedTime = System.currentTimeMillis() - _startTime;
             return _lastUsedTime;
@@ -1547,12 +1553,12 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     @Override
-    public long getBoardsChecked() {
+    public long getTotalBoards() {
         return _boardsEvaluated.get();
     }
 
     @Override
-    public long getBoardsNonQuiet() {
+    public long getTotalNonQuietBoards() {
         return _boardsNonQuiet.get();
     }
 
@@ -1567,12 +1573,12 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     @Override
-    public int getCurNodeCacheSize() {
+    public int getCurrentNodeCacheSize() {
         return _cacheEnabled && _config._USE_NODE_CACHE ? _transpositionTable.getSize() : 0;
     }
 
     @Override
-    public int getCurNodesInCache() {
+    public int getCurrentNodesInCache() {
         return _cacheEnabled && _config._USE_NODE_CACHE ? _transpositionTable.getNumberOfEntries() : 0;
     }
 
@@ -1587,17 +1593,17 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
     }
 
     @Override
-    public int getCurBoardCacheSize() {
+    public int getCurrentBoardCacheSize() {
         return _cacheEnabled && _config._USE_BOARD_CACHE ? _evaluationTable.getSize() : 0;
     }
 
     @Override
-    public int getCurBoardsInCache() {
+    public int getCurrentBoardsInCache() {
         return _cacheEnabled && _config._USE_BOARD_CACHE ? _evaluationTable.getNumberOfEntries() : 0;
     }
 
     @Override
-    public int getCurNumberOfThreads() {
+    public int getCurrentNumberOfThreads() {
         return 1;
     }
 
@@ -1639,7 +1645,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
         return _statusInfo;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see fko.chessly.player.computer.ObservableEngine#getState()
      */
     @Override
@@ -1798,7 +1804,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 notifyObservers(new PlayerDependendModelEvent("ENGINE start pondering", _player, SIG_ENGINE_START_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Pondering over move %s%n",Move.toString(ponderMove));
-                    getVerboseInfo(info);
+                    printVerboseInfo(info);
                 }
 
                 // Guess the opponents move from last PV
@@ -1824,7 +1830,7 @@ public class PulseEngine_v2 extends ModelObservable implements Engine, Observabl
                 notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+ " nothing to ponder - waiting", _player, SIG_ENGINE_NO_PONDERING));
                 if (_config.VERBOSE_PONDERER) {
                     String info = String.format("Nothing to ponder%n");
-                    getVerboseInfo(info);
+                    printVerboseInfo(info);
                 }
             }
         }

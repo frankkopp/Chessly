@@ -29,12 +29,12 @@ package fko.chessly.player.computer;
 import java.util.List;
 
 import fko.chessly.game.GameMove;
+import fko.chessly.game.GameMoveList;
 
 /**
  * @author fkopp
- *
  */
-public interface ObservableEngine {
+public interface ObservableEngine extends Engine {
 
     /**
      * return the number of possible moves for the current move
@@ -46,61 +46,61 @@ public interface ObservableEngine {
      * return the current move number
      * @return int
      */
-    int getCurMoveNumber();
+    int getCurrentMoveNumber();
 
     /**
      * returns the current move in calculation
      * @return Move
      */
-    GameMove getCurMove();
+    GameMove getCurrentMove();
 
     /**
      * return the current best move
      * @return Move
      */
-    GameMove getMaxValueMove();
+    GameMove getCurrentMaxValueMove();
 
     /**
      * returns the current depth in the search tree (without non-quite extra depth)
      * @return int
      */
-    int getCurSearchDepth();
+    int getCurrentSearchDepth();
 
     /**
      * returns the current depth in the search tree (with non-quite extra depth)
      * @return int
      */
-    int getCurExtraSearchDepth();
+    int getCurrentMaxSearchDepth();
 
     /**
      * return the number of nodes checked so far
      * @return int
      */
-    long getNodesChecked();
+    long getTotalNodes();
 
     /**
      * returns the number of nodes per second for the current calculation
      * @return int
      */
-    int getCurNodesPerSecond();
+    long getCurrentNodesPerSecond();
 
     /**
      * returns the used time for the current move
      * @return long
      */
-    long getCurUsedTime();
+    long getCurrentUsedTime();
 
     /**
      * return the number of boards analysed so far
      * @return int
      */
-    long getBoardsChecked();
+    long getTotalBoards();
 
     /**
      * return the number of non-quiet boards found so far
      * @return int
      */
-    long getBoardsNonQuiet();
+    long getTotalNonQuietBoards();
 
     /**
      * return the number of cache hits so far
@@ -118,13 +118,13 @@ public interface ObservableEngine {
      * return the current cache size
      * @return int
      */
-    int getCurNodeCacheSize();
+    int getCurrentNodeCacheSize();
 
     /**
      * return the current number of boards in cache
      * @return int
      */
-    int getCurNodesInCache();
+    int getCurrentNodesInCache();
 
     /**
      * return the number of cache hits so far
@@ -142,19 +142,19 @@ public interface ObservableEngine {
      * return the current cache size
      * @return int
      */
-    int getCurBoardCacheSize();
+    int getCurrentBoardCacheSize();
 
     /**
      * return the current number of boards in cache
      * @return int
      */
-    int getCurBoardsInCache();
+    int getCurrentBoardsInCache();
 
     /**
      * Returns the configured number of threads to use
      * @return number of threads
      */
-    int getCurNumberOfThreads();
+    int getCurrentNumberOfThreads();
 
     /**
      * Returns a string explaining the configuration of the engine.
@@ -164,9 +164,11 @@ public interface ObservableEngine {
     String getCurConfig();
 
     /**
-     * @return Principal Variation
+     * Get the current PV as a GameMoveList.
+     *
+     * @return Copy of Principal Variation list as GameMoveList
      */
-    public abstract List<GameMove> getPV();
+    public abstract GameMoveList getCurrentPV();
 
     /**
      * Returns a string from the engine which should be displayed
@@ -202,4 +204,11 @@ public interface ObservableEngine {
      * @return the move currently used for pondering - null if not pondering
      */
     public GameMove getPonderMove();
+
+    /**
+     * Provide additional information for the UI to collect.
+     * E.g. verbose information etc.
+     * @param info
+     */
+    public void printVerboseInfo(String info);
 }

@@ -42,6 +42,8 @@ public interface OpeningBook {
 
     /**
      * Returns move from opening book as string based on a position
+     * @param fen
+     * @return returns book move or null if there is none
      */
     GameMove getBookMove(String fen);
 

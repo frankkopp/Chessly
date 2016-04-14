@@ -58,7 +58,7 @@ public class Rook extends PieceAbstractImpl implements GamePiece, Serializable {
      * @param color
      * @return Rook object
      */
-    public static Rook createRook(GameColor color) {
+    public static Rook create(GameColor color) {
         return color==GameColor.WHITE ? white : black;
     }
 

@@ -245,7 +245,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void drawPieces() {
 
@@ -287,13 +287,13 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void markCurrentSelectedFromField() {
         if (_curBoard !=null && _selectedFromField != null) {
             _graphics.setColor(_selectedMoveColor);
-            int x = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.x : DIM - _selectedFromField.x+1;
-            int y = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.y : DIM - _selectedFromField.y+1;
+            int x = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.getFile() : DIM - _selectedFromField.getFile()+1;
+            int y = _currentOrientation == orientation.WHITE_SOUTH ? _selectedFromField.getRank() : DIM - _selectedFromField.getRank()+1;
             _graphics.fillRect((x - 1) * _distance + _positionX + 1,
                     (DIM - y) * _distance + _positionY + 1,
                     _distance - 1,
@@ -308,8 +308,8 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             GamePosition king;
             king = _curBoard.getKingField(_curBoard.getNextPlayerColor());
             _graphics.setColor(_checkColor);
-            int x = _currentOrientation == orientation.WHITE_SOUTH ? king.x : DIM - king.x+1;
-            int y = _currentOrientation == orientation.WHITE_SOUTH ? king.y : DIM - king.y+1;
+            int x = _currentOrientation == orientation.WHITE_SOUTH ? king.getFile() : DIM - king.getFile()+1;
+            int y = _currentOrientation == orientation.WHITE_SOUTH ? king.getRank() : DIM - king.getRank()+1;
             _graphics.fillRect((x-1) * _distance + _positionX + 1,
                     (DIM - y) * _distance + _positionY + 1,
                     _distance - 1,
@@ -318,7 +318,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void markPossibleMoves() {
         if (_ui != null && _ui.is_showPossibleMoves() && _selectedFromField != null
@@ -328,8 +328,8 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
             _graphics.setColor(_possibleMoveColor);
             moves.forEach(
                     curMove -> {
-                        int x = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().x : DIM - curMove.getToField().x+1;
-                        int y = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().y : DIM - curMove.getToField().y+1;
+                        int x = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().getFile() : DIM - curMove.getToField().getFile()+1;
+                        int y = _currentOrientation == orientation.WHITE_SOUTH ? curMove.getToField().getRank() : DIM - curMove.getToField().getRank()+1;
                         _graphics.fillRect((x - 1) * _distance + _positionX + 1,
                                 (DIM - y) * _distance + _positionY + 1,
                                 _distance - 1,
@@ -341,14 +341,14 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void markLastMove() {
         GameMove lastMove = _curBoard.getLastMove();
         _graphics.setColor(_lastMoveColor);
         if (lastMove != null) {
-            int x = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().x : DIM - lastMove.getToField().x+1;
-            int y = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().y : DIM - lastMove.getToField().y+1;
+            int x = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().getFile() : DIM - lastMove.getToField().getFile()+1;
+            int y = _currentOrientation == orientation.WHITE_SOUTH ? lastMove.getToField().getRank() : DIM - lastMove.getToField().getRank()+1;
             _graphics.fillRect((x-1) * _distance + _positionX + 1,
                     (DIM - y) * _distance + _positionY + 1,
                     _distance - 1,
@@ -415,11 +415,11 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
                 options[0]);
 
         switch (n) {
-            case 0: return Queen.createQueen(color);
-            case 1: return Rook.createRook(color);
-            case 2: return Bishop.createBishop(color);
-            case 3: return Knight.createKnight(color);
-            default: return Pawn.createPawn(color);
+            case 0: return Queen.create(color);
+            case 1: return Rook.create(color);
+            case 2: return Bishop.create(color);
+            case 3: return Knight.create(color);
+            default: return Pawn.create(color);
         }
     }
 
@@ -684,10 +684,10 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
 
         // pawn promotion
         if (fromPiece instanceof Pawn) {
-            if (fromPiece.isWhite() && _selectedFromField.y == 7 && toField.y == 8) {
+            if (fromPiece.isWhite() && _selectedFromField.getRank() == 7 && toField.getRank() == 8) {
                 // Promotion
                 m.setPromotedTo(promotionDialog(GameColor.WHITE));
-            } else if (fromPiece.isBlack() && _selectedFromField.y == 2 && toField.y == 1) {
+            } else if (fromPiece.isBlack() && _selectedFromField.getRank() == 2 && toField.getRank() == 1) {
                 // Promotion
                 m.setPromotedTo(promotionDialog(GameColor.BLACK));
             }

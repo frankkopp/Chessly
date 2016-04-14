@@ -240,10 +240,6 @@ public class Playroom extends ModelObservable implements Runnable {
         // Does the actual game playing with the created players and the created game
         playGame(playerBlack, playerWhite);
 
-        // Wait for the threads to finish
-        playerBlack.joinPlayerThread();
-        playerWhite.joinPlayerThread();
-
         // If the game ended because it was over (not stopped) we do some logging
         // and we increase the multiple game counters accordingly
         if (_game.isFinished()) {
@@ -296,6 +292,11 @@ public class Playroom extends ModelObservable implements Runnable {
         // Stop the players
         playerBlack.stopPlayer();
         playerWhite.stopPlayer();
+
+        // Wait for the threads to finish
+        playerBlack.joinPlayerThread();
+        playerWhite.joinPlayerThread();
+
         // We must wait for the game thread to complete before starting a new game
         // because other threads (ex. the UI) must get the chance to process the finished game
         // before we eventually startGame a new game

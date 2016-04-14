@@ -16,109 +16,120 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
-import com.fluxchess.jcpi.models.GenericColor;
+import fko.chessly.game.GameColor;
 
 final class Color {
 
-  /**
-   * Represents no color
-   */
-  static final int NOCOLOR = -4;
+    /**
+     * Represents no color
+     */
+    static final int NOCOLOR = -4;
 
-  /**
-   * IntColor values
-   */
-  static final int WHITE = 0;
-  static final int BLACK = 1;
+    /**
+     * IntColor values
+     */
+    static final int WHITE = 0;
+    static final int BLACK = 1;
 
-  /**
-   * IntColor constants
-   */
-  static final int ARRAY_DIMENSION = 2;
+    /**
+     * IntColor constants
+     */
+    static final int ARRAY_DIMENSION = 2;
 
-  /**
-   * IntColor array
-   */
-  static final int[] values = {
-      WHITE,
-      BLACK
-  };
+    /**
+     * IntColor array
+     */
+    static final int[] values = {
+            WHITE,
+            BLACK
+    };
 
-  /**
-   * IntColor mask
-   */
-  static final int MASK = 0x1;
+    /**
+     * IntColor mask
+     */
+    static final int MASK = 0x1;
 
-  /**
-   * IntColor cannot be instantiated.
-   */
-  private Color() {
-  }
-
-  /**
-   * Returns the IntColor value of the GenericColor.
-   *
-   * @param color the GenericColor.
-   * @return the IntColor value.
-   */
-  static int valueOfColor(GenericColor color) {
-    assert color != null;
-
-    switch (color) {
-      case WHITE:
-        return WHITE;
-      case BLACK:
-        return BLACK;
-      default:
-        assert false : color;
-        break;
+    /**
+     * IntColor cannot be instantiated.
+     */
+    private Color() {
     }
 
-    throw new IllegalArgumentException();
-  }
+    /**
+     * Returns the IntColor value of the GenericColor.
+     *
+     * @param color the GenericColor.
+     * @return the IntColor value.
+     */
+    static int valueOfColor(GameColor color) {
+        assert color != null;
 
-  /**
-   * Returns the GenericColor of the color value.
-   *
-   * @param color the color value.
-   * @return the GenericColor.
-   */
-  static GenericColor valueOfIntColor(int color) {
-    assert color != NOCOLOR;
+        switch (color) {
+            case WHITE:
+                return WHITE;
+            case BLACK:
+                return BLACK;
+            default:
+                assert false : color;
+            break;
+        }
 
-    switch (color) {
-      case WHITE:
-        return GenericColor.WHITE;
-      case BLACK:
-        return GenericColor.BLACK;
-      default:
         throw new IllegalArgumentException();
     }
-  }
 
-  /**
-   * Returns the opposite color.
-   *
-   * @param color the color.
-   * @return the opposite color.
-   */
-  static int switchColor(int color) {
-    assert color != NOCOLOR && (color == WHITE || color == BLACK);
+    /**
+     * Returns the GenericColor of the color value.
+     *
+     * @param color the color value.
+     * @return the GenericColor.
+     */
+    static GameColor valueOfIntColor(int color) {
+        assert color != NOCOLOR;
 
-    assert (color ^ MASK) == WHITE || (color ^ MASK) == BLACK;
-    return color ^ MASK;
-  }
-
-  static boolean isValidColor(int color) {
-    for (int colorValue : values) {
-      if (color == colorValue) {
-        return true;
-      }
+        switch (color) {
+            case WHITE:
+                return GameColor.WHITE;
+            case BLACK:
+                return GameColor.BLACK;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
-    return false;
-  }
+    /**
+     * Returns the opposite color.
+     *
+     * @param color the color.
+     * @return the opposite color.
+     */
+    static int switchColor(int color) {
+        assert color != NOCOLOR && (color == WHITE || color == BLACK);
+        assert (color ^ MASK) == WHITE || (color ^ MASK) == BLACK;
+        return color ^ MASK;
+    }
+
+    static char toChar(int color) {
+        switch (color) {
+            case WHITE:
+                return 'w';
+            case BLACK:
+                return 'b';
+            case NOCOLOR:
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+
+    static boolean isValidColor(int color) {
+        for (int colorValue : values) {
+            if (color == colorValue) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

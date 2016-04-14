@@ -17,37 +17,37 @@ public class PieceImplTest {
     @Test
     public void testPieceImpl() {
 	GamePiece wP,bP; 
-	wP= King.createKing(GameColor.WHITE);
+	wP= King.create(GameColor.WHITE);
 	System.out.println(wP.toString()+" - "+wP.toNotationString()+" - "+wP.hashCode());
-	bP = King.createKing(GameColor.BLACK);
+	bP = King.create(GameColor.BLACK);
 	System.out.println(bP.toString()+" - "+bP.toNotationString()+" - "+bP.hashCode());
-	wP = Queen.createQueen(GameColor.WHITE);
+	wP = Queen.create(GameColor.WHITE);
 	System.out.println(wP.toString()+" - "+wP.toNotationString()+" - "+wP.hashCode());
-	bP = Queen.createQueen(GameColor.BLACK);
+	bP = Queen.create(GameColor.BLACK);
 	System.out.println(bP.toString()+" - "+bP.toNotationString()+" - "+bP.hashCode());
-	wP = Rook.createRook(GameColor.WHITE);
+	wP = Rook.create(GameColor.WHITE);
 	System.out.println(wP.toString()+" - "+wP.toNotationString()+" - "+wP.hashCode());
-	bP = Rook.createRook(GameColor.BLACK);
+	bP = Rook.create(GameColor.BLACK);
 	System.out.println(bP.toString()+" - "+bP.toNotationString()+" - "+bP.hashCode());
-	wP = Bishop.createBishop(GameColor.WHITE);
+	wP = Bishop.create(GameColor.WHITE);
 	System.out.println(wP.toString()+" - "+wP.toNotationString()+" - "+wP.hashCode());
-	bP = Bishop.createBishop(GameColor.BLACK);
+	bP = Bishop.create(GameColor.BLACK);
 	System.out.println(bP.toString()+" - "+bP.toNotationString()+" - "+bP.hashCode());
-	wP = Knight.createKnight(GameColor.WHITE);
+	wP = Knight.create(GameColor.WHITE);
 	System.out.println(wP.toString()+" - "+wP.toNotationString()+" - "+wP.hashCode());
-	bP = Knight.createKnight(GameColor.BLACK);
+	bP = Knight.create(GameColor.BLACK);
 	System.out.println(bP.toString()+" - "+bP.toNotationString()+" - "+bP.hashCode());
-	wP = Pawn.createPawn(GameColor.WHITE);
+	wP = Pawn.create(GameColor.WHITE);
 	System.out.println(wP.toString()+" - "+wP.toNotationString()+" - "+wP.hashCode());
-	bP = Pawn.createPawn(GameColor.BLACK);
+	bP = Pawn.create(GameColor.BLACK);
 	System.out.println(bP.toString()+" - "+bP.toNotationString()+" - "+bP.hashCode());
     }
 
     @Test
     public void testEquals() {
-	GamePiece wP = King.createKing(GameColor.WHITE);
-	GamePiece wP2 = King.createKing(GameColor.WHITE);
-	GamePiece bP = King.createKing(GameColor.BLACK);
+	GamePiece wP = King.create(GameColor.WHITE);
+	GamePiece wP2 = King.create(GameColor.WHITE);
+	GamePiece bP = King.create(GameColor.BLACK);
 	assertNotEquals(wP,bP);
 	assertEquals(wP,wP2);
     }

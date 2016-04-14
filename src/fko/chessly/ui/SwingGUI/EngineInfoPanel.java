@@ -496,49 +496,49 @@ public class EngineInfoPanel extends JPanel {
             String newInfoText = engine.getInfoText();
             if (!newInfoText.isEmpty()) _infoPanel5.printInfo(newInfoText);
 
-            curPV.setText(printCurPV(game, engine.getPV(), engine.getMaxValueMove()));
+            curPV.setText(printCurPV(game, engine.getCurrentPV(), engine.getCurrentMaxValueMove()));
 
             // -- current move in calculation --
-            if (engine.getCurMove() != null) {
+            if (engine.getCurrentMove() != null) {
                 engineShowCurMove(
                         game.getCurBoard().getNextHalfMoveNumber(),
-                        engine.getCurMove(),
-                        engine.getCurMoveNumber(),
+                        engine.getCurrentMove(),
+                        engine.getCurrentMoveNumber(),
                         engine.getNumberOfMoves()
                         );
             }
 
             // -- current calculated value for the best move so far --
-            if (engine.getMaxValueMove() != null) {
+            if (engine.getCurrentMaxValueMove() != null) {
                 engineShowCurValue(
-                        engine.getMaxValueMove()
+                        engine.getCurrentMaxValueMove()
                         );
             }
 
             // -- current search depth --
-            curDepth.setText(engine.getCurSearchDepth()+"/"+engine.getCurExtraSearchDepth());
+            curDepth.setText(engine.getCurrentSearchDepth()+"/"+engine.getCurrentMaxSearchDepth());
 
             // -- current number of checked nodes --
-            curNodes.setText(numberFormat.format(engine.getNodesChecked()) + " N");
+            curNodes.setText(numberFormat.format(engine.getTotalNodes()) + " N");
 
             // -- current number of nodes per second --
-            curSpeed.setText(numberFormat.format(engine.getCurNodesPerSecond()) + " N/s");
+            curSpeed.setText(numberFormat.format(engine.getCurrentNodesPerSecond()) + " N/s");
 
             // -- current time used for the move --
-            engineShowCurTime(engine.getCurUsedTime());
+            engineShowCurTime(engine.getCurrentUsedTime());
 
             // -- show the number of boards analysed so far --
-            curBoards.setText(numberFormat.format(engine.getBoardsChecked()) + " B");
+            curBoards.setText(numberFormat.format(engine.getTotalBoards()) + " B");
 
             // -- show the number of non-quiet boards found so far --
-            curNonQuiet.setText(numberFormat.format(engine.getBoardsNonQuiet()) + " NB");
+            curNonQuiet.setText(numberFormat.format(engine.getTotalNonQuietBoards()) + " NB");
 
             // -- show the current capacity of the node cache --
-            final int curNodeCacheSize = engine.getCurNodeCacheSize();
+            final int curNodeCacheSize = engine.getCurrentNodeCacheSize();
             curCacheSize.setText(numberFormat.format(curNodeCacheSize));
 
             // -- show the numer of nodes in the cache --
-            final int curNodesInCache = engine.getCurNodesInCache();
+            final int curNodesInCache = engine.getCurrentNodesInCache();
             int percent = (int)(100.F * curNodesInCache / curNodeCacheSize);
             curCacheUse.setText(numberFormat.format(curNodesInCache)+" ("+percent+"%)");
 
@@ -550,11 +550,11 @@ public class EngineInfoPanel extends JPanel {
             curCacheHits.setText(numberFormat.format(cachehits) + " (" + percent + "%)");
 
             // -- show the current capacity of the board cache --
-            final int curBoardCacheSize2 = engine.getCurBoardCacheSize();
+            final int curBoardCacheSize2 = engine.getCurrentBoardCacheSize();
             curBoardCacheSize.setText(numberFormat.format(curBoardCacheSize2));
 
             // -- show the number of boards in the cache --
-            final int curBoardsInCache = engine.getCurBoardsInCache();
+            final int curBoardsInCache = engine.getCurrentBoardsInCache();
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             curBoardCacheUse.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");
 
@@ -566,7 +566,7 @@ public class EngineInfoPanel extends JPanel {
             curBoardCacheHits.setText(numberFormat.format(cachehits) + " (" + percent + "%)");
 
             // -- show the number of threads currently used/configured
-            curThreads.setText(numberFormat.format(engine.getCurNumberOfThreads()));
+            curThreads.setText(numberFormat.format(engine.getCurrentNumberOfThreads()));
 
             // -- show the current config as string
             curConfig.setText(engine.getCurConfig());

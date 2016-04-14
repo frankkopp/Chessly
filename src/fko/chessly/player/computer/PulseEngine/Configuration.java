@@ -60,7 +60,7 @@ public class Configuration {
     public boolean _USE_PV = true;
     /** Mate Distance Pruning */
     public boolean _USE_MDP = true;
-    /** Use quiescnet search after depth has been reached */
+    /** Use quiescence search after depth has been reached */
     public boolean _USE_QUIESCENCE = true;
     /** Use Transposition Tables for visited nodes */
     public boolean _USE_NODE_CACHE = true;

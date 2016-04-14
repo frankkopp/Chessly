@@ -59,7 +59,7 @@ public class Bishop extends PieceAbstractImpl implements GamePiece, Serializable
      * @param color
      * @return Bishop object
      */
-    public static Bishop createBishop(GameColor color) {
+    public static Bishop create(GameColor color) {
         return color==GameColor.WHITE ? white : black;
     }
 

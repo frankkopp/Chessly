@@ -16,27 +16,49 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 final class Castling {
 
-  /**
-   * IntCastling values
-   */
-  static final int WHITE_KINGSIDE = 1 << 0;
-  static final int WHITE_QUEENSIDE = 1 << 1;
-  static final int BLACK_KINGSIDE = 1 << 2;
-  static final int BLACK_QUEENSIDE = 1 << 3;
+    /**
+     * IntCastling values
+     */
+    static final int WHITE_KINGSIDE = 1 << 0;
+    static final int WHITE_QUEENSIDE = 1 << 1;
+    static final int BLACK_KINGSIDE = 1 << 2;
+    static final int BLACK_QUEENSIDE = 1 << 3;
 
-  /**
-   * IntCastling constants
-   */
-  static final int ARRAY_DIMENSION = 16;
+    /**
+     * IntCastling constants
+     */
+    static final int ARRAY_DIMENSION = 16;
 
-  /**
-   * IntCastling cannot be instantiated.
-   */
-  private Castling() {
-  }
+    static final int[] values = {
+            WHITE_KINGSIDE,
+            WHITE_QUEENSIDE,
+            BLACK_KINGSIDE,
+            BLACK_QUEENSIDE
+    };
+
+    /**
+     * IntCastling cannot be instantiated.
+     */
+    private Castling() {
+    }
+
+    static public String toChar(int castling) {
+        switch (castling) {
+            case WHITE_KINGSIDE:
+                return "K";
+            case WHITE_QUEENSIDE:
+                return "Q";
+            case BLACK_KINGSIDE:
+                return "k";
+            case BLACK_QUEENSIDE:
+                return "q";
+            default:
+                return "-";
+        }
+    }
 
 }

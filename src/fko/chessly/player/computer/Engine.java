@@ -62,10 +62,8 @@ public interface Engine {
     public void setNumberOfThreads(int n);
 
     /**
-     * Provide additional information for the UI to collect.
-     * E.g. verbose information etc.
-     * @param info
+     * Forwards a stop signal for the player to the engine to also stop all calculations.
      */
-    public void getVerboseInfo(String info);
+    public void stopEngine();
 
 }

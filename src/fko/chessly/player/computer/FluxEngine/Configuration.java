@@ -16,70 +16,78 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
-
-import com.fluxchess.jcpi.options.*;
+package fko.chessly.player.computer.FluxEngine;
 
 final class Configuration {
 
-  // Search
-  static boolean useAspirationWindows = true;
-  static boolean useInternalIterativeDeepening = true;
+    // Verbose
+    /** If set to true this object will produce info output to System.out */
+    static boolean VERBOSE_TO_SYSOUT = true;
 
-  // Pruning
-  static boolean useMateDistancePruning = true;
-  static boolean useNullMovePruning = true;
-  static boolean useVerifiedNullMovePruning = true;
-  static boolean useFutilityPruning = true;
-  static boolean useExtendedFutilityPruning = true;
-  static boolean useLateMoveReduction = true;
-  static boolean useLateMoveReductionResearch = true;
-  static boolean useDeltaPruning = true;
-  static boolean useMinorPromotionPruning = true;
+    // Search
+    static boolean useAspirationWindows = true;
+    static boolean useInternalIterativeDeepening = true;
 
-  // Tables
-  static boolean useTranspositionTable = true;
-  static boolean useKillerTable = true;
-  static boolean useHistoryTable = true;
-  static boolean useEvaluationTable = true;
-  static boolean usePawnTable = true;
+    // Pruning
+    static boolean useMateDistancePruning = true;
+    static boolean useNullMovePruning = true;
+    static boolean useVerifiedNullMovePruning = true;
+    static boolean useFutilityPruning = true;
+    static boolean useExtendedFutilityPruning = true;
+    static boolean useLateMoveReduction = true;
+    static boolean useLateMoveReductionResearch = true;
+    static boolean useDeltaPruning = true;
+    static boolean useMinorPromotionPruning = true;
 
-  // Extensions
-  static boolean useSingleReplyExtension = true;
-  static boolean useRecaptureExtension = true;
-  static boolean useCheckExtension = true;
-  static boolean usePawnExtension = true;
-  static boolean useMateThreatExtension = true;
+    // Tables
+    static boolean useTranspositionTable = true;
+    static boolean useKillerTable = true;
+    static boolean useHistoryTable = true;
+    static boolean useEvaluationTable = true;
+    static boolean usePawnTable = true;
 
-  static boolean ponder = true;
-  static final CheckboxOption ponderOption = Options.newPonderOption(ponder);
+    // Extensions
+    static boolean useSingleReplyExtension = true;
+    static boolean useRecaptureExtension = true;
+    static boolean useCheckExtension = true;
+    static boolean usePawnExtension = true;
+    static boolean useMateThreatExtension = true;
 
-  static final int defaultShowPvNumber = 1;
-  static int showPvNumber = defaultShowPvNumber;
-  static final SpinnerOption multiPVOption = Options.newMultiPVOption(showPvNumber, 1, 256);
+    static boolean ponder = true;
+    //    static final CheckboxOption ponderOption = Options.newPonderOption(ponder);
 
-  static final int defaultTranspositionTableSize = 16;
-  static int transpositionTableSize = defaultTranspositionTableSize;
-  static final SpinnerOption hashOption = Options.newHashOption(transpositionTableSize, 4, 256);
+    static final int defaultShowPvNumber = 1;
+    static int showPvNumber = defaultShowPvNumber;
+    //    static final SpinnerOption multiPVOption = Options.newMultiPVOption(showPvNumber, 1, 256);
 
-  static final ButtonOption clearHashOption = new ButtonOption("Clear Hash");
+    static final int defaultTranspositionTableSize = 32;
+    static int transpositionTableSize = defaultTranspositionTableSize;
+    //    static final SpinnerOption hashOption = Options.newHashOption(transpositionTableSize, 4, 256);
 
-  static boolean showRefutations = false;
-  static final CheckboxOption uciShowRefutationsOption = Options.newUciShowRefutationsOption(showRefutations);
+    static final int defaultEvaluationTableSize = 16;
+    static int evaluationTableSize = defaultEvaluationTableSize;
 
-  static boolean analyzeMode = false;
-  static final CheckboxOption uciAnalyzeModeOption = Options.newUciAnalyseModeOption(analyzeMode);
+    static final int defaultPawnTableSize = 4;
+    static int pawnTableSize = defaultPawnTableSize;
 
-  static final AbstractOption[] options = new AbstractOption[]{
-      ponderOption,
-      multiPVOption,
-      hashOption,
-      clearHashOption,
-      uciShowRefutationsOption,
-      uciAnalyzeModeOption
-  };
+    //    static final ButtonOption clearHashOption = new ButtonOption("Clear Hash");
 
-  private Configuration() {
-  }
+    static boolean showRefutations = false;
+    //    static final CheckboxOption uciShowRefutationsOption = Options.newUciShowRefutationsOption(showRefutations);
+
+    static boolean analyzeMode = false;
+    //    static final CheckboxOption uciAnalyzeModeOption = Options.newUciAnalyseModeOption(analyzeMode);
+
+    /*   static final AbstractOption[] options = new AbstractOption[]{
+            ponderOption,
+            multiPVOption,
+            hashOption,
+            clearHashOption,
+            uciShowRefutationsOption,
+            uciAnalyzeModeOption
+    };*/
+
+    private Configuration() {
+    }
 
 }

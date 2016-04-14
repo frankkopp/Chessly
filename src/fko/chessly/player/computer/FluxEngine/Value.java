@@ -16,16 +16,16 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Flux Chess.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxchess.flux;
+package fko.chessly.player.computer.FluxEngine;
 
 final class Value {
 
-  static final int INFINITY = 200000;
-  static final int DRAW = 0;
-  static final int CHECKMATE = 100000;
-  static final int CHECKMATE_THRESHOLD = CHECKMATE - 1000;
+    static final int INFINITY = 200000;
+    static final int DRAW = 0;
+    static final int CHECKMATE = 100000;
+    static final int CHECKMATE_THRESHOLD = CHECKMATE - 1000;
 
-  private Value() {
-  }
+    private Value() {
+    }
 
 }

@@ -48,7 +48,7 @@ public class Queen extends PieceAbstractImpl implements GamePiece, Serializable 
      * @param color
      * @return Queen object
      */
-    public static Queen createQueen(GameColor color) {
+    public static Queen create(GameColor color) {
         return color==GameColor.WHITE ? white : black;
     }
 
