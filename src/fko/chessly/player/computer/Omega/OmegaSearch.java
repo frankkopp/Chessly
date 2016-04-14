@@ -53,12 +53,12 @@ import fko.chessly.Playroom;
  *      DONE: Pondering
  *      DONE: Evaluation Table
  *      DONE: Basic Transposition Table
- *      TODO: Advanced Move Gen (On Demand)
- *      TODO: Quiescence
  *      TODO: Advanced iterative AlphaBeta search
+ *      TODO: Quiescence
  *      TODO: Advanced Transposition Table
  *      TODO: Advanced Evaluation
  *      TODO: Advanced Time Control
+ *      TODO: Advanced Move Gen (On Demand)
  *      TODO: AspirationWindows
  *      TODO: Pruning: AlphaBeta_Pruning, PV, MDP,
  *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion, See
@@ -466,7 +466,7 @@ public class OmegaSearch implements Runnable {
             position.makeMove(move);
             _currentVariation.add(move);
 
-            int value = -negamax(position, depth-1, rootply+1);
+            int value = -negamax(position, depth-1, rootply+1, -OmegaEvaluation.Value.INFINITE, OmegaEvaluation.Value.INFINITE);
 
             // write the value back to the root moves list
             _rootMoves.set(i, move, value);
@@ -518,7 +518,7 @@ public class OmegaSearch implements Runnable {
      * @param ply
      * @return value of the search
      */
-    private int negamax(OmegaBoardPosition position, int depthLeft, int ply) {
+    private int negamax(OmegaBoardPosition position, int depthLeft, int ply, int alpha, int beta) {
 
         // nodes counter
         _nodesVisited++;
@@ -586,14 +586,26 @@ public class OmegaSearch implements Runnable {
                 _currentVariation.add(move);
 
                 // go one ply deeper into the search tree
-                value = -negamax(position, depthLeft-1, ply+1);
+                value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
 
-                // found a better move
-                if (value > bestValue && value != -OmegaEvaluation.Value.NOVALUE ) {
+                // PRUNING START
+                if (value > bestValue) {
                     bestValue = value;
-                    bestMove = move;
-                    OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
+
+                    if (value > alpha) {
+                        alpha = value;
+                        bestMove = move;
+                        OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
+
+                        if (value >= beta) {
+                            if (_omegaEngine._CONFIGURATION._USE_PRUNING && !OmegaConfiguration.PERFT) {
+                                bestValue = beta; // same as return beta
+                                i = moves.size(); // last move to check in this loop
+                            }
+                        }
+                    }
                 }
+                // PRUNING END
 
                 printCurrentVariation(i, ply, moves.size(), value);
                 _currentVariation.removeLast();

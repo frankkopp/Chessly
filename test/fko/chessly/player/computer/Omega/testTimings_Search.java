@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.LongAdder;
 import org.junit.Test;
 
 import fko.chessly.game.GameColor;
+import fko.chessly.game.NotationHelper;
 import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
@@ -75,6 +76,8 @@ public class testTimings_Search {
         System.out.println("Running Timing Test Test 1 vs. Test 2");
 
         for (int j=0; j<ROUNDS ;j++) {
+
+            System.out.println(String.format("Run %d of %d", j+1, ROUNDS));
 
             prep1();
             System.gc();
@@ -117,13 +120,16 @@ public class testTimings_Search {
         _omegaEngine2.init(_player2);
 
         String fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white);
+        //fen = NotationHelper.StandardBoardFEN;
         _omegaPosition1 = new OmegaBoardPosition(fen);
         _omegaPosition2 = new OmegaBoardPosition(fen);
 
         _omegaEngine1._CONFIGURATION._USE_NODE_CACHE = false;
         _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = false;
-        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = true;
-        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = false;
+        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = false;
+        _omegaEngine1._CONFIGURATION._USE_PRUNING = false;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING = true;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);
@@ -134,8 +140,8 @@ public class testTimings_Search {
      *
      */
     private void prep1() {
-        _omegaSearch1._evalCache.clear();
-        _omegaSearch1._transpositionTable.clear();
+        if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
+        if (_omegaSearch1._transpositionTable != null ) _omegaSearch1._transpositionTable.clear();
     }
 
     private void test1() {
@@ -157,8 +163,8 @@ public class testTimings_Search {
      *
      */
     private void prep2() {
-        _omegaSearch2._evalCache.clear();
-        _omegaSearch2._transpositionTable.clear();
+        if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
+        if (_omegaSearch1._transpositionTable != null ) _omegaSearch1._transpositionTable.clear();
     }
 
     private void test2() {
