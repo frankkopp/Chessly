@@ -26,8 +26,6 @@
  */
 package fko.chessly.player.computer;
 
-import java.util.List;
-
 import fko.chessly.game.GameMove;
 import fko.chessly.game.GameMoveList;
 
