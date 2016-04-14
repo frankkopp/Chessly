@@ -53,6 +53,7 @@ import fko.chessly.Playroom;
  *      DONE: Pondering
  *      DONE: Evaluation Table
  *      DONE: Basic Transposition Table
+ *      TODO: Advanced Move Gen (On Demand)
  *      TODO: Quiescence
  *      TODO: Advanced iterative AlphaBeta search
  *      TODO: Advanced Transposition Table
