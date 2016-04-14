@@ -60,7 +60,7 @@ public class OmegaConfiguration {
     boolean DO_NULL_EVALUATION = false;
 
     /** Use Transposition Tables for visited nodes */
-    boolean _USE_NODE_CACHE = false;
+    boolean _USE_NODE_CACHE = true;
 
     /** Use Cache for Board evaluations - very expensive, only worth with expensive eval */
     boolean _USE_BOARD_CACHE = true;
@@ -71,17 +71,16 @@ public class OmegaConfiguration {
     /** test the search without any pruning and count perft value **/
     static public final boolean PERFT = false;
 
-
     /** default value for folder to books */
     String _OB_FolderPath = "./book/";
     /** default opening book file */
     //String _OB_fileNamePlain = "8moves_GM_LB.pgn";
-    //String _OB_fileNamePlain = "book_graham.txt";
-    String _OB_fileNamePlain = "book.txt";
+    String _OB_fileNamePlain = "book_graham.txt";
+    //String _OB_fileNamePlain = "book.txt";
     /** default opening book value */
     //Mode _OB_Mode = Mode.PGN;
-    //Mode _OB_Mode = Mode.SAN;
-    Mode _OB_Mode = Mode.SIMPLE;
+    Mode _OB_Mode = Mode.SAN;
+    //Mode _OB_Mode = Mode.SIMPLE;
 
 
 

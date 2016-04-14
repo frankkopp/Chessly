@@ -124,12 +124,12 @@ public class testTimings_Search {
         _omegaPosition1 = new OmegaBoardPosition(fen);
         _omegaPosition2 = new OmegaBoardPosition(fen);
 
-        _omegaEngine1._CONFIGURATION._USE_NODE_CACHE = false;
-        _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = false;
+        _omegaEngine1._CONFIGURATION._USE_NODE_CACHE = true;
+        _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine1._CONFIGURATION._USE_PRUNING = true;
         _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = false;
         _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = false;
-        _omegaEngine1._CONFIGURATION._USE_PRUNING = false;
-        _omegaEngine2._CONFIGURATION._USE_PRUNING = true;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING = false;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);

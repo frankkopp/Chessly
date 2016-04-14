@@ -44,7 +44,7 @@ public class OmegaTranspositionTable {
     private int _numberOfEntries = 0;
     private long _numberOfCollisions = 0L;
 
-    private final Entry[] entries;
+    private final TT_Entry[] entries;
 
     /**
      * Creates a hash table with a approximated number of entries calculated by
@@ -59,17 +59,17 @@ public class OmegaTranspositionTable {
         System.gc();
         int freeMemory = (int) (Runtime.getRuntime().freeMemory() / (MB * MB));
         if (freeMemory < size*2) {
-            System.err.println(String.format("Not enough memory for a %dMB evaluation cache - reducing to %dMB", size, freeMemory/4));
+            System.err.println(String.format("Not enough memory for a %dMB transposition cache - reducing to %dMB", size, freeMemory/4));
             _size = freeMemory/4;
         }
 
         // size in byte divided by entry size plus size for array bucket
-        _max_entries = (_size * MB * MB) / (Entry.SIZE + Integer.BYTES);
+        _max_entries = (_size * MB * MB) / (TT_Entry.SIZE + Integer.BYTES);
         // create buckets for hash table
-        entries = new Entry[_max_entries];
+        entries = new TT_Entry[_max_entries];
         // initialize
         for (int i=0; i<_max_entries; i++) {
-            entries[i] = new Entry();
+            entries[i] = new TT_Entry();
         }
     }
 
@@ -80,16 +80,25 @@ public class OmegaTranspositionTable {
      * @param value
      * @param depth
      */
-    public void put(long key, int value, int depth) {
+    public void put(long key, int value, TT_EntryType type, int depth) {
         final int hash = getHash(key);
         if (entries[hash].key == 0) { // new value
             _numberOfEntries++;
+            entries[hash].key = key;
+            entries[hash].value = value;
+            entries[hash].type = type;
+            entries[hash].depth = depth;
         } else { // collision
-            _numberOfCollisions++;
+            if (key == entries[hash].key  // same position
+                    && depth >= entries[hash].depth) { // value from same or deeper depth?
+                _numberOfCollisions++;
+                entries[hash].key = key;
+                entries[hash].value = value;
+                entries[hash].type = type;
+                entries[hash].depth = depth;
+            }
+            // ignore new values for cache
         }
-        entries[hash].key = key;
-        entries[hash].value = value;
-        entries[hash].depth = depth;
     }
 
     /**
@@ -101,14 +110,15 @@ public class OmegaTranspositionTable {
      * @param depth after this node
      * @return value for key or <tt>Integer.MIN_VALUE</tt> if not found
      */
-    public int get(long key, int depth) {
+    public TT_Entry get(long key, int depth) {
         final int hash = getHash(key);
         if (entries[hash].key == key && entries[hash].depth >= depth ) { // hash hit
-            return entries[hash].value;
+            return entries[hash];
         }
         // cache miss or collision
-        return Integer.MIN_VALUE;
+        return null;
     }
+
 
     private int getHash(long key) {
         return (int) (key%_max_entries);
@@ -157,11 +167,26 @@ public class OmegaTranspositionTable {
         return _numberOfCollisions;
     }
 
-    private static final class Entry {
+    /**
+     * Entry for transposition table.
+     * Contains a key, value and an entry type.
+     */
+    public static final class TT_Entry {
         static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES) *2;
         long key   = 0L;
         int  value = Integer.MIN_VALUE;
         int  depth = 0;
+        TT_EntryType type = TT_EntryType.ALPHA;
+    }
+
+    /**
+     * Defines the type of transposition table entry for alpha beta search.
+     */
+    @SuppressWarnings("javadoc")
+    public static enum TT_EntryType {
+        EXACT,
+        ALPHA,
+        BETA
     }
 
 

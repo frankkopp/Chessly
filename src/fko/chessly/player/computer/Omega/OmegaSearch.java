@@ -35,6 +35,8 @@ import java.util.concurrent.CountDownLatch;
 
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
+import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_Entry;
+import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
 
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
@@ -450,6 +452,9 @@ public class OmegaSearch implements Runnable {
 
         int bestValue = OmegaEvaluation.Value.NOVALUE;
 
+        final int alpha = -OmegaEvaluation.Value.INFINITE;
+        final int beta  = OmegaEvaluation.Value.INFINITE;
+
         // ### Iterate through all available root moves
         for (int i = 0; i < _rootMoves.size(); i++) {
             int move = _rootMoves.getMove(i);
@@ -466,7 +471,7 @@ public class OmegaSearch implements Runnable {
             position.makeMove(move);
             _currentVariation.add(move);
 
-            int value = -negamax(position, depth-1, rootply+1, -OmegaEvaluation.Value.INFINITE, OmegaEvaluation.Value.INFINITE);
+            int value = -negamax(position, depth-1, rootply+1, alpha, beta);
 
             // write the value back to the root moves list
             _rootMoves.set(i, move, value);
@@ -520,6 +525,9 @@ public class OmegaSearch implements Runnable {
      */
     private int negamax(OmegaBoardPosition position, int depthLeft, int ply, int alpha, int beta) {
 
+        // prepare hash type
+        TT_EntryType tt_Type = TT_EntryType.ALPHA;
+
         // nodes counter
         _nodesVisited++;
 
@@ -547,23 +555,41 @@ public class OmegaSearch implements Runnable {
         if (_omegaEngine.getGame().isPresent())
             _omegaEngine.getGame().get().waitWhileGamePaused();
 
-        // clear principal Variation for this depth
-        _principalVariation[ply].clear();
-
+        // *****************************************************
         // TT Lookup
         if (_cacheEnabled
                 && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
                 && !OmegaConfiguration.PERFT) {
 
-            final int v = _transpositionTable.get(position._zobristKey, depthLeft);
-            if (v > Integer.MIN_VALUE) { // TT Hit
-                _nodeCache_Hits++;
-                return v;
+            final TT_Entry entry = _transpositionTable.get(position._zobristKey, depthLeft);
+
+            if (entry != null) { // possible TT Hit
+                switch (entry.type) {
+                    case EXACT:
+                        _nodeCache_Hits++;
+                        return entry.value;
+                    case ALPHA:
+                        if (entry.value <= alpha) {
+                            _nodeCache_Hits++;
+                            return alpha;
+                        }
+                        break;
+                    case BETA:
+                        if (entry.value >= beta) {
+                            _nodeCache_Hits++;
+                            return beta;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
             _nodeCache_Misses++;
         }
+        // End TT Lookup
+        // *****************************************************
 
-        // Initialize
+        // Initialize best values
         int bestMove = OmegaMove.NOMOVE;
         int bestValue = OmegaEvaluation.Value.NOVALUE;
 
@@ -595,10 +621,13 @@ public class OmegaSearch implements Runnable {
                     if (value > alpha) {
                         alpha = value;
                         bestMove = move;
+                        tt_Type = TT_EntryType.EXACT;
                         OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
 
                         if (value >= beta) {
+
                             if (_omegaEngine._CONFIGURATION._USE_PRUNING && !OmegaConfiguration.PERFT) {
+                                tt_Type = TT_EntryType.BETA;
                                 bestValue = beta; // same as return beta
                                 i = moves.size(); // last move to check in this loop
                             }
@@ -634,7 +663,7 @@ public class OmegaSearch implements Runnable {
         if (_cacheEnabled
                 && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
                 && !OmegaConfiguration.PERFT) {
-            _transpositionTable.put(position._zobristKey, bestValue, depthLeft);
+            _transpositionTable.put(position._zobristKey, bestValue, tt_Type, depthLeft);
         }
 
         return bestValue;

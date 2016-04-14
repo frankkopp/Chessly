@@ -529,6 +529,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION._USE_BOARD_CACHE) {
             s += "BC,";
         }
+        if (_CONFIGURATION._USE_PRUNING) {
+            s += "PRUN,";
+        }
         if (OmegaConfiguration.PERFT) {
             s = "PERF TEST";
         }
