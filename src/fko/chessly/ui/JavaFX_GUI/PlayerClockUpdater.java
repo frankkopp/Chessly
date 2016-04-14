@@ -221,7 +221,11 @@ public class PlayerClockUpdater {
     private class updateRunnable implements Runnable {
         @Override
         public void run() {
-            update();
+            try {
+                update();
+            } catch (NullPointerException e) {
+                // ignore
+            }
         }
     }
 
