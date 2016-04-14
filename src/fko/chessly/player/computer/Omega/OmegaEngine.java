@@ -154,7 +154,8 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         _engineState  = ObservableEngine.THINKING;
         _statusInfo = "Engine calculating.";
         setChanged();
-        notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" start calculating",
+        notifyObservers(new PlayerDependendModelEvent(
+                "ENGINE "+_activeColor+" start calculating",
                 _player, SIG_ENGINE_START_CALCULATING));
 
         // Reset all the counters used for the TreeSearchEngineWatcher
@@ -166,7 +167,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // check for move from opening book
         GameMove bookMove = null;
-        if (_CONFIGURATION._USE_BOOK && !ponderHit) {
+        if (_CONFIGURATION._USE_BOOK && !ponderHit && _openingBook != null) {
             _openingBook.initialize();
             bookMove = _openingBook.getBookMove(gameBoard.toFENString());
             if (bookMove != null) {
@@ -174,11 +175,15 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
                 _statusInfo = "Book move. Engine waiting.";
                 _engineState  = ObservableEngine.IDLE;
                 setChanged();
-                notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating",
+                notifyObservers(new PlayerDependendModelEvent(
+                        "ENGINE "+_activeColor+" finished calculating",
                         _player, SIG_ENGINE_FINISHED_CALCULATING));
 
                 return bookMove;
             }
+            // unload opening book if not used any more
+            _openingBook = null;
+            System.gc();
         }
 
         // configure the search
@@ -399,7 +404,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             return _lastNodesPerSecond;
         }
         return _lastNodesPerSecond;
-
     }
 
     /**
@@ -579,7 +583,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return s;
     }
 
-    /** Will store the VERBOSE info until the EngineWatcher collects it. */
+    /* Will store the VERBOSE info until the EngineWatcher collects it. */
     private static final int _engineInfoTextMaxSize = 10000;
     private final StringBuilder _engineInfoText = new StringBuilder(_engineInfoTextMaxSize);
     /**
