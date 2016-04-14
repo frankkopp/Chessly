@@ -33,8 +33,6 @@ import java.util.stream.IntStream;
 /**
  * The move generator for Omega Engine.<br/>
  * It generates pseudo legal and legal moves for a given position.<br/>
- * As long as the position does not change for consecutive calls the generated
- * move lists are caches.<br/>
  * <b>This class is not thread safe as it uses static variables to avoid generating them
  * during each object creation.</b><br/>
  * @author Frank Kopp
@@ -54,12 +52,6 @@ public class OmegaMoveGenerator {
 
     // which color do we generate moves for
     private OmegaColor _activePlayer;
-
-    // cache the generated move list for repeated call to generateMoves
-    private OmegaMoveList _cachedPseudoLegalMoveList = null;
-    private boolean _cachedPseudoLegalMoveListValid = false;
-    private OmegaMoveList _cachedLegalMoveList = null;
-    private boolean _cachedLegalMoveListValid = false;
 
     // these are are working lists as fields to avoid to have to
     // create them every time. Instead of creating the need to be cleared before use.
@@ -244,17 +236,9 @@ public class OmegaMoveGenerator {
     public OmegaMoveList getLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
-        // TODO zobrist could collide - then this will break.
-        if (CACHE && _cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            return _cachedLegalMoveList;
-        }
-
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
-        // position has changed - cache is invalid
-        _cachedLegalMoveListValid = false;
-        _cachedPseudoLegalMoveListValid = false;
 
         // remember the last position to see when it has changed
         // if changed the cache is always invalid
@@ -269,10 +253,6 @@ public class OmegaMoveGenerator {
         for(int move : _pseudoLegalMoves) {
             if (isLegalMove(move)) _legalMoves.add(move);
         }
-
-        // cache the list of legal moves
-        _cachedLegalMoveList = _legalMoves;
-        _cachedLegalMoveListValid = true;
 
         // return a clone of the list as we will continue to use the list as a static list
         return _legalMoves.clone();
@@ -307,16 +287,9 @@ public class OmegaMoveGenerator {
     public OmegaMoveList getPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
 
-        if (CACHE && _cachedPseudoLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            return _cachedPseudoLegalMoveList;
-        }
-
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
-        // position has changed - cache is invalid
-        _cachedLegalMoveListValid = false;
-        _cachedPseudoLegalMoveListValid = false;
 
         // remember the last position to see when it has changed
         // if changed the cache is always invalid
@@ -331,10 +304,6 @@ public class OmegaMoveGenerator {
          * only evasion moves
          */
         generatePseudoLegaMoves();
-
-        // cache the list of legal moves
-        _cachedPseudoLegalMoveList = _pseudoLegalMoves;
-        _cachedPseudoLegalMoveListValid = true;
 
         // return a clone of the list as we will continue to reuse
         return _pseudoLegalMoves.clone();
@@ -653,23 +622,12 @@ public class OmegaMoveGenerator {
     public boolean hasLegalMove(OmegaBoardPosition position) {
         if (position==null) throw new IllegalArgumentException("position may not be null to find legal moves");
 
-        // TODO zobrist could collide - then this will break.
-        if (_cachedLegalMoveListValid && position.getZobristKey() == _zobristLastPosition) {
-            if (CACHE) return !_cachedLegalMoveList.empty();
-        }
-
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
-        // position has changed - cache is invalid
-        _cachedLegalMoveListValid = false;
-        _cachedPseudoLegalMoveListValid = false;
 
         // clear all lists
         clearLists();
-
-        // DEBUG code
-        //if (!getLegalMoves(position, false).empty()) return true;
 
         /*
          * Find a move by finding at least one moves for a piece type
