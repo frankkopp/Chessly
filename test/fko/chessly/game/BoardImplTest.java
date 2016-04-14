@@ -5,13 +5,111 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
+
+import fko.chessly.game.pieces.Pawn;
+import fko.chessly.player.computer.Omega.OmegaBoardPosition;
 
 /**
  * @author fkopp
  *
  */
 public class BoardImplTest {
+
+    @Test
+    public void testEnPassantMoves() {
+        GameBoard b = new GameBoardImpl("r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/B5R1/pbp2PPP/1R4K1 b kq e3 0 113");
+        GameMoveList list = b.generateMoves();
+        List<GameMove> ep = list.stream().filter(p -> p.getWasEnPassantCapture()).collect(Collectors.toList());
+        System.out.println(b);
+        System.out.println(list);
+        System.out.println("En Passant Moves: "+ep);
+        for ( GameMove m : ep) {
+            GameBoard copy = new GameBoardImpl(b);
+            copy.makeMove(m);
+            System.out.println(copy);
+        }
+
+    }
+
+    /**
+     * Test Setup from FEN
+     */
+    @Test
+    public void testSetupFromFEN() {
+        /*
+            ---------------------------------
+         8: |bR |   |   |   |bK |   |   |bR |
+            ---------------------------------
+         7: |   |bP |bP |bN |   |   |   |bP |
+            ---------------------------------
+         6: |   |   |bQ |   |bQ |   |bN |   |
+            ---------------------------------
+         5: |   |   |   |   |   |   |   |   |
+            ---------------------------------
+         4: |   |   |bQ |   |wP |bP |   |   |
+            ---------------------------------
+         3: |   |   |   |   |   |   |wR |   |
+            ---------------------------------
+         2: |bP |   |bP |   |   |wP |wP |wP |
+            ---------------------------------
+         1: |   |wR |   |   |   |   |wK |   |
+            ---------------------------------
+              A   B   C   D   E   F   G   H
+
+         black, ep on e4, O-O & O-O-O for black
+         */
+        String fen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 b kq e3 0 113";
+
+        GameBoard gb = new GameBoardImpl(fen);
+        System.out.println(fen);
+        System.out.println(gb.toFENString());
+        assertTrue (gb.toFENString().equals(fen));
+
+        GameBoard gb2 = new GameBoardImpl(gb);
+        System.out.println(gb.toFENString());
+        System.out.println(gb2.toFENString());
+        assertTrue(gb.equals(gb2));
+
+        gb.makeMove(new GameMoveImpl(
+                GamePosition.getGamePosition(2, 7),
+                GamePosition.getGamePosition(2, 6),
+                Pawn.create(GameColor.BLACK)
+                ));
+        System.out.println(gb.toFENString());
+        assertTrue(gb.toFENString().equals("r3k2r/2pn3p/1pq1q1n1/8/2q1Pp2/6R1/p1p2PPP/1R4K1 w kq - 0 114"));
+        gb2 = new GameBoardImpl(gb);
+        System.out.println(gb2.toFENString());
+        assertTrue(gb.equals(gb2));
+        assertTrue(gb.hasSamePosition(gb2));
+
+        gb.makeMove(new GameMoveImpl(
+                GamePosition.getGamePosition(7, 3),
+                GamePosition.getGamePosition(7, 5),
+                Pawn.create(GameColor.WHITE)
+                ));
+        System.out.println(gb.toFENString());
+        assertTrue(gb.toFENString().equals("r3k2r/2pn3p/1pq1q1n1/6R1/2q1Pp2/8/p1p2PPP/1R4K1 b kq - 1 114"));
+        gb2 = new GameBoardImpl(gb);
+        System.out.println(gb2.toFENString());
+        assertTrue(gb.equals(gb2));
+        assertTrue(gb.hasSamePosition(gb2));
+
+        gb.makeMove(new GameMoveImpl(
+                GamePosition.getGamePosition(8, 7),
+                GamePosition.getGamePosition(8, 5),
+                Pawn.create(GameColor.BLACK)
+                ));
+        System.out.println(gb.toFENString());
+        assertTrue(gb.toFENString().equals("r3k2r/2pn4/1pq1q1n1/6Rp/2q1Pp2/8/p1p2PPP/1R4K1 w kq h6 0 115"));
+        gb2 = new GameBoardImpl(gb);
+        System.out.println(gb2.toFENString());
+        assertTrue(gb.equals(gb2));
+        assertTrue(gb.hasSamePosition(gb2));
+    }
 
     /**
      *

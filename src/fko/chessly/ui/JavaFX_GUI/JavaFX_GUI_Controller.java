@@ -45,6 +45,7 @@ import fko.chessly.player.HumanPlayer;
 import fko.chessly.player.PlayerType;
 import fko.chessly.ui.JavaFX_GUI.MoveListModel.FullMove;
 import fko.chessly.util.HelperTools;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -233,7 +234,7 @@ public class JavaFX_GUI_Controller implements Observer {
             c.next();
             final int size = move_table.getItems().size();
             if (size > 0) {
-                move_table.scrollTo(size - 1);
+                Platform.runLater(() -> move_table.scrollTo(size - 1));
             }
         }));
 

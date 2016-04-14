@@ -56,6 +56,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
     private int _halfMoveNumber;
     private GamePiece _pieceCaptured;
     private GamePiece _promotedTo;
+    private int _halfMoveClock;
     private boolean _wasCheck;
     private boolean _wasCheckMate;
     private boolean _wasStaleMate;
@@ -67,6 +68,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
 
     // this is the evaluation of a board where this move was the last move
     private int _value;
+
 
     /**
      * Create a new Move from a fromField and a toField with a _pieceMoved
@@ -82,6 +84,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
         this._halfMoveNumber = 0;
         this._pieceCaptured = null;
         this._promotedTo = null;
+        this._halfMoveClock = 0;
         this._wasCheck = false;
         this._wasCheckMate = false;
         this._wasStaleMate = false;
@@ -104,6 +107,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
         this._halfMoveNumber = move.getHalfMoveNumber();
         this._pieceCaptured = move.getCapturedPiece();
         this._promotedTo = move.getPromotedTo();
+        this._halfMoveClock = move.getHalfMoveClock();
         this._wasCheck = move.getWasCheck();
         this._wasCheckMate = move.getWasCheckMate();
         this._wasStaleMate = move.getWasStaleMate();
@@ -192,6 +196,24 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
     @Override
     public GamePiece getPromotedTo() {
         return _promotedTo;
+    }
+
+    /**
+     * Stores the half move clock before the move (is reset when capture or pawn move)
+     * @param halfmoveClock
+     */
+    @Override
+    public void setHalfMoveClock(int halfmoveClock) {
+        _halfMoveClock = halfmoveClock;
+    }
+
+    /**
+     * If the move is a pawn promotion then this is the piece the pawn is promoted to
+     * @return piece the pawn will be promoted to
+     */
+    @Override
+    public int getHalfMoveClock() {
+        return _halfMoveClock;
     }
 
     /**
@@ -404,6 +426,18 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
         return s.toString();
     }
 
+    /* (non-Javadoc)
+     * @see fko.chessly.game.GameMove#toSimpleString()
+     */
+    @Override
+    public String toSimpleString() {
+        StringBuilder s = new StringBuilder();
+        // field
+        s.append(_fromField.toNotationString());
+        s.append(_toField.toNotationString());
+        return s.toString();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -449,6 +483,13 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
             }
         } else if (!_toField.equals(other._toField)) {
             return false;
+
+        } else if ((_promotedTo == null || other._promotedTo == null)
+                && _promotedTo != other._promotedTo) {
+            return false;
+
+        } else if (_promotedTo != null && !_promotedTo.equals(other._promotedTo)) {
+            return false;
         }
         return true;
     }
@@ -457,5 +498,7 @@ public class GameMoveImpl implements GameMove, Cloneable, Serializable {
     public Object clone() {
         return new GameMoveImpl(this);
     }
+
+
 
 }

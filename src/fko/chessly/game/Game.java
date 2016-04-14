@@ -150,6 +150,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
             if (isInitialized() && _gameThread == null) {
                 _gameThread = new Thread(this, "Game");
                 _gameThread.setPriority(Thread.MIN_PRIORITY);
+                _gameThread.setDaemon(true);
                 _gameThread.start();
             } else {
                 throw new IllegalStateException("Start game failed - not initialized or thread already running.");
@@ -242,7 +243,6 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
                 // -- do the next move --
                 nextMove();
-
                 // -- observer handling is done in the methods
                 // -- nextMove, doMove, gameOver*
 
@@ -359,6 +359,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
             setChanged();
             notifyObservers(new PlayerDependendModelEvent(
                     "GAME received move from white player", _playerWhite, SIG_GAME_RECEIVED_MOVE));
+
         }
 
         // -- we have a legal move --> reset illegal move flag --
@@ -416,7 +417,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
         // Sleep a short while to let the UI catch up (book moves are too fast otherwise)
         try {
-            Thread.sleep(350);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             // ignore
         }

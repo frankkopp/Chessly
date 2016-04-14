@@ -158,7 +158,7 @@ public class PlayerClockUpdater {
                 this.black_clock.setText(Chessly.getPlayroom().getCurrentGame().getBlackClock().getFormattedTime());
             }
 
-            if (Chessly.getPlayroom().getCurrentGame().getCurBoard().getNextPlayerColor() == GameColor.WHITE) {
+            if (Chessly.getPlayroom().getCurrentGame()!= null && Chessly.getPlayroom().getCurrentGame().getCurBoard().getNextPlayerColor() == GameColor.WHITE) {
                 this.white_progressbar.setProgress(-1);
                 this.white_progressbar.setDisable(false);
                 this.black_progressbar.setProgress(0);
@@ -173,7 +173,7 @@ public class PlayerClockUpdater {
                 this.white_clock.setUnderline(false);
                 this.black_clock.setUnderline(true);
             }
-            if (Chessly.getPlayroom().getCurrentGame().isPaused()) {
+            if (Chessly.getPlayroom().getCurrentGame()!= null && Chessly.getPlayroom().getCurrentGame().isPaused()) {
                 this.white_progressbar.setProgress(0);
                 this.white_progressbar.setDisable(true);
                 this.black_progressbar.setProgress(0);
@@ -221,7 +221,11 @@ public class PlayerClockUpdater {
     private class updateRunnable implements Runnable {
         @Override
         public void run() {
-            update();
+            try {
+                update();
+            } catch (NullPointerException e) {
+                // ignore
+            }
         }
     }
 

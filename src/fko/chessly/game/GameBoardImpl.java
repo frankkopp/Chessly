@@ -92,7 +92,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     protected int _halfmoveClock = 0;
 
-    protected int _halfMoveNumber = 0;
+    protected int _lastHalfMoveNumber = 0;
 
     // Board State END -----------------------------------------
 
@@ -163,7 +163,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- copy move history --
         this._moveHistory = oldBoard.getMoveHistory();
-        this._halfMoveNumber = oldBoard._halfMoveNumber;
+        this._lastHalfMoveNumber = oldBoard._lastHalfMoveNumber;
 
         // -- copy castling flags
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -231,7 +231,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- copy move history --
         this._moveHistory = oldBoard.getMoveHistory();
-        this._halfMoveNumber = oldBoard.getLastHalfMoveNumber();
+        this._lastHalfMoveNumber = oldBoard.getLastHalfMoveNumber();
 
         // -- copy castling flags
         if (oldBoard.isCastlingKingSideAllowed(GameColor.WHITE)) {
@@ -316,25 +316,27 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // -- remove from fromField
         GamePiece movedPiece = removePiece(fromCol, fromRow);
 
-        // reset en passant
-        _enPassantCapturable = null;
-
         // en passant?
         // Pawn not moving straight but no captured piece
         // we do not need to do an exhaustive check as this has been done
         // in isLegalMove - we can assume it is a legal move.
+        // TODO: Ugly Code!!!
+        move.setEnPassantCapturePosition(_enPassantCapturable);
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null) {
+                assert _enPassantCapturable != null;
+
                 // en passant capture
-                GameMove last = _moveHistory.getLast();
-                int lastToCol = last.getToField().getFile() - 1;
-                int lastToRow = last.getToField().getRank() - 1;
+                int epCol = _enPassantCapturable.getFile()-1;
+                int epRow = _enPassantCapturable.getRank()-1 + (movedPiece.isWhite() ? -1 : +1);
 
                 // remove the piece
-                capturedPiece = removePiece(lastToCol, lastToRow);
+                capturedPiece = removePiece(epCol, epRow);
 
                 move.setWasEnPassantCapture(true);
-                move.setEnPassantCapturePosition(GamePosition.getGamePosition(lastToCol + 1, lastToRow + 1));
+
+                // reset en passant
+                _enPassantCapturable = null;
 
             } else if (fromCol == toCol) {
                 // double pawn move - possible en passant next move
@@ -344,9 +346,17 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                     int enpassantrank = (move.getMovedPiece().getColor() == GameColor.WHITE ? 3 : 6);
                     _enPassantCapturable = GamePosition.getGamePosition(move.getToField().getFile(),enpassantrank);
                     move.setEnPassantNextMovePossible(true);
+                } else {
+                    // reset en passant
+                    _enPassantCapturable = null;
                 }
-
+            } else {
+                // reset en passant
+                _enPassantCapturable = null;
             }
+        } else {
+            // reset en passant
+            _enPassantCapturable = null;
         }
 
         // -- place piece
@@ -384,19 +394,24 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             }
         }
 
+        // store half move clock
+        move.setHalfMoveClock(_halfmoveClock);
+
         // -- save last move ---
         this._moveHistory.add(move);
 
         // increase halfmovenumber
-        _halfMoveNumber++;
+        _lastHalfMoveNumber++;
 
-        if (capturedPiece == null)
-            _halfmoveClock++;
-        else
+        // half move clock - reset when pawn move or capture - otherwise increase
+        if (movedPiece instanceof Pawn || capturedPiece != null) {
             _halfmoveClock = 0;
+        } else {
+            _halfmoveClock++;
+        }
 
         // -- Update Move Object
-        move.setHalfMoveNumber(_halfMoveNumber); // save move number
+        move.setHalfMoveNumber(_lastHalfMoveNumber); // save move number
         move.setCapturedPiece(capturedPiece); // store the captured Piece in the Move
 
         // was this last move check for the opponent?
@@ -421,10 +436,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         GameMove lastMove = _moveHistory.removeLast();
 
         // decrease half move number
-        _halfMoveNumber--;
+        _lastHalfMoveNumber--;
 
         // decrease half move clock
-        _halfmoveClock--;
+        _halfmoveClock =  lastMove.getHalfMoveClock();
 
         GamePiece lastPiece = lastMove.getMovedPiece();
 
@@ -439,11 +454,10 @@ public class GameBoardImpl implements GameBoard, Cloneable {
         // en passant
         if (lastMove.getWasEnPassantCapture()) {
             GamePosition p = lastMove.getEnPassantCapturePosition();
-            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1,
-                    p.getRank() - 1);
+            int rank = p.getRank() + (lastPiece.isWhite() ?  - 1 : 1);
+            putPiece(Pawn.create(lastMove.getCapturedPiece().getColor()), p.getFile() - 1, rank - 1);
         } else {
-            putPiece(lastMove.getCapturedPiece(), originalTarget.getFile() - 1,
-                    originalTarget.getRank() - 1);
+            putPiece(lastMove.getCapturedPiece(), originalTarget.getFile() - 1, originalTarget.getRank() - 1);
         }
 
         // undo promotion
@@ -451,20 +465,6 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             removePiece(originalSource.getFile() - 1, originalSource.getRank() - 1);
             putPiece(Pawn.create(lastPiece.getColor()), originalSource.getFile() - 1,
                     originalSource.getRank() - 1);
-        }
-
-        // en passant possible
-        // checks the last move before the move to be undone
-        GameMove previousMove = _moveHistory.getLast();
-        if (_moveHistory.size() > 0 && previousMove.getMovedPiece() instanceof Pawn
-                && previousMove.getFromField().getFile() == previousMove.getToField().getFile()) {
-            // double pawn move - possible en passant next move
-            int baseRow = (previousMove.getMovedPiece().getColor() == GameColor.WHITE ? 2
-                    : 7);
-            if (previousMove.getFromField().getRank() == baseRow
-                    && Math.abs(previousMove.getToField().getRank() - baseRow) == 2) {
-                _enPassantCapturable = previousMove.getToField();
-            }
         }
 
         // castle - restore caslting rights
@@ -490,6 +490,8 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             }
         }
 
+        // en passant possible
+        _enPassantCapturable = lastMove.getEnPassantCapturePosition();
         // check
         _hasCheck = lastMove.getWasCheck();
         // reset Mates - not possible true if we undo a move
@@ -531,8 +533,11 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // -- remove from fromField
         GamePiece movedPiece = this.removePiece(fromCol, fromRow);
+        // -- place piece (pawn promotion does not matter here)
+        this.putPiece(movedPiece, toCol, toRow);
 
         // en passant? Pawn not moving straight but no captured piece
+        // FIXME: not correctly checking pinned ep target
         boolean enPassantCapture = false;
         if (movedPiece instanceof Pawn) {
             if (fromCol != toCol && capturedPiece == null && _enPassantCapturable != null) {
@@ -541,15 +546,16 @@ public class GameBoardImpl implements GameBoard, Cloneable {
                 GamePosition enPassantField = _enPassantCapturable;
 
                 // remove the piece
-                capturedPiece = this.removePiece(enPassantField.getFile()-1, enPassantField.getRank()-1);
+                int rank = enPassantField.getRank()-1;
+                rank += movedPiece.isWhite() ? -1 : 1;
+                capturedPiece = this.removePiece(enPassantField.getFile()-1, rank);
 
                 // remember this for undo
                 enPassantCapture=true;
             }
         }
 
-        // -- place piece (pawn promotion does not matter here)
-        this.putPiece(movedPiece, toCol, toRow);
+
 
         // CHECK CHECK
 
@@ -573,7 +579,9 @@ public class GameBoardImpl implements GameBoard, Cloneable {
             GamePosition enPassantField = _enPassantCapturable;
 
             // remove the piece
-            this.putPiece(capturedPiece, enPassantField.getFile()-1, enPassantField.getRank()-1);
+            int rank = enPassantField.getRank()-1;
+            rank += movedPiece.isWhite() ? -1 : 1;
+            this.putPiece(capturedPiece, enPassantField.getFile()-1, rank);
 
         } else {
             // put back captured piece (should be null if none)
@@ -719,7 +727,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     /**
      * Returns a list of all possible legal moves
      *
-     * @param capturingMovesOnly - true if only capturing moces should be generated
+     * @param capturingMovesOnly - true if only capturing moves should be generated
      * @return list of moves
      */
     public GameMoveList generateMoves(boolean capturingMovesOnly) {
@@ -965,7 +973,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
     /**
      * Checks if there is another piece between the from field and the to field
-     * along the alowed move path.
+     * along the allowed move path.
      *
      * @param move
      * @return true if no other piece blocking the way - false otherwise
@@ -1138,7 +1146,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     @Override
     public GameColor getNextPlayerColor() {
         // should we store next player color to be quicker
-        if (_halfMoveNumber % 2 == 0)
+        if (_lastHalfMoveNumber % 2 == 0)
             return GameColor.WHITE;
         return GameColor.BLACK;
     }
@@ -1184,7 +1192,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     @Override
     public int getLastHalfMoveNumber() {
-        return _halfMoveNumber;
+        return _lastHalfMoveNumber;
     }
 
     /*
@@ -1201,7 +1209,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      * @return full move number
      */
     public int getFullMoveNumber() {
-        return (_halfMoveNumber+1)/2;
+        return (_lastHalfMoveNumber/2)+1;
     }
 
     @Override
@@ -1560,12 +1568,12 @@ public class GameBoardImpl implements GameBoard, Cloneable {
 
         // full move number
         if (parts.length < 6) { // default "1"
-            _halfMoveNumber = 1 ;
+            _lastHalfMoveNumber = 1 ;
         } else {
             s = parts[5];
-            _halfMoveNumber = (2 * Integer.parseInt(s)) - 1;
+            _lastHalfMoveNumber = (2 * Integer.parseInt(s)) - 1;
         }
-        if (nextPlayer.isWhite()) _halfMoveNumber--;
+        if (nextPlayer.isWhite()) _lastHalfMoveNumber--;
     }
 
     /*

@@ -26,6 +26,7 @@
  */
 package fko.chessly.ui.JavaFX_GUI;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +96,7 @@ public class BoardPane extends Pane {
     private Image _bK,_bQ,_bB,_bN,_bR,_bP;
 
     // list of pieces to iterate over while drawing
-    private Set<Piece> _pieces = new LinkedHashSet<Piece>(64);
+    private List<Piece> _pieces = new ArrayList<Piece>(64);
 
     // holds preselected field
     private GamePosition _selectedFromField = null; // GamePosition.getGamePosition("c1");
@@ -207,6 +208,8 @@ public class BoardPane extends Pane {
      * @param curBoard
      */
     private void drawBoard(GameBoard curBoard) {
+
+        //Thread.dumpStack();
 
         // clear the node to redraw everything
         this.getChildren().clear();
@@ -436,23 +439,26 @@ public class BoardPane extends Pane {
     /**
      * Draw all pieces on the board
      * @param curBoard
-     * @param board
+     * @param x88board
      */
     private void drawPieces(GameBoard curBoard) {
         // do not reset the piece list if we drag
         if (_dragPiece == null) {
             // clear the pieces array
             _pieces.clear();
+            //System.out.println("CLEAR =======================================================");
             // fill the pieces array
-            for (int file = 1; file <= DIM; file++) {
-                for (int rank = DIM; rank > 0; rank--) {
-                    if (curBoard.getPiece(file, rank) != null) {
-
-                        int file2 = _currentOrientation == orientation.WHITE_SOUTH ? file : DIM - file+1;
-                        int rank2 = _currentOrientation == orientation.WHITE_SOUTH ? rank : DIM - rank+1;
+            for (int rank = DIM; rank > 0; rank--) {
+                for (int file = 1; file <= DIM; file++) {
+                    final GamePiece boardPiece = curBoard.getPiece(file, rank);
+                    //System.out.print("Now: "+GamePosition.getGamePosition(file, rank)+" ");
+                    final int file2 = _currentOrientation == orientation.WHITE_SOUTH ? file : DIM - file+1;
+                    final int rank2 = _currentOrientation == orientation.WHITE_SOUTH ? rank : DIM - rank+1;
+                    //System.out.print("flip: "+GamePosition.getGamePosition(file2, rank2));
+                    if (boardPiece != null) {
 
                         // Create ImageView
-                        Image pieceImage = getPieceImage(curBoard.getPiece(file, rank).getColor(), curBoard.getPiece(file, rank).getType());
+                        Image pieceImage = getPieceImage(boardPiece.getColor(), boardPiece.getType());
                         ImageView pieceView = new ImageView(pieceImage);
                         pieceView.setPreserveRatio(true);
                         pieceView.setSmooth(true);
@@ -466,7 +472,10 @@ public class BoardPane extends Pane {
 
                         Piece piece = new Piece(pieceView, this);
                         _pieces.add(piece);
+                        //System.out.print(" >>>> add "+GamePosition.getGamePosition(file2, rank2
+                        //        )+" as "+piece.getPosition());
                     }
+                    //System.out.println();
                 }
             }
         }
@@ -630,8 +639,9 @@ public class BoardPane extends Pane {
                 || y > _offset_y.add(_boardSize).doubleValue()  || y < _offset_y.doubleValue()) return null;
 
         // calculate file and rank
-        int file = 1 + (int) ((x - _offset_x.doubleValue()) / _checkerSize.doubleValue());
-        int rank = DIM - (int) ((y - _offset_y.doubleValue()) / _checkerSize.doubleValue());
+        // +0.1 because of rounding issue - the fieled starts when x-_offset_x.doubleValue()==0
+        int file = 1 + (int) ((x - _offset_x.doubleValue()+0.1) / _checkerSize.doubleValue());
+        int rank = DIM - (int) ((y - _offset_y.doubleValue()+0.1) / _checkerSize.doubleValue());
         // flip board correction
         if (_currentOrientation == orientation.WHITE_NORTH) {
             file = DIM-file+1;
@@ -669,10 +679,13 @@ public class BoardPane extends Pane {
         } else {
             _ignoreNextRelease = false;
         }
+        //System.out.println("SelectedFrom: "+_selectedFromField);
 
         // which piece?
         for (Piece p : _pieces) {
+            //System.out.print(p.getPosition()+" ");
             if (pos.equals(p.getPosition())) {
+                //System.out.print("HIT ");
                 // found piece
                 _dragOffsetX = event.getX() - p.pieceView.xProperty().doubleValue();
                 _dragOffsetY = event.getY() - p.pieceView.yProperty().doubleValue();
@@ -680,7 +693,8 @@ public class BoardPane extends Pane {
                 _dragPiece.isDragged=true;
             }
         }
-        //System.out.println("SelectedFrom: "+_selectedFromField+" DragPiece: "+_dragPiece.getPosition());
+        //System.out.println();
+        //System.out.println(" DragPiece: "+(_dragPiece!=null ? _dragPiece.getPosition() : "NULL"));
     }
 
     /**
@@ -716,7 +730,7 @@ public class BoardPane extends Pane {
             _dragPieceCopy.addToNode();
         }
 
-        // here we position the piece according to the mouse grag movement
+        // here we position the piece according to the mouse drag movement
         // the offset avoid a jumping piece image if the click was not in the
         // 0,0 coordinated of the field
         _dragPieceCopy.pieceView.setX(event.getX() - _dragOffsetX);
@@ -737,13 +751,6 @@ public class BoardPane extends Pane {
 
         GamePosition pos = getGamePositionFromMouseEvent(event);
 
-        // mouse not on board - reset selection and drag and ignore the release
-        if (pos==null) {
-            clearMouseSelection();
-            Platform.runLater(this::drawBoard);
-            return;
-        }
-
         //System.out.print("Mouse RELEASE: "+pos+" ---> ");
         // if we do not have a selection from a previous press/release cycle
         // ignore the release
@@ -751,14 +758,10 @@ public class BoardPane extends Pane {
             return;
         }
 
-        // we have a selection and the press/release happened on the same field
-        // therefore de-select the selection
-        if (pos.equals(_selectedFromField)) {
-            // no selection - ignore release
-            //System.out.println("de-select: "+_selectedFromField);
+        // mouse not on board or on same field - reset selection and drag and ignore the release
+        if (pos==null || pos.equals(_selectedFromField)) {
             clearMouseSelection();
             Platform.runLater(this::drawBoard);
-            //System.out.println();
             return;
         }
 
@@ -839,6 +842,7 @@ public class BoardPane extends Pane {
         }
 
         GamePosition getPosition() {
+            //System.out.print(" Coords: "+pieceView.xProperty().intValue()+":"+pieceView.yProperty().intValue()+" ");
             return determinePosition(pieceView.xProperty().doubleValue(), pieceView.yProperty().doubleValue());
         }
     }

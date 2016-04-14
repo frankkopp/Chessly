@@ -59,6 +59,12 @@ public class RandomEngine implements Engine {
         List<GameMove> moves = board.generateMoves();
         if (!moves.isEmpty()) {
             int move = (int) Math.round((moves.size() - 1) * Math.random());
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             return moves.get(move);
         }
         return null;
@@ -73,8 +79,19 @@ public class RandomEngine implements Engine {
         // we don't need a game
     }
 
+    /**
+     * @see fko.chessly.player.computer.Engine#setNumberOfThreads(int)
+     */
     @Override
     public void setNumberOfThreads(int n) {
+        // empty
+    }
+
+    /**
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
         // empty
     }
 

@@ -51,7 +51,7 @@ public enum GameColor {
      * @return int - as defined in ChesslyColor
      */
     public GameColor getInverseColor() {
-        if      (this == BLACK) {
+        if (this == BLACK) {
             return WHITE;
         } else if (this == WHITE) {
             return BLACK;

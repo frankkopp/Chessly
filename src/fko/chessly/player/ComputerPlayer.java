@@ -79,6 +79,15 @@ public class ComputerPlayer extends AbstractPlayer {
         // </ENGINE>
     }
 
+    /* (non-Javadoc)
+     * @see fko.chessly.player.AbstractPlayer#stopPlayer()
+     */
+    @Override
+    public void stopPlayer() {
+        _engine.stopEngine();
+        super.stopPlayer();
+    }
+
     /**
      * return the player engine
      * @return engine

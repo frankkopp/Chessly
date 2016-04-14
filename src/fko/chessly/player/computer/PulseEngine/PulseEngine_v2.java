@@ -275,6 +275,14 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     /**
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
+        // empty
+    }
+
+    /**
      * Starts calculation and returns next move.
      *
      * @param board
@@ -797,7 +805,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
                             String info = String.format("%n ==> CUT value (%d) >=  beta(%d) @ Depth: %d ", value, beta, ply);
                             printVerboseInfo(info);
                         }
-                        // Extremly influences PERF counter test
+                        // Extremely influences PERF counter test
                         if (_config._USE_PRUNING && !_config.PERF_TEST) {
                             // Cut-off
                             hashType = Bound.LOWER;
@@ -1590,7 +1598,7 @@ public class PulseEngine_v2 extends ModelObservable implements ObservableEngine 
     }
 
     @Override
-    public int getCurBoardsInCache() {
+    public int getCurrentBoardsInCache() {
         return _cacheEnabled && _config._USE_BOARD_CACHE ? _evaluationTable.getNumberOfEntries() : 0;
     }
 

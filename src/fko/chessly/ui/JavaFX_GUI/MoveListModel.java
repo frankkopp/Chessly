@@ -100,11 +100,10 @@ public class MoveListModel {
                 moveWhite = null;
                 moveBlack = move;
             }
-
-
             moveList.add(new FullMove(moveWhite, moveBlack));
         }
         //logger.setLevel(old);
+
     }
 
     /**

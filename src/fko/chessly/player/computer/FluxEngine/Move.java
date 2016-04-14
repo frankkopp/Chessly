@@ -75,88 +75,6 @@ final class Move {
     }
 
     /**
-     * Returns the IntMove from the CommandMove.
-     *
-     * @param move  the CommandMove.
-     * @param board the Hex88Board.
-     * @return the IntMove.
-     */
-    static int convertMove(GameMove move, Position board) {
-        assert move != null;
-        assert board != null;
-
-        if (move.getPromotedTo() != null) {
-            //if (isPawnPromotion(move, board)) {
-            /*
-            int promotion;
-            if (move.promotion == null) {
-                promotion = PieceType.QUEEN;
-            } else {
-                promotion = Piece.valueOfChessman(move.promotion);
-            }
-             */
-            int promotion = Piece.valueOfChessman(move.getPromotedTo().getType());
-            return createMove(MoveType.PAWNPROMOTION, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], promotion);
-
-        } else if (move.isEnPassantNextMovePossible()) {
-            //} else if (isPawnDouble(move, board)) {
-            return createMove(MoveType.PAWNDOUBLE, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
-
-        } else if (move.getWasEnPassantCapture()) {
-            //} else if (isEnPassant(move, board)) {
-            return createMove(MoveType.ENPASSANT, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getEnPassantCapturePosition())], Piece.NOPIECE);
-
-        } else if (move.getCastlingType() != GameCastling.NOCASTLING) {
-            //} else if (isCastling(move, board)) {
-            return createMove(MoveType.CASTLING, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
-
-        } else {
-            return createMove(MoveType.NORMAL, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], Piece.NOPIECE);
-        }
-    }
-
-    /**
-     * Returns the GameMove from the move.
-     *
-     * @param move the move.
-     * @return the CommandMove.
-     */
-    static GameMove toGameMove(int move) {
-        assert move != NOMOVE;
-
-        final int type = getType(move);
-        final int start = getStart(move);
-        final int end = getEnd(move);
-        final int pieceMoved = getChessmanPiece(move);
-        final int pieceCaptured = getTargetPiece(move);
-
-        GameMove gameMove = new GameMoveImpl(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.convertPiecetoGamePiece(pieceMoved));
-
-        switch (type) {
-            case MoveType.NORMAL:
-                if (pieceCaptured != Piece.NOPIECE) {
-                    gameMove.setCapturedPiece(Piece.convertPiecetoGamePiece(pieceCaptured));
-                }
-                break;
-            case MoveType.PAWNDOUBLE:
-                break;
-            case MoveType.ENPASSANT:
-                break;
-            case MoveType.CASTLING:
-                break;
-            case MoveType.PAWNPROMOTION:
-                gameMove.setPromotedTo(Piece.convertPiecetoGamePiece(Move.getPromotion(move)));
-                break;
-                //return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
-            default:
-                throw new IllegalArgumentException();
-        }
-
-        return gameMove;
-
-    }
-
-    /**
      * Get the IntMove.
      *
      * FIXME: Why does a move not have a color?
@@ -672,7 +590,7 @@ final class Move {
      * Returns whether the CommandMove is a castling move.
      *
      * @param move  the CommandMove.
-     * @param board the Hex88Board.
+     * @param x88board the Hex88Board.
      * @return true if the CommandMove is a castling move, false otherwise.
      */
     /*    private static boolean isCastling(GameMove move, Position board) {
@@ -770,6 +688,88 @@ final class Move {
         }
 
         return false;
+    }
+
+    /**
+     * Returns the IntMove from the CommandMove.
+     *
+     * @param move  the CommandMove.
+     * @param board the Hex88Board.
+     * @return the IntMove.
+     */
+    static int convertMove(GameMove move, Position board) {
+        assert move != null;
+        assert board != null;
+    
+        if (move.getPromotedTo() != null) {
+            //if (isPawnPromotion(move, board)) {
+            /*
+            int promotion;
+            if (move.promotion == null) {
+                promotion = PieceType.QUEEN;
+            } else {
+                promotion = Piece.valueOfChessman(move.promotion);
+            }
+             */
+            int promotion = Piece.valueOfChessman(move.getPromotedTo().getType());
+            return createMove(MoveType.PAWNPROMOTION, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], promotion);
+    
+        } else if (move.isEnPassantNextMovePossible()) {
+            //} else if (isPawnDouble(move, board)) {
+            return createMove(MoveType.PAWNDOUBLE, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
+    
+        } else if (move.getWasEnPassantCapture()) {
+            //} else if (isEnPassant(move, board)) {
+            return createMove(MoveType.ENPASSANT, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getEnPassantCapturePosition())], Piece.NOPIECE);
+    
+        } else if (move.getCastlingType() != GameCastling.NOCASTLING) {
+            //} else if (isCastling(move, board)) {
+            return createMove(MoveType.CASTLING, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Piece.NOPIECE, Piece.NOPIECE);
+    
+        } else {
+            return createMove(MoveType.NORMAL, Square.valueOfPosition(move.getFromField()), Square.valueOfPosition(move.getToField()), Position.board[Square.valueOfPosition(move.getFromField())], Position.board[Square.valueOfPosition(move.getToField())], Piece.NOPIECE);
+        }
+    }
+
+    /**
+     * Returns the GameMove from the move.
+     *
+     * @param move the move.
+     * @return the CommandMove.
+     */
+    static GameMove toGameMove(int move) {
+        assert move != NOMOVE;
+    
+        final int type = getType(move);
+        final int start = getStart(move);
+        final int end = getEnd(move);
+        final int pieceMoved = getChessmanPiece(move);
+        final int pieceCaptured = getTargetPiece(move);
+    
+        GameMove gameMove = new GameMoveImpl(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.convertPiecetoGamePiece(pieceMoved));
+    
+        switch (type) {
+            case MoveType.NORMAL:
+                if (pieceCaptured != Piece.NOPIECE) {
+                    gameMove.setCapturedPiece(Piece.convertPiecetoGamePiece(pieceCaptured));
+                }
+                break;
+            case MoveType.PAWNDOUBLE:
+                break;
+            case MoveType.ENPASSANT:
+                break;
+            case MoveType.CASTLING:
+                break;
+            case MoveType.PAWNPROMOTION:
+                gameMove.setPromotedTo(Piece.convertPiecetoGamePiece(Move.getPromotion(move)));
+                break;
+                //return new GameMove(Square.valueOfIntPosition(start), Square.valueOfIntPosition(end), Piece.valueOfIntChessman(getPromotion(move)));
+            default:
+                throw new IllegalArgumentException();
+        }
+    
+        return gameMove;
+    
     }
 
 }

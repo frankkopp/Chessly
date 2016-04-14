@@ -554,7 +554,7 @@ public class EngineInfoPanel extends JPanel {
             curBoardCacheSize.setText(numberFormat.format(curBoardCacheSize2));
 
             // -- show the number of boards in the cache --
-            final int curBoardsInCache = engine.getCurBoardsInCache();
+            final int curBoardsInCache = engine.getCurrentBoardsInCache();
             percent = (int)(100.F * curBoardsInCache / curBoardCacheSize2);
             curBoardCacheUse.setText(numberFormat.format(curBoardsInCache)+ " (" + percent + "%)");
 

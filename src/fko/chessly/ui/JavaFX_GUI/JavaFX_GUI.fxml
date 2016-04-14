@@ -32,7 +32,10 @@
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem fx:id="resumeGame_menu" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume Game" />
+                        <MenuItem fx:id="resumeGame_menu" disable="true" mnemonicParsing="false" onAction="#resumeGame_action" text="Resume Game">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator></MenuItem>
                         <SeparatorMenuItem mnemonicParsing="false" />
                     <MenuItem fx:id="close_menu" mnemonicParsing="false" onAction="#close_action" text="Close">
                            <accelerator>
@@ -115,7 +118,7 @@
                     <items>
                       <MenuItem fx:id="flip_menu" mnemonicParsing="false" onAction="#flipButton_action" text="Flip Board">
                            <accelerator>
-                              <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                              <KeyCodeCombination alt="UP" code="F" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
                         <CheckMenuItem fx:id="showLastMove_menu" mnemonicParsing="false" onAction="#showLastMove_action" selected="true" text="Show Last Move">
@@ -265,9 +268,9 @@
                            <children>
                               <TableView fx:id="move_table" prefHeight="434.0" prefWidth="210.0" style="-fx-font-size: 10; -fx-font-family: &quot;Lucida Console&quot;;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <columns>
-                                    <TableColumn fx:id="move_table_number" editable="false" maxWidth="-1.0" minWidth="30.0" prefWidth="-1.0" sortable="false" text="#" />
-                                    <TableColumn fx:id="move_table_white" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="White Moves" />
-                                    <TableColumn fx:id="move_table_black" editable="false" maxWidth="-1.0" minWidth="105.0" prefWidth="-1.0" sortable="false" text="Black Moves" />
+                                    <TableColumn fx:id="move_table_number" editable="false" maxWidth="-1.0" minWidth="38.0" prefWidth="-1.0" sortable="false" text="#" />
+                                    <TableColumn fx:id="move_table_white" editable="false" maxWidth="-1.0" minWidth="102.0" prefWidth="-1.0" sortable="false" text="White Moves" />
+                                    <TableColumn fx:id="move_table_black" editable="false" maxWidth="-1.0" minWidth="102.0" prefWidth="-1.0" sortable="false" text="Black Moves" />
                                  </columns>
                               </TableView>
                            </children>

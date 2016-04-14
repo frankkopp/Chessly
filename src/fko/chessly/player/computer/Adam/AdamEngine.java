@@ -71,4 +71,12 @@ public class AdamEngine implements Engine {
         // empty
     }
 
+    /* (non-Javadoc)
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
+        // TODO Auto-generated method stub
+    }
+
 }

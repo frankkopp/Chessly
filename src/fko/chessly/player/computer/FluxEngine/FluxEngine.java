@@ -93,6 +93,8 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
         super();
     }
 
+
+
     /**********************************
      * ENGINE interface
      **********************************/
@@ -250,6 +252,14 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     @Override
     public void setNumberOfThreads(int n) {
         // ignore
+    }
+
+    /**
+     * @see fko.chessly.player.computer.Engine#stopEngine()
+     */
+    @Override
+    public void stopEngine() {
+        // empty
     }
 
     /**********************************
@@ -530,10 +540,10 @@ public class FluxEngine extends ModelObservable implements ObservableEngine {
     }
 
     /**
-     * @see fko.chessly.player.computer.ObservableEngine#getCurBoardsInCache()
+     * @see fko.chessly.player.computer.ObservableEngine#getCurrentBoardsInCache()
      */
     @Override
-    public int getCurBoardsInCache() {
+    public int getCurrentBoardsInCache() {
         return _search.getCurBoardsInCache();
     }
 

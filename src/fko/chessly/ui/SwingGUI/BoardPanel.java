@@ -245,7 +245,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void drawPieces() {
 
@@ -287,7 +287,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void markCurrentSelectedFromField() {
         if (_curBoard !=null && _selectedFromField != null) {
@@ -318,7 +318,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void markPossibleMoves() {
         if (_ui != null && _ui.is_showPossibleMoves() && _selectedFromField != null
@@ -341,7 +341,7 @@ public class BoardPanel extends JPanel implements MouseListener, MouseMotionList
     }
 
     /**
-     * @param board
+     * @param x88board
      */
     private void markLastMove() {
         GameMove lastMove = _curBoard.getLastMove();
