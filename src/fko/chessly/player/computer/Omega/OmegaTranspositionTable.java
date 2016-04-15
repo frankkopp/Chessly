@@ -28,8 +28,8 @@
 package fko.chessly.player.computer.Omega;
 
 /**
- * A cache for board evaluation values to reduce evaluation calculation during
- * search. Implementation uses a simple array of an Entry class. The array indexes
+ * A cache for node results during AlphaBeta search.
+ * Implementation uses a simple array of an Entry class. The array indexes
  * are calculated by using the modulo of the max number of entries from the key.
  * <code>entries[key%maxNumberOfEntries]</code>. As long as key is randomly distributed
  * this works just fine.
@@ -55,12 +55,14 @@ public class OmegaTranspositionTable {
     public OmegaTranspositionTable(int size) {
         _size = size;
 
-        // check mem - add some head room
+        // check available mem - add some head room
         System.gc();
-        int freeMemory = (int) (Runtime.getRuntime().freeMemory() / (MB * MB));
+        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory) / (MB * MB);
+        //int mem = (int) ((int) Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()) / (MB * MB);
         if (freeMemory < size*2) {
             System.err.println(String.format("Not enough memory for a %dMB transposition cache - reducing to %dMB", size, freeMemory/4));
-            _size = freeMemory/4;
+            _size = (int) (freeMemory/10); // 10% of memory
         }
 
         // size in byte divided by entry size plus size for array bucket
@@ -78,6 +80,7 @@ public class OmegaTranspositionTable {
      *
      * @param key
      * @param value
+     * @param type
      * @param depth
      */
     public void put(long key, int value, TT_EntryType type, int depth) {
@@ -134,6 +137,7 @@ public class OmegaTranspositionTable {
             entries[i].key = 0L;
             entries[i].value = Integer.MIN_VALUE;
             entries[i].depth = 0;
+            entries[i].type = TT_EntryType.ALPHA;
         }
         _numberOfEntries = 0;
         _numberOfCollisions = 0;

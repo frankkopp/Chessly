@@ -57,10 +57,11 @@ public class OmegaEvaluationCache {
 
         // check mem - add some head room
         System.gc();
-        int freeMemory = (int) (Runtime.getRuntime().freeMemory() / (MB * MB));
+        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory) / (MB * MB);
         if (freeMemory < size*2) {
             System.err.println(String.format("Not enough memory for a %dMB evaluation cache - reducing to %dMB", size, freeMemory/4));
-            _size = freeMemory/4;
+            _size = (int) (freeMemory/10); // 10% of memory
         }
 
         // size in byte divided by entry size plus size for array bucket
