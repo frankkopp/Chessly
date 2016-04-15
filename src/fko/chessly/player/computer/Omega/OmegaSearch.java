@@ -55,9 +55,10 @@ import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
  *      DONE: Pondering
  *      DONE: Evaluation Table
  *      DONE: Basic Transposition Table
- *      TODO: Advanced iterative AlphaBeta search
+ *      DONE: Iterative AlphaBeta search
+ *      DONE: Pruning: AlphaBeta_Pruning
+ *      DONE: AlphaBeta Transposition Table
  *      TODO: Quiescence
- *      TODO: Advanced Transposition Table
  *      TODO: Advanced Evaluation
  *      TODO: Advanced Time Control
  *      TODO: Advanced Move Gen (On Demand)
