@@ -58,7 +58,12 @@ import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
  *      DONE: Iterative AlphaBeta search
  *      DONE: Pruning: AlphaBeta_Pruning
  *      DONE: AlphaBeta Transposition Table
- *      TODO: Quiescence
+ *      DONE: Simple Quiescence
+ *      TODO: reuse movelist
+ *      TODO: reuse MoveGenerator
+ *      TODO: use ondemand MoveGen
+ *      TODO: Search Extension for active positions - extra value as fraction of depth
+ *      TODO: Advanced Quiescence
  *      TODO: Advanced Evaluation
  *      TODO: Advanced Time Control
  *      TODO: Advanced Move Gen (On Demand)
@@ -248,7 +253,6 @@ public class OmegaSearch implements Runnable {
 
     }
 
-
     /**
      * Start the search in a separate thread.<br/>
      * Calls <code>_omegaEngine.storeResult(searchResult);</code> to
@@ -284,7 +288,7 @@ public class OmegaSearch implements Runnable {
 
         // create new search thread
         String threadName = "OmegaEngine: "+position._nextPlayer.toString();
-        if (_timedControlMode==TimeControlMode.PONDERING) threadName += " (Pondering)";
+        if (_timedControlMode == TimeControlMode.PONDERING) threadName += " (Pondering)";
         _searchThread = new Thread(this, threadName);
         _searchThread.setDaemon(true);
 
@@ -549,8 +553,29 @@ public class OmegaSearch implements Runnable {
 
         // on leaf node evaluate the position from the view of the active player
         if (depthLeft == 0) {
-            return evaluate(position);
+            return quiescence(position, ply, alpha, beta);
         }
+
+        // ## BEGIN Mate Distance Pruning
+        if (_omegaEngine._CONFIGURATION._USE_MDP && !OmegaConfiguration.PERFT) {
+            int mate_value = -OmegaEvaluation.Value.CHECKMATE + ply;
+            // lower bound
+            if (mate_value > alpha) {
+                alpha = mate_value;
+                if (mate_value >= beta) {
+                    return mate_value;
+                }
+            }
+            // upper bound
+            mate_value = OmegaEvaluation.Value.CHECKMATE - ply;
+            if (mate_value < beta) {
+                beta = mate_value;
+                if (mate_value <= alpha) {
+                    return mate_value;
+                }
+            }
+        }
+        // ## ENDOF Mate Distance Pruning
 
         // check for game paused
         if (_omegaEngine.getGame().isPresent())
@@ -565,27 +590,26 @@ public class OmegaSearch implements Runnable {
             final TT_Entry entry = _transpositionTable.get(position._zobristKey, depthLeft);
 
             if (entry != null) { // possible TT Hit
+                _nodeCache_Hits++;
                 switch (entry.type) {
                     case EXACT:
-                        _nodeCache_Hits++;
                         return entry.value;
                     case ALPHA:
                         if (entry.value <= alpha) {
-                            _nodeCache_Hits++;
                             return alpha;
                         }
                         break;
                     case BETA:
                         if (entry.value >= beta) {
-                            _nodeCache_Hits++;
                             return beta;
                         }
                         break;
                     default:
                         break;
                 }
+            } else {
+                _nodeCache_Misses++;
             }
-            _nodeCache_Misses++;
         }
         // End TT Lookup
         // *****************************************************
@@ -601,10 +625,11 @@ public class OmegaSearch implements Runnable {
         // moves to search recursively
         for(int i = 0; i < moves.size(); i++) {
             int move = moves.get(i);
-
             int value = bestValue;
 
             position.makeMove(move);
+
+            // is legal move?
             if (!position.isAttacked(position._nextPlayer,
                     position._kingSquares[position._nextPlayer.getInverseColor().ordinal()])) {
 
@@ -641,6 +666,7 @@ public class OmegaSearch implements Runnable {
                 _currentVariation.removeLast();
 
             }
+
             position.undoMove();
 
             // check if we need to stop search - could be external or time.
@@ -653,7 +679,7 @@ public class OmegaSearch implements Runnable {
         if (!hadLegaMove && !_stopSearch) {
             if (position.hasCheck()) {
                 // We have a check mate. Return a -CHECKMATE.
-                bestValue = -OmegaEvaluation.Value.CHECKMATE;
+                bestValue = -OmegaEvaluation.Value.CHECKMATE + ply;
             } else {
                 // We have a stale mate. Return the draw value.
                 bestValue = OmegaEvaluation.Value.DRAW;
@@ -671,17 +697,186 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Evaluate if a position is quiet and we can safely call the evaluation function
+     * or if a position is non-quiet (hanging capture, check, etc.) and should be search
+     * deeper to avoid horizon problems.
+     *
+     * @param position
+     * @param ply
+     * @param alpha
+     * @param beta
+     * @return
+     */
+    private int quiescence(OmegaBoardPosition position, int ply, int alpha, int beta) {
+
+        // prepare hash type
+        TT_EntryType tt_Type = TT_EntryType.ALPHA;
+
+        // if we have moves the do evaluation
+        if (_omegaMoveGenerator.hasLegalMove(position)) {
+
+            // ## BEGIN Mate Distance Pruning
+            if (_omegaEngine._CONFIGURATION._USE_MDP) {
+                int mate_value = -OmegaEvaluation.Value.CHECKMATE + ply;
+                // lower bound
+                if (mate_value > alpha) {
+                    alpha = mate_value;
+                    if (mate_value >= beta) {
+                        return mate_value;
+                    }
+                }
+                // upper bound
+                mate_value = OmegaEvaluation.Value.CHECKMATE - ply;
+                if (mate_value < beta) {
+                    beta = mate_value;
+                    if (mate_value <= alpha) {
+                        return mate_value;
+                    }
+                }
+            }
+            // ## ENDOF Mate Distance Pruning
+
+            // check for game paused
+            if (_omegaEngine.getGame().isPresent())
+                _omegaEngine.getGame().get().waitWhileGamePaused();
+
+            // *****************************************************
+            // TT Lookup
+            if (_cacheEnabled
+                    && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
+                    && !OmegaConfiguration.PERFT) {
+
+                final TT_Entry entry = _transpositionTable.get(position._zobristKey, 0);
+
+                if (entry != null) { // possible TT Hit
+                    _nodeCache_Hits++;
+                    switch (entry.type) {
+                        case EXACT:
+                            return entry.value;
+                        case ALPHA:
+                            if (entry.value <= alpha) {
+                                return alpha;
+                            }
+                            break;
+                        case BETA:
+                            if (entry.value >= beta) {
+                                return beta;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                    _nodeCache_Misses++;
+                }
+            }
+            // End TT Lookup
+            // *****************************************************
+
+            // get a fall back evaluation value - called stand-pat
+            int stand_pat = evaluate(position, ply);
+            if( stand_pat >= beta ) {
+                tt_Type = TT_EntryType.BETA;
+                // TT Store
+                if (_cacheEnabled
+                        && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
+                        && !OmegaConfiguration.PERFT) {
+                    _transpositionTable.put(position._zobristKey, alpha, tt_Type, 0);
+                }
+                return beta;
+            }
+            if( alpha < stand_pat ) {
+                tt_Type = TT_EntryType.EXACT;
+                alpha = stand_pat;
+            }
+
+            if (_omegaEngine._CONFIGURATION._USE_QUIESCENCE) {
+                int value;
+
+                // Generate all capturing PseudoLegalMoves
+                OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(position, true);
+
+                // moves to search recursively
+                for(int i = 0; i < moves.size(); i++) {
+                    int move = moves.get(i);
+
+                    position.makeMove(move);
+                    if (!position.isAttacked(  // is this a legal move?
+                            position._nextPlayer,
+                            position._kingSquares[position._nextPlayer.getInverseColor().ordinal()])) {
+
+                        // needed to remember if we even had a legal move
+                        _currentVariation.add(move);
+
+                        // in quiescence search we count modes and extra depth here
+                        _nodesVisited++;
+                        if (_currentExtraSearchDepth < ply) _currentExtraSearchDepth = ply;
+
+                        // check draw through 50-moves-rule, 3-fold-repetition, insufficient material
+                        if (position.check50Moves()
+                                || position.check3Repetitions()
+                                || position.checkInsufficientMaterial()) {
+                            value = OmegaEvaluation.Value.DRAW;
+                        } else {
+
+                            // go one ply deeper into the search tree
+                            value = -quiescence(position, ply+1, -beta, -alpha);
+
+                        }
+
+                        // PRUNING START
+                        if (value >= alpha) {
+                            alpha = value;
+                            if (value >= beta) i=moves.size(); // like break but executes the rest
+                        }
+                        // PRUNING END
+
+                        printCurrentVariation(i, ply, moves.size(), value);
+                        _currentVariation.removeLast();
+
+                    }
+                    position.undoMove();
+                }
+            }
+        }
+        // no moves - mate position?
+        else {
+            if (position.hasCheck()) {
+                // We have a check mate. Return a -CHECKMATE.
+                alpha = -OmegaEvaluation.Value.CHECKMATE + ply;
+            }
+            // We have a stale mate. Return the draw value.
+            alpha = OmegaEvaluation.Value.DRAW;
+        }
+
+        // TT Store
+        if (_cacheEnabled
+                && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
+                && !OmegaConfiguration.PERFT) {
+            _transpositionTable.put(position._zobristKey, alpha, tt_Type, 0);
+        }
+
+        return alpha;
+    }
+
+    /**
      * Calls the evaluation function for the position.<br/>
      * Also the a board cache will be implemented here.
      *
      * @param position
+     * @param ply TODO
      * @return
      */
-    private int evaluate(OmegaBoardPosition position) {
+    private int evaluate(OmegaBoardPosition position, int ply) {
+
         // count all leaf nodes evaluated
         _boardsEvaluated++;
+
+        // special cases for testing
         if (_omegaEngine._CONFIGURATION.DO_NULL_EVALUATION) return 0;
         if (OmegaConfiguration.PERFT) return 1;
+
+        // retrieve evaluation value from evaluation cache
         if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
             final int value = _evalCache.get(position.getZobristKey());
             if (value > Integer.MIN_VALUE) {
@@ -690,10 +885,15 @@ public class OmegaSearch implements Runnable {
             }
             _evalCache_Misses++;
         }
-        final int value = _omegaEvaluation.evaluate(position);
+
+        // call the Evaluation
+        final int value = _omegaEvaluation.evaluate(position, ply);
+
+        // store evaluation value in evaluation cache
         if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
             _evalCache.put(position.getZobristKey(), value);
         }
+
         return value;
     }
 

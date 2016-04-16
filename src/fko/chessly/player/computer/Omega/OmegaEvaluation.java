@@ -48,6 +48,7 @@ public class OmegaEvaluation {
     static private final boolean MOBILITY = true;
     static private final boolean PIECE_POSITION = false;
 
+    @SuppressWarnings("unused")
     private final OmegaMoveGenerator _omegaMoveGenerator;
     @SuppressWarnings("unused")
     private final OmegaEngine _omegaEngine;
@@ -74,36 +75,23 @@ public class OmegaEvaluation {
      * Always from the view of the active (next) player.
      *
      * @param board
+     * @param ply TODO
      * @return value of the position from active player's view.
      */
-    public int evaluate(OmegaBoardPosition board) {
+    public int evaluate(OmegaBoardPosition board, int ply) {
         int value = OmegaEvaluation.Value.DRAW;
 
-        if (_omegaMoveGenerator.hasLegalMove(board)) {
+        // Material
+        if (MATERIAL)
+            value += material(board);
 
-            // Material
-            if (MATERIAL)
-                value += material(board);
+        // Mobility
+        if (MOBILITY)
+            value += mobility(board);
 
-            // Mobility
-            if (MOBILITY)
-                value += mobility(board);
-
-            // Piece Position
-            if (PIECE_POSITION)
-                value += position(board);
-
-        }
-        // no moves - mate position?
-        else {
-            if (board.hasCheck()) {
-                // We have a check mate. Return a -CHECKMATE.
-                value = -OmegaEvaluation.Value.CHECKMATE;
-            } else {
-                // We have a stale mate. Return the draw value.
-                value = OmegaEvaluation.Value.DRAW;
-            }
-        }
+        // Piece Position
+        if (PIECE_POSITION)
+            value += position(board);
 
         return value;
     }

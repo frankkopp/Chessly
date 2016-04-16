@@ -110,12 +110,12 @@ public class testTimings_EvalVsCache {
      */
     private void prepare() {
 
-        _cache.put(_omegaPosition._zobristKey, _evaluation.evaluate(_omegaPosition));
+        _cache.put(_omegaPosition._zobristKey, _evaluation.evaluate(_omegaPosition, ply));
 
     }
 
     private void test1() {
-        _evaluation.evaluate(_omegaPosition);
+        _evaluation.evaluate(_omegaPosition, ply);
     }
 
     private void test2() {

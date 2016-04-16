@@ -53,6 +53,9 @@ public class OmegaMoveGenerator {
     // which color do we generate moves for
     private OmegaColor _activePlayer;
 
+    // should we only generate capturing moves (for quiscence search)
+    private boolean _capturingOnly = false;
+
     // these are are working lists as fields to avoid to have to
     // create them every time. Instead of creating the need to be cleared before use.
     private final OmegaMoveList _legalMoves = new OmegaMoveList();
@@ -77,6 +80,7 @@ public class OmegaMoveGenerator {
     }
     private OmegaMoveList _onDemandLegalMoveList = new OmegaMoveList();
     private long _onDemandZobristLastPosition;
+
 
     // Comparator for move value victim least value attacker
     private static final Comparator<Integer> _mvvlva_comparator = (Integer a, Integer b) -> {
@@ -240,6 +244,8 @@ public class OmegaMoveGenerator {
         _position = position;
         _activePlayer = _position._nextPlayer;
 
+        _capturingOnly = capturingOnly;
+
         // remember the last position to see when it has changed
         // if changed the cache is always invalid
         this._zobristLastPosition = position.getZobristKey();
@@ -291,6 +297,8 @@ public class OmegaMoveGenerator {
         _position = position;
         _activePlayer = _position._nextPlayer;
 
+        _capturingOnly = capturingOnly;
+
         // remember the last position to see when it has changed
         // if changed the cache is always invalid
         this._zobristLastPosition = position.getZobristKey();
@@ -314,8 +322,10 @@ public class OmegaMoveGenerator {
      */
     private void generatePseudoLegaMoves() {
         /*
-         * Start with capturing move - lower pieces to higher pieces
-         * Then non capturing - lower to higher pieces
+         * Start with capturing move
+         *      - lower pieces to higher pieces
+         * Then non capturing
+         *      - lower to higher pieces
          *      - ideally:
          *      - moves to better positions first
          *      - e.g. Knights in the middle
@@ -324,7 +334,7 @@ public class OmegaMoveGenerator {
          *      - middle pawns forward in the beginning
          * Use different lists to add moves to avoid repeated looping
          * Too expensive to create several lists every call?
-         * Make them static and clear them instead of creating!!
+         * Make them a field and clear them instead of creating!!
          */
 
         generatePawnMoves();
@@ -333,13 +343,17 @@ public class OmegaMoveGenerator {
         generateRookMoves();
         generateQueenMoves();
         generateKingMoves();
-        generateCastlingMoves();
 
+        // sort the capturing moves for mvvlva order
         if (SORT) _capturingMoves.sort(_mvvlva_comparator);
 
-        // TODO: sort non capturing - via better piece/position/game phase value
-
+        // now we have all capturing moves
         _pseudoLegalMoves.add(_capturingMoves);
+        if (_capturingOnly) return;
+
+        // add castlings (never capture)
+        generateCastlingMoves();
+
         _pseudoLegalMoves.add(_castlingMoves);
         _pseudoLegalMoves.add(_nonCapturingMoves);
     }
@@ -404,7 +418,7 @@ public class OmegaMoveGenerator {
                         }
                     }
                     // no capture
-                    else if (d == OmegaSquare.N) { // straight
+                    else if (d == OmegaSquare.N && !_capturingOnly) { // straight
                         if (target == OmegaPiece.NOPIECE){ // way needs to be free
                             // promotion
                             if (to > 111) { // rank 8
@@ -499,6 +513,48 @@ public class OmegaMoveGenerator {
         generateMoves(type, square, OmegaSquare.kingDirections);
     }
 
+    /**
+     * @param type
+     * @param square
+     * @param pieceDirections
+     */
+    private void generateMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
+        // get all possible x88 index values for piece's moves
+        // these are basically int values to add or subtract from the
+        // current square index. Very efficient with a x88 board.
+        int[] directions = pieceDirections;
+        for (int d : directions) {
+            int to = square.ordinal() + d;
+
+            while ((to & 0x88) == 0) { // slide while valid square
+                final OmegaPiece target = _position._x88Board[to];
+
+                // free square - non capture
+                if (target == OmegaPiece.NOPIECE) { // empty
+                    if (!_capturingOnly) {
+                        _nonCapturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                }
+                // occupied square - capture if opponent and stop sliding
+                else {
+                    if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
+                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
+                        _capturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                    break; // stop sliding;
+                }
+                if (type.isSliding()) to += d; // next sliding field in this direction
+                else break; // no sliding piece type
+            }
+        }
+    }
+
     private void generateCastlingMoves() {
         if (_position.hasCheck()) return; // no castling if we are in check
         // iterate over all available castlings at this position
@@ -565,46 +621,6 @@ public class OmegaMoveGenerator {
                             OmegaPiece.BLACK_KING,
                             OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
                 }
-            }
-        }
-    }
-
-    /**
-     * @param type
-     * @param square
-     * @param pieceDirections
-     */
-    private void generateMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
-        // get all possible x88 index values for piece's moves
-        // these are basically int values to add or subtract from the
-        // current square index. Very efficient with a x88 board.
-        int[] directions = pieceDirections;
-        for (int d : directions) {
-            int to = square.ordinal() + d;
-
-            while ((to & 0x88) == 0) { // slide while valid square
-                final OmegaPiece target = _position._x88Board[to];
-
-                // free square - non capture
-                if (target == OmegaPiece.NOPIECE) { // empty
-                    _nonCapturingMoves.add(OmegaMove.createMove(
-                            OmegaMoveType.NORMAL,
-                            OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                            OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
-                }
-                // occupied square - capture if opponent and stop sliding
-                else {
-                    if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
-                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
-                        _capturingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.NORMAL,
-                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
-                    }
-                    break; // stop sliding;
-                }
-                if (type.isSliding()) to += d; // next sliding field in this direction
-                else break; // no sliding piece type
             }
         }
     }

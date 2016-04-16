@@ -124,6 +124,13 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
             _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
         }
+
+        // DEBUG: color based config
+        if (_activeColor.isWhite()) {
+            _CONFIGURATION._USE_QUIESCENCE = true;
+        } else {
+            _CONFIGURATION._USE_QUIESCENCE = true;
+        }
     }
 
     /**
@@ -382,7 +389,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentMaxSearchDepth() {
-        return _omegaSearch._currentSearchDepth;
+        return _omegaSearch._currentExtraSearchDepth;
     }
 
     /**
@@ -531,6 +538,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         }
         if (_CONFIGURATION._USE_PRUNING) {
             s += "PRUN,";
+        }
+        if (_CONFIGURATION._USE_MDP) {
+            s += "MDP,";
         }
         if (OmegaConfiguration.PERFT) {
             s = "PERF TEST";

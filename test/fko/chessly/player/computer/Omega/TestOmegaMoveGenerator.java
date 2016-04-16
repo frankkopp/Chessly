@@ -40,6 +40,33 @@ import org.junit.Test;
  */
 public class TestOmegaMoveGenerator {
 
+
+    /**
+     * Tests mate position
+     */
+    @Test
+    public void testCapturingMovesOnly() {
+
+        String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 b kq e3 0 113";
+        //String testFen = "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
+
+        OmegaBoardPosition board = new OmegaBoardPosition(testFen);
+        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
+        OmegaMoveList capturing_moves = moveGenerator.getLegalMoves(board, true);
+        OmegaMoveList all_moves = moveGenerator.getLegalMoves(board, false);
+
+        System.out.println(capturing_moves);
+        System.out.println(all_moves);
+
+        for (int i=0; i<all_moves.size(); i++) {
+            if (OmegaMove.getTarget(all_moves.get(i)) != OmegaPiece.NOPIECE) {
+                assertEquals(all_moves.get(i), capturing_moves.get(i));
+            }
+        }
+
+    }
+
+
     /**
      * Tests mate position
      */

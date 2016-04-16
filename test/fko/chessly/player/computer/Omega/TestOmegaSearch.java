@@ -179,7 +179,7 @@ public class TestOmegaSearch {
         System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
         System.out.println(_omegaSearch._principalVariation[0].toNotationString());
         assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
-        //assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
+        assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
 
     }
 

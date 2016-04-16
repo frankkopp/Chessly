@@ -66,7 +66,13 @@ public class OmegaConfiguration {
     boolean _USE_BOARD_CACHE = true;
 
     /** Use AlphaBeta Pruning */
-    public boolean _USE_PRUNING = true;;
+    boolean _USE_PRUNING = true;
+
+    /** Do quiescence evaluation and search extension for non quiet positions */
+    boolean _USE_QUIESCENCE = true;
+
+    /** Mate Distance Pruning */
+    boolean _USE_MDP = true;
 
     /** test the search without any pruning and count perft value **/
     static public final boolean PERFT = false;
@@ -81,6 +87,9 @@ public class OmegaConfiguration {
     //Mode _OB_Mode = Mode.PGN;
     Mode _OB_Mode = Mode.SAN;
     //Mode _OB_Mode = Mode.SIMPLE;
+
+
+
 
 
 
