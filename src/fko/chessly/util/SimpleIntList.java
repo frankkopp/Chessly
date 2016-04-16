@@ -45,7 +45,7 @@ public class SimpleIntList implements Iterable<Integer> {
     /**
      * Max entries of a MoveList
      */
-    public static final int DEFAULT_MAX_ENTRIES = 256;
+    public static final int DEFAULT_MAX_ENTRIES = 128;
 
     protected int _arraySize = DEFAULT_MAX_ENTRIES;
     protected int[] _list;
