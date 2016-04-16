@@ -78,7 +78,7 @@ public class OmegaMoveGenerator {
         KINGS,
         ALL
     }
-    private OmegaMoveList _onDemandLegalMoveList = new OmegaMoveList();
+    private OmegaMoveList _onDemandMoveList = new OmegaMoveList();
     private long _onDemandZobristLastPosition;
 
 
@@ -108,7 +108,7 @@ public class OmegaMoveGenerator {
      * @param capturingOnly
      * @return int representing the next legal Move. Return OmegaMove.NOMOVE if none available
      */
-    public int getNextLegalMove(OmegaBoardPosition position, boolean capturingOnly) {
+    public int getNextPseudoLegalMove(OmegaBoardPosition position, boolean capturingOnly) {
 
         // TODO zobrist could collide - then this will break.
         if (position.getZobristKey() != _onDemandZobristLastPosition) {
@@ -132,54 +132,54 @@ public class OmegaMoveGenerator {
          * generate the next batch until we have new moves or all moves are generated
          * and there are no more moves to generate
          */
-        while (_onDemandLegalMoveList.empty() && !(_generationCycleState == OnDemandState.ALL)) {
+        while (_onDemandMoveList.empty() && !(_generationCycleState == OnDemandState.ALL)) {
             switch (_generationCycleState) {
                 case NEW: // no moves yet generate pawn moves first
                     // generate pawn moves
                     generatePawnMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.PAWN;
                     break;
                 case PAWN: // we have all moves but knight, bishop, rook, queen and king moves
                     generateKnightMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.KNIGHTS;
                     break;
                 case KNIGHTS: // we have all moves but bishop, rook, queen and king moves
                     generateBishopMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.BISHOPS;
                     break;
                 case BISHOPS: // we have all moves but rook, queen and king moves
                     generateRookMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.ROOKS;
                     break;
                 case ROOKS: // we have all moves but queen and king moves
                     generateQueenMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.QUEENS;
                     break;
                 case QUEENS: // we have all moves but king moves
                     generateKingMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.KINGS;
                     break;
                 case KINGS: // we have all non capturing
                     generateCastlingMoves();
-                    for (int move : _castlingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_castlingMoves);
                     _generationCycleState = OnDemandState.ALL;
                     break;
                 case ALL: // we have all moves - do nothing
@@ -189,8 +189,8 @@ public class OmegaMoveGenerator {
         }
 
         // return a move a delete it form the list
-        if (!_onDemandLegalMoveList.empty()) {
-            return _onDemandLegalMoveList.removeFirst();
+        if (!_onDemandMoveList.empty()) {
+            return _onDemandMoveList.removeFirst();
         }
 
         return OmegaMove.NOMOVE;
@@ -203,7 +203,7 @@ public class OmegaMoveGenerator {
      * Calling this method resets it manually.
      */
     public void resetOnDemand() {
-        _onDemandLegalMoveList.clear();
+        _onDemandMoveList.clear();
         _onDemandZobristLastPosition =0;
     }
 
@@ -869,7 +869,7 @@ public class OmegaMoveGenerator {
      * Clears all lists
      */
     private void clearLists() {
-        _onDemandLegalMoveList.clear();
+        _onDemandMoveList.clear();
         _legalMoves.clear();
         _pseudoLegalMoves.clear();
         _evasionMoves.clear();

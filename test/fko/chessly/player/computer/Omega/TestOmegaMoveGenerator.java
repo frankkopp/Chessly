@@ -124,10 +124,10 @@ public class TestOmegaMoveGenerator {
             board = new OmegaBoardPosition(testFen);
 
             int j = 0;
-            int move =  moveGenerator.getNextLegalMove(board, false);
+            int move =  moveGenerator.getNextPseudoLegalMove(board, false);
             while (move != OmegaMove.NOMOVE) {
                 System.out.println((j++)+". "+OmegaMove.toString(move));
-                move =  moveGenerator.getNextLegalMove(board, false);
+                move =  moveGenerator.getNextPseudoLegalMove(board, false);
             }
 
             OmegaMoveList moves = null;
@@ -173,7 +173,26 @@ public class TestOmegaMoveGenerator {
                 };
             }
             //System.out.println(moves);
-            System.out.println(String.format("PseudoLegal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
+            System.out.println(String.format("   PseudoLegal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
+
+            // Legal Moves On Demand
+            ITERATIONS=0;
+            int moveCounter = 0;
+            start = Instant.now();
+            while (true) {
+                ITERATIONS++;
+                moveCounter=0;
+                moveGenerator.resetOnDemand();
+                int move =  moveGenerator.getNextPseudoLegalMove(board, false);
+                while (move != OmegaMove.NOMOVE) {
+                    moveCounter++;
+                    move = moveGenerator.getNextPseudoLegalMove(board, false);
+                }
+                if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) {
+                    break;
+                };
+            }
+            System.out.println(String.format("OD PseudoLegal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moveCounter));
 
             // Legal Moves
             ITERATIONS=0;
@@ -186,27 +205,9 @@ public class TestOmegaMoveGenerator {
                     break;
                 };
             }
-            System.out.println(String.format("      Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
+            System.out.println(String.format("         Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
 
-            // Legal Moves On Demand
-            ITERATIONS=0;
-            int moveCounter = 0;
-            start = Instant.now();
-            while (true) {
-                ITERATIONS++;
-                moveCounter=0;
-                moveGenerator.resetOnDemand();
-                int move =  moveGenerator.getNextLegalMove(board, false);
-                while (move != OmegaMove.NOMOVE) {
-                    moveCounter++;
-                    move = moveGenerator.getNextLegalMove(board, false);
-                }
-                if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) {
-                    break;
-                };
-            }
-            System.out.println(String.format("   OD Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moveCounter));
-            ITERATIONS=0;
+
 
             i++;
         }
