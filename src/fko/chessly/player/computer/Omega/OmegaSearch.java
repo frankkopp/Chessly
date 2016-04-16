@@ -86,8 +86,8 @@ public class OmegaSearch implements Runnable {
     // field for current position
     private OmegaBoardPosition _currentPosition;
 
-    // Move Generator
-    private final OmegaMoveGenerator _omegaMoveGenerator;
+    // Move Generators - each depth in search gets it own to avoid object creation during search
+    private final OmegaMoveGenerator[] _omegaMoveGenerator = new OmegaMoveGenerator[MAX_SEARCH_DEPTH];
 
     // Position Evaluator
     private final OmegaEvaluation _omegaEvaluation;
@@ -185,8 +185,14 @@ public class OmegaSearch implements Runnable {
      */
     public OmegaSearch(OmegaEngine omegaEngine) {
         _omegaEngine = omegaEngine;
-        _omegaMoveGenerator = new OmegaMoveGenerator();
-        _omegaEvaluation = new OmegaEvaluation(_omegaEngine, _omegaMoveGenerator);
+
+        // Move Generators - each depth in search gets it own
+        // to avoid object creation during search
+        for (int i=0; i<MAX_SEARCH_DEPTH; i++ ) {
+            _omegaMoveGenerator[i] = new OmegaMoveGenerator();
+        }
+
+        _omegaEvaluation = new OmegaEvaluation(_omegaEngine, new OmegaMoveGenerator());
 
         // cache setup
         _cacheEnabled = Boolean.valueOf(Chessly.getProperties().getProperty("engine.cacheEnabled"));
@@ -375,7 +381,7 @@ public class OmegaSearch implements Runnable {
         _ponderStartTime = Instant.now();
 
         // generate all root moves
-        OmegaMoveList rootMoves = _omegaMoveGenerator.getLegalMoves(position, false);
+        OmegaMoveList rootMoves = _omegaMoveGenerator[0].getLegalMoves(position, false);
 
         //assert !rootMoves.empty() : "no legal root moves - game already ended!";
         if (rootMoves.size() == 0)
@@ -533,8 +539,12 @@ public class OmegaSearch implements Runnable {
         // prepare hash type
         TT_EntryType tt_Type = TT_EntryType.ALPHA;
 
-        // nodes counter
+        // nodes counter - not fully accurate here as we have counted the
+        // first call to this the previous alpha beta.
         _nodesVisited++;
+
+        // in quiescence search we count modes and extra depth here
+        if (_currentExtraSearchDepth < ply) _currentExtraSearchDepth = ply;
 
         // current search depth
         if (ply > _currentSearchDepth) _currentSearchDepth = ply;
@@ -620,7 +630,7 @@ public class OmegaSearch implements Runnable {
 
         // Generate all PseudoLegalMoves
         boolean hadLegaMove = false;
-        OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(position, false);
+        OmegaMoveList moves = _omegaMoveGenerator[ply].getPseudoLegalMoves(position, false);
 
         // moves to search recursively
         for(int i = 0; i < moves.size(); i++) {
@@ -713,7 +723,16 @@ public class OmegaSearch implements Runnable {
         TT_EntryType tt_Type = TT_EntryType.ALPHA;
 
         // if we have moves the do evaluation
-        if (_omegaMoveGenerator.hasLegalMove(position)) {
+        if (_omegaMoveGenerator[ply].hasLegalMove(position)) {
+
+            if (!_omegaEngine._CONFIGURATION._USE_QUIESCENCE) {
+                return evaluate(position, ply);
+            }
+
+            // ##############################################################
+            // START QUIESCENCE
+
+            _nodesVisited++;
 
             // ## BEGIN Mate Distance Pruning
             if (_omegaEngine._CONFIGURATION._USE_MDP) {
@@ -742,9 +761,7 @@ public class OmegaSearch implements Runnable {
 
             // *****************************************************
             // TT Lookup
-            if (_cacheEnabled
-                    && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
-                    && !OmegaConfiguration.PERFT) {
+            if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_NODE_CACHE) {
 
                 final TT_Entry entry = _transpositionTable.get(position._zobristKey, 0);
 
@@ -778,9 +795,7 @@ public class OmegaSearch implements Runnable {
             if( stand_pat >= beta ) {
                 tt_Type = TT_EntryType.BETA;
                 // TT Store
-                if (_cacheEnabled
-                        && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
-                        && !OmegaConfiguration.PERFT) {
+                if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_NODE_CACHE) {
                     _transpositionTable.put(position._zobristKey, alpha, tt_Type, 0);
                 }
                 return beta;
@@ -790,54 +805,55 @@ public class OmegaSearch implements Runnable {
                 alpha = stand_pat;
             }
 
-            if (_omegaEngine._CONFIGURATION._USE_QUIESCENCE) {
-                int value;
+            int value;
 
-                // Generate all capturing PseudoLegalMoves
-                OmegaMoveList moves = _omegaMoveGenerator.getPseudoLegalMoves(position, true);
+            // Generate all capturing PseudoLegalMoves
+            OmegaMoveList moves = _omegaMoveGenerator[ply].getPseudoLegalMoves(position, true);
 
-                // moves to search recursively
-                for(int i = 0; i < moves.size(); i++) {
-                    int move = moves.get(i);
+            // moves to search recursively
+            for(int i = 0; i < moves.size(); i++) {
+                int move = moves.get(i);
 
-                    position.makeMove(move);
-                    if (!position.isAttacked(  // is this a legal move?
-                            position._nextPlayer,
-                            position._kingSquares[position._nextPlayer.getInverseColor().ordinal()])) {
+                position.makeMove(move);
+                if (!position.isAttacked(  // is this a legal move?
+                        position._nextPlayer,
+                        position._kingSquares[position._nextPlayer.getInverseColor().ordinal()])) {
 
-                        // needed to remember if we even had a legal move
-                        _currentVariation.add(move);
+                    // needed to remember if we even had a legal move
+                    _currentVariation.add(move);
 
-                        // in quiescence search we count modes and extra depth here
-                        _nodesVisited++;
-                        if (_currentExtraSearchDepth < ply) _currentExtraSearchDepth = ply;
+                    // in quiescence search we count modes and extra depth here
+                    if (_currentExtraSearchDepth < ply) _currentExtraSearchDepth = ply;
 
-                        // check draw through 50-moves-rule, 3-fold-repetition, insufficient material
-                        if (position.check50Moves()
-                                || position.check3Repetitions()
-                                || position.checkInsufficientMaterial()) {
-                            value = OmegaEvaluation.Value.DRAW;
-                        } else {
+                    // check draw through 50-moves-rule, 3-fold-repetition, insufficient material
+                    if (position.check50Moves()
+                            || position.check3Repetitions()
+                            || position.checkInsufficientMaterial()) {
+                        value = OmegaEvaluation.Value.DRAW;
+                    } else {
 
-                            // go one ply deeper into the search tree
-                            value = -quiescence(position, ply+1, -beta, -alpha);
-
-                        }
-
-                        // PRUNING START
-                        if (value >= alpha) {
-                            alpha = value;
-                            if (value >= beta) i=moves.size(); // like break but executes the rest
-                        }
-                        // PRUNING END
-
-                        printCurrentVariation(i, ply, moves.size(), value);
-                        _currentVariation.removeLast();
+                        // go one ply deeper into the search tree
+                        value = -quiescence(position, ply+1, -beta, -alpha);
 
                     }
-                    position.undoMove();
+
+                    // PRUNING START
+                    if (value >= alpha) {
+                        alpha = value;
+                        if (value >= beta) i=moves.size(); // like break but executes the rest
+                    }
+                    // PRUNING END
+
+                    printCurrentVariation(i, ply, moves.size(), value);
+                    _currentVariation.removeLast();
+
                 }
+                position.undoMove();
             }
+
+            // END QUIESCENCE
+            // ##############################################################
+
         }
         // no moves - mate position?
         else {
@@ -850,9 +866,7 @@ public class OmegaSearch implements Runnable {
         }
 
         // TT Store
-        if (_cacheEnabled
-                && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
-                && !OmegaConfiguration.PERFT) {
+        if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_NODE_CACHE) {
             _transpositionTable.put(position._zobristKey, alpha, tt_Type, 0);
         }
 

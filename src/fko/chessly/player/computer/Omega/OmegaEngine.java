@@ -127,7 +127,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // DEBUG: color based config
         if (_activeColor.isWhite()) {
-            _CONFIGURATION._USE_QUIESCENCE = true;
+            _CONFIGURATION._USE_QUIESCENCE = false;
         } else {
             _CONFIGURATION._USE_QUIESCENCE = true;
         }
@@ -542,6 +542,10 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION._USE_MDP) {
             s += "MDP,";
         }
+        if (_CONFIGURATION._USE_QUIESCENCE) {
+            s += "Q,";
+        }
+
         if (OmegaConfiguration.PERFT) {
             s = "PERF TEST";
         }

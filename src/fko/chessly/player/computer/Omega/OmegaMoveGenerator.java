@@ -233,9 +233,12 @@ public class OmegaMoveGenerator {
      * non legal moves out of the provided list by checking each move if it leaves
      * the king in check.<br/>
      *
+     * <b>Attention:</b> returns a reference to the list of move which will change after calling this again.<br/>
+     * Make a clone if this is not desired.
+     *
      * @param position
      * @param capturingOnly if only capturing moves should be generated for quiescence moves
-     * @return legal moves
+     * @return reference to a list of legal moves
      */
     public OmegaMoveList getLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
@@ -261,7 +264,7 @@ public class OmegaMoveGenerator {
         }
 
         // return a clone of the list as we will continue to use the list as a static list
-        return _legalMoves.clone();
+        return _legalMoves;
     }
 
     /**
@@ -283,12 +286,13 @@ public class OmegaMoveGenerator {
      * Generates <b>all</b>  moves for a position. These moves may leave the king in check
      * and may be illegal.<br/>
      * Before committing them to a board they need to be checked if they leave the king in check.
-     * Repeated calls to this will return a cached list as long the position has
-     * not changed in between.<br/>
+     *
+     * <b>Attention:</b> returns a reference to the list of move which will change after calling this again.<br/>
+     * Make a clone if this is not desired.
      *
      * @param position
      * @param capturingOnly
-     * @return list of moves which may leave the king in check
+     * @return a reference to the list of moves which may leave the king in check
      */
     public OmegaMoveList getPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
@@ -314,7 +318,7 @@ public class OmegaMoveGenerator {
         generatePseudoLegaMoves();
 
         // return a clone of the list as we will continue to reuse
-        return _pseudoLegalMoves.clone();
+        return _pseudoLegalMoves;
     }
 
     /**
