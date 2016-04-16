@@ -92,8 +92,9 @@ public class OmegaTranspositionTable {
             entries[hash].type = type;
             entries[hash].depth = depth;
         } else { // collision
-            if (key == entries[hash].key  // same position
-                    && depth >= entries[hash].depth) { // value from same or deeper depth?
+            if (key != entries[hash].key // different position - overwrite
+                    || (key == entries[hash].key  // same position
+                    && depth >= entries[hash].depth)) { // Overwrite only when new value from deeper search
                 _numberOfCollisions++;
                 entries[hash].key = key;
                 entries[hash].value = value;
