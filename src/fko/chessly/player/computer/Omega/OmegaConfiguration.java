@@ -73,7 +73,7 @@ public class OmegaConfiguration {
     boolean _USE_PRUNING = true;
 
     /** Do quiescence evaluation and search extension for non quiet positions */
-    boolean _USE_QUIESCENCE = false;
+    boolean _USE_QUIESCENCE = true;
 
     /** Mate Distance Pruning */
     boolean _USE_MDP = false;
