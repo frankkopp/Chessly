@@ -102,7 +102,8 @@ public class OmegaMoveGenerator {
      * AlphaBeta pruning and therefore avoiding the cost of generating
      * all possible moves.<br/>
      *
-     * The generation cycle starts new if the position changes or if cleaOnDemand() is called.<br/>
+     * The generation cycle starts new if the position changes,
+     * capturingOnly is changed or if clearOnDemand() is called.<br/>
      *
      * @param position
      * @param capturingOnly
@@ -111,7 +112,7 @@ public class OmegaMoveGenerator {
     public int getNextPseudoLegalMove(OmegaBoardPosition position, boolean capturingOnly) {
 
         // TODO zobrist could collide - then this will break.
-        if (position.getZobristKey() != _onDemandZobristLastPosition) {
+        if (position.getZobristKey() != _onDemandZobristLastPosition || _capturingOnly != capturingOnly) {
             _generationCycleState = OnDemandState.NEW;
             clearLists();
             // remember the last position to see when it has changed
@@ -121,6 +122,8 @@ public class OmegaMoveGenerator {
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
+
+        _capturingOnly = capturingOnly;
 
         // clear lists
         _capturingMoves.clear();
