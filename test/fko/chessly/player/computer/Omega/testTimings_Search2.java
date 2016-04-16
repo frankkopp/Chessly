@@ -128,10 +128,13 @@ public class testTimings_Search2 {
         _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = true;
         _omegaEngine1._CONFIGURATION._USE_PRUNING = true;
         _omegaEngine1._CONFIGURATION._USE_MDP = true;
-        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = true;
-        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = true;
-        _omegaEngine2._CONFIGURATION._USE_PRUNING = true;
+        _omegaEngine1._CONFIGURATION._USE_QUIESCENCE = false;
+
+        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = false;
+        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = false;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING = false;
         _omegaEngine2._CONFIGURATION._USE_MDP = false;
+        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE = false;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);
