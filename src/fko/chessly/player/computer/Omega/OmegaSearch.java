@@ -32,11 +32,14 @@ import static java.lang.Integer.parseInt;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_Entry;
 import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
+import fko.chessly.util.ChesslyLogger;
 
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
@@ -59,16 +62,16 @@ import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
  *      DONE: Pruning: AlphaBeta_Pruning
  *      DONE: AlphaBeta Transposition Table
  *      DONE: Simple Quiescence
- *      TODO: reuse movelist
- *      TODO: reuse MoveGenerator
- *      TODO: use ondemand MoveGen
+ *      DONE: reuse move list
+ *      DONE: reuse MoveGenerator
+ *      DONE: use on demand MoveGen - is slower - not used
  *      TODO: Search Extension for active positions - extra value as fraction of depth
  *      TODO: Advanced Quiescence
  *      TODO: Advanced Evaluation
  *      TODO: Advanced Time Control
  *      TODO: Advanced Move Gen (On Demand)
  *      TODO: AspirationWindows
- *      TODO: Pruning: AlphaBeta_Pruning, PV, MDP,
+ *      TODO: Pruning: PV,
  *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion, See
  *      TODO: KillerTable. HistoryTable, PawnTable
  *      TODO: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
@@ -78,7 +81,7 @@ public class OmegaSearch implements Runnable {
 
     private static final int MAX_SEARCH_DEPTH = 99;
 
-    //private Logger _log = ChesslyLogger.getLogger();
+    private Logger _log = ChesslyLogger.getLogger();
 
     // back reference to the engine
     private OmegaEngine _omegaEngine;
@@ -185,6 +188,8 @@ public class OmegaSearch implements Runnable {
      */
     public OmegaSearch(OmegaEngine omegaEngine) {
         _omegaEngine = omegaEngine;
+
+        _log.setLevel(Level.OFF);
 
         // Move Generators - each depth in search gets it own
         // to avoid object creation during search
@@ -543,11 +548,9 @@ public class OmegaSearch implements Runnable {
         // first call to this the previous alpha beta.
         _nodesVisited++;
 
-        // in quiescence search we count modes and extra depth here
-        if (_currentExtraSearchDepth < ply) _currentExtraSearchDepth = ply;
-
         // current search depth
-        if (ply > _currentSearchDepth) _currentSearchDepth = ply;
+        if (_currentSearchDepth < ply) _currentSearchDepth = ply;
+        if (_currentExtraSearchDepth < ply) _currentExtraSearchDepth = ply;
 
         // clear principal Variation for this depth
         _principalVariation[ply].clear();
@@ -600,17 +603,19 @@ public class OmegaSearch implements Runnable {
             final TT_Entry entry = _transpositionTable.get(position._zobristKey, depthLeft);
 
             if (entry != null) { // possible TT Hit
-                _nodeCache_Hits++;
                 switch (entry.type) {
                     case EXACT:
+                        _nodeCache_Hits++;
                         return entry.value;
                     case ALPHA:
                         if (entry.value <= alpha) {
+                            _nodeCache_Hits++;
                             return alpha;
                         }
                         break;
                     case BETA:
                         if (entry.value >= beta) {
+                            _nodeCache_Hits++;
                             return beta;
                         }
                         break;
@@ -633,6 +638,9 @@ public class OmegaSearch implements Runnable {
         OmegaMoveList moves = _omegaMoveGenerator[ply].getPseudoLegalMoves(position, false);
 
         // moves to search recursively
+        //int move = OmegaMove.NOMOVE;
+        //int i = 0;
+        //while ((move = _omegaMoveGenerator[ply].getNextPseudoLegalMove(position, false)) != OmegaMove.NOMOVE) {
         for(int i = 0; i < moves.size(); i++) {
             int move = moves.get(i);
             int value = bestValue;
@@ -665,7 +673,10 @@ public class OmegaSearch implements Runnable {
                             if (_omegaEngine._CONFIGURATION._USE_PRUNING && !OmegaConfiguration.PERFT) {
                                 tt_Type = TT_EntryType.BETA;
                                 bestValue = beta; // same as return beta
-                                i = moves.size(); // last move to check in this loop
+                                printCurrentVariation(i, ply, moves.size(), value);
+                                _currentVariation.removeLast();
+                                position.undoMove();
+                                break;
                             }
                         }
                     }
@@ -674,7 +685,7 @@ public class OmegaSearch implements Runnable {
 
                 printCurrentVariation(i, ply, moves.size(), value);
                 _currentVariation.removeLast();
-
+                i++;
             }
 
             position.undoMove();
@@ -766,17 +777,19 @@ public class OmegaSearch implements Runnable {
                 final TT_Entry entry = _transpositionTable.get(position._zobristKey, 0);
 
                 if (entry != null) { // possible TT Hit
-                    _nodeCache_Hits++;
                     switch (entry.type) {
                         case EXACT:
+                            _nodeCache_Hits++;
                             return entry.value;
                         case ALPHA:
                             if (entry.value <= alpha) {
+                                _nodeCache_Hits++;
                                 return alpha;
                             }
                             break;
                         case BETA:
                             if (entry.value >= beta) {
+                                _nodeCache_Hits++;
                                 return beta;
                             }
                             break;
@@ -860,9 +873,10 @@ public class OmegaSearch implements Runnable {
             if (position.hasCheck()) {
                 // We have a check mate. Return a -CHECKMATE.
                 alpha = -OmegaEvaluation.Value.CHECKMATE + ply;
+            } else {
+                // We have a stale mate. Return the draw value.
+                alpha = OmegaEvaluation.Value.DRAW;
             }
-            // We have a stale mate. Return the draw value.
-            alpha = OmegaEvaluation.Value.DRAW;
         }
 
         // TT Store
@@ -1036,7 +1050,7 @@ public class OmegaSearch implements Runnable {
                     , value
                     , _principalVariation[ply].toNotationString());
             _omegaEngine.printVerboseInfo(info);
-            //_log.fine(info);
+            _log.fine(info);
         }
     }
 
