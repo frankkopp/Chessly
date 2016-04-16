@@ -131,7 +131,7 @@ public class TestOmegaMoveGenerator {
             }
 
             OmegaMoveList moves = null;
-            moves = moveGenerator.getLegalMoves(board, false);
+            moves = moveGenerator.getPseudoLegalMoves(board, false);
 
             System.out.println("OnDemand: "+j+ " Bulk: "+moves.size());
             System.out.println();
@@ -206,8 +206,6 @@ public class TestOmegaMoveGenerator {
                 };
             }
             System.out.println(String.format("         Legal: %,7d runs/s for %s (%,d)", ITERATIONS/DURATION, fens[i], moves.size()));
-
-
 
             i++;
         }
