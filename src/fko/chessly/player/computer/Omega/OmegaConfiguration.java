@@ -36,16 +36,16 @@ import fko.chessly.openingbook.OpeningBookImpl.Mode;
  */
 public class OmegaConfiguration {
 
+    /** test the search without any pruning and count perft value **/
+    static public final boolean PERFT = false;
+
+    /** null evaluation **/
+    boolean DO_NULL_EVALUATION = false;
+
 
     // Verbose
     /** If set to true this object will produce info output to System.out */
     boolean VERBOSE_TO_SYSOUT = false;
-
-    /** If set to true we will use the opening book */
-    boolean _USE_BOOK = true;
-
-    /** Use Ponderer while waiting for opponents move - fills node_cache */
-    boolean _USE_PONDERER = true;
 
     /** verbose alphabeta search **/
     boolean VERBOSE_ALPHABETA = false;
@@ -56,8 +56,12 @@ public class OmegaConfiguration {
     /** verbose variation **/
     boolean VERBOSE_STATS = true;
 
-    /** null evaluation **/
-    boolean DO_NULL_EVALUATION = false;
+
+    /** If set to true we will use the opening book */
+    boolean _USE_BOOK = true;
+
+    /** Use Ponderer while waiting for opponents move - fills node_cache */
+    boolean _USE_PONDERER = true;
 
     /** Use Transposition Tables for visited nodes */
     boolean _USE_NODE_CACHE = true;
@@ -69,13 +73,10 @@ public class OmegaConfiguration {
     boolean _USE_PRUNING = true;
 
     /** Do quiescence evaluation and search extension for non quiet positions */
-    boolean _USE_QUIESCENCE = true;
+    boolean _USE_QUIESCENCE = false;
 
     /** Mate Distance Pruning */
-    boolean _USE_MDP = true;
-
-    /** test the search without any pruning and count perft value **/
-    static public final boolean PERFT = false;
+    boolean _USE_MDP = false;
 
     /** default value for folder to books */
     String _OB_FolderPath = "./book/";
