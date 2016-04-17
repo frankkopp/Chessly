@@ -61,28 +61,28 @@ public class TestOmegaEvaluation {
     }
 
     /**
-     * Test method for {@link fko.chessly.player.computer.Omega.OmegaEvaluation#evaluate(fko.chessly.player.computer.Omega.OmegaBoardPosition, int)}.
+     * Test method for {@link fko.chessly.player.computer.Omega.OmegaEvaluation#evaluate(fko.chessly.player.computer.Omega.OmegaBoardPosition)}.
      */
     @Test
     public final void testEvaluate_startPosValueZero() {
         // standard position should be 0
         // change if next player gets a bonus
-        int value = _evaluation.evaluate(_omegaPosition, ply);
+        int value = _evaluation.evaluate(_omegaPosition);
         assertEquals("Start Position should be 0", 0, value);
     }
 
     /**
-     * Test method for {@link fko.chessly.player.computer.Omega.OmegaEvaluation#evaluate(fko.chessly.player.computer.Omega.OmegaBoardPosition, int)}.
+     * Test method for {@link fko.chessly.player.computer.Omega.OmegaEvaluation#evaluate(fko.chessly.player.computer.Omega.OmegaBoardPosition)}.
      */
     @Test
     public void testEvaluate_mirroredPositionEqual() {
         // Mirrored position - should be equal
         String fen = "k6n/7p/6P1/7K/8/8/8/8 w - - 0 1"; // white
         _omegaPosition = new OmegaBoardPosition(fen);
-        int value1 = _evaluation.evaluate(_omegaPosition, ply);
+        int value1 = _evaluation.evaluate(_omegaPosition);
         fen = "8/8/8/8/k7/1p6/P7/N6K b - - 0 1"; // black
         _omegaPosition = new OmegaBoardPosition(fen);
-        int value2 = _evaluation.evaluate(_omegaPosition, ply);
+        int value2 = _evaluation.evaluate(_omegaPosition);
         assertEquals("Mirrored Position should be equal", value1,value2);
     }
 
@@ -182,6 +182,6 @@ public class TestOmegaEvaluation {
     }
 
     private void testCode() {
-        _evaluation.evaluate(_omegaPosition, ply);
+        _evaluation.evaluate(_omegaPosition);
     }
 }

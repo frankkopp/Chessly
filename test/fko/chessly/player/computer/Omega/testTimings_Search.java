@@ -67,7 +67,7 @@ public class testTimings_Search {
         prepare();
 
         int ROUNDS = 5;
-        int DURATION = 15;
+        int DURATION = 10;
 
         int ITERATIONS = 0;
 
@@ -128,22 +128,25 @@ public class testTimings_Search {
         _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = true;
         _omegaEngine1._CONFIGURATION._USE_PRUNING = true;
         _omegaEngine1._CONFIGURATION._USE_MDP = true;
+        _omegaEngine1._CONFIGURATION._USE_PVS = true;
         _omegaEngine1._CONFIGURATION._USE_QUIESCENCE = true;
-        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = false;
-        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = false;
-        _omegaEngine2._CONFIGURATION._USE_PRUNING = false;
-        _omegaEngine2._CONFIGURATION._USE_MDP = true;
-        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE = true;
 
+        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING = true;
+        _omegaEngine2._CONFIGURATION._USE_MDP = true;
+        _omegaEngine2._CONFIGURATION._USE_PVS = true;
+        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE = true;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);
 
     }
 
-    /**
-     *
+    /*
+     * TEST 1 ################################################################
      */
+
     private void prep1() {
         if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
         if (_omegaSearch1._transpositionTable != null ) _omegaSearch1._transpositionTable.clear();
@@ -164,9 +167,10 @@ public class testTimings_Search {
         assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
     }
 
-    /**
-     *
+    /*
+     * TEST 2 ################################################################
      */
+
     private void prep2() {
         if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
         if (_omegaSearch1._transpositionTable != null ) _omegaSearch1._transpositionTable.clear();
@@ -186,6 +190,8 @@ public class testTimings_Search {
         _omegaSearch2.stop();
         assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine2.getSearchResult().bestMove));
     }
+
+
 
     private static Player createPlayer(GameColor color) {
         final Player newPlayer;

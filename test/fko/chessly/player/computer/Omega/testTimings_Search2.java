@@ -119,7 +119,7 @@ public class testTimings_Search2 {
         _omegaEngine1.init(_player1);
         _omegaEngine2.init(_player2);
 
-        String fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white);
+        String fen = ""; // white);
         //fen = NotationHelper.StandardBoardFEN;
         _omegaPosition1 = new OmegaBoardPosition(fen);
         _omegaPosition2 = new OmegaBoardPosition(fen);
@@ -128,18 +128,24 @@ public class testTimings_Search2 {
         _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = true;
         _omegaEngine1._CONFIGURATION._USE_PRUNING = true;
         _omegaEngine1._CONFIGURATION._USE_MDP = true;
-        _omegaEngine1._CONFIGURATION._USE_QUIESCENCE = false;
+        _omegaEngine1._CONFIGURATION._USE_PVS = true;
+        _omegaEngine1._CONFIGURATION._USE_QUIESCENCE = true;
 
-        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = false;
-        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = false;
-        _omegaEngine2._CONFIGURATION._USE_PRUNING = false;
-        _omegaEngine2._CONFIGURATION._USE_MDP = false;
-        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE = false;
+        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING = true;
+        _omegaEngine2._CONFIGURATION._USE_MDP = true;
+        _omegaEngine2._CONFIGURATION._USE_PVS = false;
+        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE = true;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);
 
     }
+
+    /*
+     * TEST 1 ################################################################
+     */
 
     private void prep1() {
         if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
@@ -163,9 +169,11 @@ public class testTimings_Search2 {
         assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
         //assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
 
-
-
     }
+
+    /*
+     * TEST 2 ################################################################
+     */
 
     private void prep2() {
         if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
@@ -190,6 +198,9 @@ public class testTimings_Search2 {
         //assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
 
     }
+
+
+
 
     private static Player createPlayer(GameColor color) {
         final Player newPlayer;
