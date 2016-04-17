@@ -37,7 +37,7 @@ import fko.chessly.openingbook.OpeningBookImpl.Mode;
 public class OmegaConfiguration {
 
     /** test the search without any pruning and count perft value **/
-    static public final boolean PERFT = false;
+    static public boolean PERFT = false;
 
     /** null evaluation **/
     boolean DO_NULL_EVALUATION = false;
@@ -72,11 +72,21 @@ public class OmegaConfiguration {
     /** Use AlphaBeta Pruning */
     boolean _USE_PRUNING = true;
 
+    /** Principal Variation Search */
+    boolean _USE_PVS = true;
+
+    /** Pushes the PV move to the head of the move list before iterating over moves in negamax */
+    boolean _USE_PV_PUSH = true;
+
+    /** Mate Distance Pruning */
+    boolean _USE_MDP = true;
+
+    /** Minor Promotion Pruning */
+    boolean _USE_MPP = true;
+
     /** Do quiescence evaluation and search extension for non quiet positions */
     boolean _USE_QUIESCENCE = true;
 
-    /** Mate Distance Pruning */
-    boolean _USE_MDP = false;
 
     /** default value for folder to books */
     String _OB_FolderPath = "./book/";
@@ -88,6 +98,12 @@ public class OmegaConfiguration {
     //Mode _OB_Mode = Mode.PGN;
     Mode _OB_Mode = Mode.SAN;
     //Mode _OB_Mode = Mode.SIMPLE;
+
+
+
+
+
+
 
 
 
