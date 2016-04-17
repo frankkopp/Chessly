@@ -847,7 +847,6 @@ public class OmegaMoveGenerator {
 
     /**
      * Test if move is legal on the current position for the next player.
-     * TODO: Improve - is there a way to avoid make/unmake?
      *
      * @param move
      * @return true if king of active player is not attacked after the move
