@@ -65,16 +65,15 @@ import fko.chessly.util.ChesslyLogger;
  *      DONE: reuse move list
  *      DONE: reuse MoveGenerator
  *      DONE: use on demand MoveGen - is slower - not used
- *      TODO: Search Extension for active positions - extra value as fraction of depth
+ *      TODO: Pruning: PV, Minor Promotion Pruning
+ *      TODO: EXTENSIONS: Search Extension for active positions - extra value as fraction of depth
+ *      TODO: EXTENSIONS: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
+ *      TODO: SEE
  *      TODO: Advanced Quiescence
  *      TODO: Advanced Evaluation
  *      TODO: Advanced Time Control
- *      TODO: Advanced Move Gen (On Demand)
- *      TODO: AspirationWindows
- *      TODO: Pruning: PV,
- *      TODO: NullMove, Futility, LateMove, Delta, MinorPromotion, See
- *      TODO: KillerTable. HistoryTable, PawnTable
- *      TODO: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
+ *      TODO: PRUNING: AspirationWindows, NullMove, Futility, LateMove, Delta, MinorPromotion, See
+ *      TODO: KillerTable, HistoryTable, PawnTable
  *      TODO: Extend UI for Time Per Move
  */
 public class OmegaSearch implements Runnable {
@@ -96,7 +95,7 @@ public class OmegaSearch implements Runnable {
     private final OmegaEvaluation _omegaEvaluation;
 
     // the thread in which we will do the actual search
-    private Thread _searchThread = null;
+    Thread _searchThread = null;
 
     // used to wait for move from search
     private CountDownLatch _waitForInitializaitonLatch = new CountDownLatch(1);
@@ -155,6 +154,8 @@ public class OmegaSearch implements Runnable {
     int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
     int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
     int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
+    int _prunings = 0;
+    int _pv_researches = 0;
     long _evalCache_Hits = 0;
     long _evalCache_Misses = 0;
     long _nodeCache_Hits = 0;
@@ -167,6 +168,8 @@ public class OmegaSearch implements Runnable {
         _currentRootMoveNumber = 0;
         _nodesVisited = 0;
         _boardsEvaluated = 0;
+        _prunings = 0;
+        _pv_researches = 0;
         _evalCache_Hits = 0;
         _evalCache_Misses = 0;
         _nodeCache_Hits = 0;
@@ -471,7 +474,7 @@ public class OmegaSearch implements Runnable {
         final int alpha = -OmegaEvaluation.Value.INFINITE;
         final int beta  = OmegaEvaluation.Value.INFINITE;
 
-        // ### Iterate through all available root moves
+        // ##### Iterate through all available root moves
         for (int i = 0; i < _rootMoves.size(); i++) {
             int move = _rootMoves.getMove(i);
 
@@ -483,11 +486,26 @@ public class OmegaSearch implements Runnable {
             _currentRootMove = move;
             _currentRootMoveNumber = i+1;
 
-            // ### START - Commit move and go deeper into recursion
+            // #### START - Commit move and go deeper into recursion
             position.makeMove(move);
             _currentVariation.add(move);
 
-            int value = -negamax(position, depth-1, rootply+1, alpha, beta);
+            int value = OmegaEvaluation.Value.NOVALUE;
+            if (OmegaConfiguration.PERFT || !_omegaEngine._CONFIGURATION._USE_PVS) {
+                value = -negamax(position, depth-1, rootply+1, -beta, -alpha);
+            }
+            // ### START PVS ###
+            else {
+                if (bestValue == OmegaEvaluation.Value.NOVALUE) { // no PV yet
+                    value = -negamax(position, depth-1, rootply+1, -beta, -alpha);
+                } else { // we have a PV - do Null Window Search
+                    value = -negamax(position, depth-1, rootply+1, -alpha-1, -alpha);
+                    if (value > alpha && value < beta) { // no fail - research
+                        _pv_researches++;
+                        value = -negamax(position, depth-1, rootply+1, -beta, -alpha);
+                    }
+                }
+            } // ### END PVS ###
 
             // write the value back to the root moves list
             _rootMoves.set(i, move, value);
@@ -503,18 +521,20 @@ public class OmegaSearch implements Runnable {
             position.undoMove();
             printCurrentVariation(i, 0, _rootMoves.size(), value);
             _currentVariation.removeLast();
-            // ###END - Commit move and go deeper into recursion
+            // #### END - Commit move and go deeper into recursion
 
             // check if we need to stop search - could be external or time.
             // we should have any best move here
             if (_stopSearch || _hardTimeLimitReached) break;
 
-        } // ### Iterate through all available moves
+        } // ##### Iterate through all available moves
 
         // sort root moves - higher values first
         // best move is not necessarily at index 0
         // best move is in _currentBestMove or _principalVariation[0].get(0)
         _rootMoves.sort();
+        // push PV move to head of list
+        _rootMoves.pushToHead(_principalVariation[0].get(0));
 
         boardsCounter += _boardsEvaluated;
 
@@ -566,6 +586,9 @@ public class OmegaSearch implements Runnable {
 
         // on leaf node evaluate the position from the view of the active player
         if (depthLeft == 0) {
+            if (OmegaConfiguration.PERFT) {
+                return evaluate(position);
+            }
             return quiescence(position, ply, alpha, beta);
         }
 
@@ -576,6 +599,7 @@ public class OmegaSearch implements Runnable {
             if (mate_value > alpha) {
                 alpha = mate_value;
                 if (mate_value >= beta) {
+                    _prunings++;
                     return mate_value;
                 }
             }
@@ -584,6 +608,7 @@ public class OmegaSearch implements Runnable {
             if (mate_value < beta) {
                 beta = mate_value;
                 if (mate_value <= alpha) {
+                    _prunings++;
                     return mate_value;
                 }
             }
@@ -637,10 +662,14 @@ public class OmegaSearch implements Runnable {
         boolean hadLegaMove = false;
         OmegaMoveList moves = _omegaMoveGenerator[ply].getPseudoLegalMoves(position, false);
 
+        // TODO: Push PV move to the head of the list
+        if (_omegaEngine._CONFIGURATION._USE_PV_PUSH) {
+            if (_principalVariation[0].size() >= ply) { // we have pv value for this depth
+                moves.pushToHead(_principalVariation[0].get(ply));
+            }
+        }
+
         // moves to search recursively
-        //int move = OmegaMove.NOMOVE;
-        //int i = 0;
-        //while ((move = _omegaMoveGenerator[ply].getNextPseudoLegalMove(position, false)) != OmegaMove.NOMOVE) {
         for(int i = 0; i < moves.size(); i++) {
             int move = moves.get(i);
             int value = bestValue;
@@ -656,7 +685,23 @@ public class OmegaSearch implements Runnable {
                 _currentVariation.add(move);
 
                 // go one ply deeper into the search tree
-                value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                //value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                if (!_omegaEngine._CONFIGURATION._USE_PVS || OmegaConfiguration.PERFT) {
+                    value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                }
+                // ### START PVS ###
+                else {
+                    if (bestValue == OmegaEvaluation.Value.NOVALUE) { // no PV yet
+                        value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                    } else { // we have a PV - do Null Window Search
+                        value = -negamax(position, depthLeft-1, ply+1, -alpha-1, -alpha);
+                        if (value > alpha && value < beta) { // no fail - research
+                            _pv_researches++;
+                            value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                        }
+                    }
+                } // ### END PVS ###
+
 
                 // PRUNING START
                 if (value > bestValue) {
@@ -669,13 +714,13 @@ public class OmegaSearch implements Runnable {
                         OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
 
                         if (value >= beta) {
-
                             if (_omegaEngine._CONFIGURATION._USE_PRUNING && !OmegaConfiguration.PERFT) {
                                 tt_Type = TT_EntryType.BETA;
                                 bestValue = beta; // same as return beta
                                 printCurrentVariation(i, ply, moves.size(), value);
                                 _currentVariation.removeLast();
                                 position.undoMove();
+                                _prunings++;
                                 break;
                             }
                         }
@@ -685,7 +730,6 @@ public class OmegaSearch implements Runnable {
 
                 printCurrentVariation(i, ply, moves.size(), value);
                 _currentVariation.removeLast();
-                i++;
             }
 
             position.undoMove();
@@ -737,7 +781,7 @@ public class OmegaSearch implements Runnable {
         if (_omegaMoveGenerator[ply].hasLegalMove(position)) {
 
             if (!_omegaEngine._CONFIGURATION._USE_QUIESCENCE) {
-                return evaluate(position, ply);
+                return evaluate(position);
             }
 
             // ##############################################################
@@ -752,6 +796,7 @@ public class OmegaSearch implements Runnable {
                 if (mate_value > alpha) {
                     alpha = mate_value;
                     if (mate_value >= beta) {
+                        _prunings++;
                         return mate_value;
                     }
                 }
@@ -760,6 +805,7 @@ public class OmegaSearch implements Runnable {
                 if (mate_value < beta) {
                     beta = mate_value;
                     if (mate_value <= alpha) {
+                        _prunings++;
                         return mate_value;
                     }
                 }
@@ -804,7 +850,7 @@ public class OmegaSearch implements Runnable {
             // *****************************************************
 
             // get a fall back evaluation value - called stand-pat
-            int stand_pat = evaluate(position, ply);
+            int stand_pat = evaluate(position);
             if( stand_pat >= beta ) {
                 tt_Type = TT_EntryType.BETA;
                 // TT Store
@@ -853,7 +899,10 @@ public class OmegaSearch implements Runnable {
                     // PRUNING START
                     if (value >= alpha) {
                         alpha = value;
-                        if (value >= beta) i=moves.size(); // like break but executes the rest
+                        if (value >= beta) {
+                            _prunings++;
+                            i=moves.size(); // like break but executes the rest
+                        }
                     }
                     // PRUNING END
 
@@ -892,10 +941,9 @@ public class OmegaSearch implements Runnable {
      * Also the a board cache will be implemented here.
      *
      * @param position
-     * @param ply TODO
      * @return
      */
-    private int evaluate(OmegaBoardPosition position, int ply) {
+    private int evaluate(OmegaBoardPosition position) {
 
         // count all leaf nodes evaluated
         _boardsEvaluated++;
@@ -914,8 +962,8 @@ public class OmegaSearch implements Runnable {
             _evalCache_Misses++;
         }
 
-        // call the Evaluation
-        final int value = _omegaEvaluation.evaluate(position, ply);
+        // call the evaluation
+        final int value = _omegaEvaluation.evaluate(position);
 
         // store evaluation value in evaluation cache
         if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_BOARD_CACHE) {
