@@ -36,6 +36,7 @@ package fko.chessly.player.computer.Omega;
  *      TODO: Piece Tables
  *      TODO: Game Phase
  *      TODO: Tapered Eval
+ *      TODO: Lazy Evaluation
  *      TODO: Bishop Pair
  *      TODO: Bishop vs. Knight
  *      TODO: Center Control
@@ -75,10 +76,10 @@ public class OmegaEvaluation {
      * Always from the view of the active (next) player.
      *
      * @param board
-     * @param ply TODO
      * @return value of the position from active player's view.
      */
-    public int evaluate(OmegaBoardPosition board, int ply) {
+    public int evaluate(OmegaBoardPosition board) {
+
         int value = OmegaEvaluation.Value.DRAW;
 
         // Material
