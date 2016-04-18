@@ -53,19 +53,20 @@ public class OmegaEvaluationCache {
      * @param size in MB (1024^2)
      */
     public OmegaEvaluationCache(int size) {
-        _size = size;
+        _size = size*MB*MB;
 
-        // check mem - add some head room
+        // check available mem - add some head room
         System.gc();
         long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory) / (MB * MB);
-        if (freeMemory < size*2) {
-            System.err.println(String.format("Not enough memory for a %dMB evaluation cache - reducing to %dMB", size, freeMemory/4));
-            _size = (int) (freeMemory/10); // 10% of memory
+        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory);
+        int percentage = 5;
+        if (freeMemory*percentage/100 < _size) {
+            System.err.println(String.format("Not enough memory for a %,dMB evaluation cache - reducing to %,dMB", _size/(MB*MB), (freeMemory*percentage/100)/(MB*MB)));
+            _size = (int) (freeMemory*percentage/100); // % of memory
         }
 
         // size in byte divided by entry size plus size for array bucket
-        _max_entries = (_size * MB * MB) / (Entry.SIZE + Integer.BYTES);
+        _max_entries = _size / (Entry.SIZE + Integer.BYTES);
         // create buckets for hash table
         entries = new Entry[_max_entries];
         // initialize

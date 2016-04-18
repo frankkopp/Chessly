@@ -631,7 +631,7 @@ public class OmegaSearch implements Runnable {
                 && _omegaEngine._CONFIGURATION._USE_NODE_CACHE
                 && !OmegaConfiguration.PERFT) {
 
-            final TT_Entry entry = _transpositionTable.get(position._zobristKey);
+            final TT_Entry entry = _transpositionTable.get(position);
 
             if (entry != null) { // possible TT Hit
                 if (entry.depth >= depthLeft) { // only if tt depth was equal or deeper
@@ -851,7 +851,7 @@ public class OmegaSearch implements Runnable {
             // TT Lookup
             if (_cacheEnabled && _omegaEngine._CONFIGURATION._USE_NODE_CACHE) {
 
-                final TT_Entry entry = _transpositionTable.get(position._zobristKey);
+                final TT_Entry entry = _transpositionTable.get(position);
 
                 if (entry != null) { // possible TT Hit
                     switch (entry.type) {

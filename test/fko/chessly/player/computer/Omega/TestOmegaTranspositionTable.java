@@ -55,16 +55,15 @@ public class TestOmegaTranspositionTable {
     @Test
     public final void test_Cache() {
         OmegaTranspositionTable cache = new OmegaTranspositionTable(32);
+        OmegaBoardPosition position = new OmegaBoardPosition();
         assertEquals(762600, cache.getMaxEntries());
         assertEquals(32, cache.getSize());
         cache.put(position, 999, TT_EntryType.EXACT, 5, null);
         assertEquals(1, cache.getNumberOfEntries());
-        assertEquals(999,cache.get(123412341234L).value);
-        assertEquals(999,cache.get(123412341234L).value);
-        assertEquals(null, cache.get(123412341234L));
-        assertEquals(null, cache.get(1234L));
+        assertEquals(999,cache.get(position).value);
+        assertEquals(999,cache.get(position).value);
         cache.put(position, 1111, TT_EntryType.EXACT, 15, null);
-        assertEquals(1111,cache.get(123412341234L).value);
+        assertEquals(1111,cache.get(position).value);
         assertEquals(1, cache.getNumberOfEntries());
         cache.clear();
         assertEquals(0, cache.getNumberOfEntries());

@@ -53,20 +53,20 @@ public class OmegaTranspositionTable {
      * @param size in MB (1024^2)
      */
     public OmegaTranspositionTable(int size) {
-        _size = size;
+        _size = size*MB*MB;
 
         // check available mem - add some head room
         System.gc();
         long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory) / (MB * MB);
-        //int mem = (int) ((int) Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()) / (MB * MB);
-        if (freeMemory < size*2) {
-            System.err.println(String.format("Not enough memory for a %dMB transposition cache - reducing to %dMB", size, freeMemory/4));
-            _size = (int) (freeMemory/10); // 10% of memory
+        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory);
+        int percentage = 5;
+        if (freeMemory*percentage/100 < _size) {
+            System.err.println(String.format("Not enough memory for a %,dMB transposition cache - reducing to %,dMB", _size/(MB*MB), (freeMemory*percentage/100)/(MB*MB)));
+            _size = (int) (freeMemory*percentage/100); // % of memory
         }
 
         // size in byte divided by entry size plus size for array bucket
-        _max_entries = (_size * MB * MB) / (TT_Entry.SIZE + Integer.BYTES);
+        _max_entries = _size / (TT_Entry.SIZE + Integer.BYTES);
         // create buckets for hash table
         entries = new TT_Entry[_max_entries];
         // initialize
@@ -142,13 +142,13 @@ public class OmegaTranspositionTable {
      * This retrieves the cached value of this node from cache if the
      * cached value has been calculated at a depth equal or deeper as the
      * depth value provided.
+     * @param position TODO
      *
-     * @param key
      * @return value for key or <tt>Integer.MIN_VALUE</tt> if not found
      */
-    public TT_Entry get(long key) {
-        final int hash = getHash(key);
-        if (entries[hash].key == key) { // hash hit
+    public TT_Entry get(OmegaBoardPosition position) {
+        final int hash = getHash(position._zobristKey);
+        if (entries[hash].key == position._zobristKey) { // hash hit
             return entries[hash];
         }
         // cache miss or collision
