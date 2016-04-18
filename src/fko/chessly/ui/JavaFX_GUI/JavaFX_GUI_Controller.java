@@ -918,8 +918,8 @@ public class JavaFX_GUI_Controller implements Observer {
                 // -- check if multiple games in a row should be run --
                 if (playroom.getNumberOfGames() > 1) {
                     printToInfoln(
-                            ">>> Black wins: " + playroom.getCurrentBlackWins() + '\n' +
                             ">>> White wins: " + playroom.getCurrentWhiteWins() + '\n' +
+                            ">>> Black wins: " + playroom.getCurrentBlackWins() + '\n' +
                             ">>> Draws     : " + playroom.getCurrentDraws() + '\n'
                             );
                     printToInfoln("");
@@ -936,10 +936,10 @@ public class JavaFX_GUI_Controller implements Observer {
                     if (playroom.getNumberOfGames() > 1) {
                         printToInfoln(
                                 ">>> Multiple games finished:" + '\n' +
-                                ">>> Black wins: " + playroom.getCurrentBlackWins() +
-                                " (" + (int)(((float) playroom.getCurrentBlackWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
                                 ">>> White wins: " + playroom.getCurrentWhiteWins() +
                                 " (" + (int)(((float) playroom.getCurrentWhiteWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
+                                ">>> Black wins: " + playroom.getCurrentBlackWins() +
+                                " (" + (int)(((float) playroom.getCurrentBlackWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
                                 ">>> Draws     : " + playroom.getCurrentDraws() +
                                 " (" + (int)(((float) playroom.getCurrentDraws() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n"
                                 );
@@ -1062,8 +1062,8 @@ public class JavaFX_GUI_Controller implements Observer {
         //if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
         printToInfoln();
         printToInfoln("--- New Game started ------------------");
-        printToInfoln("Player BLACK: "+game.getPlayerBlack().getName());
         printToInfoln("Player WHITE: "+game.getPlayerWhite().getName());
+        printToInfoln("Player BLACK: "+game.getPlayerBlack().getName());
         printToInfoln("");
         //}
     }

@@ -126,6 +126,9 @@ public class TestOmegaSearch {
         // Test - HORIZONT EFFECT
         //setupFromFEN("5r1k/4Qpq1/4p3/1p1p2P1/2p2P2/1p2P3/1K1P4/B7 w - - 0 1");
 
+        // Test Pruning
+        // 1r1r2k1/2p1qp1p/6p1/ppQB1b2/5Pn1/2R1P1P1/PP5P/R1B3K1 b ;bm Qe4
+
         Player _player = createPlayer(GameColor.WHITE);
         OmegaEngine _omegaEngine = new OmegaEngine();
         _omegaEngine.init(_player);
@@ -179,7 +182,7 @@ public class TestOmegaSearch {
         System.out.println(OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
         System.out.println(_omegaSearch._principalVariation[0].toNotationString());
         assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine.getSearchResult().bestMove));
-        //assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
+        assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
 
     }
 
