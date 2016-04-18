@@ -116,8 +116,8 @@ public class OmegaTranspositionTable {
         else if (position._zobristKey == entries[hash].key  // same position
                 && depth >= entries[hash].depth) { // Overwrite only when new value from deeper search
 
-            // this asserts detects if key=key but fen!=fen ==> COLLISION!!!
-            // DEBUG
+            // this asserts if key=key but fen!=fen ==> COLLISION!!!
+            // DEBUG code
             //            final String fenCache = entries[hash].fen;
             //            final String fenNew = position.toFENString();
             //            final String fc = fenCache.replaceAll(" \\d+ \\d+$", "");
