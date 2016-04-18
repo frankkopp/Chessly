@@ -46,6 +46,11 @@ public class SimpleIntList implements Iterable<Integer> {
      * Max entries of a MoveList
      */
     public static final int DEFAULT_MAX_ENTRIES = 128;
+    /**
+     * When growing the list this determines how many entries entries
+     * shall be generated
+     */
+    public static final int DEFAULT_GROWTH_MARGIN = 10;
 
     protected int _arraySize = DEFAULT_MAX_ENTRIES;
     protected int[] _list;
@@ -93,8 +98,9 @@ public class SimpleIntList implements Iterable<Integer> {
      * @param omegaIntegerList
      */
     public void add(int omegaIntegerList) {
-        if (_tail>=_list.length)
-            throw new ArrayIndexOutOfBoundsException("List is full");
+        if (_tail>=_list.length) {
+            grow(1);
+        }
         _list[_tail++] = omegaIntegerList;
     }
 
@@ -103,10 +109,23 @@ public class SimpleIntList implements Iterable<Integer> {
      * @param newList
      */
     public void add(SimpleIntList newList) {
-        if (_tail+newList.size()>_list.length)
-            throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
+        if (_tail+newList.size()>_list.length) {
+            grow(_tail+newList.size() - _list.length);
+        }
         System.arraycopy(newList._list, newList._head, this._list, this._tail, newList.size());
         this._tail +=newList.size();
+    }
+
+    /**
+     * @param extra_size
+     */
+    private void grow(int extra_size) {
+        _arraySize = _arraySize + extra_size + DEFAULT_GROWTH_MARGIN;
+        int[] new_list = new int[_arraySize];
+        System.arraycopy(_list, _head, new_list, 0, _tail-_head);
+        _list = new_list;
+        this._tail = _tail-_head;
+        this._head = 0;
     }
 
     /**
