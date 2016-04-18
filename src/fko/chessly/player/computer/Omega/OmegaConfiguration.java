@@ -63,13 +63,14 @@ public class OmegaConfiguration {
     /** Use Ponderer while waiting for opponents move - fills node_cache */
     boolean _USE_PONDERER = true;
 
-    /** Use Transposition Tables for visited nodes */
+    /** Use Transposition Tables for visited nodes  (needs extra memory) */
     boolean _USE_NODE_CACHE = true;
 
-    /** Use Transposition Tables to store move list */
+    /** Use Transposition Tables to store move list (needs extra memory) */
     boolean _USE_MOVE_CACHE = true;
 
-    /** Use Cache for Board evaluations - very expensive, only worth with expensive eval */
+    /** Use Cache for Board evaluations - very expensive, only worth
+     * with expensive evaluation - (needs extra memory)                  */
     boolean _USE_BOARD_CACHE = true;
 
     /** Use AlphaBeta Pruning */

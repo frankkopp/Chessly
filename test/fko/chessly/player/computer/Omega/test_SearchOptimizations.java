@@ -27,22 +27,14 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.assertEquals;
-
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Arrays;
-import java.util.OptionalDouble;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.DoubleStream;
 
 import org.junit.Test;
 
 import fko.chessly.game.GameColor;
-import fko.chessly.game.NotationHelper;
 import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
@@ -132,7 +124,7 @@ public class test_SearchOptimizations {
         _omegaEngine1 = new OmegaEngine();
         _omegaEngine2 = new OmegaEngine();
 
-        _depth = 7;
+        _depth = 6;
         //        { 0, 1,         0,       0,     0,      0},
         //        { 1, 20,        0,       0,     0,      0},
         //        { 2, 400,       0,       0,     0,      0},
