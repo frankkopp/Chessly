@@ -27,8 +27,12 @@
 
 package fko.chessly.player.computer.Omega;
 
+import static org.junit.Assert.assertEquals;
+
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -43,7 +47,7 @@ import fko.chessly.player.PlayerType;
  * @author Frank
  *
  */
-public class testTimings_Search {
+public class testTimings_Search2 {
 
     final AtomicLong a_long = new AtomicLong();
     final LongAdder long_a = new LongAdder();
@@ -57,16 +61,13 @@ public class testTimings_Search {
     private OmegaSearch _omegaSearch1;
     private OmegaSearch _omegaSearch2;
 
-    /**
-     *
-     */
     @Test
     public void testTiming() {
 
         prepare();
 
         int ROUNDS = 5;
-        int DURATION = 10;
+        int DURATION = 15;
 
         int ITERATIONS = 0;
 
@@ -87,7 +88,7 @@ public class testTimings_Search {
                 test1();
                 if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) break;
             }
-            System.out.println(String.format("Test 1: %,7d runs/s", ITERATIONS/DURATION));
+            System.out.println(String.format("Test 1: %,d runs in %,d ms", ITERATIONS, Duration.between(start,Instant.now()).toMillis()));
 
             prep2();
             System.gc();
@@ -98,7 +99,7 @@ public class testTimings_Search {
                 test2();
                 if (Duration.between(start,Instant.now()).getSeconds() >= DURATION) break;
             }
-            System.out.println(String.format("Test 2: %,7d runs/s", ITERATIONS/DURATION));
+            System.out.println(String.format("Test 2: %,d runs in %,d ms", ITERATIONS, Duration.between(start,Instant.now()).toMillis()));
 
         }
 
@@ -118,27 +119,24 @@ public class testTimings_Search {
         _omegaEngine1.init(_player1);
         _omegaEngine2.init(_player2);
 
-        String fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white);
-        fen =  "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
+        String fen = ""; // white);
         //fen = NotationHelper.StandardBoardFEN;
         _omegaPosition1 = new OmegaBoardPosition(fen);
         _omegaPosition2 = new OmegaBoardPosition(fen);
 
-        _omegaEngine1._CONFIGURATION._USE_NODE_CACHE    = true;
-        _omegaEngine1._CONFIGURATION._USE_MOVE_CACHE    = true;
-        _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE   = true;
-        _omegaEngine1._CONFIGURATION._USE_PRUNING       = true;
-        _omegaEngine1._CONFIGURATION._USE_MDP           = false;
-        _omegaEngine1._CONFIGURATION._USE_PVS           = false;
-        _omegaEngine1._CONFIGURATION._USE_QUIESCENCE    = false;
+        _omegaEngine1._CONFIGURATION._USE_NODE_CACHE = true;
+        _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine1._CONFIGURATION._USE_PRUNING = true;
+        _omegaEngine1._CONFIGURATION._USE_MDP = true;
+        _omegaEngine1._CONFIGURATION._USE_PVS = true;
+        _omegaEngine1._CONFIGURATION._USE_QUIESCENCE = true;
 
-        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE    = true;
-        _omegaEngine2._CONFIGURATION._USE_MOVE_CACHE    = true;
-        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE   = true;
-        _omegaEngine2._CONFIGURATION._USE_PRUNING       = true;
-        _omegaEngine2._CONFIGURATION._USE_MDP           = false;
-        _omegaEngine2._CONFIGURATION._USE_PVS           = false;
-        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE    = false;
+        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING = true;
+        _omegaEngine2._CONFIGURATION._USE_MDP = true;
+        _omegaEngine2._CONFIGURATION._USE_PVS = false;
+        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE = true;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);
@@ -155,18 +153,22 @@ public class testTimings_Search {
     }
 
     private void test1() {
-        _omegaSearch1.configureMaxDepth(4);
+
+        // Mate in 5 half moves
+        String fen = "1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - 0 1"; // black
+        _omegaSearch1 = new OmegaSearch(_omegaEngine1);
+        _omegaPosition1 = new OmegaBoardPosition(fen);
+        _omegaSearch1.configureMaxDepth(5);
         _omegaSearch1.startSearch(_omegaPosition1);
-        // what was the move?
         while (_omegaSearch1.isSearching()) {
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            try { Thread.sleep(5);
+            } catch (InterruptedException e) {/* */}
         }
-        _omegaSearch1.stop();
-        //        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
+        //System.out.println(OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
+        //System.out.println(_omegaSearch1._principalVariation[0].toNotationString());
+        assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
+        //assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
+
     }
 
     /*
@@ -179,19 +181,24 @@ public class testTimings_Search {
     }
 
     private void test2() {
-        _omegaSearch2.configureMaxDepth(4);
+
+        // Mate in 5 half moves
+        String fen = "1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - 0 1"; // black
+        _omegaSearch2 = new OmegaSearch(_omegaEngine2);
+        _omegaPosition2 = new OmegaBoardPosition(fen);
+        _omegaSearch2.configureMaxDepth(5);
         _omegaSearch2.startSearch(_omegaPosition2);
-        // what was the move?
         while (_omegaSearch2.isSearching()) {
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            try { Thread.sleep(5);
+            } catch (InterruptedException e) {/* */}
         }
-        _omegaSearch2.stop();
-        //        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine2.getSearchResult().bestMove));
+        //System.out.println(OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
+        //System.out.println(_omegaSearch1._principalVariation[0].toNotationString());
+        assertEquals("NORMAL qd6-d1", OmegaMove.toString(_omegaEngine2.getSearchResult().bestMove));
+        //assertEquals("d6d1 c1d1 d7g4 d1e1 d8d1 ",_omegaSearch._principalVariation[0].toNotationString());
+
     }
+
 
 
 

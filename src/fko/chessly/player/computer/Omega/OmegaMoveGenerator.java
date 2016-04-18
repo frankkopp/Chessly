@@ -53,6 +53,9 @@ public class OmegaMoveGenerator {
     // which color do we generate moves for
     private OmegaColor _activePlayer;
 
+    // should we only generate capturing moves (for quiscence search)
+    private boolean _capturingOnly = false;
+
     // these are are working lists as fields to avoid to have to
     // create them every time. Instead of creating the need to be cleared before use.
     private final OmegaMoveList _legalMoves = new OmegaMoveList();
@@ -75,8 +78,9 @@ public class OmegaMoveGenerator {
         KINGS,
         ALL
     }
-    private OmegaMoveList _onDemandLegalMoveList = new OmegaMoveList();
+    private OmegaMoveList _onDemandMoveList = new OmegaMoveList();
     private long _onDemandZobristLastPosition;
+
 
     // Comparator for move value victim least value attacker
     private static final Comparator<Integer> _mvvlva_comparator = (Integer a, Integer b) -> {
@@ -98,16 +102,17 @@ public class OmegaMoveGenerator {
      * AlphaBeta pruning and therefore avoiding the cost of generating
      * all possible moves.<br/>
      *
-     * The generation cycle starts new if the position changes or if cleaOnDemand() is called.<br/>
+     * The generation cycle starts new if the position changes,
+     * capturingOnly is changed or if clearOnDemand() is called.<br/>
      *
      * @param position
      * @param capturingOnly
      * @return int representing the next legal Move. Return OmegaMove.NOMOVE if none available
      */
-    public int getNextLegalMove(OmegaBoardPosition position, boolean capturingOnly) {
+    public int getNextPseudoLegalMove(OmegaBoardPosition position, boolean capturingOnly) {
 
         // TODO zobrist could collide - then this will break.
-        if (position.getZobristKey() != _onDemandZobristLastPosition) {
+        if (position.getZobristKey() != _onDemandZobristLastPosition || _capturingOnly != capturingOnly) {
             _generationCycleState = OnDemandState.NEW;
             clearLists();
             // remember the last position to see when it has changed
@@ -117,6 +122,8 @@ public class OmegaMoveGenerator {
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
+
+        _capturingOnly = capturingOnly;
 
         // clear lists
         _capturingMoves.clear();
@@ -128,54 +135,54 @@ public class OmegaMoveGenerator {
          * generate the next batch until we have new moves or all moves are generated
          * and there are no more moves to generate
          */
-        while (_onDemandLegalMoveList.empty() && !(_generationCycleState == OnDemandState.ALL)) {
+        while (_onDemandMoveList.empty() && !(_generationCycleState == OnDemandState.ALL)) {
             switch (_generationCycleState) {
                 case NEW: // no moves yet generate pawn moves first
                     // generate pawn moves
                     generatePawnMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.PAWN;
                     break;
                 case PAWN: // we have all moves but knight, bishop, rook, queen and king moves
                     generateKnightMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.KNIGHTS;
                     break;
                 case KNIGHTS: // we have all moves but bishop, rook, queen and king moves
                     generateBishopMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.BISHOPS;
                     break;
                 case BISHOPS: // we have all moves but rook, queen and king moves
                     generateRookMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.ROOKS;
                     break;
                 case ROOKS: // we have all moves but queen and king moves
                     generateQueenMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.QUEENS;
                     break;
                 case QUEENS: // we have all moves but king moves
                     generateKingMoves();
                     if (SORT) _capturingMoves.sort(_mvvlva_comparator);
-                    for (int move : _capturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
-                    for (int move : _nonCapturingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_capturingMoves);
+                    _onDemandMoveList.add(_nonCapturingMoves);
                     _generationCycleState = OnDemandState.KINGS;
                     break;
                 case KINGS: // we have all non capturing
                     generateCastlingMoves();
-                    for (int move : _castlingMoves) if (isLegalMove(move)) _onDemandLegalMoveList.add(move);
+                    _onDemandMoveList.add(_castlingMoves);
                     _generationCycleState = OnDemandState.ALL;
                     break;
                 case ALL: // we have all moves - do nothing
@@ -185,8 +192,8 @@ public class OmegaMoveGenerator {
         }
 
         // return a move a delete it form the list
-        if (!_onDemandLegalMoveList.empty()) {
-            return _onDemandLegalMoveList.removeFirst();
+        if (!_onDemandMoveList.empty()) {
+            return _onDemandMoveList.removeFirst();
         }
 
         return OmegaMove.NOMOVE;
@@ -199,7 +206,7 @@ public class OmegaMoveGenerator {
      * Calling this method resets it manually.
      */
     public void resetOnDemand() {
-        _onDemandLegalMoveList.clear();
+        _onDemandMoveList.clear();
         _onDemandZobristLastPosition =0;
     }
 
@@ -229,9 +236,12 @@ public class OmegaMoveGenerator {
      * non legal moves out of the provided list by checking each move if it leaves
      * the king in check.<br/>
      *
+     * <b>Attention:</b> returns a reference to the list of move which will change after calling this again.<br/>
+     * Make a clone if this is not desired.
+     *
      * @param position
      * @param capturingOnly if only capturing moves should be generated for quiescence moves
-     * @return legal moves
+     * @return reference to a list of legal moves
      */
     public OmegaMoveList getLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
@@ -239,6 +249,8 @@ public class OmegaMoveGenerator {
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
+
+        _capturingOnly = capturingOnly;
 
         // remember the last position to see when it has changed
         // if changed the cache is always invalid
@@ -255,7 +267,7 @@ public class OmegaMoveGenerator {
         }
 
         // return a clone of the list as we will continue to use the list as a static list
-        return _legalMoves.clone();
+        return _legalMoves;
     }
 
     /**
@@ -277,12 +289,13 @@ public class OmegaMoveGenerator {
      * Generates <b>all</b>  moves for a position. These moves may leave the king in check
      * and may be illegal.<br/>
      * Before committing them to a board they need to be checked if they leave the king in check.
-     * Repeated calls to this will return a cached list as long the position has
-     * not changed in between.<br/>
+     *
+     * <b>Attention:</b> returns a reference to the list of move which will change after calling this again.<br/>
+     * Make a clone if this is not desired.
      *
      * @param position
      * @param capturingOnly
-     * @return list of moves which may leave the king in check
+     * @return a reference to the list of moves which may leave the king in check
      */
     public OmegaMoveList getPseudoLegalMoves(OmegaBoardPosition position, boolean capturingOnly) {
         if (position==null) throw new IllegalArgumentException("position may not be null to generate moves");
@@ -290,6 +303,8 @@ public class OmegaMoveGenerator {
         // update position
         _position = position;
         _activePlayer = _position._nextPlayer;
+
+        _capturingOnly = capturingOnly;
 
         // remember the last position to see when it has changed
         // if changed the cache is always invalid
@@ -306,7 +321,7 @@ public class OmegaMoveGenerator {
         generatePseudoLegaMoves();
 
         // return a clone of the list as we will continue to reuse
-        return _pseudoLegalMoves.clone();
+        return _pseudoLegalMoves;
     }
 
     /**
@@ -314,8 +329,10 @@ public class OmegaMoveGenerator {
      */
     private void generatePseudoLegaMoves() {
         /*
-         * Start with capturing move - lower pieces to higher pieces
-         * Then non capturing - lower to higher pieces
+         * Start with capturing move
+         *      - lower pieces to higher pieces
+         * Then non capturing
+         *      - lower to higher pieces
          *      - ideally:
          *      - moves to better positions first
          *      - e.g. Knights in the middle
@@ -324,7 +341,7 @@ public class OmegaMoveGenerator {
          *      - middle pawns forward in the beginning
          * Use different lists to add moves to avoid repeated looping
          * Too expensive to create several lists every call?
-         * Make them static and clear them instead of creating!!
+         * Make them a field and clear them instead of creating!!
          */
 
         generatePawnMoves();
@@ -333,13 +350,17 @@ public class OmegaMoveGenerator {
         generateRookMoves();
         generateQueenMoves();
         generateKingMoves();
-        generateCastlingMoves();
 
+        // sort the capturing moves for mvvlva order
         if (SORT) _capturingMoves.sort(_mvvlva_comparator);
 
-        // TODO: sort non capturing - via better piece/position/game phase value
-
+        // now we have all capturing moves
         _pseudoLegalMoves.add(_capturingMoves);
+        if (_capturingOnly) return;
+
+        // add castlings (never capture)
+        generateCastlingMoves();
+
         _pseudoLegalMoves.add(_castlingMoves);
         _pseudoLegalMoves.add(_nonCapturingMoves);
     }
@@ -404,7 +425,7 @@ public class OmegaMoveGenerator {
                         }
                     }
                     // no capture
-                    else if (d == OmegaSquare.N) { // straight
+                    else if (d == OmegaSquare.N && !_capturingOnly) { // straight
                         if (target == OmegaPiece.NOPIECE){ // way needs to be free
                             // promotion
                             if (to > 111) { // rank 8
@@ -499,6 +520,48 @@ public class OmegaMoveGenerator {
         generateMoves(type, square, OmegaSquare.kingDirections);
     }
 
+    /**
+     * @param type
+     * @param square
+     * @param pieceDirections
+     */
+    private void generateMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
+        // get all possible x88 index values for piece's moves
+        // these are basically int values to add or subtract from the
+        // current square index. Very efficient with a x88 board.
+        int[] directions = pieceDirections;
+        for (int d : directions) {
+            int to = square.ordinal() + d;
+
+            while ((to & 0x88) == 0) { // slide while valid square
+                final OmegaPiece target = _position._x88Board[to];
+
+                // free square - non capture
+                if (target == OmegaPiece.NOPIECE) { // empty
+                    if (!_capturingOnly) {
+                        _nonCapturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                }
+                // occupied square - capture if opponent and stop sliding
+                else {
+                    if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
+                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
+                        _capturingMoves.add(OmegaMove.createMove(
+                                OmegaMoveType.NORMAL,
+                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
+                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
+                    }
+                    break; // stop sliding;
+                }
+                if (type.isSliding()) to += d; // next sliding field in this direction
+                else break; // no sliding piece type
+            }
+        }
+    }
+
     private void generateCastlingMoves() {
         if (_position.hasCheck()) return; // no castling if we are in check
         // iterate over all available castlings at this position
@@ -565,46 +628,6 @@ public class OmegaMoveGenerator {
                             OmegaPiece.BLACK_KING,
                             OmegaPiece.NOPIECE,OmegaPiece.NOPIECE));
                 }
-            }
-        }
-    }
-
-    /**
-     * @param type
-     * @param square
-     * @param pieceDirections
-     */
-    private void generateMoves(OmegaPieceType type, OmegaSquare square, int[] pieceDirections) {
-        // get all possible x88 index values for piece's moves
-        // these are basically int values to add or subtract from the
-        // current square index. Very efficient with a x88 board.
-        int[] directions = pieceDirections;
-        for (int d : directions) {
-            int to = square.ordinal() + d;
-
-            while ((to & 0x88) == 0) { // slide while valid square
-                final OmegaPiece target = _position._x88Board[to];
-
-                // free square - non capture
-                if (target == OmegaPiece.NOPIECE) { // empty
-                    _nonCapturingMoves.add(OmegaMove.createMove(
-                            OmegaMoveType.NORMAL,
-                            OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                            OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
-                }
-                // occupied square - capture if opponent and stop sliding
-                else {
-                    if (target.getColor() == _activePlayer.getInverseColor()) { // opponents color
-                        assert target.getType() != OmegaPieceType.KING; // did we miss a check?
-                        _capturingMoves.add(OmegaMove.createMove(
-                                OmegaMoveType.NORMAL,
-                                OmegaSquare.getSquare(square.ordinal()),OmegaSquare.getSquare(to),
-                                OmegaPiece.getPiece(type, _activePlayer),target,OmegaPiece.NOPIECE));
-                    }
-                    break; // stop sliding;
-                }
-                if (type.isSliding()) to += d; // next sliding field in this direction
-                else break; // no sliding piece type
             }
         }
     }
@@ -824,7 +847,6 @@ public class OmegaMoveGenerator {
 
     /**
      * Test if move is legal on the current position for the next player.
-     * TODO: Improve - is there a way to avoid make/unmake?
      *
      * @param move
      * @return true if king of active player is not attacked after the move
@@ -849,7 +871,7 @@ public class OmegaMoveGenerator {
      * Clears all lists
      */
     private void clearLists() {
-        _onDemandLegalMoveList.clear();
+        _onDemandMoveList.clear();
         _legalMoves.clear();
         _pseudoLegalMoves.clear();
         _evasionMoves.clear();

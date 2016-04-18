@@ -65,7 +65,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
 
     // the search engine itself
-    private OmegaSearch _omegaSearch = new OmegaSearch(this);
+    private OmegaSearch _omegaSearch = null;
 
     // the search result of the search - null when no result yet
     private SearchResult _searchResult = null;
@@ -119,11 +119,31 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         this._player = (ComputerPlayer) player;
         _activeColor = player.getColor();
 
+        // DEBUG: color based configuration
+        if (_activeColor.isWhite()) {
+            //            _CONFIGURATION._USE_NODE_CACHE = true;
+            //            _CONFIGURATION._USE_BOARD_CACHE = true;
+            //            _CONFIGURATION._USE_PRUNING = true;
+            //            _CONFIGURATION._USE_MDP = true;
+            //            _CONFIGURATION._USE_PVS = false;
+            //            _CONFIGURATION._USE_QUIESCENCE = true;
+        } else {
+            //            _CONFIGURATION._USE_NODE_CACHE = true;
+            //            _CONFIGURATION._USE_BOARD_CACHE = true;
+            //            _CONFIGURATION._USE_PRUNING = true;
+            //            _CONFIGURATION._USE_MDP = true;
+            //            _CONFIGURATION._USE_PVS = true;
+            //            _CONFIGURATION._USE_QUIESCENCE = true;
+        }
+
         // initialize opening book
         if (_CONFIGURATION._USE_BOOK) {
             Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
             _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
         }
+
+        _omegaSearch = new OmegaSearch(this);
+
     }
 
     /**
@@ -382,7 +402,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentMaxSearchDepth() {
-        return _omegaSearch._currentSearchDepth;
+        return _omegaSearch._currentExtraSearchDepth;
     }
 
     /**
@@ -529,9 +549,22 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION._USE_BOARD_CACHE) {
             s += "BC,";
         }
+        if (_CONFIGURATION._USE_MOVE_CACHE) {
+            s += "MC,";
+        }
         if (_CONFIGURATION._USE_PRUNING) {
             s += "PRUN,";
         }
+        if (_CONFIGURATION._USE_PVS) {
+            s += "PVS,";
+        }
+        if (_CONFIGURATION._USE_MDP) {
+            s += "MDP,";
+        }
+        if (_CONFIGURATION._USE_QUIESCENCE) {
+            s += "Q,";
+        }
+
         if (OmegaConfiguration.PERFT) {
             s = "PERF TEST";
         }

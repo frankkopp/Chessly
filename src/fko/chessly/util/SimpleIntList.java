@@ -181,6 +181,30 @@ public class SimpleIntList implements Iterable<Integer> {
     }
 
     /**
+     * Swap the first occurrence of number with the first element.
+     * If the number is not in the list nothing happens.
+     *
+     * @param number
+     */
+    public void pushToHead(int number) {
+        int element = -1;
+        // look for number in list
+        for(int i=_head; i<_tail; i++) {
+            if (_list[i] == number) {
+                element = i;
+                break;
+            }
+        }
+        // if found swap with first
+        if (element > -1) {
+            final int tmp = _list[_head];
+            _list[_head] = _list[element];
+            _list[element] = tmp;
+        }
+
+    }
+
+    /**
      * Returns the size of the list
      * @return number of elements
      */

@@ -28,8 +28,8 @@
 package fko.chessly.player.computer.Omega;
 
 /**
- * A cache for board evaluation values to reduce evaluation calculation during
- * search. Implementation uses a simple array of an Entry class. The array indexes
+ * A cache for node results during AlphaBeta search.
+ * Implementation uses a simple array of an Entry class. The array indexes
  * are calculated by using the modulo of the max number of entries from the key.
  * <code>entries[key%maxNumberOfEntries]</code>. As long as key is randomly distributed
  * this works just fine.
@@ -55,12 +55,14 @@ public class OmegaTranspositionTable {
     public OmegaTranspositionTable(int size) {
         _size = size;
 
-        // check mem - add some head room
+        // check available mem - add some head room
         System.gc();
-        int freeMemory = (int) (Runtime.getRuntime().freeMemory() / (MB * MB));
+        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory) / (MB * MB);
+        //int mem = (int) ((int) Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()) / (MB * MB);
         if (freeMemory < size*2) {
             System.err.println(String.format("Not enough memory for a %dMB transposition cache - reducing to %dMB", size, freeMemory/4));
-            _size = freeMemory/4;
+            _size = (int) (freeMemory/10); // 10% of memory
         }
 
         // size in byte divided by entry size plus size for array bucket
@@ -75,34 +77,65 @@ public class OmegaTranspositionTable {
 
     /**
      * Stores the node value and the depth it has been calculated at.
-     *
-     * @param key
+     * @param position TODO
      * @param value
      * @param type
      * @param depth
      * @param moveList
      */
-    public void put(long key, int value, TT_EntryType type, int depth, OmegaMoveList moveList) {
-        final int hash = getHash(key);
-        if (entries[hash].key == 0) { // new value
+    public void put(OmegaBoardPosition position,
+            int value, TT_EntryType type, int depth, OmegaMoveList moveList) {
+
+        final int hash = getHash(position._zobristKey);
+
+        // new value
+        if (entries[hash].key == 0) {
             _numberOfEntries++;
-            entries[hash].key = key;
+            entries[hash].key = position._zobristKey;
+            //entries[hash].fen = position.toFENString();
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
             entries[hash].move_list = moveList;
-        } else { // collision
-            if (key == entries[hash].key  // same position
-                    && depth >= entries[hash].depth) { // value from same or deeper depth?
-                _numberOfCollisions++;
-                entries[hash].key = key;
-                entries[hash].value = value;
-                entries[hash].type = type;
-                entries[hash].depth = depth;
-                entries[hash].move_list = moveList;
-            }
-            // ignore new values for cache
+
         }
+        // different position - overwrite
+        else if (position._zobristKey != entries[hash].key) {
+
+            _numberOfCollisions++;
+            entries[hash].key = position._zobristKey;
+            //entries[hash].fen = position.toFENString();
+            entries[hash].value = value;
+            entries[hash].type = type;
+            entries[hash].depth = depth;
+            entries[hash].move_list = moveList;
+        }
+        // Collision or update
+        else if (position._zobristKey == entries[hash].key  // same position
+                && depth >= entries[hash].depth) { // Overwrite only when new value from deeper search
+
+            // this asserts detects if key=key but fen!=fen ==> COLLISION!!!
+            // DEBUG
+            //            final String fenCache = entries[hash].fen;
+            //            final String fenNew = position.toFENString();
+            //            final String fc = fenCache.replaceAll(" \\d+ \\d+$", "");
+            //            final String fg = fenNew.replaceAll(" \\d+ \\d+$", "");
+            //            if (!fc.equals(fg)) {
+            //                System.err.println("key=key but fen!=fen");
+            //                System.err.println("new  : "+fg);
+            //                System.err.println("cache: "+fc);
+            //                System.err.println();
+            //            }
+
+            _numberOfCollisions++;
+            entries[hash].key = position._zobristKey;
+            //entries[hash].fen = position.toFENString();
+            entries[hash].value = value;
+            entries[hash].type = type;
+            entries[hash].depth = depth;
+            entries[hash].move_list = moveList;
+        }
+        // ignore new values for cache
     }
 
     /**
@@ -135,8 +168,10 @@ public class OmegaTranspositionTable {
         // initialize
         for (int i=0; i<_max_entries; i++) {
             entries[i].key = 0L;
+            //entries[i].fen = "";
             entries[i].value = Integer.MIN_VALUE;
             entries[i].depth = 0;
+            entries[i].type = TT_EntryType.ALPHA;
         }
         _numberOfEntries = 0;
         _numberOfCollisions = 0;
@@ -177,6 +212,7 @@ public class OmegaTranspositionTable {
     public static final class TT_Entry {
         static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES)*2 + 8;
         long key   = 0L;
+        //String fen = "";
         int  value = Integer.MIN_VALUE;
         int  depth = 0;
         TT_EntryType type = TT_EntryType.ALPHA;
