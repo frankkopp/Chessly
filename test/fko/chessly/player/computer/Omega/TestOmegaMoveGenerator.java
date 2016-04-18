@@ -41,6 +41,25 @@ import org.junit.Test;
 public class TestOmegaMoveGenerator {
 
 
+
+    /**
+     * Tests mate position
+     */
+    @Test
+    public void testMaxMovesPosition() {
+        String testFen = "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"; // 218 moves to make
+
+        OmegaBoardPosition board = new OmegaBoardPosition(testFen);
+        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
+        OmegaMoveList legal_moves = moveGenerator.getLegalMoves(board, false).clone();
+        OmegaMoveList pseudo_moves = moveGenerator.getPseudoLegalMoves(board, false).clone();
+
+        assertEquals(218,  legal_moves.size());
+        assertEquals(218,  pseudo_moves.size());
+
+    }
+
+
     /**
      * Tests mate position
      */
@@ -52,8 +71,8 @@ public class TestOmegaMoveGenerator {
 
         OmegaBoardPosition board = new OmegaBoardPosition(testFen);
         OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
-        OmegaMoveList capturing_moves = moveGenerator.getLegalMoves(board, true);
-        OmegaMoveList all_moves = moveGenerator.getLegalMoves(board, false);
+        OmegaMoveList capturing_moves = moveGenerator.getLegalMoves(board, true).clone();
+        OmegaMoveList all_moves = moveGenerator.getLegalMoves(board, false).clone();
 
         System.out.println(capturing_moves);
         System.out.println(all_moves);
@@ -143,6 +162,36 @@ public class TestOmegaMoveGenerator {
     }
 
     /**
+     *
+     */
+    @Test
+    public void testMoveSorting() {
+    
+        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
+        OmegaBoardPosition board = null;
+    
+        int i=0;
+        String[] fens = getFENs();
+        while (fens[i]!=null) {
+            String testFen = fens[i++];
+            System.out.println(testFen);
+            board = new OmegaBoardPosition(testFen);
+    
+            OmegaMoveList moves = moveGenerator.getPseudoLegalMoves(board, false);
+    
+            moves.stream()
+            //.filter((move) -> OmegaMove.getTarget(move) != OmegaPiece.NOPIECE)
+            .forEach((m) -> {
+                System.out.print(OmegaMove.toString(m));
+                System.out.print(" " + (OmegaMove.getPiece(m).getType().getValue() - OmegaMove.getTarget(m).getType().getValue()));
+                System.out.println();
+            });
+            System.out.println();
+        }
+    }
+
+
+    /**
      * Tests the timing
      */
     @Test
@@ -211,39 +260,11 @@ public class TestOmegaMoveGenerator {
         }
     }
 
-    /**
-     *
-     */
-    @Test
-    public void testMoveSorting() {
-
-        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
-        OmegaBoardPosition board = null;
-
-        int i=0;
-        String[] fens = getFENs();
-        while (fens[i]!=null) {
-            String testFen = fens[i++];
-            System.out.println(testFen);
-            board = new OmegaBoardPosition(testFen);
-
-            OmegaMoveList moves = moveGenerator.getPseudoLegalMoves(board, false);
-
-            moves.stream()
-            //.filter((move) -> OmegaMove.getTarget(move) != OmegaPiece.NOPIECE)
-            .forEach((m) -> {
-                System.out.print(OmegaMove.toString(m));
-                System.out.print(" " + (OmegaMove.getPiece(m).getType().getValue() - OmegaMove.getTarget(m).getType().getValue()));
-                System.out.println();
-            });
-            System.out.println();
-        }
-    }
-
     String[] getFENs() {
 
         int i=0;
         String[] fen = new String[200];
+        fen[i++]="R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"; // 218 moves to make
         fen[i++]="r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/B5R1/pbp2PPP/1R4K1 b kq e3 0 113";
         fen[i++]="r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/pbp2PPP/1R4K1 b kq e3 0 113";
         fen[i++]="r3k2r/1ppn3p/2q1q1n1/4P3/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
