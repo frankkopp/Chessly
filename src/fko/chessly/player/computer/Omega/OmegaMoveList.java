@@ -33,16 +33,21 @@ import fko.chessly.util.SimpleIntList;
 
 /**
  * Simple and fast list class for OmegaMoves which are in fact integers.
+ * Grows as needed.
  *
  * @author Frank
  */
 public class OmegaMoveList extends SimpleIntList {
 
     /**
-     * Creates a list with a maximum of <tt>MAX_ENTRIES</tt> elements
+     * Creates a list with a maximum of 75 elements
+     * Max numbers of possible moves per position is 218
+     * fen = "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"; // 218 moves to make
+     * Max for pseudo legal moves seems to be 225
+     * we use 75 and let it grow to save space as more than 75 is rare
      */
     public OmegaMoveList() {
-        super();
+        super(75);
     }
 
     /**

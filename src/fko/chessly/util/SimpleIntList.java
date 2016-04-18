@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
 
 /**
  * Simple and fast list class for integers.
- * It has a fixed size and does not grow.
+ * Grows as needed.
  *
  * @author Frank Kopp
  */
@@ -45,7 +45,8 @@ public class SimpleIntList implements Iterable<Integer> {
     /**
      * Max entries of a MoveList
      */
-    public static final int DEFAULT_MAX_ENTRIES = 128;
+    public static final int DEFAULT_MAX_ENTRIES = 64;
+
     /**
      * When growing the list this determines how many entries entries
      * shall be generated
