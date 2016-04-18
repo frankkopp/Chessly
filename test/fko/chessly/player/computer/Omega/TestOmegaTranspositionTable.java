@@ -57,7 +57,7 @@ public class TestOmegaTranspositionTable {
         OmegaTranspositionTable cache = new OmegaTranspositionTable(32);
         OmegaBoardPosition position = new OmegaBoardPosition();
         assertEquals(762600, cache.getMaxEntries());
-        assertEquals(32, cache.getSize());
+        assertEquals(32*1024*1024, cache.getSize());
         cache.put(position, 999, TT_EntryType.EXACT, 5, null);
         assertEquals(1, cache.getNumberOfEntries());
         assertEquals(999,cache.get(position).value);
