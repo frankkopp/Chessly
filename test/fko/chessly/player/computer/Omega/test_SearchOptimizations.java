@@ -165,7 +165,6 @@ public class test_SearchOptimizations {
         _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE   = true;
         _omegaEngine1._CONFIGURATION._USE_NODE_CACHE    = true;
         _omegaEngine1._CONFIGURATION._USE_PRUNING       = true;
-        _omegaEngine1._CONFIGURATION._USE_PV_PUSH       = false;
         _omegaEngine1._CONFIGURATION._USE_PVS           = false;
         _omegaEngine1._CONFIGURATION._USE_MDP           = false;
         _omegaEngine1._CONFIGURATION._USE_MPP           = false;
@@ -174,7 +173,6 @@ public class test_SearchOptimizations {
         _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE   = true;
         _omegaEngine2._CONFIGURATION._USE_NODE_CACHE    = true;
         _omegaEngine2._CONFIGURATION._USE_PRUNING       = true;
-        _omegaEngine2._CONFIGURATION._USE_PV_PUSH       = true;
         _omegaEngine2._CONFIGURATION._USE_PVS           = true;
         _omegaEngine2._CONFIGURATION._USE_MDP           = true;
         _omegaEngine2._CONFIGURATION._USE_MPP           = false;

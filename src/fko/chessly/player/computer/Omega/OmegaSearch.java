@@ -662,13 +662,6 @@ public class OmegaSearch implements Runnable {
         boolean hadLegaMove = false;
         OmegaMoveList moves = _omegaMoveGenerator[ply].getPseudoLegalMoves(position, false);
 
-        // TODO: Push PV move to the head of the list
-        if (_omegaEngine._CONFIGURATION._USE_PV_PUSH) {
-            if (_principalVariation[0].size() >= ply) { // we have pv value for this depth
-                moves.pushToHead(_principalVariation[0].get(ply));
-            }
-        }
-
         // moves to search recursively
         for(int i = 0; i < moves.size(); i++) {
             int move = moves.get(i);

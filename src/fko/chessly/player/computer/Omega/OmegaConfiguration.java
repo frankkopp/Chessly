@@ -75,9 +75,6 @@ public class OmegaConfiguration {
     /** Principal Variation Search */
     boolean _USE_PVS = true;
 
-    /** Pushes the PV move to the head of the move list before iterating over moves in negamax */
-    boolean _USE_PV_PUSH = true;
-
     /** Mate Distance Pruning */
     boolean _USE_MDP = true;
 
