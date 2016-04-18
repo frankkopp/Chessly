@@ -27,6 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
+import java.lang.ref.SoftReference;
+
 /**
  * A cache for node results during AlphaBeta search.
  * Implementation uses a simple array of an Entry class. The array indexes
@@ -59,7 +61,7 @@ public class OmegaTranspositionTable {
         System.gc();
         long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory);
-        int percentage = 5;
+        int percentage = 10;
         if (freeMemory*percentage/100 < _size) {
             System.err.println(String.format("Not enough memory for a %,dMB transposition cache - reducing to %,dMB", _size/(MB*MB), (freeMemory*percentage/100)/(MB*MB)));
             _size = (int) (freeMemory*percentage/100); // % of memory
@@ -96,7 +98,7 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
-            entries[hash].move_list = moveList;
+            entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
 
         }
         // different position - overwrite
@@ -108,7 +110,7 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
-            entries[hash].move_list = moveList;
+            entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
         }
         // Collision or update
         else if (position._zobristKey == entries[hash].key  // same position
@@ -133,7 +135,7 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
-            entries[hash].move_list = moveList;
+            entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
         }
         // ignore new values for cache
     }
@@ -210,13 +212,20 @@ public class OmegaTranspositionTable {
      * Contains a key, value and an entry type.
      */
     public static final class TT_Entry {
-        static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES)*2 + 8;
+        static final int SIZE = (
+                Long.BYTES // key
+                +Integer.BYTES // value
+                +Integer.BYTES // depth
+                )*2 // 64bit?
+                + 8 // enum
+                + 40; // SoftReference
         long key   = 0L;
         //String fen = "";
         int  value = Integer.MIN_VALUE;
         int  depth = 0;
         TT_EntryType type = TT_EntryType.ALPHA;
-        OmegaMoveList move_list = null;
+        //OmegaMoveList move_list = null;
+        SoftReference<OmegaMoveList> move_list = new SoftReference<OmegaMoveList>(null);
     }
 
     /**

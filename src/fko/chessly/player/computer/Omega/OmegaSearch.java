@@ -656,7 +656,7 @@ public class OmegaSearch implements Runnable {
                     }
                 }
                 // move list is independent from depth
-                tt_moves = entry.move_list;
+                tt_moves = entry.move_list.get();
             } else {
                 _nodeCache_Misses++;
             }
