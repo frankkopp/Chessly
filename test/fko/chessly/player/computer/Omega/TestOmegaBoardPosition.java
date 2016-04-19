@@ -49,7 +49,7 @@ import fko.chessly.game.NotationHelper;
  */
 public class TestOmegaBoardPosition {
 
-    private static final int ITERATIONS = 99;
+    private static final int ITERATIONS = 999;
 
 
 
@@ -513,29 +513,6 @@ public class TestOmegaBoardPosition {
         GameBoard gb = new GameBoardImpl(fen);
         OmegaBoardPosition obp_copy = new OmegaBoardPosition(gb);
         assertTrue(gb.toFENString().equals(obp_copy.toFENString()));
-    }
-
-
-    /**
-     * Test Zobrist Key collision
-     */
-    @Test
-    public void testZobristCollision() {
-        String testFen_1 = "rnbqkbnr/2p1pppp/8/pP1p4/1P6/8/2PPPPPP/RNBQKBNR w KQkq a6 0 4";
-        String testFen_2 = "rnbqkbnr/2p1pppp/8/pP1p4/1P6/8/2PPPPPP/RNBQKBNR w KQkq d6 0 4";
-
-        OmegaBoardPosition omegaBoard_1 = new OmegaBoardPosition(testFen_1);
-        OmegaBoardPosition omegaBoard_2 = new OmegaBoardPosition(testFen_2);
-
-        System.out.println("Test if zobrists are equal.");
-        System.out.println(omegaBoard_1.getZobristKey());
-        System.out.println(omegaBoard_2.getZobristKey());
-        assertTrue(omegaBoard_1.getZobristKey()==omegaBoard_2.getZobristKey());
-
-        System.out.println("Test if board are equal.");
-        System.out.println(omegaBoard_1.toFENString());
-        System.out.println(omegaBoard_2.toFENString());
-        assertTrue(omegaBoard_1.equals(omegaBoard_2));
     }
 
 
