@@ -772,7 +772,7 @@ public class OmegaSearch implements Runnable {
                 && !OmegaConfiguration.PERFT) {
 
             // Stores the list of moves for this node and pushes the bestMovee to the front.
-            // We create a minimal list to not waste space - list will not change any more
+            // We create a minimal copy of the list to not waste space - list will not change any more
             OmegaMoveList m = null;
             if (_omegaEngine._CONFIGURATION._USE_MOVE_CACHE) {
                 m = new OmegaMoveList(moves.size());
