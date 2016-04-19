@@ -656,7 +656,7 @@ public class OmegaSearch implements Runnable {
                     }
                 }
                 // move list is independent from depth
-                tt_moves = entry.move_list.get();
+                tt_moves = entry.move_list; //.get();
             } else {
                 _nodeCache_Misses++;
             }
@@ -686,6 +686,17 @@ public class OmegaSearch implements Runnable {
         for(int i = 0; i < moves.size(); i++) {
             int move = moves.get(i);
             int value = bestValue;
+
+            // Minor Promotion Pruning
+            if (_omegaEngine._CONFIGURATION._USE_MPP && !OmegaConfiguration.PERFT) {
+                if(OmegaMove.getMoveType(move) == OmegaMoveType.PROMOTION
+                        && OmegaMove.getPromotion(move).getType() != OmegaPieceType.QUEEN
+                        && OmegaMove.getPromotion(move).getType() != OmegaPieceType.KNIGHT) {
+                    // prune non queen or knight promotion as they are redundant
+                    // exception would be stale mate situations.
+                    continue;
+                }
+            }
 
             position.makeMove(move);
 
