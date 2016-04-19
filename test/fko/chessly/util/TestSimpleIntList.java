@@ -283,23 +283,6 @@ public class TestSimpleIntList {
         }
         assertTrue(list2.size()==256);
 
-        // add one too many
-        try {
-            list2.add(999);
-            fail();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // ignore
-        }
-        assertTrue(list2.size()==256);
-
-        // add too many elements
-        try {
-            list.add(list2);
-            fail();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // ignore
-        }
-
         // equals
         list = new SimpleIntList();
         list.add(list2);

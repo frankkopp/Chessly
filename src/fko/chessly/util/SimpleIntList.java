@@ -58,8 +58,6 @@ public class SimpleIntList implements Iterable<Integer> {
     protected int _head = 0;
     protected int _tail = 0;
 
-
-
     /**
      * Creates a list with a maximum of <tt>DEFAULT_MAX_ENTRIES</tt> elements
      */
@@ -81,12 +79,12 @@ public class SimpleIntList implements Iterable<Integer> {
      * @param old
      */
     public SimpleIntList(SimpleIntList old) {
+        _list = Arrays.copyOfRange(old._list, old._head, old._list.length);
         this._arraySize = old._arraySize;
-        _list = new int[_arraySize];
-        System.arraycopy(old._list, old._head, this._list, 0, old._tail-old._head);
         this._head = 0;
         this._tail = old._tail-old._head;
     }
+
     /**
      * Clear the list
      */
@@ -122,9 +120,7 @@ public class SimpleIntList implements Iterable<Integer> {
      */
     private void grow(int extra_size) {
         _arraySize = _arraySize + extra_size + DEFAULT_GROWTH_MARGIN;
-        int[] new_list = new int[_arraySize];
-        System.arraycopy(_list, _head, new_list, 0, _tail-_head);
-        _list = new_list;
+        _list = Arrays.copyOfRange(_list, _head, _arraySize);
         this._tail = _tail-_head;
         this._head = 0;
     }
