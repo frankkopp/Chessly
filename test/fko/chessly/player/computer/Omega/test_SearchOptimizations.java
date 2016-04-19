@@ -124,7 +124,7 @@ public class test_SearchOptimizations {
         _omegaEngine1 = new OmegaEngine();
         _omegaEngine2 = new OmegaEngine();
 
-        _depth = 6;
+        _depth = 4;
         //        { 0, 1,         0,       0,     0,      0},
         //        { 1, 20,        0,       0,     0,      0},
         //        { 2, 400,       0,       0,     0,      0},
@@ -142,7 +142,11 @@ public class test_SearchOptimizations {
         //_fen = "r2r1n2/pp2bk2/2p1p2p/3q4/3PN1QP/2P3R1/P4PP1/5RK1 w - - 0 1";
         //_fen = "1kr4r/ppp2bq1/4n3/4P1pp/1NP2p2/2PP2PP/5Q1K/4R2R w - - 0 1";
         //_fen = "1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - - 0 1";
-        _fen = "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"; // 218 moves to make
+        //_fen = "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"; // 218 moves to make
+        //_fen = "r3brk1/ppq3bp/4Qnp1/4N3/1PPB4/2n5/P3B1PP/3R1RK1 b - -"; // e8f7 e5f7 c3e2
+        //_fen = "6k1/5pp1/8/4P1qp/1Q3p2/pP6/P1P3PP/2K5 b - -"; // f4f3
+        //_fen = "1r4k1/2r3p1/4p2p/Rp1bPp2/1P1p1P2/2qP3P/2R3PK/1Q2N3 b - -"; //
+        _fen = "6k1/1Pr3p1/4p2p/R2bPp2/3p1P2/2qP3P/6PK/4N3 w - -"; // promotion test
         _omegaPosition1 = new OmegaBoardPosition(_fen);
         _omegaPosition2 = new OmegaBoardPosition(_fen);
 
@@ -156,10 +160,10 @@ public class test_SearchOptimizations {
 
         _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE   = true;
         _omegaEngine1._CONFIGURATION._USE_NODE_CACHE    = true;
-        _omegaEngine1._CONFIGURATION._USE_MOVE_CACHE    = false;
+        _omegaEngine1._CONFIGURATION._USE_MOVE_CACHE    = true;
         _omegaEngine1._CONFIGURATION._USE_PRUNING       = true;
-        _omegaEngine1._CONFIGURATION._USE_PVS           = false;
-        _omegaEngine1._CONFIGURATION._USE_MDP           = false;
+        _omegaEngine1._CONFIGURATION._USE_PVS           = true;
+        _omegaEngine1._CONFIGURATION._USE_MDP           = true;
         _omegaEngine1._CONFIGURATION._USE_MPP           = false;
         _omegaEngine1._CONFIGURATION._USE_QUIESCENCE    = false;
 
@@ -167,9 +171,9 @@ public class test_SearchOptimizations {
         _omegaEngine2._CONFIGURATION._USE_NODE_CACHE    = true;
         _omegaEngine2._CONFIGURATION._USE_MOVE_CACHE    = true;
         _omegaEngine2._CONFIGURATION._USE_PRUNING       = true;
-        _omegaEngine2._CONFIGURATION._USE_PVS           = false;
-        _omegaEngine2._CONFIGURATION._USE_MDP           = false;
-        _omegaEngine2._CONFIGURATION._USE_MPP           = false;
+        _omegaEngine2._CONFIGURATION._USE_PVS           = true;
+        _omegaEngine2._CONFIGURATION._USE_MDP           = true;
+        _omegaEngine2._CONFIGURATION._USE_MPP           = true;
         _omegaEngine2._CONFIGURATION._USE_QUIESCENCE    = false;
 
         _omegaEngine1.init(_player1);

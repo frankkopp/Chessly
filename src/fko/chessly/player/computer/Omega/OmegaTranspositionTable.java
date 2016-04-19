@@ -98,7 +98,8 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
-            entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
+            entries[hash].move_list = moveList;
+            //entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
 
         }
         // different position - overwrite
@@ -110,7 +111,8 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
-            entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
+            entries[hash].move_list = moveList;
+            //entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
         }
         // Collision or update
         else if (position._zobristKey == entries[hash].key  // same position
@@ -135,7 +137,8 @@ public class OmegaTranspositionTable {
             entries[hash].value = value;
             entries[hash].type = type;
             entries[hash].depth = depth;
-            entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
+            entries[hash].move_list = moveList;
+            //entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
         }
         // ignore new values for cache
     }
@@ -218,14 +221,14 @@ public class OmegaTranspositionTable {
                 +Integer.BYTES // depth
                 )*2 // 64bit?
                 + 8 // enum
-                + 40; // SoftReference
+                ;//+ 40; // SoftReference
         long key   = 0L;
         //String fen = "";
         int  value = Integer.MIN_VALUE;
         int  depth = 0;
         TT_EntryType type = TT_EntryType.ALPHA;
-        //OmegaMoveList move_list = null;
-        SoftReference<OmegaMoveList> move_list = new SoftReference<OmegaMoveList>(null);
+        OmegaMoveList move_list = null;
+        //SoftReference<OmegaMoveList> move_list = new SoftReference<OmegaMoveList>(null);
     }
 
     /**

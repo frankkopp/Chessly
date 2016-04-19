@@ -66,8 +66,10 @@ public class OmegaConfiguration {
     /** Use Transposition Tables for visited nodes  (needs extra memory) */
     boolean _USE_NODE_CACHE = true;
 
-    /** Use Transposition Tables to store move list (needs extra memory) */
-    boolean _USE_MOVE_CACHE = true;
+    /** Use Transposition Tables to store move list (needs extra memory)
+     *  Very expensive as it creates many int[] arrays - worth it?*/
+
+    boolean _USE_MOVE_CACHE = false;
 
     /** Use Cache for Board evaluations - very expensive, only worth
      * with expensive evaluation - (needs extra memory)                  */
