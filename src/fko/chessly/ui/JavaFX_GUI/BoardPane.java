@@ -49,6 +49,7 @@ import fko.chessly.game.pieces.Rook;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
+import javafx.beans.binding.StringExpression;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
@@ -126,6 +127,18 @@ public class BoardPane extends Pane {
     // supports handling of mouse press and release
     private boolean _ignoreNextRelease;
 
+    // some elements we can reuse to not have to reate them every refresh
+    private Text[] _fileLetters = new Text[DIM];
+    private Text[] _rankNumbers = new Text[DIM];
+    private Line[] _hlines = new Line[DIM];
+    private Line[] _vlines = new Line[DIM];
+    private Rectangle[] _rectangles = new Rectangle[DIM];
+    private static final DoubleProperty _fontSize = new SimpleDoubleProperty();
+    private static final StringExpression _fontStyle = Bindings.concat(
+            "-fx-font-size: ", _fontSize.asString(), ";"
+            ,"-fx-font-family: \"Arial\";"
+            );
+
     /**
      * constructor
      * @param backReference
@@ -169,6 +182,15 @@ public class BoardPane extends Pane {
 
         // pre-load piece images
         getPieceImages();
+
+        // prepare some elements and keep them to reference them
+        for (int i=0; i<DIM; i++) {
+            _fileLetters[i] = new Text(getFilesLetter(i+1));
+            _rankNumbers[i] = new Text(String.valueOf(i+1));
+            _hlines[i] = new Line();
+            _vlines[i] = new Line();
+            _rectangles[i] = new Rectangle();
+        }
 
         // draw initial board
         drawBoard();
@@ -285,32 +307,27 @@ public class BoardPane extends Pane {
      */
     private void drawLinesAndNumbers(Rectangle rectangle) {
 
-        // hack as there is no property binding for fontsize in Font
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(_boardSize.divide(25));
-        this.styleProperty().bind(Bindings.concat(
-                "-fx-font-size: ", fontSize.asString(), ";"
-                ,"-fx-font-family: \"Arial\";"
-                ));
+        _fontSize.bind(_boardSize.divide(25));
+        this.styleProperty().bind(_fontStyle);
 
         // for each file and rank
         for (int i = 0; i < DIM; i++) {
             int index =_currentOrientation == orientation.WHITE_SOUTH ?  i+1 : DIM - i;
 
             // File letter - calculates the middle off the letter and adds half of the checker size
-            Text fileLetter = new Text(getFilesLetter(index));
-            fileLetter.xProperty().bind(_offset_x.add(_checkerSize.multiply(i).subtract(fontSize.multiply(0.4)).add(_checkerSize.multiply(0.5))));
-            fileLetter.yProperty().bind(rectangle.heightProperty().add(10).add(fontSize));
+            Text fileLetter = _fileLetters[index-1]; //new Text(getFilesLetter(index));
+            fileLetter.xProperty().bind(_offset_x.add(_checkerSize.multiply(i).subtract(_fontSize.multiply(0.4)).add(_checkerSize.multiply(0.5))));
+            fileLetter.yProperty().bind(rectangle.heightProperty().add(10).add(_fontSize));
             this.getChildren().add(fileLetter);
 
             // Rank digit - position the digit in the middle of the rank
-            Text rankDigit = new Text(String.valueOf(index));
-            rankDigit.xProperty().bind(_offset_x.subtract(fontSize.multiply(0.4)).subtract(8));
-            rankDigit.yProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-i).add(fontSize.multiply(0.3)).subtract(_checkerSize.multiply(0.5))));
+            Text rankDigit = _rankNumbers[index-1];
+            rankDigit.xProperty().bind(_offset_x.subtract(_fontSize.multiply(0.4)).subtract(8));
+            rankDigit.yProperty().bind(_offset_y.add(_checkerSize.multiply(DIM-i).add(_fontSize.multiply(0.3)).subtract(_checkerSize.multiply(0.5))));
             this.getChildren().add(rankDigit);
 
             // horizontal lines
-            Line h_line = new Line();
+            Line h_line =_hlines[index-1];
             h_line.setStroke(_boardGridColor);
             h_line.startXProperty().bind(_offset_x);
             h_line.endXProperty().bind(_offset_x.add(_boardSize));
@@ -319,7 +336,7 @@ public class BoardPane extends Pane {
             this.getChildren().add(h_line);
 
             // vertical lines
-            Line v_line = new Line();
+            Line v_line =_vlines[index-1];
             v_line.setStroke(_boardGridColor);
             v_line.startXProperty().bind(_offset_x.add(_checkerSize.multiply(index)));
             v_line.endXProperty().bind(v_line.startXProperty());
@@ -328,7 +345,7 @@ public class BoardPane extends Pane {
             this.getChildren().add(v_line);
 
             // border box
-            Rectangle r = new Rectangle();
+            Rectangle r = _rectangles[index-1];
             r.setStroke(_boardGridColor);
             r.setFill(Color.TRANSPARENT);
             r.xProperty().bind(_offset_x);
