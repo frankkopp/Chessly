@@ -27,8 +27,6 @@
 
 package fko.chessly.player.computer.Omega;
 
-import java.lang.ref.SoftReference;
-
 /**
  * A cache for node results during AlphaBeta search.
  * Implementation uses a simple array of an Entry class. The array indexes
