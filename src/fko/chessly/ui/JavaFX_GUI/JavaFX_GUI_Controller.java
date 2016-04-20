@@ -232,12 +232,18 @@ public class JavaFX_GUI_Controller implements Observer {
         // scroll to last entry
         move_table.getItems().addListener((ListChangeListener<FullMove>)  (c -> {
             c.next();
-            final int size = move_table.getItems().size();
-            if (size > 0) {
-                Platform.runLater(() -> move_table.scrollTo(size - 1));
+            if (move_table.getItems().size() > 0) {
+                Platform.runLater(this::scrollToEnd);
             }
         }));
 
+    }
+
+    /**
+     * @param size
+     */
+    private void scrollToEnd() {
+        move_table.scrollTo(move_table.getItems().size() - 1);
     }
 
     /**
