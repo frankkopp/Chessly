@@ -54,7 +54,7 @@ public class OmegaConfiguration {
     boolean VERBOSE_VARIATION = false;
 
     /** verbose variation **/
-    boolean VERBOSE_STATS = true;
+    boolean VERBOSE_STATS = false;
 
 
     /** If set to true we will use the opening book */
@@ -69,7 +69,7 @@ public class OmegaConfiguration {
     /** Use Transposition Tables to store move list (needs extra memory)
      *  Very expensive as it creates many int[] arrays - worth it?*/
 
-    boolean _USE_MOVE_CACHE = false;
+    boolean _USE_MOVE_CACHE = true;
 
     /** Use Cache for Board evaluations - very expensive, only worth
      * with expensive evaluation - (needs extra memory)                  */
