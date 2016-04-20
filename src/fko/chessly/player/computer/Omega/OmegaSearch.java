@@ -154,6 +154,7 @@ public class OmegaSearch implements Runnable {
     int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
     int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
     int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
+    int _boardsNonQuiet = 0; // board/nodes evaluated in quiescence search
     int _prunings = 0;
     int _pv_researches = 0;
     long _evalCache_Hits = 0;
@@ -170,6 +171,7 @@ public class OmegaSearch implements Runnable {
         _currentRootMoveNumber = 0;
         _nodesVisited = 0;
         _boardsEvaluated = 0;
+        _boardsNonQuiet = 0;
         _prunings = 0;
         _pv_researches = 0;
         _evalCache_Hits = 0;
@@ -186,6 +188,7 @@ public class OmegaSearch implements Runnable {
     Boolean _cacheEnabled;
     OmegaEvaluationCache _evalCache;
     OmegaTranspositionTable _transpositionTable;
+
 
 
     /**
@@ -829,8 +832,6 @@ public class OmegaSearch implements Runnable {
             // ##############################################################
             // START QUIESCENCE
 
-            _nodesVisited++;
-
             // ## BEGIN Mate Distance Pruning
             if (_omegaEngine._CONFIGURATION._USE_MDP) {
                 int mate_value = -OmegaEvaluation.Value.CHECKMATE + ply;
@@ -915,10 +916,16 @@ public class OmegaSearch implements Runnable {
             for(int i = 0; i < moves.size(); i++) {
                 int move = moves.get(i);
 
+                // check if good captures
+
                 position.makeMove(move);
                 if (!position.isAttacked(  // is this a legal move?
                         position._nextPlayer,
                         position._kingSquares[position._nextPlayer.getInverseColor().ordinal()])) {
+
+                    // count as non quiet board
+                    _nodesVisited++;
+                    _boardsNonQuiet++;
 
                     // needed to remember if we even had a legal move
                     _currentVariation.add(move);
@@ -932,7 +939,6 @@ public class OmegaSearch implements Runnable {
                             || position.checkInsufficientMaterial()) {
                         value = OmegaEvaluation.Value.DRAW;
                     } else {
-
                         // go one ply deeper into the search tree
                         value = -quiescence(position, ply+1, -beta, -alpha);
 
