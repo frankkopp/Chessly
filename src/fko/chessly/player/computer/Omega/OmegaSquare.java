@@ -221,6 +221,14 @@ public enum OmegaSquare {
     public enum File {
         a, b, c, d, e, f, g, h, NOFILE;
 
+        // pre-filled list with all squares
+        @SuppressWarnings("hiding")
+        static final File[] values;
+
+        static {
+            values = File.values();
+        }
+
         /**
          * returns the file index number from 1..8
          * @return
@@ -235,7 +243,7 @@ public enum OmegaSquare {
          * @return
          */
         public static File get(int file) {
-            return OmegaSquare.File.values()[file-1];
+            return OmegaSquare.File.values[file-1];
         }
 
         @Override
@@ -252,6 +260,14 @@ public enum OmegaSquare {
     public enum Rank {
         r1, r2, r3, r4, r5, r6, r7, r8, NORANK;
 
+        // pre-filled list with all squares
+        @SuppressWarnings("hiding")
+        static final Rank[] values;
+
+        static {
+            values = Rank.values();
+        }
+
         /**
          * returns the rank index number from 1..8
          * @return
@@ -266,7 +282,7 @@ public enum OmegaSquare {
          * @return
          */
         public static Rank get(int rank) {
-            return OmegaSquare.Rank.values()[rank-1];
+            return OmegaSquare.Rank.values[rank-1];
         }
 
         @Override
