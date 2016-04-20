@@ -450,8 +450,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public long getTotalNonQuietBoards() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._boardsNonQuiet;
     }
 
     /**
