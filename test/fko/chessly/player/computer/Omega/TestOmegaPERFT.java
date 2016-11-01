@@ -59,11 +59,11 @@ public class TestOmegaPERFT {
                 { 6, 119060324, 2812008, 5248,  809099, 10828},
         };
 
-        int maxDepth = 4;
+        int maxDepth = 6;
 
         OmegaPERFT perftTest = new OmegaPERFT();
 
-        for (int i=4;i<=maxDepth;i++) {
+        for (int i=1;i<=maxDepth;i++) {
             perftTest.testPerft(i);
 
             assertTrue(perftTest.get_nodes() == results[i][1]);

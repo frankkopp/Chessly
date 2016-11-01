@@ -240,7 +240,7 @@ public class JavaFX_GUI_Controller implements Observer {
     }
 
     /**
-     * @param size
+     *
      */
     private void scrollToEnd() {
         move_table.scrollTo(move_table.getItems().size() - 1);
@@ -980,6 +980,7 @@ public class JavaFX_GUI_Controller implements Observer {
 
         // -- draw the current board of the current game --
         PlatformUtil.platformRunAndWait(() -> {_boardPane.setAndDrawBoard(game.getCurBoard());});
+        System.out.println(game.getCurBoard().toFENString());
 
         // -- update the move list according to the moves in the current game --
         PlatformUtil.platformRunAndWait(() -> {updateMoveList(game);});

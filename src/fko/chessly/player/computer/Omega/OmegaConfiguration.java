@@ -54,14 +54,14 @@ public class OmegaConfiguration {
     boolean VERBOSE_VARIATION = false;
 
     /** verbose variation **/
-    boolean VERBOSE_STATS = false;
+    boolean VERBOSE_STATS = true;
 
 
     /** If set to true we will use the opening book */
     boolean _USE_BOOK = true;
 
     /** Use Ponderer while waiting for opponents move - fills node_cache */
-    boolean _USE_PONDERER = true;
+    boolean _USE_PONDERER = false;
 
     /** Use Transposition Tables for visited nodes  (needs extra memory) */
     boolean _USE_NODE_CACHE = true;
@@ -75,6 +75,9 @@ public class OmegaConfiguration {
      * with expensive evaluation - (needs extra memory)                  */
     boolean _USE_BOARD_CACHE = true;
 
+    /** Do quiescence evaluation and search extension for non quiet positions */
+    boolean _USE_QUIESCENCE = true;
+
     /** Use AlphaBeta Pruning */
     boolean _USE_PRUNING = true;
 
@@ -87,8 +90,9 @@ public class OmegaConfiguration {
     /** Minor Promotion Pruning */
     boolean _USE_MPP = true;
 
-    /** Do quiescence evaluation and search extension for non quiet positions */
-    boolean _USE_QUIESCENCE = true;
+    /** Null Move Pruning */
+    boolean _USE_NMP = true;
+    boolean _USE_VERIFY_NMP = true;
 
 
     /** default value for folder to books */
@@ -101,6 +105,8 @@ public class OmegaConfiguration {
     //Mode _OB_Mode = Mode.PGN;
     Mode _OB_Mode = Mode.SAN;
     //Mode _OB_Mode = Mode.SIMPLE;
+
+
 
 
 

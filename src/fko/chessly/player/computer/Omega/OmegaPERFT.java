@@ -69,15 +69,19 @@ public class OmegaPERFT {
 
         int depth = maxDepth;
 
-        System.out.format("Testing single threaded at depth %d%n", depth);
+        System.out.format("Testing at depth %d%n", depth);
 
-        OmegaMoveGenerator mg = new OmegaMoveGenerator();
+        OmegaMoveGenerator[] mg = new OmegaMoveGenerator[maxDepth];
+        for (int i=0; i<maxDepth; i++) {
+            mg[i] = new OmegaMoveGenerator();
+        }
+
         OmegaBoardPosition board = new OmegaBoardPosition(_fen);
 
         long result = 0;
 
         long startTime = System.currentTimeMillis();
-        result = mg
+        result = mg[0]
                 .streamLegalMoves(board, false)
                 .mapToLong((move) -> dividePerft(depth, mg, board, move))
                 .sum();
@@ -95,7 +99,7 @@ public class OmegaPERFT {
      * @param move
      * @return
      */
-    private long dividePerft(int depth, OmegaMoveGenerator mg, OmegaBoardPosition board, int move) {
+    private long dividePerft(int depth, OmegaMoveGenerator[] mg, OmegaBoardPosition board, int move) {
         if (DIVIDE) System.out.print(OmegaMove.toSimpleString(move)+" ");
         board.makeMove(move);
         long r = miniMax(depth - 1, board, mg, 1);
@@ -104,7 +108,7 @@ public class OmegaPERFT {
         return r;
     }
 
-    private long miniMax(int depthleft, OmegaBoardPosition board, OmegaMoveGenerator mg, int ply) {
+    private long miniMax(int depthleft, OmegaBoardPosition board, OmegaMoveGenerator[] mg, int ply) {
 
         // PERFT only looks at leaf nodes
         if (depthleft == 0) {
@@ -119,7 +123,7 @@ public class OmegaPERFT {
         // some convenience fields
         OmegaColor _activePlayer = board._nextPlayer;
         OmegaColor _passivePlayer = board._nextPlayer.getInverseColor();
-        OmegaMoveList moves = mg.getPseudoLegalMoves(board, false);
+        OmegaMoveList moves = mg[ply].getPseudoLegalMoves(board, false);
         for(int i = 0; i < moves.size(); i++) {
             int move = moves.get(i);
             board.makeMove(move);

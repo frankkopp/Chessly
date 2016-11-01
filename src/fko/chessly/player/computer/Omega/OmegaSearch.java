@@ -44,41 +44,46 @@ import fko.chessly.util.ChesslyLogger;
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
  * It runs in a separate thread and needs to be started through <code>startSearch(position)</code>().
- * If stopped with stop() it stops gracefully returning the best move at that time.
- *
- * Features:
- *      DONE: Thread control
- *      DONE: Move Generation
- *      DONE: Book (in the engine class)
- *      DONE: Basic iterative MiniMax search
- *      DONE: Basic Evaluation
- *      DONE: DRAW 50-moves rule / repetition rule / insufficient material
- *      DONE: Basic Time Control
- *      DONE: Engine Watcher
- *      DONE: Pondering
- *      DONE: Evaluation Table
- *      DONE: Basic Transposition Table
- *      DONE: Iterative AlphaBeta search
- *      DONE: Pruning: AlphaBeta_Pruning
- *      DONE: AlphaBeta Transposition Table
- *      DONE: Simple Quiescence
- *      DONE: reuse move list
- *      DONE: reuse MoveGenerator
- *      DONE: use on demand MoveGen - is slower - not used
- *      TODO: Pruning: PV, Minor Promotion Pruning
- *      TODO: EXTENSIONS: Search Extension for active positions - extra value as fraction of depth
- *      TODO: EXTENSIONS: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension
- *      TODO: SEE
- *      TODO: Advanced Quiescence
- *      TODO: Advanced Evaluation
- *      TODO: Advanced Time Control
- *      TODO: PRUNING: AspirationWindows, NullMove, Futility, LateMove, Delta, MinorPromotion, See
- *      TODO: KillerTable, HistoryTable, PawnTable
- *      TODO: Extend UI for Time Per Move
+ * If stopped with stop() it stops gracefully returning the best move at that time.</br>
+ *</br>
+ * Features:</br>
+ *      DONE: Thread control</br>
+ *      DONE: Move Generation</br>
+ *      DONE: Book (in the engine class)</br>
+ *      DONE: Basic iterative MiniMax search</br>
+ *      DONE: Basic Evaluation</br>
+ *      DONE: DRAW 50-moves rule / repetition rule / insufficient material</br>
+ *      DONE: Basic Time Control</br>
+ *      DONE: Engine Watcher</br>
+ *      DONE: Pondering</br>
+ *      DONE: Evaluation Table</br>
+ *      DONE: Basic Transposition Table</br>
+ *      DONE: Iterative AlphaBeta search</br>
+ *      DONE: Pruning: AlphaBeta_Pruning</br>
+ *      DONE: AlphaBeta Transposition Table</br>
+ *      DONE: Simple Quiescence</br>
+ *      DONE: reuse move list</br>
+ *      DONE: reuse MoveGenerator</br>
+ *      DONE: use on demand MoveGen - is slower - not used</br>
+ *      DONE: Pruning: PV, Minor Promotion Pruning</br>
+ *      TODO: PRUNING: AspirationWindows, NullMove, Futility, LateMove, Delta, MinorPromotion</br>
+ *      TODO: EXTENSIONS: Search Extension for active positions - extra value as fraction of depth</br>
+ *      TODO: EXTENSIONS: SingleReplyExtension, RecaptureExtension, CheckExtension, Pawn Extension, MateThreatExtension</br>
+ *      TODO: SEE</br>
+ *      TODO: Advanced Quiescence</br>
+ *      TODO: Advanced Evaluation</br>
+ *      TODO: Advanced Time Control</br>
+ *      TODO: KillerTable, HistoryTable, PawnTable</br>
+ *      TODO: Extend UI for Time Per Move</br>
+ *      </br>
  */
 public class OmegaSearch implements Runnable {
 
     private static final int MAX_SEARCH_DEPTH = 99;
+
+    private final int NULLMOVE_DEPTH = 3;
+    private final int NULLMOVE_REDUCTION;
+    private final int NULLMOVE_REDUCTION_VERIFICATION = 3;
 
     private Logger _log = ChesslyLogger.getLogger();
 
@@ -111,7 +116,6 @@ public class OmegaSearch implements Runnable {
 
     /*
      * Search configuration (with defaults)
-     *
      * If remaining time is set to >0 then time per move is ignored.
      * If time per move is set then level is set to max.
      * if neither remaining time nor time per move is set then we use level only.
@@ -120,7 +124,6 @@ public class OmegaSearch implements Runnable {
     private Duration _remainingTime = Duration.ofSeconds(0);
     private Duration _timePerMove = Duration.ofSeconds(5);
     private int _currentEngineLevel = 0;
-
     private boolean _softTimeLimitReached = false;
     private boolean _hardTimeLimitReached = false;
     TimeKeeper _timer = null;
@@ -189,8 +192,6 @@ public class OmegaSearch implements Runnable {
     OmegaEvaluationCache _evalCache;
     OmegaTranspositionTable _transpositionTable;
 
-
-
     /**
      * Creates a search object and stores a back reference to the engine object.<br/>
      * Before using the search you need to configure it through <code>configure(...)</code><br/>
@@ -208,12 +209,23 @@ public class OmegaSearch implements Runnable {
             _omegaMoveGenerator[i] = new OmegaMoveGenerator();
         }
 
+        // prepare principal variation lists
+        for (int i=0; i< MAX_SEARCH_DEPTH; i++) {
+            _principalVariation[i]= new OmegaMoveList(MAX_SEARCH_DEPTH);
+        }
+
         _omegaEvaluation = new OmegaEvaluation(_omegaEngine, new OmegaMoveGenerator());
 
         // cache setup
         _cacheEnabled = Boolean.valueOf(Chessly.getProperties().getProperty("engine.cacheEnabled"));
         if (_cacheEnabled) {
             initializeCacheTables(); // create a cache
+        }
+
+        if (_omegaEngine._CONFIGURATION._USE_VERIFY_NMP) {
+            NULLMOVE_REDUCTION = 3;
+        } else {
+            NULLMOVE_REDUCTION = 2;
         }
     }
 
@@ -266,13 +278,10 @@ public class OmegaSearch implements Runnable {
      * It is important to configure the search before this call!
      */
     public void ponderHit() {
-
         // remember the start of the search
         _startTime = Instant.now();
-
         // setup Time Control
         setupTimeControl();
-
     }
 
     /**
@@ -320,7 +329,6 @@ public class OmegaSearch implements Runnable {
         // Wait for initialization in run() before returning from call
         try { _waitForInitializaitonLatch.await();
         } catch (InterruptedException e) {/* empty*/}
-
     }
 
     /**
@@ -350,8 +358,6 @@ public class OmegaSearch implements Runnable {
     @Override
     public void run() {
 
-        //System.out.print("Run()...");
-
         if (Thread.currentThread() != _searchThread)
             throw new java.lang.UnsupportedOperationException("run() cannot be called directly!");
 
@@ -380,9 +386,6 @@ public class OmegaSearch implements Runnable {
 
         // reset configuration flag
         _isConfigured = false;
-
-        // System.out.println("...end");
-
     }
 
     /**
@@ -405,7 +408,7 @@ public class OmegaSearch implements Runnable {
 
         // prepare principal variation lists
         for (int i=0; i< MAX_SEARCH_DEPTH; i++) {
-            _principalVariation[i]= new OmegaMoveList(MAX_SEARCH_DEPTH);
+            _principalVariation[i].clear();
         }
 
         // create _rootMoves list
@@ -436,6 +439,13 @@ public class OmegaSearch implements Runnable {
             // do search
             rootMovesSearch(position, depth);
 
+            // sure mate value found?
+            if (_currentBestRootValue >= OmegaEvaluation.Value.CHECKMATE - depth
+                    || _currentBestRootValue <= -OmegaEvaluation.Value.CHECKMATE + depth) {
+                System.err.println("Already found Mate: "+position.toFENString());
+                _stopSearch = true;
+            }
+
             // check if we need to stop search - could be external or time.
             if (_stopSearch || _softTimeLimitReached || _hardTimeLimitReached) break;
 
@@ -448,7 +458,6 @@ public class OmegaSearch implements Runnable {
         }
 
         // we should have a sorted _rootMoves list here
-        // first move is best move so far
         // create searchRestult here
         searchResult.bestMove = _currentBestRootMove;
         searchResult.resultValue = _currentBestRootValue;
@@ -500,17 +509,18 @@ public class OmegaSearch implements Runnable {
 
             int value = OmegaEvaluation.Value.NOVALUE;
             if (OmegaConfiguration.PERFT || !_omegaEngine._CONFIGURATION._USE_PVS) {
-                value = -negamax(position, depth-1, rootply+1, -beta, -alpha);
+                value = -negamax(position, depth-1, rootply+1, -beta, -alpha, true, false);
             }
+
             // ### START PVS ###
             else {
                 if (bestValue == OmegaEvaluation.Value.NOVALUE) { // no PV yet
-                    value = -negamax(position, depth-1, rootply+1, -beta, -alpha);
+                    value = -negamax(position, depth-1, rootply+1, -beta, -alpha, true, false);
                 } else { // we have a PV - do Null Window Search
-                    value = -negamax(position, depth-1, rootply+1, -alpha-1, -alpha);
-                    if (value > alpha && value < beta) { // no fail - research
+                    value = -negamax(position, depth-1, rootply+1, -alpha-1, -alpha, false, true);
+                    if (value > alpha && value < beta) { // not failed - research
                         _pv_researches++;
-                        value = -negamax(position, depth-1, rootply+1, -beta, -alpha);
+                        value = -negamax(position, depth-1, rootply+1, -beta, -alpha, true, true);
                     }
                 }
             } // ### END PVS ###
@@ -560,14 +570,20 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
-     * A simple NegaMax search for the beginning.
-     * @param position
+     * NegaMax Search
      *
+     * @param position
      * @param depthLeft
      * @param ply
+     * @param pvSearch
+     * @param doNullMove
+     *
      * @return value of the search
      */
-    private int negamax(OmegaBoardPosition position, int depthLeft, int ply, int alpha, int beta) {
+    private int negamax(
+            OmegaBoardPosition position, int depthLeft, int ply,
+            int alpha, int beta,
+            boolean pvSearch, boolean doNullMove) {
 
         // prepare hash type
         TT_EntryType tt_Type = TT_EntryType.ALPHA;
@@ -593,7 +609,7 @@ public class OmegaSearch implements Runnable {
         }
 
         // on leaf node evaluate the position from the view of the active player
-        if (depthLeft == 0) {
+        if (depthLeft <= 0) {
             if (OmegaConfiguration.PERFT) {
                 return evaluate(position);
             }
@@ -667,6 +683,46 @@ public class OmegaSearch implements Runnable {
         // End TT Lookup
         // *****************************************************
 
+        /* **********************
+         * NULL MOVE PRUNING
+         */
+        if (_omegaEngine._CONFIGURATION._USE_NMP && !OmegaConfiguration.PERFT) {
+            if (!pvSearch                               // do we search outside of PV
+                    && depthLeft >= NULLMOVE_DEPTH      // null move check only makes sense not too close to the leaf nodes
+                    && doNullMove                       // avoid multiple null moves in a row
+                    && !position.hasCheck()             // no null move pruning when in check
+                    && bigPiecePresent(position)        // avoid zugzwang by checking if officer is present
+                    ) {
+
+                // make null move
+                position.makeNullMove();
+                // null move search
+                int value = -negamax(position, depthLeft-NULLMOVE_REDUCTION, ply+1, -beta, -beta+1, false, false);
+                // unmake null move
+                position.undoNullMove();
+
+                // verification
+                if (_omegaEngine._CONFIGURATION._USE_VERIFY_NMP) {
+                    if (depthLeft > NULLMOVE_REDUCTION_VERIFICATION) {
+                        value = negamax(position, depthLeft-NULLMOVE_REDUCTION_VERIFICATION, ply+1, alpha, beta, true, false);
+                    }
+                    if (value >=beta) {
+                        _prunings++;
+                        return value;
+                    }
+                }
+
+                // pruning
+                if (value >= beta) {
+                    _prunings++;
+                    return beta;
+                }
+            }
+        }
+        /*
+         * NULL MOVE PRUNING
+         **********************/
+
         // Initialize best values
         int bestMove = OmegaMove.NOMOVE;
         int bestValue = OmegaEvaluation.Value.NOVALUE;
@@ -679,7 +735,6 @@ public class OmegaSearch implements Runnable {
         if (_omegaEngine._CONFIGURATION._USE_MOVE_CACHE && tt_moves != null) {
             moves = tt_moves;
             _MovesFromCache++;
-            //assert(moves.equals(_omegaMoveGenerator[ply].getPseudoLegalMoves(position, false)));
         } else {
             moves = _omegaMoveGenerator[ply].getPseudoLegalMoves(position, false);
             _MovesGenerated++;
@@ -703,7 +758,7 @@ public class OmegaSearch implements Runnable {
 
             position.makeMove(move);
 
-            // is legal move?
+            // Check if legal move before going into recursion
             if (!position.isAttacked(position._nextPlayer,
                     position._kingSquares[position._nextPlayer.getInverseColor().ordinal()])) {
 
@@ -714,23 +769,22 @@ public class OmegaSearch implements Runnable {
                 _currentVariation.add(move);
 
                 // go one ply deeper into the search tree
-                //value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
                 if (!_omegaEngine._CONFIGURATION._USE_PVS || OmegaConfiguration.PERFT) {
-                    value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                    value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha, false, doNullMove);
                 }
+
                 // ### START PVS ###
                 else {
-                    if (bestValue == OmegaEvaluation.Value.NOVALUE) { // no PV yet
-                        value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                    if (!pvSearch || bestValue == OmegaEvaluation.Value.NOVALUE) { // no PV yet
+                        value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha, pvSearch, true);
                     } else { // we have a PV - do Null Window Search
-                        value = -negamax(position, depthLeft-1, ply+1, -alpha-1, -alpha);
+                        value = -negamax(position, depthLeft-1, ply+1, -alpha-1, -alpha, false, true);
                         if (value > alpha && value < beta) { // no fail - research
                             _pv_researches++;
-                            value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha);
+                            value = -negamax(position, depthLeft-1, ply+1, -beta, -alpha, true, true);
                         }
                     }
                 } // ### END PVS ###
-
 
                 // PRUNING START
                 if (value > bestValue) {
@@ -740,7 +794,7 @@ public class OmegaSearch implements Runnable {
                     if (value > alpha) {
                         alpha = value;
                         tt_Type = TT_EntryType.EXACT;
-                        OmegaMoveList.savePV(bestMove, _principalVariation[ply+1], _principalVariation[ply]);
+                        OmegaMoveList.savePV(move, _principalVariation[ply+1], _principalVariation[ply]);
 
                         if (value >= beta) {
                             if (_omegaEngine._CONFIGURATION._USE_PRUNING && !OmegaConfiguration.PERFT) {
@@ -787,6 +841,8 @@ public class OmegaSearch implements Runnable {
 
             // Stores the list of moves for this node and pushes the bestMovee to the front.
             // We create a minimal copy of the list to not waste space - list will not change any more
+            // Still this creates a lot of new objects in the tree search and will use much memory and
+            // causes lots of GC activity.
             OmegaMoveList m = null;
             if (_omegaEngine._CONFIGURATION._USE_MOVE_CACHE) {
                 m = new OmegaMoveList(moves.size());
@@ -804,6 +860,22 @@ public class OmegaSearch implements Runnable {
         }
 
         return bestValue;
+    }
+
+    /**
+     * Returns true if at least on non pawn/king piece is on the
+     * board for the moving side.
+     * @param position
+     * @return
+     */
+    private static boolean bigPiecePresent(OmegaBoardPosition position) {
+        final int activePlayer = position._nextPlayer.ordinal();
+        return !(
+                position._knightSquares[activePlayer].isEmpty()
+                && position._bishopSquares[activePlayer].isEmpty()
+                && position._rookSquares[activePlayer].isEmpty()
+                && position._queenSquares[activePlayer].isEmpty()
+                );
     }
 
     /**
@@ -941,7 +1013,6 @@ public class OmegaSearch implements Runnable {
                     } else {
                         // go one ply deeper into the search tree
                         value = -quiescence(position, ply+1, -beta, -alpha);
-
                     }
 
                     // PRUNING START
@@ -1043,7 +1114,7 @@ public class OmegaSearch implements Runnable {
         if (OmegaConfiguration.PERFT
                 || _timedControlMode == TimeControlMode.NO_TIMECONTROL) {
             // directly start iteration with deepest depth
-            //startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
+            startIterativeDepth = _maxIterativeDepth = _currentEngineLevel;
         }
         // use remaining time to calculate time for move
         else if (_timedControlMode == TimeControlMode.PONDERING) {

@@ -121,19 +121,13 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // DEBUG: color based configuration
         if (_activeColor.isWhite()) {
-            //            _CONFIGURATION._USE_NODE_CACHE = true;
-            //            _CONFIGURATION._USE_BOARD_CACHE = true;
-            //            _CONFIGURATION._USE_PRUNING = true;
-            //            _CONFIGURATION._USE_MDP = true;
-            //            _CONFIGURATION._USE_PVS = false;
-            //            _CONFIGURATION._USE_QUIESCENCE = true;
+            _CONFIGURATION._USE_NMP = true;
+            _CONFIGURATION._USE_VERIFY_NMP = true;
+            _CONFIGURATION._USE_QUIESCENCE = false;
         } else {
-            //            _CONFIGURATION._USE_NODE_CACHE = true;
-            //            _CONFIGURATION._USE_BOARD_CACHE = true;
-            //            _CONFIGURATION._USE_PRUNING = true;
-            //            _CONFIGURATION._USE_MDP = true;
-            //            _CONFIGURATION._USE_PVS = true;
-            //            _CONFIGURATION._USE_QUIESCENCE = true;
+            _CONFIGURATION._USE_NMP = false;
+            _CONFIGURATION._USE_VERIFY_NMP = false;
+            _CONFIGURATION._USE_QUIESCENCE = false;
         }
 
         // initialize opening book
@@ -560,6 +554,9 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION._USE_MDP) {
             s += "MDP,";
         }
+        if (_CONFIGURATION._USE_NMP) {
+            s += "NMP,";
+        }
         if (_CONFIGURATION._USE_QUIESCENCE) {
             s += "Q,";
         }
@@ -580,7 +577,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         GameMoveList l = new GameMoveList(size);
         if (size == 0) return l;
         for (int i = 0; i < size; i++) {
-            if (pv != null) {
+            if (pv != null && !pv.empty()) {
                 l.add(OmegaMove.convertToGameMove(pv.get(i)));
             }
         }
