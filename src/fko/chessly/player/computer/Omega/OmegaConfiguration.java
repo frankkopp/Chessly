@@ -61,7 +61,7 @@ public class OmegaConfiguration {
     boolean _USE_BOOK = true;
 
     /** Use Ponderer while waiting for opponents move - fills node_cache */
-    boolean _USE_PONDERER = false;
+    boolean _USE_PONDERER = true;
 
     /** Use Transposition Tables for visited nodes  (needs extra memory) */
     boolean _USE_NODE_CACHE = true;

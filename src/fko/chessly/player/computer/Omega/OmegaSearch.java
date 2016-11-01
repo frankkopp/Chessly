@@ -371,7 +371,7 @@ public class OmegaSearch implements Runnable {
         SearchResult searchResult = iterativeSearch(_currentPosition);
 
         if (_omegaEngine._CONFIGURATION.VERBOSE_STATS) {
-            _omegaEngine.printVerboseInfo(String.format("Evaluations in total  : %,12d ", _boardsEvaluated));
+            _omegaEngine.printVerboseInfo(String.format("Evaluations in total: %,15d ", _boardsEvaluated));
             _omegaEngine.printVerboseInfo(String.format("Duration: %9s", Duration.between(_startTime, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
                     (_boardsEvaluated*1000L)/(Duration.between(_startTime,Instant.now()).toMillis()+1)));
@@ -557,7 +557,7 @@ public class OmegaSearch implements Runnable {
         boardsCounter += _boardsEvaluated;
 
         if (_omegaEngine._CONFIGURATION.VERBOSE_STATS) {
-            _omegaEngine.printVerboseInfo(String.format("Evaluations in depth %d: %,12d ", depth, boardsCounter));
+            _omegaEngine.printVerboseInfo(String.format("Evaluations in depth %2d: %,12d ", depth, boardsCounter));
             _omegaEngine.printVerboseInfo(String.format("Duration: %9s ", Duration.between(iterationStart, Instant.now()).toString()));
             _omegaEngine.printVerboseInfo(String.format("\tEvaluations/sec: %,10d   ",
                     (_boardsEvaluated*1000L)/(Duration.between(_ponderStartTime,Instant.now()).toMillis()+1L)));
