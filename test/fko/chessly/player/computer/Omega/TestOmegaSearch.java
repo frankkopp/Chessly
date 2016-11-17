@@ -71,6 +71,9 @@ public class TestOmegaSearch {
         }
     }
 
+    /**
+     *
+     */
     @Test
     public void testBasicTimeControl_TimePerMove() {
         Player _player = createPlayer(GameColor.WHITE);

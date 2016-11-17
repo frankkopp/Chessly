@@ -38,7 +38,7 @@ import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
 
 /**
- * <p>In the Playroom class the actual games are handled (startet, stopped, etc.). It
+ * <p>In the Playroom class the actual games are handled (started, stopped, etc.). It
  * is able to play a given number of games in a row.</p>
  *
  * <p>This implementation actually only handles one game at a certain time. For this

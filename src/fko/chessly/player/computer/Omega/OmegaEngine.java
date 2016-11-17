@@ -121,13 +121,13 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // DEBUG: color based configuration
         if (_activeColor.isWhite()) {
-            _CONFIGURATION._USE_NMP = true;
-            _CONFIGURATION._USE_VERIFY_NMP = true;
-            _CONFIGURATION._USE_QUIESCENCE = false;
+            //            _CONFIGURATION._USE_NMP = true;
+            //            _CONFIGURATION._USE_VERIFY_NMP = true;
+            //            _CONFIGURATION._USE_QUIESCENCE = false;
         } else {
-            _CONFIGURATION._USE_NMP = false;
-            _CONFIGURATION._USE_VERIFY_NMP = false;
-            _CONFIGURATION._USE_QUIESCENCE = false;
+            //            _CONFIGURATION._USE_NMP = false;
+            //            _CONFIGURATION._USE_VERIFY_NMP = false;
+            //            _CONFIGURATION._USE_QUIESCENCE = false;
         }
 
         // initialize opening book
