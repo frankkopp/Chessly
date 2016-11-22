@@ -42,7 +42,6 @@ public class OmegaConfiguration {
     /** null evaluation **/
     boolean DO_NULL_EVALUATION = false;
 
-
     // Verbose
     /** If set to true this object will produce info output to System.out */
     boolean VERBOSE_TO_SYSOUT = false;
@@ -68,7 +67,6 @@ public class OmegaConfiguration {
 
     /** Use Transposition Tables to store move list (needs extra memory)
      *  Very expensive as it creates many int[] arrays - worth it?*/
-
     boolean _USE_MOVE_CACHE = true;
 
     /** Use Cache for Board evaluations - very expensive, only worth
@@ -105,11 +103,6 @@ public class OmegaConfiguration {
     //Mode _OB_Mode = Mode.PGN;
     Mode _OB_Mode = Mode.SAN;
     //Mode _OB_Mode = Mode.SIMPLE;
-
-
-
-
-
 
 
 }

@@ -115,7 +115,7 @@ public class EngineInfoUpdater {
                         }
                     } else {
                         clear();
-                        _engineLabels.engineTab.setText(tabTitel3);
+                        //_engineLabels.engineTab.setText(tabTitel3);
                     }
                 }
             }
@@ -220,7 +220,7 @@ public class EngineInfoUpdater {
      * Clears all field including tab label
      */
     private void clearAll() {
-        _engineLabels.engineTab.setText("Engine Info: "+_color.toString());
+        //_engineLabels.engineTab.setText("Engine Info: "+_color.toString());
         clear();
 
     }

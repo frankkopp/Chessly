@@ -111,9 +111,6 @@ public class OmegaSearch implements Runnable {
     // flag to indicate to stop the search - can be called externally or via the timer clock.
     private boolean _stopSearch = true;
 
-    // flag to indicate that the search is currently pondering
-    private boolean _isPondering = false;
-
     /*
      * Search configuration (with defaults)
      * If remaining time is set to >0 then time per move is ignored.
@@ -442,7 +439,7 @@ public class OmegaSearch implements Runnable {
             // sure mate value found?
             if (_currentBestRootValue >= OmegaEvaluation.Value.CHECKMATE - depth
                     || _currentBestRootValue <= -OmegaEvaluation.Value.CHECKMATE + depth) {
-                System.err.println("Already found Mate: "+position.toFENString());
+                //System.err.println("Already found Mate: "+position.toFENString());
                 _stopSearch = true;
             }
 
@@ -463,7 +460,7 @@ public class OmegaSearch implements Runnable {
         searchResult.resultValue = _currentBestRootValue;
         searchResult.depth = _currentIterationDepth;
         int p_move;
-        if (_principalVariation[0].size()>1 && (p_move = _principalVariation[0].get(1))!=OmegaMove.NOMOVE) {
+        if (_principalVariation[0].size()>1 && (p_move = _principalVariation[0].get(1)) != OmegaMove.NOMOVE) {
             //System.out.println("Best Move: "+OmegaMove.toString(searchResult.bestMove)+" Ponder Move: "+OmegaMove.toString(p_move)+" ("+_principalVariation[0].toNotationString()+")");
             searchResult.ponderMove = p_move;
         } else {
@@ -727,7 +724,7 @@ public class OmegaSearch implements Runnable {
         int bestMove = OmegaMove.NOMOVE;
         int bestValue = OmegaEvaluation.Value.NOVALUE;
 
-        // Generate all PseudoLegalMoves
+        // needed to remember if we even had a legal move
         boolean hadLegaMove = false;
 
         // generate moves or get them from cache
@@ -860,22 +857,6 @@ public class OmegaSearch implements Runnable {
         }
 
         return bestValue;
-    }
-
-    /**
-     * Returns true if at least on non pawn/king piece is on the
-     * board for the moving side.
-     * @param position
-     * @return
-     */
-    private static boolean bigPiecePresent(OmegaBoardPosition position) {
-        final int activePlayer = position._nextPlayer.ordinal();
-        return !(
-                position._knightSquares[activePlayer].isEmpty()
-                && position._bishopSquares[activePlayer].isEmpty()
-                && position._rookSquares[activePlayer].isEmpty()
-                && position._queenSquares[activePlayer].isEmpty()
-                );
     }
 
     /**
@@ -1093,6 +1074,22 @@ public class OmegaSearch implements Runnable {
     }
 
     /**
+     * Returns true if at least on non pawn/king piece is on the
+     * board for the moving side.
+     * @param position
+     * @return
+     */
+    private static boolean bigPiecePresent(OmegaBoardPosition position) {
+        final int activePlayer = position._nextPlayer.ordinal();
+        return !(
+                position._knightSquares[activePlayer].isEmpty()
+                && position._bishopSquares[activePlayer].isEmpty()
+                && position._rookSquares[activePlayer].isEmpty()
+                && position._queenSquares[activePlayer].isEmpty()
+                );
+    }
+
+    /**
      * @return
      */
     private int setupTimeControl() {
@@ -1206,7 +1203,7 @@ public class OmegaSearch implements Runnable {
     private void printCurrentVariation(int i, int ply, int size, int value) {
         if (_omegaEngine._CONFIGURATION.VERBOSE_VARIATION) {
             //if (ply<1 || ply>2) return;
-            String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: CV: %s (%d) \t(PV-%3$d: %s)%n"
+            String info = String.format("%2d/%2d depth:%d/%d %2d/%2d: CV: %s (%d) \t(PV-%3$d: %s) PV: %s%n"
                     , _currentRootMoveNumber
                     , _rootMoves.size()
                     , ply+1
@@ -1215,20 +1212,13 @@ public class OmegaSearch implements Runnable {
                     , size
                     , _currentVariation.toNotationString()
                     , value
-                    , _principalVariation[ply].toNotationString());
+                    , _principalVariation[ply].toNotationString()
+                    , _principalVariation[0].toNotationString());
+            //            String info = String.format("PV: %s%n"
+            //                    , _principalVariation[0].toNotationString());
             _omegaEngine.printVerboseInfo(info);
             _log.fine(info);
         }
-    }
-
-    /**
-     * True if currently pondering or was pondering but search is finished.
-     *
-     * @return true if currently pondering or was pondering but search is finished
-     */
-    public boolean isPondering() {
-        return _isPondering;
-
     }
 
     /**

@@ -175,10 +175,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         // Reset all the counters used for the TreeSearchEngineWatcher
         resetCounters();
 
-        // reset last search result
-        _searchResult = new SearchResult();
-        _searchResult.bestMove = OmegaMove.NOMOVE;
-
         // check for move from opening book
         GameMove bookMove = null;
         if (_CONFIGURATION._USE_BOOK && !ponderHit && _openingBook != null) {
@@ -220,25 +216,22 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             _omegaSearch.configureMaxDepth(maxDepth);
         }
 
-        // set latch to wait until the OmegaSearch stored a move through
-        // the callback to storeResult().
-        _waitForMoveLatch = new CountDownLatch(1);
-
         /*
          * If we have a ponderhit we call _omegaSearch.ponderHit() to reset the
          * search parameters while the search is running.
          * If we do not have a ponderhit we start a regular search
          */
         if (ponderHit) {
-            //printVerboseInfo(String.format("PONDER HIT%n"));
+            printVerboseInfo(String.format("PONDER HIT%n"));
             _omegaSearch.ponderHit();
         } else {
-            //printVerboseInfo(String.format("PONDER MISS%n"));
-            _omegaSearch.startSearch(omegaBoard);
+            printVerboseInfo(String.format("PONDER MISS%n"));
+            startSearch(omegaBoard);
         }
 
         // wait for the result to come in from the search
-        try { _waitForMoveLatch.await();
+        try {
+            _waitForMoveLatch.await();
         } catch (InterruptedException e) { /*empty*/ }
 
         // stop the search thread and wait until finished
@@ -275,7 +268,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
                 _omegaSearch.configurePondering();
 
                 // now ponder...
-                _omegaSearch.startSearch(ponderBoard);
+                startSearch(ponderBoard);
 
             } else {
                 _ponderMove = null;
@@ -283,6 +276,17 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         }
 
         return bestMove;
+    }
+
+    /**
+     * @param omegaBoard
+     */
+    private void startSearch(OmegaBoardPosition omegaBoard) {
+        clearResult();
+        // set latch to wait until the OmegaSearch stored a move through
+        // the callback to storeResult().
+        _waitForMoveLatch = new CountDownLatch(1);
+        _omegaSearch.startSearch(omegaBoard);
     }
 
     /**
@@ -308,6 +312,14 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Clears the stored result object
+     */
+    private void clearResult() {
+        _searchResult = new SearchResult();
+        _searchResult.bestMove = OmegaMove.NOMOVE;
     }
 
     /**

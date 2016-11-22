@@ -42,6 +42,7 @@ package fko.chessly.player.computer.Omega;
  *      TODO: Center Control
  *      TODO: Center Distance
  *      TODO: Square Control
+ *      TODO: King Protection
  */
 public class OmegaEvaluation {
 

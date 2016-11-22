@@ -22,7 +22,7 @@ final class Configuration {
 
     // Verbose
     /** If set to true this object will produce info output to System.out */
-    static boolean VERBOSE_TO_SYSOUT = true;
+    static boolean VERBOSE_TO_SYSOUT = false;
 
     // Search
     static boolean useAspirationWindows = true;
@@ -53,7 +53,7 @@ final class Configuration {
     static boolean usePawnExtension = true;
     static boolean useMateThreatExtension = true;
 
-    static boolean ponder = true;
+    static boolean ponder = false;
     //    static final CheckboxOption ponderOption = Options.newPonderOption(ponder);
 
     static final int defaultShowPvNumber = 1;
