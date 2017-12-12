@@ -117,14 +117,6 @@ import fko.chessly.util.CmdLineParser;
  */
 public class Chessly {
 
-    /**
-     * This constant holds the current version of Chessly by Frank Kopp
-     * v1.2 - added basic opening book
-     * v1.3a - extended opening book
-     * v1.4 - added pondering
-     * v1.5 - added JavaFX
-     * v2.0 - JavaFX complete (w.i.p.)
-     */
     public static final String VERSION = "v2.1";
 
     @SuppressWarnings("unused")
