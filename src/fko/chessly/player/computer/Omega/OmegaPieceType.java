@@ -77,13 +77,6 @@ public enum OmegaPieceType {
     }
 
     /**
-     * @param sliding the sliding to set
-     */
-    public void setSliding(boolean sliding) {
-        this._sliding = sliding;
-    }
-
-    /**
      * @return the value
      */
     protected int getValue() {

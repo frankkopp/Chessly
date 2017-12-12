@@ -40,7 +40,7 @@ public class WindowStateFX extends java.util.Properties {
 
     private static final long serialVersionUID = -1824390546690585056L;
 
-    private final static String propertiesFile = '/' + "var/gui/reversiFX.guid";
+    private final static String propertiesFile = '/' +  "var/gui/reversiFX.guid";
     private final static String userDir = System.getProperty("user.dir");
 
     /**

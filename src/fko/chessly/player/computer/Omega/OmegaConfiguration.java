@@ -96,12 +96,12 @@ public class OmegaConfiguration {
     /** default value for folder to books */
     String _OB_FolderPath = "./book/";
     /** default opening book file */
-    //String _OB_fileNamePlain = "8moves_GM_LB.pgn";
-    String _OB_fileNamePlain = "book_graham.txt";
+    String _OB_fileNamePlain = "8moves_GM_LB.pgn";
+    //String _OB_fileNamePlain = "book_graham.txt";
     //String _OB_fileNamePlain = "book.txt";
     /** default opening book value */
-    //Mode _OB_Mode = Mode.PGN;
-    Mode _OB_Mode = Mode.SAN;
+    Mode _OB_Mode = Mode.PGN;
+    //Mode _OB_Mode = Mode.SAN;
     //Mode _OB_Mode = Mode.SIMPLE;
 
 

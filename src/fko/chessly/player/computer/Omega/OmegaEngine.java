@@ -84,6 +84,46 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     // fields used for pondering
     private GameMove _ponderMove;
 
+    /**
+     * Constructor - used by factory
+     */
+    public OmegaEngine() {
+        // empty
+    }
+
+    /**
+     * Initializes the engine
+     */
+    @Override
+    public void init(Player player) {
+        // setup our player and color
+        if (!(player instanceof ComputerPlayer)) {
+            Chessly.fatalError("Engine object can only be used with an instance of ComputerPlayer!");
+        }
+        this._player = (ComputerPlayer) player;
+        this._activeColor = player.getColor();
+
+        // DEBUG: color based configuration
+        if (_activeColor.isWhite()) {
+            //            _CONFIGURATION._USE_NMP = true;
+            //            _CONFIGURATION._USE_VERIFY_NMP = true;
+            //            _CONFIGURATION._USE_QUIESCENCE = false;
+        } else {
+            //            _CONFIGURATION._USE_NMP = false;
+            //            _CONFIGURATION._USE_VERIFY_NMP = false;
+            //            _CONFIGURATION._USE_QUIESCENCE = false;
+        }
+
+        // initialize opening book
+        if (_CONFIGURATION._USE_BOOK) {
+            Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
+            _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
+        }
+
+        _omegaSearch = new OmegaSearch(this);
+
+    }
+
     /**********************************************************************
      * Engine Interface
      **********************************************************************/
@@ -106,39 +146,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     // not used
     @Override public void setNumberOfThreads(int n) { /*empty*/ }
-
-    /**
-     * Initializes the engine
-     */
-    @Override
-    public void init(Player player) {
-        // setup our player and color
-        if (!(player instanceof ComputerPlayer)) {
-            Chessly.fatalError("Engine object can only be used with an instance of ComputerPlayer!");
-        }
-        this._player = (ComputerPlayer) player;
-        _activeColor = player.getColor();
-
-        // DEBUG: color based configuration
-        if (_activeColor.isWhite()) {
-            //            _CONFIGURATION._USE_NMP = true;
-            //            _CONFIGURATION._USE_VERIFY_NMP = true;
-            //            _CONFIGURATION._USE_QUIESCENCE = false;
-        } else {
-            //            _CONFIGURATION._USE_NMP = false;
-            //            _CONFIGURATION._USE_VERIFY_NMP = false;
-            //            _CONFIGURATION._USE_QUIESCENCE = false;
-        }
-
-        // initialize opening book
-        if (_CONFIGURATION._USE_BOOK) {
-            Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
-            _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
-        }
-
-        _omegaSearch = new OmegaSearch(this);
-
-    }
 
     /**
      * Starts calculation and returns next move

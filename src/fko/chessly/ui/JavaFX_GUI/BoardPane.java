@@ -97,7 +97,7 @@ public class BoardPane extends Pane {
     private Image _bK,_bQ,_bB,_bN,_bR,_bP;
 
     // list of pieces to iterate over while drawing
-    private List<Piece> _pieces = new ArrayList<Piece>(64);
+    private List<Piece> _pieces = new ArrayList<>(64);
 
     // holds preselected field
     private GamePosition _selectedFromField = null; // GamePosition.getGamePosition("c1");
@@ -232,6 +232,7 @@ public class BoardPane extends Pane {
     private void drawBoard(GameBoard curBoard) {
 
         //Thread.dumpStack();
+        //System.out.println("DRAWING");
 
         // clear the node to redraw everything
         this.getChildren().clear();
