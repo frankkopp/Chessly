@@ -101,4 +101,22 @@ public class OmegaRootMoveList extends ArrayList<OmegaRootMoveEntry> {
         return s.toString();
     }
 
+    /**
+     * Pushes the first entry in the list which equals entry to index 0
+     * @param move
+     */
+    public void pushToHead(int move) {
+        OmegaRootMoveEntry element = null;
+        for(OmegaRootMoveEntry e : this) {
+            if (e.move == move) {
+                element = e;
+                break;
+            }
+        }
+        if (element!=null) {
+            this.remove(element);
+            this.add(0, element);
+        }
+    }
+
 }

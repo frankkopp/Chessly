@@ -28,8 +28,8 @@
 package fko.chessly.player.computer.Omega;
 
 /**
- * A cache for board evaluation values to reduce evaluation calculation during
- * search. Implementation uses a simple array of an Entry class. The array indexes
+ * A cache for node results during AlphaBeta search.
+ * Implementation uses a simple array of an Entry class. The array indexes
  * are calculated by using the modulo of the max number of entries from the key.
  * <code>entries[key%maxNumberOfEntries]</code>. As long as key is randomly distributed
  * this works just fine.
@@ -44,7 +44,7 @@ public class OmegaTranspositionTable {
     private int _numberOfEntries = 0;
     private long _numberOfCollisions = 0L;
 
-    private final Entry[] entries;
+    private final TT_Entry[] entries;
 
     /**
      * Creates a hash table with a approximated number of entries calculated by
@@ -53,62 +53,111 @@ public class OmegaTranspositionTable {
      * @param size in MB (1024^2)
      */
     public OmegaTranspositionTable(int size) {
-        _size = size;
+        _size = size*MB*MB;
 
-        // check mem - add some head room
+        // check available mem - add some head room
         System.gc();
-        int freeMemory = (int) (Runtime.getRuntime().freeMemory() / (MB * MB));
-        if (freeMemory < size*2) {
-            System.err.println(String.format("Not enough memory for a %dMB evaluation cache - reducing to %dMB", size, freeMemory/4));
-            _size = freeMemory/4;
+        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long freeMemory = (Runtime.getRuntime().maxMemory()-usedMemory);
+        int percentage = 10;
+        if (freeMemory*percentage/100 < _size) {
+            System.err.println(String.format("Not enough memory for a %,dMB transposition cache - reducing to %,dMB", _size/(MB*MB), (freeMemory*percentage/100)/(MB*MB)));
+            _size = (int) (freeMemory*percentage/100); // % of memory
         }
 
         // size in byte divided by entry size plus size for array bucket
-        _max_entries = (_size * MB * MB) / (Entry.SIZE + Integer.BYTES);
+        _max_entries = _size / (TT_Entry.SIZE + Integer.BYTES);
         // create buckets for hash table
-        entries = new Entry[_max_entries];
+        entries = new TT_Entry[_max_entries];
         // initialize
         for (int i=0; i<_max_entries; i++) {
-            entries[i] = new Entry();
+            entries[i] = new TT_Entry();
         }
     }
 
     /**
      * Stores the node value and the depth it has been calculated at.
-     *
-     * @param key
+     * @param position TODO
      * @param value
+     * @param type
      * @param depth
+     * @param moveList
      */
-    public void put(long key, int value, int depth) {
-        final int hash = getHash(key);
-        if (entries[hash].key == 0) { // new value
+    public void put(OmegaBoardPosition position,
+            int value, TT_EntryType type, int depth, OmegaMoveList moveList) {
+
+        final int hash = getHash(position._zobristKey);
+
+        // new value
+        if (entries[hash].key == 0) {
             _numberOfEntries++;
-        } else { // collision
-            _numberOfCollisions++;
+            entries[hash].key = position._zobristKey;
+            //entries[hash].fen = position.toFENString();
+            entries[hash].value = value;
+            entries[hash].type = type;
+            entries[hash].depth = depth;
+            entries[hash].move_list = moveList;
+            //entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
+
         }
-        entries[hash].key = key;
-        entries[hash].value = value;
-        entries[hash].depth = depth;
+        // different position - overwrite
+        else if (position._zobristKey != entries[hash].key) {
+
+            _numberOfCollisions++;
+            entries[hash].key = position._zobristKey;
+            //entries[hash].fen = position.toFENString();
+            entries[hash].value = value;
+            entries[hash].type = type;
+            entries[hash].depth = depth;
+            entries[hash].move_list = moveList;
+            //entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
+        }
+        // Collision or update
+        else if (position._zobristKey == entries[hash].key  // same position
+                && depth >= entries[hash].depth) { // Overwrite only when new value from deeper search
+
+            // this asserts if key=key but fen!=fen ==> COLLISION!!!
+            // DEBUG code
+            //            final String fenCache = entries[hash].fen;
+            //            final String fenNew = position.toFENString();
+            //            final String fc = fenCache.replaceAll(" \\d+ \\d+$", "");
+            //            final String fg = fenNew.replaceAll(" \\d+ \\d+$", "");
+            //            if (!fc.equals(fg)) {
+            //                System.err.println("key=key but fen!=fen");
+            //                System.err.println("new  : "+fg);
+            //                System.err.println("cache: "+fc);
+            //                System.err.println();
+            //            }
+
+            _numberOfCollisions++;
+            entries[hash].key = position._zobristKey;
+            //entries[hash].fen = position.toFENString();
+            entries[hash].value = value;
+            entries[hash].type = type;
+            entries[hash].depth = depth;
+            entries[hash].move_list = moveList;
+            //entries[hash].move_list = new SoftReference<OmegaMoveList>(moveList);
+        }
+        // ignore new values for cache
     }
 
     /**
      * This retrieves the cached value of this node from cache if the
      * cached value has been calculated at a depth equal or deeper as the
      * depth value provided.
+     * @param position TODO
      *
-     * @param key
-     * @param depth after this node
      * @return value for key or <tt>Integer.MIN_VALUE</tt> if not found
      */
-    public int get(long key, int depth) {
-        final int hash = getHash(key);
-        if (entries[hash].key == key && entries[hash].depth >= depth ) { // hash hit
-            return entries[hash].value;
+    public TT_Entry get(OmegaBoardPosition position) {
+        final int hash = getHash(position._zobristKey);
+        if (entries[hash].key == position._zobristKey) { // hash hit
+            return entries[hash];
         }
         // cache miss or collision
-        return Integer.MIN_VALUE;
+        return null;
     }
+
 
     private int getHash(long key) {
         return (int) (key%_max_entries);
@@ -122,8 +171,10 @@ public class OmegaTranspositionTable {
         // initialize
         for (int i=0; i<_max_entries; i++) {
             entries[i].key = 0L;
+            //entries[i].fen = "";
             entries[i].value = Integer.MIN_VALUE;
             entries[i].depth = 0;
+            entries[i].type = TT_EntryType.ALPHA;
         }
         _numberOfEntries = 0;
         _numberOfCollisions = 0;
@@ -157,11 +208,35 @@ public class OmegaTranspositionTable {
         return _numberOfCollisions;
     }
 
-    private static final class Entry {
-        static final int SIZE = (Long.BYTES+Integer.BYTES+Integer.BYTES) *2;
+    /**
+     * Entry for transposition table.
+     * Contains a key, value and an entry type.
+     */
+    public static final class TT_Entry {
+        static final int SIZE = (
+                Long.BYTES // key
+                +Integer.BYTES // value
+                +Integer.BYTES // depth
+                )*2 // 64bit?
+                + 8 // enum
+                ;//+ 40; // SoftReference
         long key   = 0L;
+        //String fen = "";
         int  value = Integer.MIN_VALUE;
         int  depth = 0;
+        TT_EntryType type = TT_EntryType.ALPHA;
+        OmegaMoveList move_list = null;
+        //SoftReference<OmegaMoveList> move_list = new SoftReference<OmegaMoveList>(null);
+    }
+
+    /**
+     * Defines the type of transposition table entry for alpha beta search.
+     */
+    @SuppressWarnings("javadoc")
+    public static enum TT_EntryType {
+        EXACT,
+        ALPHA,
+        BETA
     }
 
 

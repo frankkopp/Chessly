@@ -65,7 +65,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
     private CountDownLatch _waitForMoveLatch = new CountDownLatch(0);
 
     // the search engine itself
-    private OmegaSearch _omegaSearch = new OmegaSearch(this);
+    private OmegaSearch _omegaSearch = null;
 
     // the search result of the search - null when no result yet
     private SearchResult _searchResult = null;
@@ -83,6 +83,46 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     // fields used for pondering
     private GameMove _ponderMove;
+
+    /**
+     * Constructor - used by factory
+     */
+    public OmegaEngine() {
+        // empty
+    }
+
+    /**
+     * Initializes the engine
+     */
+    @Override
+    public void init(Player player) {
+        // setup our player and color
+        if (!(player instanceof ComputerPlayer)) {
+            Chessly.fatalError("Engine object can only be used with an instance of ComputerPlayer!");
+        }
+        this._player = (ComputerPlayer) player;
+        this._activeColor = player.getColor();
+
+        // DEBUG: color based configuration
+        if (_activeColor.isWhite()) {
+            //            _CONFIGURATION._USE_NMP = true;
+            //            _CONFIGURATION._USE_VERIFY_NMP = true;
+            //            _CONFIGURATION._USE_QUIESCENCE = false;
+        } else {
+            //            _CONFIGURATION._USE_NMP = false;
+            //            _CONFIGURATION._USE_VERIFY_NMP = false;
+            //            _CONFIGURATION._USE_QUIESCENCE = false;
+        }
+
+        // initialize opening book
+        if (_CONFIGURATION._USE_BOOK) {
+            Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
+            _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
+        }
+
+        _omegaSearch = new OmegaSearch(this);
+
+    }
 
     /**********************************************************************
      * Engine Interface
@@ -106,25 +146,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
     // not used
     @Override public void setNumberOfThreads(int n) { /*empty*/ }
-
-    /**
-     * Initializes the engine
-     */
-    @Override
-    public void init(Player player) {
-        // setup our player and color
-        if (!(player instanceof ComputerPlayer)) {
-            Chessly.fatalError("Engine object can only be used with an instance of ComputerPlayer!");
-        }
-        this._player = (ComputerPlayer) player;
-        _activeColor = player.getColor();
-
-        // initialize opening book
-        if (_CONFIGURATION._USE_BOOK) {
-            Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
-            _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
-        }
-    }
 
     /**
      * Starts calculation and returns next move
@@ -154,19 +175,16 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         _engineState  = ObservableEngine.THINKING;
         _statusInfo = "Engine calculating.";
         setChanged();
-        notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" start calculating",
+        notifyObservers(new PlayerDependendModelEvent(
+                "ENGINE "+_activeColor+" start calculating",
                 _player, SIG_ENGINE_START_CALCULATING));
 
         // Reset all the counters used for the TreeSearchEngineWatcher
         resetCounters();
 
-        // reset last search result
-        _searchResult = new SearchResult();
-        _searchResult.bestMove = OmegaMove.NOMOVE;
-
         // check for move from opening book
         GameMove bookMove = null;
-        if (_CONFIGURATION._USE_BOOK && !ponderHit) {
+        if (_CONFIGURATION._USE_BOOK && !ponderHit && _openingBook != null) {
             _openingBook.initialize();
             bookMove = _openingBook.getBookMove(gameBoard.toFENString());
             if (bookMove != null) {
@@ -174,11 +192,15 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
                 _statusInfo = "Book move. Engine waiting.";
                 _engineState  = ObservableEngine.IDLE;
                 setChanged();
-                notifyObservers(new PlayerDependendModelEvent("ENGINE "+_activeColor+" finished calculating",
+                notifyObservers(new PlayerDependendModelEvent(
+                        "ENGINE "+_activeColor+" finished calculating",
                         _player, SIG_ENGINE_FINISHED_CALCULATING));
 
                 return bookMove;
             }
+            // unload opening book if not used any more
+            _openingBook = null;
+            System.gc();
         }
 
         // configure the search
@@ -201,25 +223,22 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             _omegaSearch.configureMaxDepth(maxDepth);
         }
 
-        // set latch to wait until the OmegaSearch stored a move through
-        // the callback to storeResult().
-        _waitForMoveLatch = new CountDownLatch(1);
-
         /*
          * If we have a ponderhit we call _omegaSearch.ponderHit() to reset the
          * search parameters while the search is running.
          * If we do not have a ponderhit we start a regular search
          */
         if (ponderHit) {
-            //printVerboseInfo(String.format("PONDER HIT%n"));
+            printVerboseInfo(String.format("PONDER HIT%n"));
             _omegaSearch.ponderHit();
         } else {
-            //printVerboseInfo(String.format("PONDER MISS%n"));
-            _omegaSearch.startSearch(omegaBoard);
+            printVerboseInfo(String.format("PONDER MISS%n"));
+            startSearch(omegaBoard);
         }
 
         // wait for the result to come in from the search
-        try { _waitForMoveLatch.await();
+        try {
+            _waitForMoveLatch.await();
         } catch (InterruptedException e) { /*empty*/ }
 
         // stop the search thread and wait until finished
@@ -256,7 +275,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
                 _omegaSearch.configurePondering();
 
                 // now ponder...
-                _omegaSearch.startSearch(ponderBoard);
+                startSearch(ponderBoard);
 
             } else {
                 _ponderMove = null;
@@ -264,6 +283,17 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         }
 
         return bestMove;
+    }
+
+    /**
+     * @param omegaBoard
+     */
+    private void startSearch(OmegaBoardPosition omegaBoard) {
+        clearResult();
+        // set latch to wait until the OmegaSearch stored a move through
+        // the callback to storeResult().
+        _waitForMoveLatch = new CountDownLatch(1);
+        _omegaSearch.startSearch(omegaBoard);
     }
 
     /**
@@ -289,6 +319,14 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Clears the stored result object
+     */
+    private void clearResult() {
+        _searchResult = new SearchResult();
+        _searchResult.bestMove = OmegaMove.NOMOVE;
     }
 
     /**
@@ -377,7 +415,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public int getCurrentMaxSearchDepth() {
-        return _omegaSearch._currentSearchDepth;
+        return _omegaSearch._currentExtraSearchDepth;
     }
 
     /**
@@ -399,7 +437,6 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
             return _lastNodesPerSecond;
         }
         return _lastNodesPerSecond;
-
     }
 
     /**
@@ -426,8 +463,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
      */
     @Override
     public long getTotalNonQuietBoards() {
-        // TODO Auto-generated method stub
-        return 0;
+        return _omegaSearch._boardsNonQuiet;
     }
 
     /**
@@ -525,6 +561,25 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         if (_CONFIGURATION._USE_BOARD_CACHE) {
             s += "BC,";
         }
+        if (_CONFIGURATION._USE_MOVE_CACHE) {
+            s += "MC,";
+        }
+        if (_CONFIGURATION._USE_PRUNING) {
+            s += "PRUN,";
+        }
+        if (_CONFIGURATION._USE_PVS) {
+            s += "PVS,";
+        }
+        if (_CONFIGURATION._USE_MDP) {
+            s += "MDP,";
+        }
+        if (_CONFIGURATION._USE_NMP) {
+            s += "NMP,";
+        }
+        if (_CONFIGURATION._USE_QUIESCENCE) {
+            s += "Q,";
+        }
+
         if (OmegaConfiguration.PERFT) {
             s = "PERF TEST";
         }
@@ -541,7 +596,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         GameMoveList l = new GameMoveList(size);
         if (size == 0) return l;
         for (int i = 0; i < size; i++) {
-            if (pv != null) {
+            if (pv != null && !pv.empty()) {
                 l.add(OmegaMove.convertToGameMove(pv.get(i)));
             }
         }
@@ -579,7 +634,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         return s;
     }
 
-    /** Will store the VERBOSE info until the EngineWatcher collects it. */
+    /* Will store the VERBOSE info until the EngineWatcher collects it. */
     private static final int _engineInfoTextMaxSize = 10000;
     private final StringBuilder _engineInfoText = new StringBuilder(_engineInfoTextMaxSize);
     /**

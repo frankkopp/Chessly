@@ -311,16 +311,23 @@ public class OmegaBoardPosition {
             case NORMAL:
                 invalidateCastlingRights(fromSquare, toSquare);
                 makeNormalMove(fromSquare, toSquare, piece, target);
+                // clear en passant
+                if (_enPassantSquare != OmegaSquare.NOSQUARE) {
+                    _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // out
+                    _enPassantSquare = OmegaSquare.NOSQUARE;
+                }
                 break;
             case PAWNDOUBLE:
                 assert fromSquare.isPawnBaseRow(piece.getColor());
                 assert !piece.getColor().isNone();
                 movePiece(fromSquare, toSquare, piece);
-                // set en passant target field - always one "behind" the toSquare
-                _enPassantSquare = piece.getColor().isWhite() ? toSquare.getSouth() : toSquare.getNorth();
+                // clear old en passant
                 if (_enPassantSquare!=OmegaSquare.NOSQUARE) {
                     _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // in
                 }
+                // set new en passant target field - always one "behind" the toSquare
+                _enPassantSquare = piece.getColor().isWhite() ? toSquare.getSouth() : toSquare.getNorth();
+                _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // in
                 _halfMoveClock = 0; // reset half move clock because of pawn move
                 break;
             case ENPASSANT:
@@ -465,12 +472,6 @@ public class OmegaBoardPosition {
 
         movePiece(fromSquare, toSquare, piece);
 
-        // clear en passant
-        if (_enPassantSquare != OmegaSquare.NOSQUARE) {
-            _zobristKey ^= _enPassantSquare_Zobrist[_enPassantSquare.ordinal()]; // out
-            _enPassantSquare = OmegaSquare.NOSQUARE;
-        }
-
     }
 
     /**
@@ -481,32 +482,34 @@ public class OmegaBoardPosition {
         // check for castling rights invalidation
         // no else here - combination of these can occur! BIG BUG before :)
         if (fromSquare == OmegaSquare.e1 || toSquare == OmegaSquare.e1) {
+            // only take out zobrist if the castling was true before.
+            if (_castlingWK) _zobristKey ^= _castlingWK_Zobrist;
             _castlingWK=false;
-            _zobristKey ^= _castlingWK_Zobrist;
+            if (_castlingWQ) _zobristKey ^= _castlingWQ_Zobrist;
             _castlingWQ=false;
-            _zobristKey ^= _castlingWQ_Zobrist;
         }
         if (fromSquare == OmegaSquare.e8 || toSquare == OmegaSquare.e8) {
+            // only take out zobrist if the castling was true before.
+            if (_castlingBK) _zobristKey ^= _castlingBK_Zobrist;
             _castlingBK=false;
-            _zobristKey ^= _castlingBK_Zobrist;
+            if (_castlingBQ) _zobristKey ^= _castlingBQ_Zobrist;
             _castlingBQ=false;
-            _zobristKey ^= _castlingBQ_Zobrist;
         }
         if (fromSquare == OmegaSquare.a1 || toSquare == OmegaSquare.a1) {
+            if (_castlingWQ) _zobristKey ^= _castlingWQ_Zobrist;
             _castlingWQ=false;
-            _zobristKey ^= _castlingWQ_Zobrist;
         }
         if (fromSquare == OmegaSquare.h1 || toSquare == OmegaSquare.h1) {
+            if (_castlingWK) _zobristKey ^= _castlingWK_Zobrist;
             _castlingWK=false;
-            _zobristKey ^= _castlingWK_Zobrist;
         }
         if (fromSquare == OmegaSquare.a8 || toSquare == OmegaSquare.a8) {
+            if (_castlingBQ) _zobristKey ^= _castlingBQ_Zobrist;
             _castlingBQ=false;
-            _zobristKey ^= _castlingBQ_Zobrist;
         }
         if (fromSquare == OmegaSquare.h8 || toSquare == OmegaSquare.h8) {
+            if (_castlingBK) _zobristKey ^= _castlingBK_Zobrist;
             _castlingBK=false;
-            _zobristKey ^= _castlingBK_Zobrist;
         }
     }
 

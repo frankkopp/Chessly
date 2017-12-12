@@ -232,12 +232,18 @@ public class JavaFX_GUI_Controller implements Observer {
         // scroll to last entry
         move_table.getItems().addListener((ListChangeListener<FullMove>)  (c -> {
             c.next();
-            final int size = move_table.getItems().size();
-            if (size > 0) {
-                Platform.runLater(() -> move_table.scrollTo(size - 1));
+            if (move_table.getItems().size() > 0) {
+                Platform.runLater(this::scrollToEnd);
             }
         }));
 
+    }
+
+    /**
+     *
+     */
+    private void scrollToEnd() {
+        move_table.scrollTo(move_table.getItems().size() - 1);
     }
 
     /**
@@ -918,8 +924,8 @@ public class JavaFX_GUI_Controller implements Observer {
                 // -- check if multiple games in a row should be run --
                 if (playroom.getNumberOfGames() > 1) {
                     printToInfoln(
-                            ">>> Black wins: " + playroom.getCurrentBlackWins() + '\n' +
                             ">>> White wins: " + playroom.getCurrentWhiteWins() + '\n' +
+                            ">>> Black wins: " + playroom.getCurrentBlackWins() + '\n' +
                             ">>> Draws     : " + playroom.getCurrentDraws() + '\n'
                             );
                     printToInfoln("");
@@ -936,10 +942,10 @@ public class JavaFX_GUI_Controller implements Observer {
                     if (playroom.getNumberOfGames() > 1) {
                         printToInfoln(
                                 ">>> Multiple games finished:" + '\n' +
-                                ">>> Black wins: " + playroom.getCurrentBlackWins() +
-                                " (" + (int)(((float) playroom.getCurrentBlackWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
                                 ">>> White wins: " + playroom.getCurrentWhiteWins() +
                                 " (" + (int)(((float) playroom.getCurrentWhiteWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
+                                ">>> Black wins: " + playroom.getCurrentBlackWins() +
+                                " (" + (int)(((float) playroom.getCurrentBlackWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
                                 ">>> Draws     : " + playroom.getCurrentDraws() +
                                 " (" + (int)(((float) playroom.getCurrentDraws() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n"
                                 );
@@ -974,6 +980,7 @@ public class JavaFX_GUI_Controller implements Observer {
 
         // -- draw the current board of the current game --
         PlatformUtil.platformRunAndWait(() -> {_boardPane.setAndDrawBoard(game.getCurBoard());});
+        //System.out.println(game.getCurBoard().toFENString());
 
         // -- update the move list according to the moves in the current game --
         PlatformUtil.platformRunAndWait(() -> {updateMoveList(game);});
@@ -1062,8 +1069,8 @@ public class JavaFX_GUI_Controller implements Observer {
         //if (event.signals(Playroom.SIG_PLAYROOM_GAME_CREATED)) {
         printToInfoln();
         printToInfoln("--- New Game started ------------------");
-        printToInfoln("Player BLACK: "+game.getPlayerBlack().getName());
         printToInfoln("Player WHITE: "+game.getPlayerWhite().getName());
+        printToInfoln("Player BLACK: "+game.getPlayerBlack().getName());
         printToInfoln("");
         //}
     }

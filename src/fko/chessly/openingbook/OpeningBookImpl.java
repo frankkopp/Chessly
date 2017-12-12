@@ -69,8 +69,7 @@ import fko.chessly.util.HelperTools;
 
 /**
  * Implements an Opening Book for Chessly. Reads different formats and caches
- * result in serialized bin files. Implemented are SAN, SIMPLE and SER. ToDo:
- * PGN.
+ * result in serialized bin files. Implemented are PGN, SAN, SIMPLE and SER.
  *
  * @author Frank Kopp
  */
@@ -336,6 +335,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         synchronized (_counterLock) { _counter = 0; }
         // parallel lambda expression - very fast and cool - needs some synchronizing though
         gameList.parallelStream().forEach(game -> {
+            //gameList.stream().forEach(game -> {
             String moves = game.getMoves().toString();
             moves = moves.replaceAll("[\\[\\],]", "");
             processLine(moves);
@@ -348,7 +348,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
     }
 
     /**
-     * Reads the opening book from a plain file and generates the internal date
+     * Reads the opening book from a plain file and generates the internal data
      * structure.
      *
      * @param path
@@ -445,8 +445,8 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
             } catch (InvalidMoveException e) {
                 // Jump back if the last move from file was not valid.
                 // We will then skip the rest of the line and try the next line.
-                // System.out.println("Invalid Move ");
-                // System.out.println();
+                //System.out.println("Invalid Move ");
+                //System.out.println();
                 return;
             }
             // System.out.print(m+" ");
@@ -486,7 +486,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         Pattern pattern = Pattern.compile("([a-h][1-8][a-h][1-8])");
         Matcher matcher = pattern.matcher(line);
 
-        ArrayList<String> lineItems = new ArrayList<String>();
+        ArrayList<String> lineItems = new ArrayList<>();
         while (matcher.find()) {
             lineItems.add(matcher.group());
         }
@@ -517,7 +517,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         } catch (InvalidMoveException e) {
             // Jump back if the last move from file was not valid.
             // We will then skip the rest of the line and try the next line.
-            //System.out.println("Invalid Move ");
+            // System.out.println("Invalid Move ");
             // System.out.println();
             return false;
         }
@@ -715,7 +715,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
         // how often did this position occur in the opening book
         AtomicInteger occurenceCounter = new AtomicInteger(0);
         // list of moves to next positions
-        ArrayList<GameMove> moves = new ArrayList<GameMove>(5);
+        ArrayList<GameMove> moves = new ArrayList<>(5);
 
         // Constructor
         OpeningBook_Entry(String fen) {

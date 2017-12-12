@@ -34,11 +34,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
-import fko.chessly.player.computer.Omega.OmegaMoveList;
-
 /**
  * Simple and fast list class for integers.
- * It has a fixed size and does not grow.
+ * Grows as needed.
  *
  * @author Frank Kopp
  */
@@ -47,25 +45,44 @@ public class SimpleIntList implements Iterable<Integer> {
     /**
      * Max entries of a MoveList
      */
-    public static final int DEFAULT_MAX_ENTRIES = 256;
+    public static final int DEFAULT_MAX_ENTRIES = 64;
 
+    /**
+     * When growing the list this determines how many entries entries
+     * shall be generated
+     */
+    public static final int DEFAULT_GROWTH_MARGIN = 10;
+
+    protected int _arraySize = DEFAULT_MAX_ENTRIES;
     protected int[] _list;
     protected int _head = 0;
     protected int _tail = 0;
 
     /**
-     * Creates a list with a maximum of MAX_ENTRIES elements
+     * Creates a list with a maximum of <tt>DEFAULT_MAX_ENTRIES</tt> elements
      */
     public SimpleIntList() {
         this(DEFAULT_MAX_ENTRIES);
     }
 
     /**
-     * Creates a list with a maximum of max_site elements
+     * Creates a list with a maximum of <tt>max_size</tt> elements
      * @param max_size
      */
     public SimpleIntList(int max_size) {
+        this._arraySize = max_size;
         _list = new int[max_size];
+    }
+
+    /**
+     * Creates a list as a copy of the provided list.
+     * @param old
+     */
+    public SimpleIntList(SimpleIntList old) {
+        _list = Arrays.copyOfRange(old._list, old._head, old._list.length);
+        this._arraySize = old._arraySize;
+        this._head = 0;
+        this._tail = old._tail-old._head;
     }
 
     /**
@@ -80,8 +97,9 @@ public class SimpleIntList implements Iterable<Integer> {
      * @param omegaIntegerList
      */
     public void add(int omegaIntegerList) {
-        if (_tail>=_list.length)
-            throw new ArrayIndexOutOfBoundsException("List is full");
+        if (_tail>=_list.length) {
+            grow(1);
+        }
         _list[_tail++] = omegaIntegerList;
     }
 
@@ -90,10 +108,21 @@ public class SimpleIntList implements Iterable<Integer> {
      * @param newList
      */
     public void add(SimpleIntList newList) {
-        if (_tail+newList.size()>_list.length)
-            throw new ArrayIndexOutOfBoundsException("Not enough space to add new elements from newList");
+        if (_tail+newList.size()>_list.length) {
+            grow(_tail+newList.size() - _list.length);
+        }
         System.arraycopy(newList._list, newList._head, this._list, this._tail, newList.size());
         this._tail +=newList.size();
+    }
+
+    /**
+     * @param extra_size
+     */
+    private void grow(int extra_size) {
+        _arraySize = _arraySize + extra_size + DEFAULT_GROWTH_MARGIN;
+        _list = Arrays.copyOfRange(_list, _head, _arraySize);
+        this._tail = _tail-_head;
+        this._head = 0;
     }
 
     /**
@@ -168,6 +197,30 @@ public class SimpleIntList implements Iterable<Integer> {
     }
 
     /**
+     * Swap the first occurrence of number with the first element.
+     * If the number is not in the list nothing happens.
+     *
+     * @param number
+     */
+    public void pushToHead(int number) {
+        int element = -1;
+        // look for number in list
+        for(int i=_head; i<_tail; i++) {
+            if (_list[i] == number) {
+                element = i;
+                break;
+            }
+        }
+        // if found swap with first
+        if (element > -1) {
+            final int tmp = _list[_head];
+            _list[_head] = _list[element];
+            _list[element] = tmp;
+        }
+
+    }
+
+    /**
      * Returns the size of the list
      * @return number of elements
      */
@@ -213,11 +266,7 @@ public class SimpleIntList implements Iterable<Integer> {
      */
     @Override
     public SimpleIntList clone() {
-        SimpleIntList n = new SimpleIntList();
-        System.arraycopy(this._list, _head, n._list, 0, this._tail-this._head);
-        n._head = 0;
-        n._tail = this._tail-this._head;
-        return n;
+        return new SimpleIntList(this);
     }
 
     /* (non-Javadoc)

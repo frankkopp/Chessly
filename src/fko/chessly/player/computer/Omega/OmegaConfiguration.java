@@ -36,16 +36,15 @@ import fko.chessly.openingbook.OpeningBookImpl.Mode;
  */
 public class OmegaConfiguration {
 
+    /** test the search without any pruning and count perft value **/
+    static public boolean PERFT = false;
+
+    /** null evaluation **/
+    boolean DO_NULL_EVALUATION = false;
 
     // Verbose
     /** If set to true this object will produce info output to System.out */
     boolean VERBOSE_TO_SYSOUT = false;
-
-    /** If set to true we will use the opening book */
-    boolean _USE_BOOK = true;
-
-    /** Use Ponderer while waiting for opponents move - fills node_cache */
-    boolean _USE_PONDERER = true;
 
     /** verbose alphabeta search **/
     boolean VERBOSE_ALPHABETA = false;
@@ -56,27 +55,54 @@ public class OmegaConfiguration {
     /** verbose variation **/
     boolean VERBOSE_STATS = true;
 
-    /** null evaluation **/
-    boolean DO_NULL_EVALUATION = false;
 
-    /** Use Transposition Tables for visited nodes */
+    /** If set to true we will use the opening book */
+    boolean _USE_BOOK = true;
+
+    /** Use Ponderer while waiting for opponents move - fills node_cache */
+    boolean _USE_PONDERER = true;
+
+    /** Use Transposition Tables for visited nodes  (needs extra memory) */
     boolean _USE_NODE_CACHE = true;
 
-    /** Use Cache for Board evaluations - very expensive, only worth with expensive eval */
+    /** Use Transposition Tables to store move list (needs extra memory)
+     *  Very expensive as it creates many int[] arrays - worth it?*/
+    boolean _USE_MOVE_CACHE = true;
+
+    /** Use Cache for Board evaluations - very expensive, only worth
+     * with expensive evaluation - (needs extra memory)                  */
     boolean _USE_BOARD_CACHE = true;
 
-    /** test the search without any pruning and count perft value **/
-    static public final boolean PERFT = false;
+    /** Do quiescence evaluation and search extension for non quiet positions */
+    boolean _USE_QUIESCENCE = true;
+
+    /** Use AlphaBeta Pruning */
+    boolean _USE_PRUNING = true;
+
+    /** Principal Variation Search */
+    boolean _USE_PVS = true;
+
+    /** Mate Distance Pruning */
+    boolean _USE_MDP = true;
+
+    /** Minor Promotion Pruning */
+    boolean _USE_MPP = true;
+
+    /** Null Move Pruning */
+    boolean _USE_NMP = true;
+    boolean _USE_VERIFY_NMP = true;
 
 
     /** default value for folder to books */
     String _OB_FolderPath = "./book/";
     /** default opening book file */
-    //public String _OB_fileNamePlain = "8moves_GM_LB.pgn";
-    String _OB_fileNamePlain = "book_graham.txt";
+    String _OB_fileNamePlain = "8moves_GM_LB.pgn";
+    //String _OB_fileNamePlain = "book_graham.txt";
+    //String _OB_fileNamePlain = "book.txt";
     /** default opening book value */
-    //public Mode _OB_Mode = Mode.PGN;
-    Mode _OB_Mode = Mode.SAN;
+    Mode _OB_Mode = Mode.PGN;
+    //Mode _OB_Mode = Mode.SAN;
+    //Mode _OB_Mode = Mode.SIMPLE;
 
 
 }

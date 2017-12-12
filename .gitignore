@@ -80,3 +80,5 @@ Chessly.startup
 Chessly.vaz
 build_Chessly.bat
 run_Chessly.bat
+*.abk
+book/abk2pgn/readme.txt

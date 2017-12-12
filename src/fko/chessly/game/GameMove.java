@@ -38,7 +38,10 @@ package fko.chessly.game;
  */
 public interface GameMove {
 
-    int VALUE_UNKNOWN = Integer.MIN_VALUE;
+    /**
+     * Constant to indicate that a value has not yet been calculated
+     */
+    final int VALUE_UNKNOWN = Integer.MIN_VALUE;
 
     /**
      * Returns the number of the half move of this move. Returns 0 if number is unknown yet
@@ -48,25 +51,25 @@ public interface GameMove {
 
     /**
      * When the Move is committed to a Board the board stores the half move number in the Move
-     * @param i - half move number of the comitted move
+     * @param i - half move number of the committed move
      */
     void setHalfMoveNumber(int i);
 
     /**
      * Returns the from Field of the move
-     * @return {@link Field}
+     * @return from field
      */
     GamePosition getFromField();
 
     /**
      * Returns the to Field of the move
-     * @return {@link Field}
+     * @return to field
      */
     GamePosition getToField();
 
     /**
      * Each Move has a Piece which in turn has a color.
-     * @return {@link GamePiece}ece moved with this Move
+     * @return piece that has been move by this move
      */
     GamePiece getMovedPiece();
 
@@ -84,7 +87,7 @@ public interface GameMove {
 
     /**
      * If the move is a pawn promotion then this is the piece the pawn is promoted to
-     * @param piece the pawn will be promoted to
+     * @param _promotedTo the pawn will be promoted to
      */
     public void setPromotedTo(GamePiece _promotedTo);
 

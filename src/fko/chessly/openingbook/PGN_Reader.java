@@ -115,7 +115,7 @@ public class PGN_Reader {
         }
 
         // create the _games array
-        _games = new ArrayList<pgnGame> (10);
+        _games = new ArrayList<> (10);
 
         boolean result = startInterpreting();
 
@@ -131,7 +131,7 @@ public class PGN_Reader {
     }
 
     /**
-     * @return the list of correcly interpreted PGN games or null if not yet processed.
+     * @return the list of correctly interpreted PGN games or null if not yet processed.
      */
     public List<pgnGame> getGames() {
         return _readyFlag ? _games : null;
@@ -147,8 +147,16 @@ public class PGN_Reader {
 
         // loop over all lines - calls subroutine for each game
         int currentLine = 0;
+        int c = 0;
+        System.out.format("%n");
         while (currentLine < _lines.size()) {
             currentLine = processOneGame(currentLine);
+            if (VERBOSE && ++c % 1000 == 0) {
+                System.out.format(String.format("%7d ", c));
+                if (VERBOSE && c % 10000 == 0) {
+                    System.out.format(String.format(" %d %n",currentLine));
+                }
+            }
         }
         return true;
 
@@ -185,7 +193,8 @@ public class PGN_Reader {
 
             // tag pair section
             if (line.matches("^\\[\\w+ +\".*\"\\]")) { // handle TAG Pair line
-                currentLine = handleTagPairSection(currentLine, tmpGame);
+                // TODO: ignore Tag Pairs for now
+                //currentLine = handleTagPairSection(currentLine, tmpGame);
                 continue;
             }
 
@@ -219,7 +228,7 @@ public class PGN_Reader {
             String line = _lines.get(currentLine);
             line = line.trim();
 
-            // clean up all unessecary stuf we don't need (yet)
+            // clean up all unnecessary stuff we don't need (yet)
             line = lineCleanUp(line);
 
             // escape token
@@ -332,8 +341,8 @@ public class PGN_Reader {
     public class pgnGame {
 
         private String _origNotation = "";
-        private HashMap<String, String> _tags = new HashMap<String, String>();
-        private List<String> _moves = new ArrayList<String>();
+        private HashMap<String, String> _tags = new HashMap<>();
+        private List<String> _moves = new ArrayList<>();
 
         pgnGame() {
         }

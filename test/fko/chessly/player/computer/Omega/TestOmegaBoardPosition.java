@@ -49,7 +49,9 @@ import fko.chessly.game.NotationHelper;
  */
 public class TestOmegaBoardPosition {
 
-    private static final int ITERATIONS = 99;
+    private static final int ITERATIONS = 999;
+
+
 
     /**
      * Test insufficient material
@@ -512,6 +514,7 @@ public class TestOmegaBoardPosition {
         OmegaBoardPosition obp_copy = new OmegaBoardPosition(gb);
         assertTrue(gb.toFENString().equals(obp_copy.toFENString()));
     }
+
 
     /**
      * Test Zobrist Key generation

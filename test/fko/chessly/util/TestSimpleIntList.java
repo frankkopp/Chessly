@@ -42,6 +42,34 @@ import fko.chessly.util.SimpleIntList;
  */
 public class TestSimpleIntList {
 
+    /**
+     * Test Iterator in a simple case
+     */
+    @Test
+    public void testGrowing() {
+
+        SimpleIntList list = new SimpleIntList(80);
+
+        // add many entries
+        for (int i=1; i<=80; i++) {
+            list.add((int) (Math.random()*Integer.MAX_VALUE));
+        }
+        assertEquals(80, list.size());
+
+        for (int i=1; i<=10; i++) {
+            list.add((int) (Math.random()*Integer.MAX_VALUE));
+        }
+        assertEquals(90, list.size());
+
+        list.removeFirst();
+        assertEquals(89, list.size());
+
+        for (int i=1; i<=10; i++) {
+            list.add((int) (Math.random()*Integer.MAX_VALUE));
+        }
+        assertEquals(99, list.size());
+
+    }
 
     /**
      * Test Iterator in a simple case
@@ -254,23 +282,6 @@ public class TestSimpleIntList {
             list2.add(i);
         }
         assertTrue(list2.size()==256);
-
-        // add one too many
-        try {
-            list2.add(999);
-            fail();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // ignore
-        }
-        assertTrue(list2.size()==256);
-
-        // add too many elements
-        try {
-            list.add(list2);
-            fail();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // ignore
-        }
 
         // equals
         list = new SimpleIntList();

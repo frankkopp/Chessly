@@ -27,11 +27,8 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.assertEquals;
-
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -60,13 +57,16 @@ public class testTimings_Search {
     private OmegaSearch _omegaSearch1;
     private OmegaSearch _omegaSearch2;
 
+    /**
+     *
+     */
     @Test
     public void testTiming() {
 
         prepare();
 
         int ROUNDS = 5;
-        int DURATION = 15;
+        int DURATION = 10;
 
         int ITERATIONS = 0;
 
@@ -75,6 +75,8 @@ public class testTimings_Search {
         System.out.println("Running Timing Test Test 1 vs. Test 2");
 
         for (int j=0; j<ROUNDS ;j++) {
+
+            System.out.println(String.format("Run %d of %d", j+1, ROUNDS));
 
             prep1();
             System.gc();
@@ -117,29 +119,43 @@ public class testTimings_Search {
         _omegaEngine2.init(_player2);
 
         String fen = "1r3rk1/1pnnq1bR/p1pp2B1/P2P1p2/1PP1pP2/2B3P1/5PK1/2Q4R w - - 0 1"; // white);
+        fen =  "r3k2r/1ppn3p/2q1q1n1/8/2q1Pp2/6R1/pbp2PPP/1R4K1 w kq - 0 113";
+        //fen = NotationHelper.StandardBoardFEN;
         _omegaPosition1 = new OmegaBoardPosition(fen);
         _omegaPosition2 = new OmegaBoardPosition(fen);
 
-        _omegaEngine1._CONFIGURATION._USE_NODE_CACHE = false;
-        _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE = false;
-        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE = true;
-        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE = true;
+        _omegaEngine1._CONFIGURATION._USE_NODE_CACHE    = true;
+        _omegaEngine1._CONFIGURATION._USE_MOVE_CACHE    = true;
+        _omegaEngine1._CONFIGURATION._USE_BOARD_CACHE   = true;
+        _omegaEngine1._CONFIGURATION._USE_PRUNING       = true;
+        _omegaEngine1._CONFIGURATION._USE_MDP           = false;
+        _omegaEngine1._CONFIGURATION._USE_PVS           = false;
+        _omegaEngine1._CONFIGURATION._USE_QUIESCENCE    = false;
+
+        _omegaEngine2._CONFIGURATION._USE_NODE_CACHE    = true;
+        _omegaEngine2._CONFIGURATION._USE_MOVE_CACHE    = true;
+        _omegaEngine2._CONFIGURATION._USE_BOARD_CACHE   = true;
+        _omegaEngine2._CONFIGURATION._USE_PRUNING       = true;
+        _omegaEngine2._CONFIGURATION._USE_MDP           = false;
+        _omegaEngine2._CONFIGURATION._USE_PVS           = false;
+        _omegaEngine2._CONFIGURATION._USE_QUIESCENCE    = false;
 
         _omegaSearch1 = new OmegaSearch(_omegaEngine1);
         _omegaSearch2 = new OmegaSearch(_omegaEngine2);
 
     }
 
-    /**
-     *
+    /*
+     * TEST 1 ################################################################
      */
+
     private void prep1() {
-        _omegaSearch1._evalCache.clear();
-        _omegaSearch1._transpositionTable.clear();
+        if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
+        if (_omegaSearch1._transpositionTable != null ) _omegaSearch1._transpositionTable.clear();
     }
 
     private void test1() {
-        _omegaSearch1.configureMaxDepth(3);
+        _omegaSearch1.configureMaxDepth(4);
         _omegaSearch1.startSearch(_omegaPosition1);
         // what was the move?
         while (_omegaSearch1.isSearching()) {
@@ -150,19 +166,20 @@ public class testTimings_Search {
             }
         }
         _omegaSearch1.stop();
-        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
+        //        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine1.getSearchResult().bestMove));
     }
 
-    /**
-     *
+    /*
+     * TEST 2 ################################################################
      */
+
     private void prep2() {
-        _omegaSearch2._evalCache.clear();
-        _omegaSearch2._transpositionTable.clear();
+        if (_omegaSearch1._evalCache != null) _omegaSearch1._evalCache.clear();
+        if (_omegaSearch1._transpositionTable != null ) _omegaSearch1._transpositionTable.clear();
     }
 
     private void test2() {
-        _omegaSearch2.configureMaxDepth(3);
+        _omegaSearch2.configureMaxDepth(4);
         _omegaSearch2.startSearch(_omegaPosition2);
         // what was the move?
         while (_omegaSearch2.isSearching()) {
@@ -173,8 +190,10 @@ public class testTimings_Search {
             }
         }
         _omegaSearch2.stop();
-        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine2.getSearchResult().bestMove));
+        //        assertEquals("NORMAL Rh7-h8", OmegaMove.toString(_omegaEngine2.getSearchResult().bestMove));
     }
+
+
 
     private static Player createPlayer(GameColor color) {
         final Player newPlayer;
