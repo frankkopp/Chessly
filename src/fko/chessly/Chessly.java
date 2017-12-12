@@ -157,13 +157,13 @@ public class Chessly {
         catch ( CmdLineParser.OptionException e ) {
             System.err.println(e.getMessage());
             printUsage();
-            exitReversi(2);
+            exitChessly(2);
         }
 
         // Usage
         if ((Boolean) cp.getOptionValue(usage)) {
             printUsage();
-            exitReversi(0);
+            exitChessly(0);
         }
 
         // Set properties according to the command line options
@@ -238,7 +238,7 @@ public class Chessly {
     public static void fatalError(String message) {
         Exception e = new Exception(message);
         e.printStackTrace();
-        exitReversi(1);
+        exitChessly(1);
     }
 
     /**
@@ -255,13 +255,13 @@ public class Chessly {
      * Clean up and exit the application
      */
     public static void exitChessly() {
-        exitReversi(0);
+        exitChessly(0);
     }
 
     /**
      * Clean up and exit the application
      */
-    private static void exitReversi(int returnCode) {
+    private static void exitChessly(int returnCode) {
         // nothing to clean up yet
         System.exit(returnCode);
     }

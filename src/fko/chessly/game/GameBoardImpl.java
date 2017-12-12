@@ -1252,7 +1252,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     @Override
     public boolean isCastlingKingSideAllowed(GameColor color) {
-        if (color == GameColor.NONE)
+        if (color.isNone())
             throw new IllegalArgumentException();
         GameCastling c = _castlingRights[GameCastling.valueOf(color,
                 GameCastlingType.KINGSIDE).ordinal()];
@@ -1268,7 +1268,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
      */
     @Override
     public boolean isCastlingQueenSideAllowed(GameColor color) {
-        if (color == GameColor.NONE)
+        if (color.isNone())
             throw new IllegalArgumentException();
         GameCastling c = _castlingRights[GameCastling.valueOf(color,
                 GameCastlingType.QUEENSIDE).ordinal()];

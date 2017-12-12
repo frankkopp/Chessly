@@ -48,11 +48,10 @@ import fko.chessly.player.PlayerType;
  * <p>For self training or a different implementation of a UI a different
  * Playroom will be necessary.</p>
  *
- * <p>The playroom is also the main observable (Model) for the gui. When the playroom properties change
+ * <p>The playroom is also the main observable (Model) for the ui. When the playroom properties change
  * the observers will be notified.</p>
  *
  * <p>The playroom is a singleton and can not be instantiated - use getInstance()</p>
- *
  *
  * @author Frank Kopp (frank@familie-kopp.de)
  */

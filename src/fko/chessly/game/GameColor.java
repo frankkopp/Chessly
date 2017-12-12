@@ -29,7 +29,7 @@ package fko.chessly.game;
 /**
  * <p/>
  * The ChesslyColor class represents the two colors of a Chessly game and a special color for empty fields (NONE).
- * This class can not be instanciated. It keeps public references to the only possible instances BLACK, WHITE, NONE.
+ * This class can not be instantiated. It keeps public references to the only possible instances BLACK, WHITE, NONE.
  * These instances are immutable. As it is not possible to have any other instances of ChesslyColors the use of
  * these instances is as fast as if using an int.
  * </p>
@@ -90,6 +90,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is BLACK
+     * @return true if black
      */
     public boolean isBlack() {
         return this==BLACK;
@@ -97,6 +98,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is WHITE
+     * @return true if white
      */
     public boolean isWhite() {
         return this==WHITE;
@@ -104,6 +106,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is NONE
+     * @return true if no color
      */
     public boolean isNone() {
         return this==NONE;
@@ -111,6 +114,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is EMPTY
+     * @return true if color is empty
      */
     public boolean isEmpty() {
         return this==NONE;
@@ -118,6 +122,7 @@ public enum GameColor {
 
     /**
      * Convenience method to check if the instance is not EMPTY
+     * @return true if color is not empty
      */
     public boolean isNotEmpty() {
         return this!=NONE;
