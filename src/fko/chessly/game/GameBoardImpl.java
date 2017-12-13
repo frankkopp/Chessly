@@ -28,8 +28,6 @@ package fko.chessly.game;
 
 import java.util.Arrays;
 
-import com.sun.org.glassfish.gmbal.GmbalException;
-
 import fko.chessly.game.pieces.Bishop;
 import fko.chessly.game.pieces.King;
 import fko.chessly.game.pieces.Knight;
@@ -1774,7 +1772,7 @@ public class GameBoardImpl implements GameBoard, Cloneable {
     }
 
     /**
-     * @return deep clone of a BoardImpl by calling the copy contructor
+     * @return deep clone of a BoardImpl by calling the copy constructor
      */
     @Override
     public Object clone() {
