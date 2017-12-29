@@ -32,14 +32,11 @@ import static java.lang.Integer.parseInt;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_Entry;
 import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
-import fko.chessly.util.ChesslyLogger;
 
 /**
  * This is the actual search implementation class for the Omega Engine.<br/>
@@ -85,7 +82,7 @@ public class OmegaSearch implements Runnable {
     private final int NULLMOVE_REDUCTION;
     private final int NULLMOVE_REDUCTION_VERIFICATION = 3;
 
-    private Logger _log = ChesslyLogger.getLogger();
+//    private Logger _log = ChesslyLogger.getLogger();
 
     // back reference to the engine
     private OmegaEngine _omegaEngine;
@@ -198,7 +195,7 @@ public class OmegaSearch implements Runnable {
     public OmegaSearch(OmegaEngine omegaEngine) {
         _omegaEngine = omegaEngine;
 
-        _log.setLevel(Level.OFF);
+//        _log.setLevel(Level.OFF);
 
         // Move Generators - each depth in search gets it own
         // to avoid object creation during search
@@ -1217,7 +1214,7 @@ public class OmegaSearch implements Runnable {
             //            String info = String.format("PV: %s%n"
             //                    , _principalVariation[0].toNotationString());
             _omegaEngine.printVerboseInfo(info);
-            _log.fine(info);
+//            _log.fine(info);
         }
     }
 
