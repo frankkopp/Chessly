@@ -31,6 +31,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 
 import fko.chessly.Chessly;
 
@@ -42,7 +44,7 @@ import fko.chessly.Chessly;
  * <p>This class is an singleton as we only will have one properties file
  * for configuration.</p>
  *
- * <p>The default properties file is: ./properties/reversi/reversi.properties</p>
+ * <p>The default properties file is: ./properties/chessly/chessly.properties</p>
  *
  * <p>This class extends java.util.Properties.</p>
  *
@@ -57,7 +59,8 @@ public class ChesslyProperties extends java.util.Properties {
     private final static ChesslyProperties _instance = new ChesslyProperties();
 
     // Default properties file
-    private final static String propertiesFile = "./properties/chessly/chessly.properties";
+    private final static String propertiesFileRoot = "./chessly.properties";
+    private final static String propertiesFileDefault = "./properties/chessly/chessly.properties";
 
     /**
      * ReversiProperties is a Singleton so use getInstance()
@@ -70,8 +73,14 @@ public class ChesslyProperties extends java.util.Properties {
     private ChesslyProperties() {
         // -- call constructor of java.util.Properties
         super();
-        String filename = propertiesFile;
+        String filename = propertiesFileDefault;
         InputStream in = null;
+        
+        // test if properties file exists in root (next to jar)
+        if (Files.exists(FileSystems.getDefault().getPath(propertiesFileRoot))) {
+        		filename = propertiesFileRoot;
+        }
+        
         try {
             in = new FileInputStream(filename);
             load(in);
