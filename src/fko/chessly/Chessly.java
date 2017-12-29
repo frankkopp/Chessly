@@ -250,6 +250,15 @@ public class Chessly {
         Exception e = new Exception(message);
         e.printStackTrace();
     }
+    
+	/**
+	 * Called when there is an unexpected minor error.<br/>
+	 * Prints a provided message.<br/>
+	 * @param message to be displayed
+	 */
+	public static void minorError(String message) {
+		System.err.println(message);
+	}
 
     /**
      * Clean up and exit the application
