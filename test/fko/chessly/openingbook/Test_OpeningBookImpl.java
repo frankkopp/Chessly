@@ -30,9 +30,8 @@ public class Test_OpeningBookImpl {
 
         long memStart = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
-        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("./book/book.txt"),Mode.SIMPLE);
-        OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("./book/8moves_GM_LB.pgn"),Mode.PGN);
-        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("./book/ecoe.pgn"),Mode.PGN);
+        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/book.txt"),Mode.SIMPLE);
+        OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/8moves_GM_LB.pgn"),Mode.PGN);
 
         ((OpeningBookImpl) book)._config.FORCE_CREATE = true;
 
@@ -85,9 +84,9 @@ public class Test_OpeningBookImpl {
     }
 
     void timedMethod() {
-        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("./book/book.txt"),Mode.SIMPLE);
-        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("./book/8moves_GM_LB.pgn"),Mode.PGN);
-        OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("./book/Test_PGN/superbook.pgn"),Mode.PGN);
+        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/book.txt"),Mode.SIMPLE);
+        //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/8moves_GM_LB.pgn"),Mode.PGN);
+        OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/Test_PGN/superbook.pgn"),Mode.PGN);
         ((OpeningBookImpl) book)._config.FORCE_CREATE = true;
         book.initialize();
     }

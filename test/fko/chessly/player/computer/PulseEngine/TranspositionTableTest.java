@@ -18,9 +18,10 @@
  */
 package fko.chessly.player.computer.PulseEngine;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class TranspositionTableTest {
 
@@ -64,7 +65,8 @@ public class TranspositionTableTest {
 
   }
 
-  @Test
+  @SuppressWarnings("unused")
+@Test
   public void testSize() {
     System.out.println("Testing Transposition Table size:");
     int[] megabytes = {4, 8, 16, 32, 64, 128, 256, 512};

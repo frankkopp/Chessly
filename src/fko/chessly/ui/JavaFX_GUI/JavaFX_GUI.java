@@ -54,7 +54,6 @@ public class JavaFX_GUI extends Application implements UserInterface {
      */
     private static Stage _primaryStage;
 
-
     /**
      * The main controller for this JavaFX application
      */
@@ -65,8 +64,9 @@ public class JavaFX_GUI extends Application implements UserInterface {
      * Creates the JavaFX UI through a Swing JPanel
      * It is not possible to instantiate JavaFX_GUI more than once - throws RunTime Exception.
      */
-    public JavaFX_GUI() {
+    private JavaFX_GUI() {
         if (_instance != null) throw new RuntimeException("It is not possible to instantiate JavaFX_GUI more than once!");
+        
         // Startup the JavaFX platform
         Platform.setImplicitExit(false);
         PlatformImpl.startup(() -> {
@@ -77,7 +77,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
         JavaFX_GUI._instance = this;
 
         waitForUI();
-
+        
     }
 
     /**
@@ -169,6 +169,9 @@ public class JavaFX_GUI extends Application implements UserInterface {
      * @return the _instance
      */
     public static UserInterface getInstance() {
+    		if (_instance == null) {
+    			_instance = new JavaFX_GUI();
+    		}
         return _instance;
     }
 

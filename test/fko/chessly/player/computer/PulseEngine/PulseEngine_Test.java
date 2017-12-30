@@ -14,13 +14,13 @@ import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
 
-@SuppressWarnings("javadoc")
 public class PulseEngine_Test {
 
     private static Game _myGame;
     private static GameBoard _myBoard;
 
-    private static PulseEngine_v2 _myEngine;
+    @SuppressWarnings("unused")
+	private static PulseEngine_v2 _myEngine;
     private static Player _playerBlack;
     private static Player _playerWhite;
     private static Player _player1;

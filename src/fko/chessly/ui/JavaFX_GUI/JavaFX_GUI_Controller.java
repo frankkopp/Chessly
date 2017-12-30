@@ -100,7 +100,7 @@ public class JavaFX_GUI_Controller implements Observer {
      */
 
     // -- to save and restore the last position of our window
-    private static final WindowStateFX windowState = new WindowStateFX();
+    private static final WindowStateFX windowState = WindowStateFX.getInstance();
 
     private static final boolean VERBOSE_TO_SYSOUT = false;
 

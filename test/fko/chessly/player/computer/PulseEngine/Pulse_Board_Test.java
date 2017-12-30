@@ -92,6 +92,7 @@ public class Pulse_Board_Test {
 		
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void testSearch() {
 		Board board = new Board();
@@ -103,6 +104,7 @@ public class Pulse_Board_Test {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	public void boardCopyTest() {
 		

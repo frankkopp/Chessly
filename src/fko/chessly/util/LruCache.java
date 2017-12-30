@@ -40,7 +40,7 @@ import java.util.Map;
  *
  * @author Frank Kopp (frank@familie-kopp.de)
  */
-public class LruCache extends LinkedHashMap {
+public class LruCache<K,V> extends LinkedHashMap<K,V> {
 
     private static final long serialVersionUID = 3444887473076226523L;
 
@@ -100,7 +100,7 @@ public class LruCache extends LinkedHashMap {
      * @return true or false
      */
     @Override
-    protected boolean removeEldestEntry(Map.Entry eldest) {
+    protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
         return (
                 size() > _maxEntries ||
                 (MAXMEM-Runtime.getRuntime().totalMemory()+Runtime.getRuntime().freeMemory()) < _minFreeMemLeft

@@ -80,7 +80,7 @@ public class PGN_Reader {
     /**
      * If set to true this object will produce info output to System.out
      */
-    public static boolean VERBOSE = true;
+    public static boolean VERBOSE = false;
 
     // holds the original input lines
     private final List<String> _lines;
@@ -217,7 +217,8 @@ public class PGN_Reader {
      * @param currentLine
      * @param tmpGame
      */
-    private int handleTagPairSection(int currentLine, pgnGame tmpGame) {
+    @SuppressWarnings("unused")
+	private int handleTagPairSection(int currentLine, pgnGame tmpGame) {
 
         // complex because of possible escaping characters like "
         Pattern pattern = Pattern.compile("\\[(\\w+) +\"(([^\\\\\"]+|\\\\([btnfr\"'\\\\]|[0-3]?[0-7]{1,2}|u[0-9a-fA-F]{4}))*)\"\\]");

@@ -27,22 +27,22 @@
 
 package fko.chessly.util;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import fko.chessly.Chessly;
 
 /**
  * <p>Properties class for Chessly.</p>
- * <p>Reads its properties from ./properties/reversi/reversi.properties
+ * <p>Reads its properties from ./properties/chessly/chessly.properties
  * (This is the default path. An option might override that later.)</p>
  *
  * <p>This class is an singleton as we only will have one properties file
  * for configuration.</p>
  *
- * <p>The default properties file is: ./properties/reversi/reversi.properties</p>
+ * <p>The default properties file is: ./properties/chessly/chessly.properties</p>
  *
  * <p>This class extends java.util.Properties.</p>
  *
@@ -57,7 +57,8 @@ public class ChesslyProperties extends java.util.Properties {
     private final static ChesslyProperties _instance = new ChesslyProperties();
 
     // Default properties file
-    private final static String propertiesFile = "./properties/chessly/chessly.properties";
+    private final static String propertiesFileRoot = "/chessly.properties";
+    private final static String propertiesFileDefault = "/properties/chessly.properties";
 
     /**
      * ReversiProperties is a Singleton so use getInstance()
@@ -70,15 +71,28 @@ public class ChesslyProperties extends java.util.Properties {
     private ChesslyProperties() {
         // -- call constructor of java.util.Properties
         super();
-        String filename = propertiesFile;
+        
+        URL url;
+        
+        if ((url=Chessly.class.getResource(propertiesFileRoot)) == null) {
+        		url=Chessly.class.getResource(propertiesFileDefault);
+        }
+        
+        if (url==null) {
+        		Chessly.minorError("Could not load properties file");
+        		return;
+        } 
+        
+//        System.out.println("Loading properties from: "+url.toString());
+        
         InputStream in = null;
         try {
-            in = new FileInputStream(filename);
+            in = url.openStream(); 
             load(in);
         } catch (FileNotFoundException e) {
-            Chessly.criticalError("Properties file " + filename + " not found!");
+            Chessly.criticalError("Properties file " + url.getFile() + " not found!");
         } catch (IOException e) {
-            Chessly.criticalError("Properties file " + filename + " could not be loaded!");
+            Chessly.criticalError("Properties file " + url.getFile() + " could not be loaded!");
         } finally {
             try {
                 if (in!=null) {
@@ -88,15 +102,4 @@ public class ChesslyProperties extends java.util.Properties {
         }
     }
 
-    /**
-     * Creates a shallow copy of this hashtable. All the structure of the
-     * hashtable itself is copied, but the keys and values are not cloned.
-     * This is a relatively expensive operation.
-     *
-     * @return a clone of the hashtable.
-     */
-    @Override
-    public synchronized Object clone() {
-        return super.clone();
-    }
 }

@@ -93,9 +93,9 @@ public class OmegaConfiguration {
     boolean _USE_VERIFY_NMP = true;
 
 
-    /** default value for folder to books */
-    String _OB_FolderPath = "./book/";
-    /** default opening book file */
+    /** value for folder to books */
+    String _OB_FolderPath = "/book/";
+    /** opening book file */
     String _OB_fileNamePlain = "8moves_GM_LB.pgn";
     //String _OB_fileNamePlain = "book_graham.txt";
     //String _OB_fileNamePlain = "book.txt";
