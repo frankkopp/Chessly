@@ -27,19 +27,11 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.assertEquals;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.LongAdder;
 
 import org.junit.Test;
-
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
-import fko.chessly.util.SimpleIntList;
 
 /**
  * @author Frank
@@ -102,13 +94,15 @@ public class testTimings {
 
     }
 
-    private void test1() {
+    @SuppressWarnings("unused")
+	private void test1() {
 
         int [] list = Arrays.copyOf(_list_1, _list_1.length);
 
     }
 
-    private void test2() {
+    @SuppressWarnings("unused")
+	private void test2() {
 
         int [] list = _list_1.clone();
 

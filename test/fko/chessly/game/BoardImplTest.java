@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import fko.chessly.game.pieces.Pawn;
-import fko.chessly.player.computer.Omega.OmegaBoardPosition;
 
 /**
  * @author fkopp

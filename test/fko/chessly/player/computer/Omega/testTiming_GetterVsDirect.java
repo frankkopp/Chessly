@@ -107,7 +107,8 @@ public class testTiming_GetterVsDirect {
 
     }
 
-    private void test2() {
+    @SuppressWarnings("unused")
+	private void test2() {
 
         OmegaSquare tempa, tempb;
         final int size = _squareList.size();

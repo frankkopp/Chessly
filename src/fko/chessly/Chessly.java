@@ -31,7 +31,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import fko.chessly.ui.UserInterface;
-import fko.chessly.ui.UserInterfaceFactory;
+import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI;
 import fko.chessly.util.ChesslyLogger;
 import fko.chessly.util.ChesslyProperties;
 import fko.chessly.util.CmdLineParser;
@@ -117,6 +117,15 @@ import fko.chessly.util.CmdLineParser;
  */
 public class Chessly {
 
+    /**
+     * This constant holds the current version of Chessly by Frank Kopp
+     * v1.2 - added basic opening book
+     * v1.3a - extended opening book
+     * v1.4 - added pondering
+     * v1.5 - added JavaFX
+     * v2.0 - JavaFX complete (w.i.p.)
+     * v2.1 - bug fixing, startable as JAR
+     */
     public static final String VERSION = "v2.1";
 
     @SuppressWarnings("unused")
@@ -182,7 +191,8 @@ public class Chessly {
     private Chessly() {
 
         // Create and get an instance of an interface for Chessly.
-        _ui = UserInterfaceFactory.getUI();
+        //_ui = UserInterfaceFactory.getUI();
+        _ui = JavaFX_GUI.getInstance();
         _ui.waitForUI();
 
         // Create and get an instance of the singleton Playroom class
@@ -242,6 +252,15 @@ public class Chessly {
         Exception e = new Exception(message);
         e.printStackTrace();
     }
+    
+	/**
+	 * Called when there is an unexpected minor error.<br/>
+	 * Prints a provided message.<br/>
+	 * @param message to be displayed
+	 */
+	public static void minorError(String message) {
+		System.err.println(message);
+	}
 
     /**
      * Clean up and exit the application

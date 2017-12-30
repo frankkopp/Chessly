@@ -27,10 +27,8 @@
 package fko.chessly.ui.JavaFX_GUI;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import fko.chessly.Chessly;
 import fko.chessly.game.GameBoard;
@@ -558,20 +556,20 @@ public class BoardPane extends Pane {
      */
     private void getPieceImages() {
         // -- get images for pieces --
-        String _userDir = System.getProperty("user.dir");
-        String imageFolder = "file:"+_userDir+"/images/";
-        _wK = new Image(imageFolder+"wK.png");
-        _bK = new Image(imageFolder+"bK.png");
-        _wQ = new Image(imageFolder+"wQ.png");
-        _bQ = new Image(imageFolder+"bQ.png");
-        _wB = new Image(imageFolder+"wB.png");
-        _bB = new Image(imageFolder+"bB.png");
-        _wN = new Image(imageFolder+"wN.png");
-        _bN = new Image(imageFolder+"bN.png");
-        _wR = new Image(imageFolder+"wR.png");
-        _bR = new Image(imageFolder+"bR.png");
-        _wP = new Image(imageFolder+"wP.png");
-        _bP = new Image(imageFolder+"bP.png");
+        String imageFolder = "/images/";
+        _wK = new Image(Chessly.class.getResourceAsStream(imageFolder+"wK.png"));
+        _wK = new Image(Chessly.class.getResourceAsStream(imageFolder+"wK.png"));
+        _bK = new Image(Chessly.class.getResourceAsStream(imageFolder+"bK.png"));
+        _wQ = new Image(Chessly.class.getResourceAsStream(imageFolder+"wQ.png"));
+        _bQ = new Image(Chessly.class.getResourceAsStream(imageFolder+"bQ.png"));
+        _wB = new Image(Chessly.class.getResourceAsStream(imageFolder+"wB.png"));
+        _bB = new Image(Chessly.class.getResourceAsStream(imageFolder+"bB.png"));
+        _wN = new Image(Chessly.class.getResourceAsStream(imageFolder+"wN.png"));
+        _bN = new Image(Chessly.class.getResourceAsStream(imageFolder+"bN.png"));
+        _wR = new Image(Chessly.class.getResourceAsStream(imageFolder+"wR.png"));
+        _bR = new Image(Chessly.class.getResourceAsStream(imageFolder+"bR.png"));
+        _wP = new Image(Chessly.class.getResourceAsStream(imageFolder+"wP.png"));
+        _bP = new Image(Chessly.class.getResourceAsStream(imageFolder+"bP.png"));
     }
 
     /**
@@ -843,7 +841,8 @@ public class BoardPane extends Pane {
 
         private final BoardPane node;
         private final ImageView pieceView;
-        private boolean isDragged;
+        @SuppressWarnings("unused")
+		private boolean isDragged;
 
         /**
          * @param pieceView

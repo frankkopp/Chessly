@@ -27,13 +27,12 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.time.Instant;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import fko.chessly.game.NotationHelper;

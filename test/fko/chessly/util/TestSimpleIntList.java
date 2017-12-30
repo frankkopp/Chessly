@@ -27,15 +27,15 @@
 
 package fko.chessly.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ConcurrentModificationException;
-import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
-
-import fko.chessly.util.SimpleIntList;
 
 /**
  * @author Frank
@@ -129,7 +129,8 @@ public class TestSimpleIntList {
     /**
      * Test modifications during Iterator use
      */
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     public void testIterator_simpleIterationModification() {
 
         SimpleIntList list = new SimpleIntList();

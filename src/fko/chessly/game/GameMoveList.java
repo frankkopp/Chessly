@@ -28,8 +28,6 @@ package fko.chessly.game;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Extends ArrayList<GameMove> to add a few convenience methods.

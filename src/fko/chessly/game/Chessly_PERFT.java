@@ -30,9 +30,6 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import fko.chessly.game.pieces.Pawn;
-import fko.chessly.player.computer.Omega.OmegaMove;
-
 /**
  * <table class="wiki_table">
  * <tr>

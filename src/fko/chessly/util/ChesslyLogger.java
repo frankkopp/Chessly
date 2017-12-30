@@ -43,7 +43,7 @@ import fko.chessly.Chessly;
  */
 public class ChesslyLogger {
 
-    private final static Logger _log = Logger.getLogger("fko.reversi");
+    private final static Logger _log = Logger.getLogger("fko.chessly");
 
     private final static ChesslyLogger _instance = new ChesslyLogger();
 

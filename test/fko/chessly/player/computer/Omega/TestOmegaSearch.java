@@ -27,11 +27,9 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.Test;
 
@@ -232,7 +230,6 @@ public class TestOmegaSearch {
         _omegaEngine.init(_player);
 
         OmegaBoardPosition _omegaPosition = new OmegaBoardPosition();
-        OmegaBoardPosition _omegaPosition2 = new OmegaBoardPosition();
 
         OmegaSearch _omegaSearch = new OmegaSearch(_omegaEngine);
         OmegaSearch _omegaSearch2 = new OmegaSearch(_omegaEngine);
@@ -306,7 +303,8 @@ public class TestOmegaSearch {
     /**
      * @param _omegaPosition
      */
-    private static void makeMoves(GameBoard board, String movesString) {
+    @SuppressWarnings("unused")
+	private static void makeMoves(GameBoard board, String movesString) {
         String[] moves = movesString.split(" ");
         for (String move : moves) {
             board.makeMove(NotationHelper.createNewMoveFromSimpleNotation(board, move));

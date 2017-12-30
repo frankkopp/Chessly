@@ -115,7 +115,7 @@ public class EngineInfoUpdater {
                         }
                     } else {
                         clear();
-                        //_engineLabels.engineTab.setText(tabTitel3);
+                        _engineLabels.engineTab.setText(tabTitel3);
                     }
                 }
             }

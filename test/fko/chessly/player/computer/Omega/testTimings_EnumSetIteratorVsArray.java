@@ -27,12 +27,9 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.assertTrue;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumSet;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -97,7 +94,8 @@ public class testTimings_EnumSetIteratorVsArray {
 
     }
 
-    private void test1() {
+    @SuppressWarnings("unused")
+	private void test1() {
 
         for (OmegaSquare s : OmegaSquare.values) {
             if (s.isValidSquare()) {
@@ -121,7 +119,8 @@ public class testTimings_EnumSetIteratorVsArray {
 
     }
 
-    private void test2() {
+    @SuppressWarnings("unused")
+	private void test2() {
 
         for (OmegaSquare s : OmegaSquare.values) {
             if (s.isValidSquare()) {
