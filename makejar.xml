@@ -7,7 +7,7 @@
     <property name="dir.workspace" value="${dir.buildfile}/.."/>
     <property name="dir.jarfile" value="${dir.buildfile}/release"/>
     <target name="create_run_jar">
-        <jar destfile="${dir.jarfile}/Chessly_1.2.1.jar">
+        <jar destfile="${dir.jarfile}/Chessly_2.1.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="fko.chessly.Chessly"/>
