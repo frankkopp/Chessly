@@ -1,6 +1,10 @@
 package fko.chessly.game;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -56,6 +60,7 @@ public class NotationHelperTest {
 	// piece
 	GameMove m1 = NotationHelper.createNewMoveFromSimpleNotation(board, "d7b6");
 	assertTrue(m1 != null);
+	@SuppressWarnings("unused")
 	GameMove m2;
 	try {
 	    m2 = NotationHelper.createNewMoveFromSimpleNotation(board, "h8h7");
@@ -81,6 +86,7 @@ public class NotationHelperTest {
 	assertTrue(m12 != null); 
 	GameMove m13 = NotationHelper.createNewMoveFromSimpleNotation(board, "a2-a1");
 	assertTrue(m13 != null);
+	@SuppressWarnings("unused")
 	GameMove m14;
 	try {
 	    m14 = NotationHelper.createNewMoveFromSimpleNotation(board, "h4");
@@ -161,7 +167,8 @@ public class NotationHelperTest {
      * legal, but illegal moves for instance with a Pinned piece must not be
      * considered in ambiguous issues in an export format.
      */
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     public void testMoveFromSANNotation() {
 
 	System.out.println();
@@ -293,12 +300,12 @@ public class NotationHelperTest {
 	assertTrue(m34 != null);
     }
 
-    @Test
+    @SuppressWarnings("deprecation")
+	@Test
     public void testMoveFromOldSimpleNotation() {
     
         System.out.println("Test Move from Simple Notation");
     
-        GameBoard b = new GameBoardImpl();
         GameMove m1 = NotationHelper.createNewMoveFromSimpleNotation("e2-e4",
         	Pawn.create(GameColor.WHITE));
         GameMove m1twin = NotationHelper.createNewMoveFromSimpleNotation("e2-e4",

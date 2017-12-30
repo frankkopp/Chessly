@@ -33,18 +33,19 @@ import fko.chessly.Chessly;
  * <p>A factory to create the user interface.<br>
  * It reads the UI class from the configuration in chessly.properties:</p>
  * <p>Example:
- * <code>ui.class = fko.chessly.ui.Swing.SwingUI</code>
+ * <code>ui.class = fko.chessly.ui.JavaFX_GUI.JavaFX_GUI</code>
  * </p>
  * <p>This class is a utility class and can not be instantiated. Use getUI() to get
  * the actual instance.</p>
  */
+@Deprecated
 public class UserInterfaceFactory {
 
     private UserInterfaceFactory() {
     }
 
     /**
-     * Returns a UserInterface based on the default class "fko.chessly.ui.ReversiGUI.ReversiGUI".<br/>
+     * Returns a UserInterface based on the default class "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI".<br/>
      * @return user interface instance
      */
     public static UserInterface getUI() {
@@ -70,7 +71,7 @@ public class UserInterfaceFactory {
         }
 
         if (ui == null) {
-            ui = "fko.chessly.ui.SwingGUI.SwingGUI";
+            ui = "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI";
             System.err.println("UI class property could not be found: using default: " + ui);
         }
 

@@ -31,7 +31,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import fko.chessly.ui.UserInterface;
-import fko.chessly.ui.UserInterfaceFactory;
+import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI;
 import fko.chessly.util.ChesslyLogger;
 import fko.chessly.util.ChesslyProperties;
 import fko.chessly.util.CmdLineParser;
@@ -124,6 +124,7 @@ public class Chessly {
      * v1.4 - added pondering
      * v1.5 - added JavaFX
      * v2.0 - JavaFX complete (w.i.p.)
+     * v2.1 - bug fixing, startable as JAR
      */
     public static final String VERSION = "v2.1";
 
@@ -190,7 +191,8 @@ public class Chessly {
     private Chessly() {
 
         // Create and get an instance of an interface for Chessly.
-        _ui = UserInterfaceFactory.getUI();
+        //_ui = UserInterfaceFactory.getUI();
+        _ui = JavaFX_GUI.getInstance();
         _ui.waitForUI();
 
         // Create and get an instance of the singleton Playroom class

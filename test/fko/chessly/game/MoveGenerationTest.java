@@ -1,8 +1,8 @@
 package fko.chessly.game;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +50,8 @@ public class MoveGenerationTest {
         System.out.println("En Passant Moves: "+ep);
     }
 
-    @Test
+    @SuppressWarnings("deprecation")
+	@Test
     public void test() {
         GameBoard b = new GameBoardImpl();
         GameMove m;

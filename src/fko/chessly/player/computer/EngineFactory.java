@@ -39,46 +39,42 @@ import fko.chessly.player.Player;
  */
 public class EngineFactory {
 
-    // -- Factories should not be instantiated --
-    private EngineFactory() {}
+	// -- Factories should not be instantiated --
+	private EngineFactory() {}
 
-    /**
-     * @param player
-     * @param color
-     * @return Engine
-     */
-    public static Engine createEngine(Player player, GameColor color) {
+	/**
+	 * @param player
+	 * @param color
+	 * @return Engine
+	 */
+	public static Engine createEngine(Player player, GameColor color) {
 
-        String engineClass;
-        if (color.isBlack()) {
-            engineClass = Chessly.getProperties().getProperty("blackEngine.class");
-        } else if (color.isWhite()) {
-            engineClass = Chessly.getProperties().getProperty("whiteEngine.class");
-        } else {
-            throw new IllegalArgumentException("Not a valid ChesslyColor for a player: "+color);
-        }
+		String engineClass;
+		if (color.isBlack()) {
+			engineClass = Chessly.getProperties().getProperty("blackEngine.class");
+		} else if (color.isWhite()) {
+			engineClass = Chessly.getProperties().getProperty("whiteEngine.class");
+		} else {
+			throw new IllegalArgumentException("Not a valid ChesslyColor for a player: "+color);
+		}
 
-        if (engineClass == null) {
-            engineClass = "fko.chessly.player.computer.Adam.AdamEngine";
-            System.err.println("Engine class property could not be found: using default: " + engineClass);
-        }
+		if (engineClass == null) {
+			engineClass = "fko.chessly.player.computer.Adam.AdamEngine";
+			System.err.println("Engine class property could not be found: using default: " + engineClass);
+		}
 
-        Engine engine = null;
-        try {
-            engine = (Engine) ClassLoader.getSystemClassLoader().loadClass(engineClass).newInstance();
-            engine.init(player);
-        } catch (InstantiationException e) {
-            System.err.println("Engine class " + engine + " could not be loaded");
-            e.printStackTrace();  //To change body of catch statement use Options | File Templates.
-        } catch (IllegalAccessException e) {
-            System.err.println("Engine class " + engine + " could not be loaded");
-            e.printStackTrace();  //To change body of catch statement use Options | File Templates.
-        } catch (ClassNotFoundException e) {
-            System.err.println("Engine class " + engine + " could not be loaded");
-            e.printStackTrace();  //To change body of catch statement use Options | File Templates.
-        }
+		Engine engine = null;
+		try {
 
-        return engine;
-    }
+			final Class<?> loadedClass = Chessly.class.getClassLoader().loadClass(engineClass);
+			engine = (Engine) loadedClass.getConstructor().newInstance();
+			engine.init(player);
+
+		} catch (Exception e) {
+			Chessly.criticalError("Engine class " + engine + " could not be loaded");
+		}
+
+		return engine;
+	}
 
 }

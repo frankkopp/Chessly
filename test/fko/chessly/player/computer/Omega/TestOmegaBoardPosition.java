@@ -27,16 +27,15 @@
 
 package fko.chessly.player.computer.Omega;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.EnumSet;
 
 import org.junit.Test;
-
-import com.sun.corba.se.impl.logging.OMGSystemException;
 
 import fko.chessly.game.GameBoard;
 import fko.chessly.game.GameBoardImpl;
@@ -607,7 +606,6 @@ public class TestOmegaBoardPosition {
         int ITERATIONS = 0;
         int DURATION = 2;
 
-        OmegaMoveGenerator moveGenerator = new OmegaMoveGenerator();
         OmegaBoardPosition board = null;
 
         int i=0;

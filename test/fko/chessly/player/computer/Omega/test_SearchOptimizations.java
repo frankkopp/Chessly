@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.LongAdder;
 import org.junit.Test;
 
 import fko.chessly.game.GameColor;
-import fko.chessly.game.NotationHelper;
 import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;

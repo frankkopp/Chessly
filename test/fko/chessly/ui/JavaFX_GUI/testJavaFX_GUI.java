@@ -29,8 +29,6 @@ package fko.chessly.ui.JavaFX_GUI;
 
 import org.junit.Test;
 
-import fko.chessly.ui.UserInterface;
-
 
 
 /**
@@ -39,7 +37,6 @@ import fko.chessly.ui.UserInterface;
  */
 public class testJavaFX_GUI {
 
-    @SuppressWarnings("static-method")
     @Test
     public void test() {
 

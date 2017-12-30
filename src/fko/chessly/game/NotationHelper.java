@@ -296,13 +296,8 @@ public class NotationHelper {
         GameColor color = board.getNextPlayerColor();
 
         String notation = origNotation;
-        GameMove move = null;
-        GamePiece piece = null;
         GamePiece promotedPiece = null;
         GamePosition toField = null;
-        boolean captureMove = false;
-        String fromFile = "";
-        String fromRank = "";
         GamePosition fromField = null;
 
         // Remove # or + or ++ signs = don't need them for generating a move
