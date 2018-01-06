@@ -61,23 +61,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-/bin/
 
-~$.*
-~$fields.xlsx
-/nbproject/private/
-/build/
-nbproject/
-Chessly-native/
-Chessly_jetpdb/
-Chessly_trial_run/
-Chessly.exe
-Chessly.jpn
-Chessly.log
-Chessly.prj
-Chessly.startup
-Chessly.vaz
-build_Chessly.bat
-run_Chessly.bat
-*.abk
-book/abk2pgn/readme.txt
+#Java
+/bin/
+/var/
+
+
