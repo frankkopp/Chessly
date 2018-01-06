@@ -1,0 +1,1 @@
+cat chessly.log | grep FEIN | tee chessly_clean5.log | grep -v 'depth:5/5' | tee chessly_clean4.log | grep -v 'depth:4/5' | tee chessly_clean3.log | grep -v 'depth:3/5' | tee chessly_clean2.log | grep -v 'depth:2/5' | tee chessly_clean1.log
