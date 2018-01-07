@@ -3,9 +3,8 @@
  */
 package fko.chessly.openingbook;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.nio.file.FileSystems;
 
 import org.junit.Test;
 
@@ -20,7 +19,7 @@ import fko.chessly.util.HelperTools;
  * @author fkopp
  *
  */
-public class Test_OpeningBookImpl {
+public class OpeningBookImplTest {
 
     /**
      *
@@ -31,7 +30,7 @@ public class Test_OpeningBookImpl {
         long memStart = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
         //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/book.txt"),Mode.SIMPLE);
-        OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/8moves_GM_LB.pgn"),Mode.PGN);
+        OpeningBook book = new OpeningBookImpl(null, "/book/8moves_GM_LB.pgn", Mode.PGN);
 
         ((OpeningBookImpl) book)._config.FORCE_CREATE = true;
 
@@ -86,9 +85,24 @@ public class Test_OpeningBookImpl {
     void timedMethod() {
         //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/book.txt"),Mode.SIMPLE);
         //OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/8moves_GM_LB.pgn"),Mode.PGN);
-        OpeningBook book = new OpeningBookImpl(null, FileSystems.getDefault().getPath("/book/Test_PGN/superbook.pgn"),Mode.PGN);
+        OpeningBook book = new OpeningBookImpl(null, "/book/Test_PGN/superbook.pgn",Mode.PGN);
         ((OpeningBookImpl) book)._config.FORCE_CREATE = true;
         book.initialize();
     }
+
+	@Test
+	public void testSaveOpeningBooktoSERFile() throws Exception {
+		final String testPath = "/book/unit_test_file.pgn";
+		OpeningBookImpl book = new OpeningBookImpl(null, testPath, Mode.PGN);
+		assertTrue(book.saveOpeningBooktoSERFile(testPath));
+	}
+
+	@Test
+	public void testTryFromCache() throws Exception {
+		final String testPath = "/book/unit_test_file.pgn";
+		OpeningBookImpl book = new OpeningBookImpl(null, testPath, Mode.PGN);
+		assertTrue(book.saveOpeningBooktoSERFile(testPath));
+		assertTrue(book.tryFromCache(testPath));
+	}
 
 }

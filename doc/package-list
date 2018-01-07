@@ -3,11 +3,12 @@ fko.chessly.game
 fko.chessly.game.pieces
 fko.chessly.mvc
 fko.chessly.mvc.ModelEvents
+fko.chessly.openingbook
 fko.chessly.player
 fko.chessly.player.computer
 fko.chessly.player.computer.Adam
-fko.chessly.player.computer.PulseEngine
+fko.chessly.player.computer.Omega
 fko.chessly.player.computer.Random
 fko.chessly.ui
-fko.chessly.ui.SwingGUI
+fko.chessly.ui.JavaFX_GUI
 fko.chessly.util

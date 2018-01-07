@@ -26,9 +26,6 @@
  */
 package fko.chessly.openingbook;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -90,7 +87,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	private Map<String, OpeningBook_Entry> bookMap = Collections.synchronizedMap(new HashMap<String, OpeningBook_Entry>(10000));
 
 	private ObservableEngine _engine;
-	private Path _path;
+	private String _path;
 	private boolean _isInitialized = false;
 
 	// -- helps with process output
@@ -103,7 +100,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 */
 	public OpeningBookImpl(Engine engine) {
 		_engine = null;
-		_path = FileSystems.getDefault().getPath(_config._folderPath, _config._fileNamePlain);
+		_path = _config._folderPath + _config._fileNamePlain;
 	}
 
 	/**
@@ -112,7 +109,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 */
 	public OpeningBookImpl(ObservableEngine engine) {
 		_engine = engine;
-		_path = FileSystems.getDefault().getPath(_config._folderPath, _config._fileNamePlain);
+		_path = _config._folderPath + _config._fileNamePlain;
 	}
 
 	/**
@@ -121,7 +118,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 * @param pathToOpeningBook
 	 * @param mode
 	 */
-	public OpeningBookImpl(Engine engine, Path pathToOpeningBook, Mode mode) {
+	public OpeningBookImpl(Engine engine, String pathToOpeningBook, Mode mode) {
 		_engine = null;
 		_path = pathToOpeningBook;
 		_config._mode = mode;
@@ -133,7 +130,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 * @param pathToOpeningBook
 	 * @param mode
 	 */
-	public OpeningBookImpl(ObservableEngine engine, Path pathToOpeningBook, Mode mode) {
+	public OpeningBookImpl(ObservableEngine engine, String pathToOpeningBook, Mode mode) {
 		_engine = engine;
 		_path = pathToOpeningBook;
 		_config._mode = mode;
@@ -214,15 +211,15 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 * uses _mode flag to determine which format to use.<br/>
 	 * TODO: determine format automatically.
 	 *
-	 * @param path
+	 * @param pathString
 	 */
-	private void readBookfromFile(Path path) {
+	private void readBookfromFile(String pathString) {
 
 		if (_config.VERBOSE) {
-			printInfo(String.format("Opening Book: %s%n", path));
+			printInfo(String.format("Opening Book: %s%n", pathString));
 		}
 		
-		if (tryFromCache(path)) return; 
+		if (tryFromCache(pathString)) return; 
 
 		// NON CACHE
 
@@ -231,83 +228,33 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 		// return classes
 		
 		InputStream bookFileInputStream = null;
-		bookFileInputStream = Chessly.class.getResourceAsStream(path.toString());
+
+		bookFileInputStream = Chessly.class.getResourceAsStream(pathString.toString());
 
 		if (bookFileInputStream == null) {
-			Chessly.criticalError("Book File not found: " + path);
+			Chessly.criticalError("Book File not found: " + pathString);
 			return;
 		} else {
 			if (_config.VERBOSE)
-				printInfo(String.format("Found Opening Book...: %s%n",path));
+				printInfo(String.format("Found Opening Book...: %s%n",pathString));
 		}
 
 		switch (_config._mode) {
 		case PGN:
 			processBookfromPGNFile(bookFileInputStream);
-			saveOpeningBooktoSERFile(path);
+			saveOpeningBooktoSERFile(pathString);
 			break;
 		case SAN:
 			processAllLines(bookFileInputStream);
-			saveOpeningBooktoSERFile(path);
+			saveOpeningBooktoSERFile(pathString);
 			break;
 		case SIMPLE:
 			processAllLines(bookFileInputStream);
-			saveOpeningBooktoSERFile(path);
+			saveOpeningBooktoSERFile(pathString);
 			break;
 		default:
 			break;
 		}
-	}
-
-	/**
-	 * Tries to find and read an existing cache file. If one exists <code>readBookfromSERFile</code>
-	 * will be called and bookMap will be filled with cached entries.<br>
-	 * If book cache folder does not exist it will be created.<br> 
-	 * @param path
-	 * @return true if cache file exists and has been read, false otherwise 
-	 */
-	private boolean tryFromCache(Path path) {
-
-		// path of cache files always is external from JAR so we can use Files.exist()
-		InputStream openingBookInputStream = null;
-		Path cacheFolder = FileSystems.getDefault().getPath(_config._serPath);
-		Path cacheFile = FileSystems.getDefault().getPath(_config._serPath, path.getFileName().toString() + ".ser");
-
-		// Check if folder exists and if not try to create it.
-		if (!Files.exists(cacheFolder)) {
-			Chessly.minorError(String.format(
-					"While reading book cache file: Path %s could not be found. Trying to create it."
-					,cacheFolder.toString()
-					));
-			try {
-				Files.createDirectories(cacheFolder);
-			} catch (IOException e) {
-				Chessly.fatalError(String.format(
-						"While reading book cache file: Path %s could not be found. Trying to create it."
-						,cacheFolder.toString()
-						));
-			}
-		}
-		// read from cache file and return if not configured otherwise
-		if (cacheFile.toFile().exists()) {
-			if (!_config.FORCE_CREATE) {
-				_config._mode = Mode.SER;
-				try {
-					openingBookInputStream = Files.newInputStream(cacheFile);
-					readBookfromSERFile(openingBookInputStream);
-					return true;
-				} catch (IOException e) {
-					Chessly.criticalError(String.format(
-							"While reading book cache file: File %s could not read."
-							,cacheFolder.toString()
-							));
-				}
-			} else {
-				if (_config.VERBOSE)
-					printInfo(String.format("Cache file exists but ignored as FORCE_CREATE is set.%n"));
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -627,57 +574,56 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	}
 
 	/**
-	 * @return
+	 * Tries to find and read an existing cache file. If one exists <code>readBookfromSERFile</code>
+	 * will be called and bookMap will be filled with cached entries.<br>
+	 * If book cache folder does not exist it will be created.<br> 
+	 * @param pathString
+	 * @return true if cache file exists and has been read, false otherwise 
 	 */
-	private boolean saveOpeningBooktoSERFile(Path path) {
-
-		boolean result = false;
-		long start = 0, time = 0;
-
-		if (_config.VERBOSE) {
-			start = System.currentTimeMillis();
-			printInfo(String.format("Saving Open Book to cache file..."));
-		}
-
-		path = FileSystems.getDefault().getPath(_config._serPath, path.getFileName().toString() + ".ser");
-		try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path, CREATE, TRUNCATE_EXISTING))) {
-			ObjectOutputStream oos = new ObjectOutputStream(out);
-			oos.writeObject(bookMap);
-			oos.close();
-			result=true;
-		} catch (FileAlreadyExistsException x) {
-			System.err.format("file named %s" + " already exists: ", path);
+	protected boolean tryFromCache(String pathString) {
+	
+		// path of cache files always is external from JAR so we can use Files.exist()
+		InputStream openingBookInputStream = null;
+		Path cacheFolder = FileSystems.getDefault().getPath(_config._serPath);
+	
+		// Check if folder exists and if not try to create it.
+		if (!Files.exists(cacheFolder)) {
+			Chessly.minorError(String.format(
+					"While reading book cache file: Path %s could not be found. Trying to create it."
+					,cacheFolder.toString()
+					));
 			try {
-				Files.delete(path);
-			} catch (IOException e1) {
-				// ignore
+				Files.createDirectories(cacheFolder);
+			} catch (IOException e) {
+				Chessly.fatalError(String.format(
+						"While reading book cache file: Path %s could not be found. Couldn't create it."
+						,cacheFolder.toString()
+						));
 			}
-			result = false;
-		} catch (IOException e) {
-			System.err.format("%ncreateFile error: %s%n%s%n", path, e.toString());
-			try {
-				Files.delete(path);
-			} catch (IOException e1) {
-				// ignore
-			}
-			result = false;
 		}
-
-		if (result) {
-			if (_config.VERBOSE) {
-				time = System.currentTimeMillis() - start;
-				printInfo(String.format("successful.(%f sec) %n", (time / 1000f)));
-			}
-		} else {
-			if (_config.VERBOSE) {
-				System.out.format("failed.%n");
+		
+		Path cacheFile = createCacheFileName(pathString);
+		
+		// read from cache file and return if not configured otherwise
+		if (cacheFile.toFile().exists()) {
+			if (!_config.FORCE_CREATE) {
+				_config._mode = Mode.SER;
+				try {
+					openingBookInputStream = Files.newInputStream(cacheFile);
+					readBookfromSERFile(openingBookInputStream);
+					return true;
+				} catch (IOException e) {
+					Chessly.criticalError(String.format(
+							"While reading book cache file: File %s could not read."
+							,cacheFolder.toString()
+							));
+				}
 			} else {
-				System.err.format("Saving Opening Book to cache file failed. (%s)", path);
+				if (_config.VERBOSE)
+					printInfo(String.format("Cache file exists but ignored as FORCE_CREATE is set.%n"));
 			}
 		}
-
-		return result;
-
+		return false;
 	}
 
 	/**
@@ -686,15 +632,15 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean readBookfromSERFile(InputStream openingBookInputStream) {
-
+	
 		long start = System.currentTimeMillis();
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(openingBookInputStream))) {
 			if (_config.VERBOSE) {
 				printInfo(String.format("Reading Opening Book from cachefile.%n"));
 			}
-
+	
 			bookMap = (Map<String, OpeningBook_Entry>) ois.readObject();
-
+	
 			ois.close();
 		} catch (FileNotFoundException x) {
 			Chessly.criticalError("file does not exists: " + openingBookInputStream);
@@ -713,13 +659,83 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 			return false;
 		}
 		long time = System.currentTimeMillis() - start;
-
+	
 		if (_config.VERBOSE) {
 			printInfo(String.format("Opening Book ready! %d Positions (%f sec)%n", bookMap.size(), (time / 1000f)));
 		}
-
+	
 		return true;
+	
+	}
 
+	/**
+	 * @return
+	 */
+	protected boolean saveOpeningBooktoSERFile(String pathString) {
+
+		boolean result = false;
+		long start = 0, time = 0;
+
+		if (_config.VERBOSE) {
+			start = System.currentTimeMillis();
+			printInfo(String.format("Saving Open Book to cache file..."));
+		}
+
+		Path cacheFile = createCacheFileName(pathString);
+		
+		try {
+			final OutputStream newOutputStream = Files.newOutputStream(cacheFile);
+			final ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(newOutputStream));
+			oos.writeObject(bookMap);
+			oos.close();
+			
+			result=true;
+		
+		} catch (FileAlreadyExistsException x) {
+			System.err.format("file named %s" + " already exists: ", cacheFile);
+			try {
+				Files.delete(cacheFile);
+			} catch (IOException e1) {
+				// ignore
+			}
+			result = false;
+		} catch (IOException e) {
+			System.err.format("%ncreateFile error: %s%n%s%n", cacheFile, e.toString());
+			try {
+				Files.delete(cacheFile);
+			} catch (IOException e1) {
+				// ignore
+			}
+			result = false;
+		}
+
+		if (result) {
+			if (_config.VERBOSE) {
+				time = System.currentTimeMillis() - start;
+				printInfo(String.format("successful.(%f sec) %n", (time / 1000f)));
+			}
+		} else {
+			if (_config.VERBOSE) {
+				System.out.format("failed.%n");
+			} else {
+				System.err.format("Saving Opening Book to cache file failed. (%s)", cacheFile);
+			}
+		}
+
+		return result;
+
+	}
+
+	/**
+	 * @param pathString
+	 * @return
+	 */
+	private Path createCacheFileName(String pathString) {
+		// remove folder structure and replace by "-" in filename
+		pathString = pathString.substring(0,1) + pathString.substring(1).replaceAll("/", "-");
+		pathString = _config._serPath + pathString + ".ser";
+		Path cacheFile = FileSystems.getDefault().getPath(pathString);
+		return cacheFile;
 	}
 
 	/**
@@ -741,7 +757,6 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 	 *
 	 * @author fkopp
 	 */
-	@SuppressWarnings("javadoc")
 	public enum Mode {
 		SER,
 		SAN,

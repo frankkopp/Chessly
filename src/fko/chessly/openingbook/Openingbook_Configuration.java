@@ -46,7 +46,7 @@ public class Openingbook_Configuration {
     /** default value for folder to books */
     public String _folderPath = "/book/";
     /** default value for serialization folder */
-    public String _serPath = "./var/book_cache/";
+    public String _serPath = "./var/book_cache";
     /** default opening book */
     public String _fileNamePlain = "Test_PGN/perle.pgn";
     /** default mode */
