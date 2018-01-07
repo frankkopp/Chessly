@@ -126,7 +126,7 @@ public class Chessly {
      * v2.0 - JavaFX complete (w.i.p.)
      * v2.1 - bug fixing, startable as JAR
      */
-    public static final String VERSION = "v2.1";
+    public static final String VERSION = "v2.2";
 
     @SuppressWarnings("unused")
     private static Chessly _myChessly = null;
