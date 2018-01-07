@@ -66,3 +66,5 @@ $RECYCLE.BIN/
 var/gui/reversiFX.guid
 var/book_cache/
 var/windowstate.guid
+release/var/windowstate.guid
+release/var/book_cache/
