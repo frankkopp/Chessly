@@ -26,8 +26,6 @@
  */
 package fko.chessly.player.computer.Omega;
 
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -116,8 +114,8 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
 
         // initialize opening book
         if (_CONFIGURATION._USE_BOOK) {
-            Path path = FileSystems.getDefault().getPath(_CONFIGURATION._OB_FolderPath, _CONFIGURATION._OB_fileNamePlain);
-            _openingBook =   new OpeningBookImpl(this,path,_CONFIGURATION._OB_Mode);
+            String path = _CONFIGURATION._OB_FolderPath + _CONFIGURATION._OB_fileNamePlain;
+            _openingBook =   new OpeningBookImpl(this, path, _CONFIGURATION._OB_Mode);
         }
 
         _omegaSearch = new OmegaSearch(this);

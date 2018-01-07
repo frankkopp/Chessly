@@ -64,3 +64,5 @@ $RECYCLE.BIN/
 /bin/
 /build/
 var/gui/reversiFX.guid
+var/book_cache/
+var/windowstate.guid
