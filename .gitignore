@@ -61,6 +61,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+#Java
 /bin/
 /build/
 var/gui/reversiFX.guid
@@ -68,3 +70,4 @@ var/book_cache/
 var/windowstate.guid
 release/var/windowstate.guid
 release/var/book_cache/
+
