@@ -337,7 +337,7 @@ public class JavaFX_GUI_Controller implements Observer {
         _clockUpdater = new PlayerClockUpdater(
                 whitePlayer_name, white_clock, white_playertype, white_progressbar,
                 blackPlayer_name, black_clock, black_playertype, black_progressbar
-                );
+        );
     }
 
     private void createBindings() {
@@ -706,7 +706,7 @@ public class JavaFX_GUI_Controller implements Observer {
                         || userInput.matches("^\\d*\\d$")
                         || userInput.matches("^:[0-5]\\d$")
                         || userInput.matches("^\\d*:[0-5]\\d$")
-                        )
+                )
                         ) {
                     question = "Wrong Format!\n" + origQuestion;
                     continue;
@@ -914,7 +914,7 @@ public class JavaFX_GUI_Controller implements Observer {
                             + playroom.getCurrentGameNumber()
                             + " of "
                             + playroom.getNumberOfGames()
-                            );
+                    );
                 }
             }
 
@@ -925,9 +925,9 @@ public class JavaFX_GUI_Controller implements Observer {
                 if (playroom.getNumberOfGames() > 1) {
                     printToInfoln(
                             ">>> White wins: " + playroom.getCurrentWhiteWins() + '\n' +
-                            ">>> Black wins: " + playroom.getCurrentBlackWins() + '\n' +
-                            ">>> Draws     : " + playroom.getCurrentDraws() + '\n'
-                            );
+                                    ">>> Black wins: " + playroom.getCurrentBlackWins() + '\n' +
+                                    ">>> Draws     : " + playroom.getCurrentDraws() + '\n'
+                    );
                     printToInfoln("");
                 }
             }
@@ -942,13 +942,13 @@ public class JavaFX_GUI_Controller implements Observer {
                     if (playroom.getNumberOfGames() > 1) {
                         printToInfoln(
                                 ">>> Multiple games finished:" + '\n' +
-                                ">>> White wins: " + playroom.getCurrentWhiteWins() +
-                                " (" + (int)(((float) playroom.getCurrentWhiteWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
-                                ">>> Black wins: " + playroom.getCurrentBlackWins() +
-                                " (" + (int)(((float) playroom.getCurrentBlackWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
-                                ">>> Draws     : " + playroom.getCurrentDraws() +
-                                " (" + (int)(((float) playroom.getCurrentDraws() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n"
-                                );
+                                        ">>> White wins: " + playroom.getCurrentWhiteWins() +
+                                        " (" + (int)(((float) playroom.getCurrentWhiteWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
+                                        ">>> Black wins: " + playroom.getCurrentBlackWins() +
+                                        " (" + (int)(((float) playroom.getCurrentBlackWins() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n" +
+                                        ">>> Draws     : " + playroom.getCurrentDraws() +
+                                        " (" + (int)(((float) playroom.getCurrentDraws() / (float) (playroom.getNumberOfGames())) * 100) + '%' + ")\n"
+                        );
                         printToInfoln("");
                     }
                 }
@@ -961,12 +961,10 @@ public class JavaFX_GUI_Controller implements Observer {
         }
     }
 
-
-
     /**
      * Is called when model Game changed.
      *
-     * The update itself need to be done in the FX thread (FAT) so it will be called via
+     * The update itself needs to be done in the FX thread (FAT) so it will be called via
      * <code>Platfrom.runLater()</code>. To make the caller wait for the ui to be updated
      * before the method returns we can use <code>PlatformUtil.platformRunAndWait()</code>.
      *
