@@ -152,7 +152,6 @@ public class Chessly {
 
     CmdLineParser cp = new CmdLineParser();
     CmdLineParser.Option javafx = cp.addBooleanOption('x', "javaFX");
-    CmdLineParser.Option javaswing = cp.addBooleanOption('w', "javaSwing");
     CmdLineParser.Option debug = cp.addBooleanOption('d', "debug");
     CmdLineParser.Option start = cp.addBooleanOption('s', "start");
     CmdLineParser.Option cache = cp.addBooleanOption('c', "cache");
@@ -191,8 +190,6 @@ public class Chessly {
 
     if ((Boolean) cp.getOptionValue(javafx)) {
       changeProperty("ui.class", "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI");
-    } else if ((Boolean) cp.getOptionValue(javaswing)) {
-      changeProperty("ui.class", "fko.chessly.ui.SwingGUI.SwingGUI");
     }
 
     // Now create our singleton instance of Chessly

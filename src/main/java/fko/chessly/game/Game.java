@@ -114,11 +114,11 @@ public class Game extends ModelObservable implements Runnable, Observer {
 
         // Assert parameter
         if (blackPlayer==null || whitePlayer == null) {
-            throw new NullPointerException("Paramter blackPlayer and whitePlayer must not be null.");
+            throw new NullPointerException("Parameter blackPlayer and whitePlayer must not be null.");
         }
         if (timedGame && (timeBlack<1 || timeWhite<1)) {
             throw new IllegalArgumentException(
-                    "Paramter timeBlack and timeWhite must be >0 for timed game. Were " + timeBlack + ", " + timeWhite);
+                    "Parameter timeBlack and timeWhite must be >0 for timed game. Were " + timeBlack + ", " + timeWhite);
         }
 
         _playerBlack = blackPlayer;
@@ -801,10 +801,8 @@ public class Game extends ModelObservable implements Runnable, Observer {
         while (_gameThread != null && _gameThread.isAlive())  {
             try {
                 _gameThread.join();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | NullPointerException e) {
                 // -- ignore --
-            } catch (NullPointerException e) {
-                // ignore
             }
         }
     }

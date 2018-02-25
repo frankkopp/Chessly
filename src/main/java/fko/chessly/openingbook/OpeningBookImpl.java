@@ -151,8 +151,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 		if (bookMap.containsKey(fen)) {
 			ArrayList<GameMove> moveList;
 			moveList = bookMap.get(fen).moves;
-			if (moveList.isEmpty())
-				return move;
+			if (moveList.isEmpty())	return null;
 			Collections.shuffle(moveList);
 			move = moveList.get(0);
 		}
@@ -227,7 +226,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 		// need to use Class.getResource or Class.getResourceAsStream which uses URL or InputStream as 
 		// return classes
 		
-		InputStream bookFileInputStream = Chessly.class.getResourceAsStream(pathString.toString());
+		InputStream bookFileInputStream = Chessly.class.getResourceAsStream(pathString);
 
 		if (bookFileInputStream == null) {
 			Chessly.criticalError("Book File not found: " + pathString);
@@ -560,8 +559,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 			}
 			currentEntry.occurenceCounter.getAndIncrement();
 		} else {
-			String key = new String(currentFen);
-			bookMap.put(key, new OpeningBook_Entry(currentFen));
+			bookMap.put(currentFen, new OpeningBook_Entry(currentFen));
 		}
 
 		// add move to last book entry (lastPosition)
@@ -732,8 +730,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 		// remove folder structure and replace by "-" in filename
 		pathString = pathString.substring(0,1) + pathString.substring(1).replaceAll("/", "-");
 		pathString = _config._serPath + pathString + ".ser";
-		Path cacheFile = FileSystems.getDefault().getPath(pathString);
-		return cacheFile;
+		return FileSystems.getDefault().getPath(pathString);
 	}
 
 	/**

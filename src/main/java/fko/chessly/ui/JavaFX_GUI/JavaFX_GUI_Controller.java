@@ -96,7 +96,7 @@ import javafx.stage.StageStyle;
 public class JavaFX_GUI_Controller implements Observer {
 
     /*
-     * FMXL injected variables are declared at the and of the file!
+     * FXML injected variables are declared at the and of the file!
      */
 
     // -- to save and restore the last position of our window
@@ -263,7 +263,7 @@ public class JavaFX_GUI_Controller implements Observer {
         };
         statusbar_mem_text.textProperty().bind(dynamicTimeTask.messageProperty());
         Thread t2 = new Thread(dynamicTimeTask);
-        t2.setName("Statusbar Mem Labal Updater");
+        t2.setName("Statusbar Mem Label Updater");
         t2.setDaemon(true);
         t2.start();
     }
@@ -957,7 +957,7 @@ public class JavaFX_GUI_Controller implements Observer {
 
             // No game exists
         } else {
-            PlatformUtil.platformRunAndWait(() -> setControlsNoGame());
+            PlatformUtil.platformRunAndWait(this::setControlsNoGame);
         }
     }
 
@@ -999,11 +999,11 @@ public class JavaFX_GUI_Controller implements Observer {
                 break;
 
             case Game.GAME_PAUSED:
-                PlatformUtil.platformRunAndWait(() -> gamePausedGuiUpdate());
+                PlatformUtil.platformRunAndWait(this::gamePausedGuiUpdate);
                 break;
 
             case Game.GAME_FINISHED:
-                PlatformUtil.platformRunAndWait(() -> gameFinishedGuiUpdate());
+                PlatformUtil.platformRunAndWait(this::gameFinishedGuiUpdate);
                 break;
 
             default:

@@ -31,7 +31,7 @@ import fko.chessly.openingbook.OpeningBookImpl.Mode;
 
 /**
  * This is the engines configuration. All fields are package visible
- * and can be change during runtime. They are deliberately not static
+ * and can be changed during runtime. They are deliberately not static
  * so we can change white and black differently when engine vs. engine.
  */
 public class OmegaConfiguration {
