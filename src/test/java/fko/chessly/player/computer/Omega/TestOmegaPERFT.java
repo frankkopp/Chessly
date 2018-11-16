@@ -60,7 +60,7 @@ public class TestOmegaPERFT {
                 { 6, 119060324, 2812008, 5248,  809099, 10828},
         };
 
-        int maxDepth = 4;
+        int maxDepth = 6;
 
         OmegaPERFT perftTest = new OmegaPERFT();
 

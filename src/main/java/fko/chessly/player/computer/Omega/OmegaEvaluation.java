@@ -100,7 +100,6 @@ public class OmegaEvaluation {
 
     /**
      * @param board
-     * @param sideFactor
      * @return material balance from the view of the active player
      */
     int material(final OmegaBoardPosition board) {
@@ -115,7 +114,6 @@ public class OmegaEvaluation {
 
     /**
      * @param board
-     * @param sideFactor
      * @return number of pseudo legal moves for the next player
      */
     int mobility(final OmegaBoardPosition board) {
@@ -204,7 +202,6 @@ public class OmegaEvaluation {
 
     /**
      * @param board
-     * @param phase
      * @return
      */
     int position(OmegaBoardPosition board) {

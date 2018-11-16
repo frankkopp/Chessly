@@ -212,7 +212,7 @@ public class OmegaEngine extends ModelObservable implements ObservableEngine {
         } else
             throw new RuntimeException("Invalid next player color. Was " + _player.getColor());
 
-        // if not configured will used default mode
+        // if not configured will use default mode
         if (_game.get().isTimedGame()) {
             _omegaSearch.configureRemainingTime(
                     remainingTime,

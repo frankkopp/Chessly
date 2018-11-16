@@ -278,7 +278,6 @@ public class BoardPane extends Pane {
     /**
      * draws the checkers in the chess board
      * @param rectangle
-     * @param boardSize
      */
     private void drawCheckers(Rectangle rectangle) {
         _checkerSize = rectangle.widthProperty().divide(DIM);
@@ -302,7 +301,6 @@ public class BoardPane extends Pane {
     /**
      * draws lines and numbers
      * @param rectangle
-     * @param boardSize
      */
     private void drawLinesAndNumbers(Rectangle rectangle) {
 
@@ -455,7 +453,6 @@ public class BoardPane extends Pane {
     /**
      * Draw all pieces on the board
      * @param curBoard
-     * @param x88board
      */
     private void drawPieces(GameBoard curBoard) {
         // do not reset the piece list if we drag

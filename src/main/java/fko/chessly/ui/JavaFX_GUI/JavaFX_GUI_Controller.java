@@ -92,6 +92,8 @@ import javafx.stage.StageStyle;
  * will happen via <code>Platform.runLater()</code> so they happen in the FX thread.
  *
  * @author Frank
+ *
+ * TODO: Refactor ui elements out of Controller
  */
 public class JavaFX_GUI_Controller implements Observer {
 

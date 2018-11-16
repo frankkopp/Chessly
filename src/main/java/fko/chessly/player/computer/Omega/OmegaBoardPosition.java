@@ -36,10 +36,27 @@ import fko.chessly.player.computer.Omega.OmegaSquare.File;
 
 /**
  * This class represents the Omega board and its position.<br>
- * It uses a x88 board, a stack for undo moves, zobrist keys for transposition tables,
- * piece lists, material counter.<br>
+ * It uses a x88 board, a stack for undo moves, zobrist keys for transposition tables, piece lists,
+ * material counter.<br>
  * Can be created with any FEN notation and also from GameBoards or as a copy from another
  * OmegaBoardPosition.
+ *
+ * <p>x88 method
+ * <p>The 0x88 method takes advantage of the fact that a chessboard's 8x8 dimensions are an even
+ * power of two (i.e. 8 squared). The board uses a one-dimensional array of size 16x8 = 128,
+ * numbered 0 to 127 rather than an array of size 64. It is basically two boards next to each other,
+ * the actual board on the left while the board on the right would contain illegal territory. The
+ * binary layout for a legal board coordinate's rank and file within the array is 0rrr0fff (The r's
+ * are the 3 bits used to represent the rank. The f's for the file). For example 0x71 (binary
+ * 01110001) would represent the square b8 (in Algebraic notation). When generating moves from the
+ * main board, one can check that a destination square is on the main board before consulting the
+ * array simply by ANDing the square number with hexadecimal 0x88 (binary 10001000). A non-zero
+ * result indicates that the square is off the main board. In addition, the difference between two
+ * squares' coordinates uniquely determines whether those two squares are along the same row,
+ * column, or diagonal (a common query used for determining check).
+ *
+ * https://www.chessprogramming.org/0x88
+ *
  */
 public class OmegaBoardPosition {
 
@@ -736,8 +753,6 @@ public class OmegaBoardPosition {
     }
 
     /**
-     * @param file
-     * @param rank
      * @return the removed piece
      */
     private OmegaPiece removePiece(OmegaSquare square, OmegaPiece piece) {
