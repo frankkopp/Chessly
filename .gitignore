@@ -70,5 +70,4 @@ var/windowstate.guid
 release/var/windowstate.guid
 release/var/book_cache/
 
-.idea/
 target/
