@@ -39,7 +39,7 @@ import fko.chessly.game.GameMoveList;
 import fko.chessly.player.ComputerPlayer;
 import fko.chessly.player.Player;
 import fko.chessly.player.computer.ObservableEngine;
-import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Controller.EngineInfoLabels;
+import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI_Presenter.EngineInfoLabels;
 import fko.chessly.util.HelperTools;
 import javafx.application.Platform;
 

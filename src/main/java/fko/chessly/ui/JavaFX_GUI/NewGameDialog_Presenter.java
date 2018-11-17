@@ -46,7 +46,7 @@ import javafx.stage.Stage;
  * @author fkopp
  *
  */
-public class NewGameDialog_Controller {
+public class NewGameDialog_Presenter {
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;

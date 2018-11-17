@@ -47,7 +47,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
   private static Stage _primaryStage;
 
   /** The main controller for this JavaFX application */
-  public static JavaFX_GUI_Controller _controller;
+  public static JavaFX_GUI_Presenter _controller;
 
   private BorderPane _root;
 
@@ -94,16 +94,16 @@ public class JavaFX_GUI extends Application implements UserInterface {
       // get last window position and size
       double windowLocX =
           Double.parseDouble(
-              JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationX", "100"));
+              JavaFX_GUI_Presenter.getWindowState().getProperty("windowLocationX", "100"));
       double windowLocY =
           Double.parseDouble(
-              JavaFX_GUI_Controller.getWindowState().getProperty("windowLocationY", "200"));
+              JavaFX_GUI_Presenter.getWindowState().getProperty("windowLocationY", "200"));
       double windowSizeX =
           Double.parseDouble(
-              JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeX", "740"));
+              JavaFX_GUI_Presenter.getWindowState().getProperty("windowSizeX", "740"));
       double windowSizeY =
           Double.parseDouble(
-              JavaFX_GUI_Controller.getWindowState().getProperty("windowSizeY", "700"));
+              JavaFX_GUI_Presenter.getWindowState().getProperty("windowSizeY", "700"));
 
       // position and resize the window
       _primaryStage.setX(windowLocX);
@@ -146,7 +146,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
   }
 
   /** @return controller */
-  public static JavaFX_GUI_Controller getController() {
+  public static JavaFX_GUI_Presenter getController() {
     return _controller;
   }
 

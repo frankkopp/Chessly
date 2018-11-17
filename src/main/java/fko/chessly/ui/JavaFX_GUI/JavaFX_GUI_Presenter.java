@@ -95,7 +95,7 @@ import javafx.stage.StageStyle;
  *
  * TODO: Refactor ui elements out of Controller
  */
-public class JavaFX_GUI_Controller implements Observer {
+public class JavaFX_GUI_Presenter implements Observer {
 
     /*
      * FXML injected variables are declared at the and of the file!
@@ -241,9 +241,6 @@ public class JavaFX_GUI_Controller implements Observer {
 
     }
 
-    /**
-     *
-     */
     private void scrollToEnd() {
         move_table.scrollTo(move_table.getItems().size() - 1);
     }
@@ -328,9 +325,9 @@ public class JavaFX_GUI_Controller implements Observer {
         // should the verboseInfo windows be shown from the beginning?
         // we will call showVerboseInfo... after we created the Stage in the starting class
         boolean whiteVerboseInfo = Boolean.parseBoolean(
-                JavaFX_GUI_Controller.getWindowState().getProperty("VerboseInfoWhite","false"));
+                JavaFX_GUI_Presenter.getWindowState().getProperty("VerboseInfoWhite","false"));
         boolean blackVerboseInfo = Boolean.parseBoolean(
-                JavaFX_GUI_Controller.getWindowState().getProperty("VerboseInfoBlack","false"));
+                JavaFX_GUI_Presenter.getWindowState().getProperty("VerboseInfoBlack","false"));
         showVerboseInfo_checkboxW.setSelected(whiteVerboseInfo);
         showVerboseInfo_checkboxB.setSelected(blackVerboseInfo);
     }
