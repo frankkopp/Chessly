@@ -80,20 +80,18 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 /**
- * Main Controller for the Chessly JavaFX user interface.
+ * Main Presenter for the Chessly JavaFX user interface.
  * It actually builds the complete UI when <code>initialize</code> is
  * called. It received all fields from the FXML file which were injected with
  * values by the FXML loader. It takes care of all user input by defining
  * actions which are called by the UI and which were declared in the FXML file.
- * This controller is also defined as an observer to the model and receives
+ * This presenter is also defined as an observer to the model and receives
  * all updates the model shares via <code>notifyObservers(...)</code>.
  * The <code>update</code> and <code>updateFrom</code> methods will then update the ui
  * based on the changes in the model. It is important that the the update of the ui
  * will happen via <code>Platform.runLater()</code> so they happen in the FX thread.
  *
  * @author Frank
- *
- * TODO: Refactor ui elements out of Controller
  */
 public class JavaFX_GUI_Presenter implements Observer {
 
