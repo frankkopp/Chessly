@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
  * @author Frank
  *
  */
-public class testJavaFX_GUI {
+public class testMainView {
 
     @Test
     public void test() {

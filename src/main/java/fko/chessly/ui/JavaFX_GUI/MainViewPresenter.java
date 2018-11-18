@@ -93,7 +93,7 @@ import javafx.stage.StageStyle;
  *
  * @author Frank
  */
-public class JavaFX_GUI_Presenter implements Observer {
+public class MainViewPresenter implements Observer {
 
     /*
      * FXML injected variables are declared at the and of the file!
@@ -164,7 +164,7 @@ public class JavaFX_GUI_Presenter implements Observer {
         assertFXids();
 
         // set convenience reference to primary stage
-        _primaryStage = JavaFX_GUI.getPrimaryStage();
+        _primaryStage = MainView.getPrimaryStage();
 
         // status bar
         statusbar_status_text.setText("JavaFX GUI started");
@@ -323,9 +323,9 @@ public class JavaFX_GUI_Presenter implements Observer {
         // should the verboseInfo windows be shown from the beginning?
         // we will call showVerboseInfo... after we created the Stage in the starting class
         boolean whiteVerboseInfo = Boolean.parseBoolean(
-                JavaFX_GUI_Presenter.getWindowState().getProperty("VerboseInfoWhite","false"));
+                MainViewPresenter.getWindowState().getProperty("VerboseInfoWhite","false"));
         boolean blackVerboseInfo = Boolean.parseBoolean(
-                JavaFX_GUI_Presenter.getWindowState().getProperty("VerboseInfoBlack","false"));
+                MainViewPresenter.getWindowState().getProperty("VerboseInfoBlack","false"));
         showVerboseInfo_checkboxW.setSelected(whiteVerboseInfo);
         showVerboseInfo_checkboxB.setSelected(blackVerboseInfo);
     }
@@ -1221,108 +1221,108 @@ public class JavaFX_GUI_Presenter implements Observer {
      * through assertions.
      */
     private void assertFXids() {
-        assert levelBlack2 != null : "fx:id=\"levelBlack2\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert newGame_menu != null : "fx:id=\"newGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert timeBlack_menu != null : "fx:id=\"timeBlack_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert undoMove_menu != null : "fx:id=\"undoMove_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlack8 != null : "fx:id=\"levelBlack8\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlack10 != null : "fx:id=\"levelBlack10\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlack6 != null : "fx:id=\"levelBlack6\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcUse_labelB != null : "fx:id=\"bcUse_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlack4 != null : "fx:id=\"levelBlack4\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table_number != null : "fx:id=\"move_table_number\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncMisses_labelW != null : "fx:id=\"ncMisses_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncSize_labelW != null : "fx:id=\"ncSize_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcUse_labelW != null : "fx:id=\"bcUse_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncHits_labelW != null : "fx:id=\"ncHits_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcHits_labelB != null : "fx:id=\"bcHits_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert black_progressbar != null : "fx:id=\"black_progressbar\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcSize_labelB != null : "fx:id=\"bcSize_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert info_tab != null : "fx:id=\"info_tab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert status_labelW != null : "fx:id=\"status_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_game != null : "fx:id=\"menu_game\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncSize_labelB != null : "fx:id=\"ncSize_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert timeWhite_menu != null : "fx:id=\"timeWhite_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert rootPanel != null : "fx:id=\"rootPanel\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcSize_labelW != null : "fx:id=\"bcSize_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert tab_pane != null : "fx:id=\"tab_pane\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncMisses_labelB != null : "fx:id=\"ncMisses_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert showLastMove_menu != null : "fx:id=\"showLastMove_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert resumeGame_button != null : "fx:id=\"resumeGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert newGame_button != null : "fx:id=\"newGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert status_labelB != null : "fx:id=\"status_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert white_playertype != null : "fx:id=\"white_playertype\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert flip_button != null : "fx:id=\"flip_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert nonQuiet_labelB != null : "fx:id=\"nonQuiet_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert black_clock != null : "fx:id=\"black_clock\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert config_labelB != null : "fx:id=\"config_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert blackPlayer_name != null : "fx:id=\"blackPlayer_name\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert nonQuiet_labelW != null : "fx:id=\"nonQuiet_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert close_menu != null : "fx:id=\"close_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite10 != null : "fx:id=\"levelWhite10\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert black_enginetab != null : "fx:id=\"black_enginetab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlack != null : "fx:id=\"levelBlack\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncHits_labelB != null : "fx:id=\"ncHits_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert board_panel_grid != null : "fx:id=\"board_panel_grid\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bestMove_labelB != null : "fx:id=\"bestMove_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table_white != null : "fx:id=\"move_table_white\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcMisses_labelB != null : "fx:id=\"bcMisses_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert resumeGame_menu != null : "fx:id=\"resumeGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlack20 != null : "fx:id=\"levelBlack20\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert stopGame_menu != null : "fx:id=\"stopGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_moves != null : "fx:id=\"menu_moves\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert time_labelW != null : "fx:id=\"time_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelBlackMax != null : "fx:id=\"levelBlackMax\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhiteMax != null : "fx:id=\"levelWhiteMax\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert white_progressbar != null : "fx:id=\"white_progressbar\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcHits_labelW != null : "fx:id=\"bcHits_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert time_labelB != null : "fx:id=\"time_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bcMisses_labelW != null : "fx:id=\"bcMisses_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert currentMove_labelB != null : "fx:id=\"currentMove_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite6 != null : "fx:id=\"levelWhite6\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert nodes_labelB != null : "fx:id=\"nodes_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert showVerboseInfo_checkboxB != null : "fx:id=\"showVerboseInfo_checkboxB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite8 != null : "fx:id=\"levelWhite8\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert about_menu != null : "fx:id=\"about_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert bestMove_labelW != null : "fx:id=\"bestMove_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite2 != null : "fx:id=\"levelWhite2\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite4 != null : "fx:id=\"levelWhite4\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert stopGame_button != null : "fx:id=\"stopGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert pauseGame_button != null : "fx:id=\"pauseGame_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert pauseGame_menu != null : "fx:id=\"pauseGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert currentMove_labelW != null : "fx:id=\"currentMove_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert statusbar_mem_text != null : "fx:id=\"statusbar_mem_text\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert depth_labelW != null : "fx:id=\"depth_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert config_labelW != null : "fx:id=\"config_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table_black != null : "fx:id=\"move_table_black\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert nodes_labelW != null : "fx:id=\"nodes_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert showPossibleMoves_menu != null : "fx:id=\"showPossibleMoves_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert white_clock != null : "fx:id=\"white_clock\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert boards_labelB != null : "fx:id=\"boards_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert depth_labelB != null : "fx:id=\"depth_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert whitePlayer_name != null : "fx:id=\"whitePlayer_name\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite20 != null : "fx:id=\"levelWhite20\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert boards_labelW != null : "fx:id=\"boards_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert undoMove_button != null : "fx:id=\"undoMove_button\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert statusbar_copyright_test != null : "fx:id=\"statusbar_copyright_test\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert pv_labelW != null : "fx:id=\"pv_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert speed_labelB != null : "fx:id=\"speed_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncUse_labelW != null : "fx:id=\"ncUse_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert flip_menu != null : "fx:id=\"flip_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert speed_labelW != null : "fx:id=\"speed_labelW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_help != null : "fx:id=\"menu_help\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_level != null : "fx:id=\"menu_level\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert pv_labelB != null : "fx:id=\"pv_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert move_table != null : "fx:id=\"move_table\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert white_enginetab != null : "fx:id=\"white_enginetab\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert levelWhite != null : "fx:id=\"levelWhite\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert ncUse_labelB != null : "fx:id=\"ncUse_labelB\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert black_playertype != null : "fx:id=\"black_playertype\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert statusbar_status_text != null : "fx:id=\"statusbar_status_text\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert showVerboseInfo_checkboxW != null : "fx:id=\"showVerboseInfo_checkboxW\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert menu_board != null : "fx:id=\"menu_board\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert timedGame_menu != null : "fx:id=\"timedGame_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
-        assert infoTab_pane != null : "fx:id=\"infoTab_pane\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
+        assert levelBlack2 != null : "fx:id=\"levelBlack2\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert newGame_menu != null : "fx:id=\"newGame_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert timeBlack_menu != null : "fx:id=\"timeBlack_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert undoMove_menu != null : "fx:id=\"undoMove_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlack8 != null : "fx:id=\"levelBlack8\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlack10 != null : "fx:id=\"levelBlack10\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlack6 != null : "fx:id=\"levelBlack6\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcUse_labelB != null : "fx:id=\"bcUse_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlack4 != null : "fx:id=\"levelBlack4\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert move_table_number != null : "fx:id=\"move_table_number\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncMisses_labelW != null : "fx:id=\"ncMisses_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncSize_labelW != null : "fx:id=\"ncSize_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcUse_labelW != null : "fx:id=\"bcUse_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncHits_labelW != null : "fx:id=\"ncHits_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcHits_labelB != null : "fx:id=\"bcHits_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert black_progressbar != null : "fx:id=\"black_progressbar\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcSize_labelB != null : "fx:id=\"bcSize_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert info_tab != null : "fx:id=\"info_tab\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert status_labelW != null : "fx:id=\"status_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert menu_game != null : "fx:id=\"menu_game\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncSize_labelB != null : "fx:id=\"ncSize_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert timeWhite_menu != null : "fx:id=\"timeWhite_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert rootPanel != null : "fx:id=\"rootPanel\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcSize_labelW != null : "fx:id=\"bcSize_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert tab_pane != null : "fx:id=\"tab_pane\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncMisses_labelB != null : "fx:id=\"ncMisses_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert showLastMove_menu != null : "fx:id=\"showLastMove_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert resumeGame_button != null : "fx:id=\"resumeGame_button\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert newGame_button != null : "fx:id=\"newGame_button\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert status_labelB != null : "fx:id=\"status_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert white_playertype != null : "fx:id=\"white_playertype\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert flip_button != null : "fx:id=\"flip_button\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert nonQuiet_labelB != null : "fx:id=\"nonQuiet_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert black_clock != null : "fx:id=\"black_clock\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert config_labelB != null : "fx:id=\"config_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert blackPlayer_name != null : "fx:id=\"blackPlayer_name\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert nonQuiet_labelW != null : "fx:id=\"nonQuiet_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert close_menu != null : "fx:id=\"close_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite10 != null : "fx:id=\"levelWhite10\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert black_enginetab != null : "fx:id=\"black_enginetab\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlack != null : "fx:id=\"levelBlack\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncHits_labelB != null : "fx:id=\"ncHits_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert board_panel_grid != null : "fx:id=\"board_panel_grid\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bestMove_labelB != null : "fx:id=\"bestMove_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert move_table_white != null : "fx:id=\"move_table_white\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcMisses_labelB != null : "fx:id=\"bcMisses_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert resumeGame_menu != null : "fx:id=\"resumeGame_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlack20 != null : "fx:id=\"levelBlack20\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert stopGame_menu != null : "fx:id=\"stopGame_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert menu_moves != null : "fx:id=\"menu_moves\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert time_labelW != null : "fx:id=\"time_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelBlackMax != null : "fx:id=\"levelBlackMax\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhiteMax != null : "fx:id=\"levelWhiteMax\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert white_progressbar != null : "fx:id=\"white_progressbar\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcHits_labelW != null : "fx:id=\"bcHits_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert time_labelB != null : "fx:id=\"time_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bcMisses_labelW != null : "fx:id=\"bcMisses_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert currentMove_labelB != null : "fx:id=\"currentMove_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite6 != null : "fx:id=\"levelWhite6\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert nodes_labelB != null : "fx:id=\"nodes_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert showVerboseInfo_checkboxB != null : "fx:id=\"showVerboseInfo_checkboxB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite8 != null : "fx:id=\"levelWhite8\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert about_menu != null : "fx:id=\"about_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert bestMove_labelW != null : "fx:id=\"bestMove_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite2 != null : "fx:id=\"levelWhite2\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite4 != null : "fx:id=\"levelWhite4\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert stopGame_button != null : "fx:id=\"stopGame_button\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert pauseGame_button != null : "fx:id=\"pauseGame_button\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert pauseGame_menu != null : "fx:id=\"pauseGame_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert currentMove_labelW != null : "fx:id=\"currentMove_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert statusbar_mem_text != null : "fx:id=\"statusbar_mem_text\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert depth_labelW != null : "fx:id=\"depth_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert config_labelW != null : "fx:id=\"config_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert move_table_black != null : "fx:id=\"move_table_black\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert nodes_labelW != null : "fx:id=\"nodes_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert showPossibleMoves_menu != null : "fx:id=\"showPossibleMoves_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert white_clock != null : "fx:id=\"white_clock\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert boards_labelB != null : "fx:id=\"boards_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert depth_labelB != null : "fx:id=\"depth_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert whitePlayer_name != null : "fx:id=\"whitePlayer_name\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite20 != null : "fx:id=\"levelWhite20\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert boards_labelW != null : "fx:id=\"boards_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert undoMove_button != null : "fx:id=\"undoMove_button\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert statusbar_copyright_test != null : "fx:id=\"statusbar_copyright_test\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert pv_labelW != null : "fx:id=\"pv_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert speed_labelB != null : "fx:id=\"speed_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncUse_labelW != null : "fx:id=\"ncUse_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert flip_menu != null : "fx:id=\"flip_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert speed_labelW != null : "fx:id=\"speed_labelW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert menu_help != null : "fx:id=\"menu_help\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert menu_level != null : "fx:id=\"menu_level\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert pv_labelB != null : "fx:id=\"pv_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert move_table != null : "fx:id=\"move_table\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert white_enginetab != null : "fx:id=\"white_enginetab\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert levelWhite != null : "fx:id=\"levelWhite\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert ncUse_labelB != null : "fx:id=\"ncUse_labelB\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert black_playertype != null : "fx:id=\"black_playertype\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert statusbar_status_text != null : "fx:id=\"statusbar_status_text\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert showVerboseInfo_checkboxW != null : "fx:id=\"showVerboseInfo_checkboxW\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert menu_board != null : "fx:id=\"menu_board\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert timedGame_menu != null : "fx:id=\"timedGame_menu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert infoTab_pane != null : "fx:id=\"infoTab_pane\" was not injected: check your FXML file 'MainView.fxml'.";
 
     }
 

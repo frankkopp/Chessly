@@ -38,7 +38,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 /** @author Frank */
-public class JavaFX_GUI extends Application implements UserInterface {
+public class MainView extends Application implements UserInterface {
 
   /** The singleton instance of this class */
   private static UserInterface _instance = null;
@@ -47,17 +47,17 @@ public class JavaFX_GUI extends Application implements UserInterface {
   private static Stage _primaryStage;
 
   /** The main controller for this JavaFX application */
-  public static JavaFX_GUI_Presenter _controller;
+  public static MainViewPresenter _controller;
 
   private BorderPane _root;
 
   /**
-   * Creates the JavaFX UI. It is not possible to instantiate JavaFX_GUI more
+   * Creates the JavaFX UI. It is not possible to instantiate MainView more
    * than once - throws RunTime Exception.
    */
-  private JavaFX_GUI() {
+  private MainView() {
     if (_instance != null)
-      throw new RuntimeException("It is not possible to instantiate JavaFX_GUI more than once!");
+      throw new RuntimeException("It is not possible to instantiate MainView more than once!");
 
     // Startup the JavaFX platform
     Platform.setImplicitExit(false);
@@ -67,7 +67,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
           primaryStage.setTitle("Chessly by Frank Kopp (c) " + Chessly.VERSION);
           start(primaryStage);
         });
-    JavaFX_GUI._instance = this;
+    MainView._instance = this;
 
     waitForUI();
   }
@@ -76,7 +76,7 @@ public class JavaFX_GUI extends Application implements UserInterface {
   @Override
   public void start(Stage primaryStage) {
 
-    JavaFX_GUI._primaryStage = primaryStage;
+    MainView._primaryStage = primaryStage;
 
     try {
 
@@ -94,16 +94,16 @@ public class JavaFX_GUI extends Application implements UserInterface {
       // get last window position and size
       double windowLocX =
           Double.parseDouble(
-              JavaFX_GUI_Presenter.getWindowState().getProperty("windowLocationX", "100"));
+              MainViewPresenter.getWindowState().getProperty("windowLocationX", "100"));
       double windowLocY =
           Double.parseDouble(
-              JavaFX_GUI_Presenter.getWindowState().getProperty("windowLocationY", "200"));
+              MainViewPresenter.getWindowState().getProperty("windowLocationY", "200"));
       double windowSizeX =
           Double.parseDouble(
-              JavaFX_GUI_Presenter.getWindowState().getProperty("windowSizeX", "740"));
+              MainViewPresenter.getWindowState().getProperty("windowSizeX", "740"));
       double windowSizeY =
           Double.parseDouble(
-              JavaFX_GUI_Presenter.getWindowState().getProperty("windowSizeY", "700"));
+              MainViewPresenter.getWindowState().getProperty("windowSizeY", "700"));
 
       // position and resize the window
       _primaryStage.setX(windowLocX);
@@ -133,7 +133,6 @@ public class JavaFX_GUI extends Application implements UserInterface {
   }
 
   /** Waits for the UI to show */
-  @Override
   public void waitForUI() {
     // wait for the UI to show before returning
     do {
@@ -146,19 +145,19 @@ public class JavaFX_GUI extends Application implements UserInterface {
   }
 
   /** @return controller */
-  public static JavaFX_GUI_Presenter getController() {
+  public static MainViewPresenter getController() {
     return _controller;
   }
 
   /** @return the primary stage which has been stored as a static field */
   public static Stage getPrimaryStage() {
-    return JavaFX_GUI._primaryStage;
+    return MainView._primaryStage;
   }
 
   /** @return the _instance */
   public static UserInterface getInstance() {
     if (_instance == null) {
-      _instance = new JavaFX_GUI();
+      _instance = new MainView();
     }
     return _instance;
   }

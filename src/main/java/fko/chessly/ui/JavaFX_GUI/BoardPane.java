@@ -75,7 +75,7 @@ import javafx.stage.StageStyle;
 public class BoardPane extends Pane {
 
     // back reference to _ui
-    private JavaFX_GUI_Presenter _controller;
+    private MainViewPresenter _controller;
 
     // copy of the current board
     private GameBoard _curBoard = null;
@@ -141,7 +141,7 @@ public class BoardPane extends Pane {
      * constructor
      * @param backReference
      */
-    public BoardPane(JavaFX_GUI_Presenter backReference) {
+    public BoardPane(MainViewPresenter backReference) {
         super();
 
         // store the reference to the _controller

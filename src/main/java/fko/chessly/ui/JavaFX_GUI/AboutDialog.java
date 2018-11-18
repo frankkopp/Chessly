@@ -54,13 +54,13 @@ public class AboutDialog extends Stage {
         try {
             // Load the fxml file and create a new stage for the popup dialog.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(JavaFX_GUI.class.getResource("/fxml/AboutDialog.fxml"));
+            loader.setLocation(MainView.class.getResource("/fxml/AboutDialog.fxml"));
             AnchorPane pane = (AnchorPane) loader.load();
             Scene scene = new Scene(pane);
 
             this.setTitle("About");
             this.initModality(Modality.WINDOW_MODAL);
-            Stage stage = JavaFX_GUI.getPrimaryStage();
+            Stage stage = MainView.getPrimaryStage();
             this.initOwner(stage);
             this.setScene(scene);
 
@@ -76,7 +76,7 @@ public class AboutDialog extends Stage {
      * Centers this dialog on the center of the primary stage.
      */
     private void centerOnPrimaryStage() {
-        Stage stage = JavaFX_GUI.getPrimaryStage();
+        Stage stage = MainView.getPrimaryStage();
         this.setX(stage.getX() + stage.getWidth() / 2 - this.getWidth() / 2);
         this.setY(stage.getY() + stage.getHeight() / 2 - this.getHeight() / 2);
     }

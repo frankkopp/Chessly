@@ -46,7 +46,7 @@ import javafx.stage.Stage;
  * @author fkopp
  *
  */
-public class NewGameDialog_Presenter {
+public class NewGameDialogPresenter {
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -106,7 +106,7 @@ public class NewGameDialog_Presenter {
             bT = PlayerType.HUMAN;
         }
 
-        JavaFX_GUI._controller.startNewGame_action(event,
+        MainView._controller.startNewGame_action(event,
                 this.whitePlayerName_text.getText(), wT,
                 this.blackPlayerName_text.getText(), bT
                 );

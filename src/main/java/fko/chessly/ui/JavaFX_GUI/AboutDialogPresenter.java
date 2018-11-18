@@ -38,7 +38,7 @@ import javafx.stage.Stage;
 /**
  * @author fkopp
  */
-public class AboutDialog_Presenter {
+public class AboutDialogPresenter {
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;

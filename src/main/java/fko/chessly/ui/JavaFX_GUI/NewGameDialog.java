@@ -52,12 +52,12 @@ public class NewGameDialog extends Stage {
 
             // Load the fxml file and create a new stage for the popup dialog.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(JavaFX_GUI.class.getResource("/fxml/NewGameDialog.fxml"));
+            loader.setLocation(MainView.class.getResource("/fxml/NewGameDialog.fxml"));
             AnchorPane pane = (AnchorPane) loader.load();
             Scene scene = new Scene(pane);
             this.setTitle("New Game");
             this.initModality(Modality.WINDOW_MODAL);
-            this.initOwner(JavaFX_GUI.getPrimaryStage());
+            this.initOwner(MainView.getPrimaryStage());
             this.setScene(scene);
 
             // TODO: not very nice
@@ -72,7 +72,7 @@ public class NewGameDialog extends Stage {
      * Centers this dialog on the center of the primary stage.
      */
     private void centerOnPrimaryStage() {
-        Stage stage = JavaFX_GUI.getPrimaryStage();
+        Stage stage = MainView.getPrimaryStage();
         this.setX(stage.getX() + stage.getWidth() / 2 - this.getWidth() / 2);
         this.setY(stage.getY() + stage.getHeight() / 2 - this.getHeight() / 2);
     }

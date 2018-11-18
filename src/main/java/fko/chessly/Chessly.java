@@ -28,7 +28,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import fko.chessly.ui.UserInterface;
-import fko.chessly.ui.JavaFX_GUI.JavaFX_GUI;
+import fko.chessly.ui.JavaFX_GUI.MainView;
 import fko.chessly.util.ChesslyLogger;
 import fko.chessly.util.ChesslyProperties;
 import fko.chessly.util.CmdLineParser;
@@ -189,7 +189,7 @@ public class Chessly {
     }
 
     if ((Boolean) cp.getOptionValue(javafx)) {
-      changeProperty("ui.class", "fko.chessly.ui.JavaFX_GUI.JavaFX_GUI");
+      changeProperty("ui.class", "fko.chessly.ui.MainView.MainView");
     }
 
     // Now create our singleton instance of Chessly
@@ -203,9 +203,7 @@ public class Chessly {
   private Chessly() {
 
     // Create and get an instance of an interface for Chessly.
-    // _ui = UserInterfaceFactory.getUI();
-    _ui = JavaFX_GUI.getInstance();
-    _ui.waitForUI();
+    _ui = MainView.getInstance();
 
     // Create and get an instance of the singleton Playroom class
     _playroom = Playroom.getInstance();
