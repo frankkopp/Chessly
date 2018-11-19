@@ -134,7 +134,7 @@ public class Chessly {
    * v2.1 - bug fixing, startable as JAR<br>
    * v2.3 - clean up, move to Maven, start of refactoring some things<br>
    */
-  public static final String VERSION = "v2.3";
+  public static final String VERSION = "v2.4";
 
   @SuppressWarnings("unused")
   private static Chessly myChessly = null;
