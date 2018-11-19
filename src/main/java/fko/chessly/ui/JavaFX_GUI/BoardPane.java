@@ -176,7 +176,6 @@ public class BoardPane extends Pane {
         _boardDarkColor = Color.rgb(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
         colors = String.valueOf(Chessly.getProperties().getProperty("ui.lastMoveColor")).split(":");
         _lastMoveColor = Color.rgb(Integer.valueOf(colors[0]), Integer.valueOf(colors[1]), Integer.valueOf(colors[2]));
-        colors = String.valueOf(Chessly.getProperties().getProperty("ui.blackGradientFromColor")).split(":");
 
         // pre-load piece images
         getPieceImages();
