@@ -3,22 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="b0f5226f-60c5-463b-ac7c-f8129b3b5e45" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/AboutDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/AboutDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/AboutDialog_Presenter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/AboutDialogPresenter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/BoardPane.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/BoardPane.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/EngineInfoUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/EngineInfoUpdater.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/JavaFX_GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/JavaFX_GUI_Presenter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainViewPresenter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/NewGameDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/NewGameDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/NewGameDialog_Presenter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/NewGameDialogPresenter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/UserInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/UserInterface.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/ui/UserInterfaceFactory.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/fxml/AboutDialog.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/fxml/AboutDialog.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/fxml/JavaFX_GUI.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/fxml/JavaFX_GUI.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/fxml/NewGameDialog.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/fxml/NewGameDialog.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/Playroom.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/Playroom.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/fko/chessly/util/ChesslyLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fko/chessly/util/ChesslyLogger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/properties/chessly.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/properties/chessly.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/fko/chessly/ui/JavaFX_GUI/testJavaFX_GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/fko/chessly/ui/JavaFX_GUI/testMainView.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -32,37 +21,44 @@
     <session id="-1836834156">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="4" />
+          <entry key="project.closed" value="7" />
           <entry key="project.open.time.0" value="1" />
-          <entry key="project.open.time.1" value="1" />
+          <entry key="project.open.time.1" value="3" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.8" value="1" />
-          <entry key="project.opened" value="4" />
+          <entry key="project.open.time.9" value="1" />
+          <entry key="project.opened" value="7" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="java" value="5" />
+          <entry key="java" value="6" />
+          <entry key="properties" value="1" />
+          <entry key="xml" value="3" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="56" />
-          <entry key="java" value="30" />
-          <entry key="properties" value="16" />
+          <entry key="java" value="139" />
+          <entry key="properties" value="48" />
+          <entry key="xml" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.vcs.git.usages" />
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JAVA" value="30" />
+          <entry key="JAVA" value="139" />
           <entry key="PLAIN_TEXT" value="56" />
-          <entry key="Properties" value="16" />
+          <entry key="Properties" value="48" />
+          <entry key="XML" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="JAVA" value="5" />
+          <entry key="JAVA" value="6" />
+          <entry key="Properties" value="1" />
+          <entry key="XML" value="3" />
         </counts>
       </usages-collector>
     </session>
@@ -101,25 +97,57 @@
     <favorites_list name="Chessly" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.48170426">
+    <splitter split-orientation="horizontal" split-proportion="0.4898211">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/pom.xml">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="737">
+                  <caret line="63" column="31" selection-start-line="63" selection-start-column="31" selection-end-line="63" selection-end-column="31" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/main/resources/logback.xml">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="-270" />
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/main/resources/properties/chessly.properties">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="252">
+                  <caret line="41" column="22" selection-start-line="41" selection-start-column="22" selection-end-line="41" selection-end-column="22" />
+                </state>
+              </provider>
+            </entry>
+          </file>
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="356">
-                  <caret line="132" column="5" lean-forward="true" selection-start-line="132" selection-start-column="5" selection-end-line="132" selection-end-column="5" />
+                <state relative-caret-position="252">
+                  <caret line="112" column="57" selection-start-line="112" selection-start-column="57" selection-end-line="112" selection-end-column="57" />
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                    <element signature="e#8014#8015#0" expanded="true" />
+                    <element signature="e#8062#8063#0" expanded="true" />
+                    <element signature="e#8352#8353#0" expanded="true" />
+                    <element signature="e#8391#8392#0" expanded="true" />
+                    <element signature="e#9432#9433#0" expanded="true" />
+                    <element signature="e#9456#9457#0" expanded="true" />
+                    <element signature="e#9799#9800#0" expanded="true" />
+                    <element signature="e#9821#9822#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/Playroom.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="576">
-                  <caret line="74" column="39" selection-start-line="74" selection-start-column="39" selection-end-line="74" selection-end-column="39" />
-                </state>
-              </provider>
+              <provider selected="true" editor-type-id="text-editor" />
             </entry>
           </file>
         </leaf>
@@ -129,7 +157,7 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainView.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2016">
+                <state relative-caret-position="363">
                   <caret line="135" column="11" selection-start-line="135" selection-start-column="11" selection-end-line="135" selection-end-column="11" />
                   <folding>
                     <element signature="imports" expanded="true" />
@@ -141,7 +169,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainViewPresenter.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="18">
+                <state relative-caret-position="324">
                   <caret line="94" column="2" selection-start-line="94" selection-start-column="2" selection-end-line="94" selection-end-column="2" />
                 </state>
               </provider>
@@ -173,7 +201,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/test/java/fko/chessly/player/computer/Omega/testTimings.java" />
         <option value="$PROJECT_DIR$/src/test/java/fko/chessly/player/computer/Omega/testTimings_EnumSetIteratorVsArray.java" />
         <option value="$PROJECT_DIR$/src/test/java/fko/chessly/player/computer/Omega/testTimings_Search.java" />
         <option value="$PROJECT_DIR$/src/test/java/fko/chessly/player/computer/Omega/testTimings_Search2.java" />
@@ -190,10 +217,8 @@
         <option value="$PROJECT_DIR$/src/main/resources/META-INF/MANIFEST.MF" />
         <option value="$PROJECT_DIR$/src/main/resources/logback.xml" />
         <option value="$PROJECT_DIR$/src/test/java/fko/chessly/player/computer/PulseEngine/PulseEngine_Test.java" />
-        <option value="$PROJECT_DIR$/src/main/java/fko/chessly/util/ChesslyLogger.java" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/Chessly_dev.bat" />
-        <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/game/GameMoveList.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/game/GameMoveImpl.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/game/GameColor.java" />
@@ -210,7 +235,6 @@
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/player/computer/Omega/OmegaConfiguration.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/openingbook/OpeningBookImpl.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/game/Game.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/properties/chessly.properties" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/game/Chessly_PERFT.java" />
         <option value="$PROJECT_DIR$/src/test/java/fko/chessly/game/Chessly_PERFT_Test.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/player/computer/Omega/OmegaBoardPosition.java" />
@@ -219,11 +243,15 @@
         <option value="$PROJECT_DIR$/src/test/java/fko/chessly/player/computer/Omega/TestOmegaPERFT.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/player/computer/Omega/OmegaEvaluation.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/JavaFX_GUI_Controller.java" />
-        <option value="$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/ui/UserInterface.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/JavaFX_GUI.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/JavaFX_GUI_Presenter.java" />
         <option value="$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainViewPresenter.java" />
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/fko/chessly/util/ChesslyLogger.java" />
+        <option value="$PROJECT_DIR$/src/main/java/fko/chessly/Playroom.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/properties/chessly.properties" />
+        <option value="$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java" />
       </list>
     </option>
   </component>
@@ -264,9 +292,9 @@
     <option name="skipTests" value="true" />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-9" />
-    <option name="width" value="2561" />
-    <option name="height" value="1365" />
+    <option name="x" value="-6" />
+    <option name="width" value="2635" />
+    <option name="height" value="1402" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -294,7 +322,6 @@
     </navigator>
     <panes>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -335,24 +362,6 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="game" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="mvc" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
               <item name="ui" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -370,7 +379,9 @@
               <item name="Chessly" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="chessly" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
@@ -378,15 +389,6 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="book" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="fxml" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
@@ -396,84 +398,18 @@
               <item name="resources" type="462c0819:PsiDirectoryNode" />
               <item name="properties" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="game" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="openingbook" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="computer" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="computer" type="462c0819:PsiDirectoryNode" />
-              <item name="Omega" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Chessly" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="chessly" type="462c0819:PsiDirectoryNode" />
-              <item name="JavaFX_GUI" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="Downloaded.Files.Path.Enabled" value="false" />
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1542536781569" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1542616816125" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -711,7 +647,7 @@
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="0" width="2235" height="1191" extended-state="0" />
+    <frame x="-5" y="0" width="2299" height="1223" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Image Layers" order="0" />
@@ -720,12 +656,12 @@
       <window_info id="Learn" order="3" />
       <window_info id="UI Designer" order="4" />
       <window_info id="Favorites" order="5" sideWeight="0.50484097" side_tool="true" weight="0.16172317" />
-      <window_info content_ui="combo" id="Project" order="6" sideWeight="0.4749596" visible="true" weight="0.14818224" />
-      <window_info id="Structure" order="7" sideWeight="0.5250404" side_tool="true" visible="true" weight="0.14818224" />
+      <window_info active="true" content_ui="combo" id="Project" order="6" sideWeight="0.47338936" visible="true" weight="0.14796603" />
+      <window_info id="Structure" order="7" sideWeight="0.5266107" side_tool="true" visible="true" weight="0.14796603" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32911393" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3286119" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32830188" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.3972736" />
+      <window_info anchor="bottom" id="Debug" order="3" visible="true" weight="0.32577905" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -740,7 +676,7 @@
       <window_info anchor="right" id="Capture Analysis" order="4" />
       <window_info anchor="right" id="Theme Preview" order="5" />
       <window_info anchor="right" id="Palette&#9;" order="6" />
-      <window_info anchor="right" id="Maven Projects" order="7" weight="0.1311749" />
+      <window_info anchor="right" id="Maven Projects" order="7" visible="true" weight="0.12740277" />
       <window_info anchor="right" id="Quick Notes" order="8" />
     </layout>
   </component>
@@ -748,27 +684,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/game/GameMoveImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="301">
-          <caret line="252" column="48" selection-start-line="252" selection-start-column="48" selection-end-line="252" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/game/GameColor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="84">
-          <caret line="29" column="5" selection-start-line="29" selection-start-column="5" selection-end-line="29" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/game/NotationHelper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="35" selection-end-line="413" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/player/computer/PulseEngine/PulseEngine_v2.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="322">
@@ -808,13 +723,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="168">
           <caret line="33" column="13" selection-start-line="33" selection-start-column="13" selection-end-line="33" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/properties/chessly.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1332">
-          <caret line="74" column="27" selection-start-line="74" selection-start-column="27" selection-end-line="74" selection-end-column="27" />
         </state>
       </provider>
     </entry>
@@ -1056,9 +964,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7614">
           <caret line="448" selection-start-line="448" selection-end-line="448" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1069,13 +974,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/Playroom.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="576">
-          <caret line="74" column="39" selection-start-line="74" selection-start-column="39" selection-end-line="74" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/ui/UserInterface.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="216">
@@ -1083,26 +981,66 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainView.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="132" column="5" lean-forward="true" selection-start-line="132" selection-start-column="5" selection-end-line="132" selection-end-column="5" />
+        <state relative-caret-position="363">
+          <caret line="135" column="11" selection-start-line="135" selection-start-column="11" selection-end-line="135" selection-end-column="11" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainViewPresenter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
+        <state relative-caret-position="324">
           <caret line="94" column="2" selection-start-line="94" selection-start-column="2" selection-end-line="94" selection-end-column="2" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/ui/JavaFX_GUI/MainView.java">
+    <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2016">
-          <caret line="135" column="11" selection-start-line="135" selection-start-column="11" selection-end-line="135" selection-end-column="11" />
+        <state relative-caret-position="737">
+          <caret line="63" column="31" selection-start-line="63" selection-start-column="31" selection-end-line="63" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/util/ChesslyLogger.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="147">
+          <caret line="38" column="45" lean-forward="true" selection-start-line="38" selection-start-column="45" selection-end-line="38" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/Playroom.java">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/properties/chessly.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="41" column="22" selection-start-line="41" selection-start-column="22" selection-end-line="41" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/logback.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-270" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fko/chessly/Chessly.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="112" column="57" selection-start-line="112" selection-start-column="57" selection-end-line="112" selection-end-column="57" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#8014#8015#0" expanded="true" />
+            <element signature="e#8062#8063#0" expanded="true" />
+            <element signature="e#8352#8353#0" expanded="true" />
+            <element signature="e#8391#8392#0" expanded="true" />
+            <element signature="e#9432#9433#0" expanded="true" />
+            <element signature="e#9456#9457#0" expanded="true" />
+            <element signature="e#9799#9800#0" expanded="true" />
+            <element signature="e#9821#9822#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -39,6 +39,7 @@ import fko.chessly.Chessly;
  * @author Frank Kopp (frank@familie-kopp.de)
  *     <p>TODO: Refactor this to logback / throw it out
  */
+@Deprecated
 public class ChesslyLogger {
 
   private static final Logger _log = Logger.getLogger("fko.chessly");

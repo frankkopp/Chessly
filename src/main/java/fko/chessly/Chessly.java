@@ -24,14 +24,14 @@
  */
 package fko.chessly;
 
-import java.util.Properties;
-import java.util.logging.Logger;
-
-import fko.chessly.ui.UserInterface;
 import fko.chessly.ui.JavaFX_GUI.MainView;
-import fko.chessly.util.ChesslyLogger;
+import fko.chessly.ui.UserInterface;
 import fko.chessly.util.ChesslyProperties;
 import fko.chessly.util.CmdLineParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
 
 /**
  * The Chessly class is the main class handling the startup and processing the parameters. It also
@@ -110,6 +110,7 @@ import fko.chessly.util.CmdLineParser;
  * <p><b>Todo List:</b>
  *
  * <ul>
+ *   <li>TODO: Log/Save/Copy to Clipboard of current game
  *   <li>TODO: Show DRAW Reason
  *   <li>TODO: Force Move - break thinking
  *   <li>TODO: Select Engine via menu
@@ -120,6 +121,8 @@ import fko.chessly.util.CmdLineParser;
  * @author Frank Kopp (frank@familie-kopp.de)
  */
 public class Chessly {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Chessly.class);
 
   /**
    * This constant holds the current version of Chessly by Frank Kopp<br>
@@ -134,13 +137,13 @@ public class Chessly {
   public static final String VERSION = "v2.3";
 
   @SuppressWarnings("unused")
-  private static Chessly _myChessly = null;
+  private static Chessly myChessly = null;
 
-  private final Playroom _playroom;
-  private final UserInterface _ui;
+  private final Playroom playroom;
+  private final UserInterface userInterface;
 
   // -- debug --
-  private static boolean _debug = Boolean.valueOf(getProperties().getProperty("debug", "false"));
+  private static boolean DEBUG = Boolean.valueOf(getProperties().getProperty("debug", "false"));
 
   /**
    * The main() method parses the command line arguments and processes them and finally creates an
@@ -176,7 +179,7 @@ public class Chessly {
     // Set properties according to the command line options
     if ((Boolean) cp.getOptionValue(debug)) {
       changeProperty("debug", "true");
-      _debug = true;
+      DEBUG = true;
     }
     if ((Boolean) cp.getOptionValue(start)) {
       changeProperty("start", "true");
@@ -193,7 +196,7 @@ public class Chessly {
     }
 
     // Now create our singleton instance of Chessly
-    _myChessly = new Chessly();
+    myChessly = new Chessly();
   }
 
   /**
@@ -203,17 +206,17 @@ public class Chessly {
   private Chessly() {
 
     // Create and get an instance of an interface for Chessly.
-    _ui = MainView.getInstance();
+    userInterface = MainView.getInstance();
 
     // Create and get an instance of the singleton Playroom class
-    _playroom = Playroom.getInstance();
+    playroom = Playroom.getInstance();
 
     // The user interface (View) is an Observer to the Playroom (Model)
-    _playroom.addObserver(_ui);
+    playroom.addObserver(userInterface);
 
     // Start game automatically?
     if (Boolean.valueOf(getProperties().getProperty("start"))) {
-      _playroom.startPlayroom();
+      playroom.startPlayroom();
     }
   }
 
@@ -224,15 +227,6 @@ public class Chessly {
    */
   public static Properties getProperties() {
     return ChesslyProperties.getInstance();
-  }
-
-  /**
-   * Returns ChesslyLogger instance
-   *
-   * @return ChesslyLogger instance
-   */
-  public static Logger getLogger() {
-    return ChesslyLogger.getLogger();
   }
 
   /**
@@ -253,6 +247,7 @@ public class Chessly {
    */
   public static void fatalError(String message) {
     Exception e = new Exception(message);
+    LOG.error(message, e);
     e.printStackTrace();
     exitChessly(1);
   }
@@ -265,6 +260,7 @@ public class Chessly {
    */
   public static void criticalError(String message) {
     Exception e = new Exception(message);
+    LOG.error(message, e);
     e.printStackTrace();
   }
 
@@ -276,6 +272,7 @@ public class Chessly {
    */
   public static void minorError(String message) {
     System.err.println(message);
+    LOG.warn(message);
   }
 
   /** Clean up and exit the application */
@@ -295,7 +292,7 @@ public class Chessly {
    * @return true when we are in debug mode
    */
   public static boolean isDebug() {
-    return _debug;
+    return DEBUG;
   }
 
   /**

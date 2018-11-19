@@ -36,6 +36,8 @@ import fko.chessly.mvc.ModelEvents.ModelEvent;
 import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>In the Playroom class the actual games are handled (started, stopped, etc.). It
@@ -56,6 +58,8 @@ import fko.chessly.player.PlayerType;
  * @author Frank Kopp (frank@familie-kopp.de)
  */
 public class Playroom extends ModelObservable implements Runnable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Playroom.class);
 
     // -- Singleton instance --
     private static final Playroom _instance = new Playroom();
