@@ -133,6 +133,7 @@ public class Chessly {
    * v2.0 - JavaFX complete (w.i.p.)<br>
    * v2.1 - bug fixing, startable as JAR<br>
    * v2.3 - clean up, move to Maven, start of refactoring some things<br>
+   * v2.4 - clean up, fixed some issues, some class renaming, migrated logging
    */
   public static final String VERSION = "v2.4";
 

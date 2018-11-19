@@ -72,6 +72,7 @@ public class PGN_Reader {
   //    <game-termination> ::= 1-0
   //                           0-1
   //                           1/2-1/2
+  //                           *
   //
   //    <empty> ::=
 

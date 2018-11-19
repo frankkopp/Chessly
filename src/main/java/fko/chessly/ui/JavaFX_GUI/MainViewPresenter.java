@@ -55,6 +55,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.util.logging.PlatformLogger;
 
 import java.net.URL;
@@ -77,6 +79,8 @@ import java.util.ResourceBundle;
  * @author Frank
  */
 public class MainViewPresenter implements Observer {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MainViewPresenter.class);
 
   /*
    * FXML injected variables are declared at the and of the file!
@@ -619,6 +623,14 @@ public class MainViewPresenter implements Observer {
   @FXML
   void resumeGame_action(ActionEvent event) {
     pauseGame_action(event);
+  }
+
+  @FXML
+  void gameHistory_Action(ActionEvent event) {
+    // TODO
+    LOG.warn("Game History Window not implemented yet");
+    GameHistoryView gameHistoryView = new GameHistoryView();
+    gameHistoryView.show();
   }
 
   @FXML
@@ -1468,6 +1480,8 @@ public class MainViewPresenter implements Observer {
         : "fx:id=\"timedGame_menu\" was not injected: check your FXML file 'MainView.fxml'.";
     assert infoTab_pane != null
         : "fx:id=\"infoTab_pane\" was not injected: check your FXML file 'MainView.fxml'.";
+    assert gameHistory_menu != null
+            : "fx:id=\"gameHistory_menu\" was not injected: check your FXML file 'JavaFX_GUI.fxml'.";
   }
 
   /** Helper class to give the engineInfoUpdater access to all the labels from the FXML */
@@ -1864,6 +1878,9 @@ public class MainViewPresenter implements Observer {
 
   @FXML // fx:id="infoTab_pane"
   private AnchorPane infoTab_pane; // Value injected by FXMLLoader
+
+  @FXML // fx:id="gameHistory_menu"
+  private MenuItem gameHistory_menu; // Value injected by FXMLLoader
 
   // -- FXML END --
   // ##############################################################
