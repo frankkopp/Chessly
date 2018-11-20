@@ -3,8 +3,7 @@ package fko.chessly.game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Match
@@ -24,13 +23,12 @@ import java.util.Date;
  */
 public class Match {
 
-
   private static final Logger LOG = LoggerFactory.getLogger(Match.class);
 
   // Seven Tag Roster
   private String event;
   private String site;
-  private Date   date;
+  private LocalDateTime date;
   private String round;
   private String white;
   private String black;
@@ -42,7 +40,7 @@ public class Match {
   public Match(Game game) {
     event = "Game played in Chessly by Frank Kopp program";
     site = "?";
-    date = Date.from(Instant.now());
+    date = LocalDateTime.now();
     round = "-";
     white = game.getPlayerWhite().getName();
     black = game.getPlayerBlack().getName();
@@ -63,8 +61,16 @@ public class Match {
         result = Result.UNKNOWN;
     }
 
-    moveList = game.getCurBoard().getMoveHistory(); // deep copy
+    moveList = game.getCurBoard().getMoveHistory();
+  }
 
+  /**
+   * @return PGN notation of match
+   */
+  @Override
+  public String toString() {
+    // TODO
+    return moveList.toString();
   }
 
   public enum Result {
@@ -74,4 +80,35 @@ public class Match {
     UNKNOWN;
   }
 
+  public String getEvent() {
+    return event;
+  }
+
+  public String getSite() {
+    return site;
+  }
+
+  public LocalDateTime getDate() {
+    return date;
+  }
+
+  public String getRound() {
+    return round;
+  }
+
+  public String getWhite() {
+    return white;
+  }
+
+  public String getBlack() {
+    return black;
+  }
+
+  public Result getResult() {
+    return result;
+  }
+
+  public GameMoveList getMoveList() {
+    return moveList;
+  }
 }

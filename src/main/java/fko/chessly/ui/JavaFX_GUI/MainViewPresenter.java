@@ -139,6 +139,9 @@ public class MainViewPresenter implements Observer {
   // the general info pane
   private InfoTextArea _info_panel;
 
+  // game history view
+  private GameHistoryView gameHistoryView;
+
   // ##########################################
   // methods
   // ##########################################
@@ -184,6 +187,10 @@ public class MainViewPresenter implements Observer {
 
     // reset the controls to no game
     setControlsNoGame();
+
+    // add view for game history
+    gameHistoryView = new GameHistoryView(_model);
+
   }
 
   /** Adds the board panel from the previous Swing UI. */
@@ -628,8 +635,7 @@ public class MainViewPresenter implements Observer {
   @FXML
   void gameHistory_Action(ActionEvent event) {
     // TODO
-    LOG.warn("Game History Window not implemented yet");
-    GameHistoryView gameHistoryView = new GameHistoryView();
+    LOG.warn("Game History Window not fully implemented yet");
     gameHistoryView.show();
   }
 

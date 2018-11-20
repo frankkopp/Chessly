@@ -246,7 +246,7 @@
                               </Label>
                               <Label fx:id="blackPlayer_name" alignment="CENTER" prefHeight="17.0" prefWidth="144.0" text="Black Player" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
                                  <font>
-                                    <Font name="Arial" size="13.0" />
+                                    <Font name="Arial" size="12.0" />
                                  </font>
                               </Label>
                               <Label fx:id="white_clock" alignment="CENTER" prefHeight="25.0" prefWidth="128.0" text="00:00:00" GridPane.rowIndex="1">

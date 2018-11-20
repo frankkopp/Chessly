@@ -23,18 +23,18 @@
                            <children>
                               <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                                 <items>
-                                    <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Save all" />
-                                    <Label text="Path to save folder..." />
+                                    <Button fx:id="buttonSaveAll" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#actionSaveAll" text="Save all" />
+                                    <Label fx:id="labelPathToSaveFolder" text="Path to save folder..." />
                                 </items>
                               </ToolBar>
-                              <TableView prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="matchTable" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                                 <columns>
-                                  <TableColumn prefWidth="75.0" text="#" />
-                                  <TableColumn prefWidth="75.0" text="White" />
-                                    <TableColumn prefWidth="75.0" text="Black" />
-                                    <TableColumn prefWidth="75.0" text="Result" />
-                                    <TableColumn prefWidth="75.0" text="Moves" />
-                                    <TableColumn prefWidth="75.0" text="Date" />
+                                  <TableColumn fx:id="matchTable_number" editable="false" maxWidth="1.7976931348623157E308" minWidth="35.0" prefWidth="35.0" sortable="false" style="-fx-alignment: CENTER;" text="#" />
+                                  <TableColumn fx:id="matchTable_white" editable="false" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="100.0" sortable="false" style="-fx-alignment: CENTER;" text="White" />
+                                    <TableColumn fx:id="matchTable_black" editable="false" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="100.0" sortable="false" style="-fx-alignment: CENTER;" text="Black" />
+                                    <TableColumn fx:id="matchTable_result" editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="75.0" sortable="false" style="-fx-alignment: CENTER;" text="Result" />
+                                    <TableColumn fx:id="matchTable_date" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="50.0" sortable="false" style="-fx-alignment: CENTER;" text="Date" />
+                                    <TableColumn fx:id="matchTable_moves" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="50.0" sortable="false" style="-fx-alignment: CENTER;" text="Moves" />
                                 </columns>
                               </TableView>
                            </children>
@@ -47,11 +47,11 @@
                            <children>
                               <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                                 <items>
-                                    <Button mnemonicParsing="false" text="Save" />
-                                    <Button mnemonicParsing="false" text="Copy to Clipboard" />
+                                    <Button fx:id="buttonSave" mnemonicParsing="false" onAction="#actionSave" text="Save" />
+                                    <Button fx:id="buttonClipboard" mnemonicParsing="false" onAction="#actionClipboard" text="Copy to Clipboard" />
                                 </items>
                               </ToolBar>
-                              <TextArea prefHeight="200.0" prefWidth="600.0" VBox.vgrow="ALWAYS" />
+                              <TextArea fx:id="textareaPGN" editable="false" prefHeight="200.0" prefWidth="600.0" promptText="No item selected" wrapText="true" VBox.vgrow="ALWAYS" />
                            </children>
                         </VBox>
                      </children>

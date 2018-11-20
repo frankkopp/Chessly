@@ -33,6 +33,9 @@ import fko.chessly.mvc.ModelObservable;
 import fko.chessly.player.Player;
 import fko.chessly.player.PlayerFactory;
 import fko.chessly.player.PlayerType;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +76,7 @@ public class Playroom extends ModelObservable implements Runnable {
   private Game _game = null;
 
   // Match History of this Playroom
-  private MatchHistory _matchHistory = new MatchHistory();
+  private ListProperty<Match> _matchHistory = new SimpleListProperty<>();
 
   // -- this is needed to stop multiple games when the stop signal is occuring between two games --
   private boolean _stopMultipleGames = false;
@@ -114,7 +117,7 @@ public class Playroom extends ModelObservable implements Runnable {
 
   /** Default constructor is private as we are a singleton. */
   private Playroom() {
-    // empty
+    _matchHistory.set(FXCollections.observableList(new MatchHistory()));
   }
 
   /**
@@ -697,7 +700,7 @@ public class Playroom extends ModelObservable implements Runnable {
   /**
    * @return MatchHistory
    */
-  public MatchHistory getMatchHistory() {
+  public ListProperty<Match> getMatchHistory() {
     return _matchHistory;
   }
 
