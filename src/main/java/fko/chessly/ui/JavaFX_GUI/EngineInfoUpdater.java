@@ -127,7 +127,7 @@ public class EngineInfoUpdater {
 
     /**
      * @param game
-     * @param playerBlack
+     * @param player
      */
     private void updateUI(Game game, Player player) {
         // -- we can only watch the engine when the Interface "TreeSearchEngineWatcher" is implemented --

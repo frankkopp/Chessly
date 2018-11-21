@@ -435,6 +435,4 @@ public class SimpleIntList implements Iterable<Integer> {
         }
 
     }
-
-
 }
