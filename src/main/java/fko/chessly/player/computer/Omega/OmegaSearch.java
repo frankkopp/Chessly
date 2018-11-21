@@ -76,7 +76,7 @@ import fko.chessly.player.computer.Omega.OmegaTranspositionTable.TT_EntryType;
  */
 public class OmegaSearch implements Runnable {
 
-    private static final int MAX_SEARCH_DEPTH = 99;
+    private static final int MAX_SEARCH_DEPTH = 100;
 
     private final int NULLMOVE_DEPTH = 3;
     private final int NULLMOVE_REDUCTION;
@@ -149,17 +149,17 @@ public class OmegaSearch implements Runnable {
     int _currentExtraSearchDepth = 0; // how deep did we search including quiescence depth this iteration
     int _currentRootMove = 0; // current root move that is searched
     int _currentRootMoveNumber = 0; // number of the current root move in the list of root moves
-    int _nodesVisited = 0; // how many times a node has been visited (negamax calls)
-    int _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
-    int _boardsNonQuiet = 0; // board/nodes evaluated in quiescence search
-    int _prunings = 0;
-    int _pv_researches = 0;
+    long _nodesVisited = 0; // how many times a node has been visited (negamax calls)
+    long _boardsEvaluated = 0; // how many times a node has been visited (= boards evaluated)
+    long _boardsNonQuiet = 0; // board/nodes evaluated in quiescence search
+    long _prunings = 0;
+    long _pv_researches = 0;
     long _evalCache_Hits = 0;
     long _evalCache_Misses = 0;
     long _nodeCache_Hits = 0;
     long _nodeCache_Misses = 0;
-    int  _MovesFromCache=0;
-    int  _MovesGenerated=0;
+    long  _MovesFromCache=0;
+    long  _MovesGenerated=0;
     private void resetCounter() {
         _currentIterationDepth = 0;
         _currentSearchDepth = 0;
@@ -476,7 +476,7 @@ public class OmegaSearch implements Runnable {
         final int rootply = 0;
 
         // some stats for iteration
-        int boardsCounter = -_boardsEvaluated;
+        long boardsCounter = -_boardsEvaluated;
         Instant iterationStart = Instant.now();
 
         int bestValue = OmegaEvaluation.Value.NOVALUE;

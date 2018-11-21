@@ -166,7 +166,7 @@ public interface ObservableEngine extends Engine {
      *
      * @return Copy of Principal Variation list as GameMoveList
      */
-    public abstract GameMoveList getCurrentPV();
+     GameMoveList getCurrentPV();
 
     /**
      * Returns a string from the engine which should be displayed
@@ -183,11 +183,11 @@ public interface ObservableEngine extends Engine {
 
     // -- possible states of a engine --
     /** Status when the engine is not doing anything */
-    public static final int IDLE = 0;
+    int IDLE = 0;
     /** Status when the engine is calculating the next move */
-    public static final int THINKING = 1;
+    int THINKING = 1;
     /** Status when the engine is pondering over an opponents possible move */
-    public static final int PONDERING = 2;
+    int PONDERING = 2;
 
     /**
      * Returns the current state of the engine as
@@ -195,18 +195,18 @@ public interface ObservableEngine extends Engine {
      * WAITING | THINKING | PONDERING
      * @return status one of Engine.WAITING | Engine.THINKING | Engine.PONDERING
      */
-    public int getState();
+    int getState();
 
     /**
      * Return the current pondering move.
      * @return the move currently used for pondering - null if not pondering
      */
-    public GameMove getPonderMove();
+    GameMove getPonderMove();
 
     /**
      * Provide additional information for the UI to collect.
      * E.g. verbose information etc.
      * @param info
      */
-    public void printVerboseInfo(String info);
+    void printVerboseInfo(String info);
 }
