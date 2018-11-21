@@ -34,7 +34,7 @@
                                     <TableColumn fx:id="matchTable_black" editable="false" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="100.0" sortable="false" style="-fx-alignment: CENTER;" text="Black" />
                                     <TableColumn fx:id="matchTable_result" editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="75.0" sortable="false" style="-fx-alignment: CENTER;" text="Result" />
                                     <TableColumn fx:id="matchTable_date" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="50.0" sortable="false" style="-fx-alignment: CENTER;" text="Date" />
-                                    <TableColumn fx:id="matchTable_moves" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="50.0" sortable="false" style="-fx-alignment: CENTER;" text="Moves" />
+                                    <TableColumn fx:id="matchTable_plys" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="50.0" sortable="false" style="-fx-alignment: CENTER;" text="Plys" />
                                 </columns>
                               </TableView>
                            </children>

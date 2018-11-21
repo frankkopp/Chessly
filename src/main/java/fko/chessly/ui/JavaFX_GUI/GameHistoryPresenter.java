@@ -2,7 +2,6 @@ package fko.chessly.ui.JavaFX_GUI;
 
 
 import fko.chessly.Playroom;
-import fko.chessly.game.GameMoveList;
 import fko.chessly.game.Match;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,12 +25,12 @@ public class GameHistoryPresenter {
 
   private static final Logger LOG = LoggerFactory.getLogger(GameHistoryPresenter.class);
 
-  private ListProperty<Match> matchHistory;
+  private ListProperty<Match> matchHistory; // the match history from the Playroom
 
-  private final ObservableList<MatchListItemModel> matchList;
+  private final ObservableList<MatchListItemModel> matchListItemModels;
 
   public GameHistoryPresenter() {
-    this.matchList = FXCollections.observableArrayList(new ArrayList<>());
+    this.matchListItemModels = FXCollections.observableArrayList(new ArrayList<>());
   }
 
   @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -39,29 +38,33 @@ public class GameHistoryPresenter {
     assertFXMLInjection();
 
     // resize table columns
-    matchTable_number.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.05));
+    matchTable_number.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.1));
     matchTable_white.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.25));
     matchTable_black.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.25));
-    matchTable_result.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.1));
-    matchTable_date.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.15));
-    matchTable_moves.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.2));
+    matchTable_result.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.05));
+    matchTable_date.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.2));
+    matchTable_plys.prefWidthProperty().bind(matchTable.widthProperty().multiply(0.05));
 
+    // bind table model columns to table view columns
     matchTable_number.setCellValueFactory(cellData -> cellData.getValue().numberProperty());
     matchTable_white.setCellValueFactory(cellData -> cellData.getValue().whiteProperty());
     matchTable_black.setCellValueFactory(cellData -> cellData.getValue().blackProperty());
     matchTable_result.setCellValueFactory(cellData -> cellData.getValue().resultProperty());
     matchTable_date.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
-    matchTable_moves.setCellValueFactory(cellData -> cellData.getValue().noOfMovesProperty());
-    matchTable.setItems(matchList);
+    matchTable_plys.setCellValueFactory(cellData -> cellData.getValue().noOfMovesProperty());
+
+    // set the model table as list for the table view
+    matchTable.setItems(matchListItemModels);
 
     // bind Playroom MoveHistory to this
     matchHistory = Playroom.getInstance().getMatchHistory();
     matchHistory.addListener((ListChangeListener<Object>) this::updateMatchHistory);
 
+    // allow multiple selections
+    //matchTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
     // add selection listener
     matchTable.getSelectionModel().selectedItemProperty().addListener(this::selectRow);
-
-    //matchTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
   }
 
@@ -74,7 +77,7 @@ public class GameHistoryPresenter {
 
   private void updateMatchHistory(final ListChangeListener.Change<?> change) {
     // clear the list
-    matchList.clear();
+    matchListItemModels.clear();
 
     // fill table model with data from matchHistory
     ListIterator<Match> matchListIterator = matchHistory.listIterator();
@@ -103,10 +106,10 @@ public class GameHistoryPresenter {
       }
       String date =
           DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.ENGLISH).format(match.getDate());
-      String noOfMoves = String.valueOf(match.getMoveList().size() / 2);
+      String noOfMoves = String.valueOf(match.getMoveList().size());
 
       MatchListItemModel mm = new MatchListItemModel(number, white, black, result, date, noOfMoves, match);
-      matchList.add(mm);
+      matchListItemModels.add(mm);
     }
   }
 
@@ -146,8 +149,8 @@ public class GameHistoryPresenter {
   @FXML // fx:id="matchTable_result"
   private TableColumn<MatchListItemModel, String> matchTable_result; // Value injected by FXMLLoader
 
-  @FXML // fx:id="matchTable_moves"
-  private TableColumn<MatchListItemModel, String> matchTable_moves; // Value injected by FXMLLoader
+  @FXML // fx:id="matchTable_plys"
+  private TableColumn<MatchListItemModel, String> matchTable_plys; // Value injected by FXMLLoader
 
   @FXML // fx:id="matchTable_date"
   private TableColumn<MatchListItemModel, String> matchTable_date; // Value injected by FXMLLoader
@@ -169,7 +172,7 @@ public class GameHistoryPresenter {
     assert matchTable_white != null : "fx:id=\"matchTable_white\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
     assert matchTable_black != null : "fx:id=\"matchTable_black\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
     assert matchTable_result != null : "fx:id=\"matchTable_result\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
-    assert matchTable_moves != null : "fx:id=\"matchTable_moves\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
+    assert matchTable_plys != null : "fx:id=\"matchTable_plys\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
     assert matchTable_date != null : "fx:id=\"matchTable_date\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
     assert buttonSave != null : "fx:id=\"buttonSave\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
     assert buttonClipboard != null : "fx:id=\"buttonClipboard\" was not injected: check your FXML file 'GameHistoryView.fxml'.";
