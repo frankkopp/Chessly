@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Match
@@ -38,7 +40,7 @@ public class Match {
   private GameMoveList moveList;
 
   public Match(Game game) {
-    event = "Game played in Chessly by Frank Kopp program";
+    event = "Game played in Chessly by Frank Kopp";
     site = "?";
     date = LocalDateTime.now();
     round = "-";
@@ -69,8 +71,59 @@ public class Match {
    */
   @Override
   public String toString() {
-    // TODO
-    return moveList.toString();
+
+    // prepare some strings
+    String dateString = DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.ENGLISH).format(date);
+    String resultString;
+    switch (this.result) {
+      case WHITE:
+        resultString = "1-0";
+        break;
+      case BLACK:
+        resultString = "0-1";
+        break;
+      case DRAW:
+        resultString = "1/2-1/2";
+        break;
+      case UNKNOWN:
+        // fall through
+      default:
+        resultString = "*";
+        break;
+    }
+
+    // build meta data block
+    StringBuilder sb = new StringBuilder();
+    sb.append("[Event \"").append(event).append("\"]\n");
+    sb.append("[Site \"").append(site).append("\"]\n");
+    sb.append("[Date \"").append(dateString).append("\"]\n");
+    sb.append("[Round \"").append(round).append("\"]\n");
+    sb.append("[White \"").append(white).append("\"]\n");
+    sb.append("[Black \"").append(black).append("\"]\n");
+    sb.append("[Result \"").append(resultString).append("\"]\n");
+    sb.append("\n");
+
+    // build lines of moves - new line before line length reaches 80
+    StringBuilder line = new StringBuilder();
+    int index = 0;
+    int moveCounter = 1;
+    for (GameMove move : moveList) {
+      StringBuilder sbMove = new StringBuilder();
+      if (index++ % 2 == 0) { // Move number every second move
+        sbMove.append(moveCounter++).append(". ");
+      }
+      sbMove.append(move.toString()).append(" ");
+      if (line.length() + sbMove.length() >= 80) { // cut line before length 80
+        sb.append(line).append("\n");
+        line = new StringBuilder();
+      }
+      line.append(sbMove);
+    }
+
+    sb.append(line);
+    sb.append(" ").append(resultString).append("\n\n");
+
+    return sb.toString();
   }
 
   public enum Result {
