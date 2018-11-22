@@ -115,7 +115,8 @@ public class GameHistoryPresenter {
 
   @FXML
   void actionClipboard(ActionEvent event) {
-    LOG.warn("Not yet implemented: "+event);
+    textareaPGN.selectAll();
+    textareaPGN.copy();
   }
 
   @FXML
