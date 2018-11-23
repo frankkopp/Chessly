@@ -110,11 +110,6 @@ public class Playroom extends ModelObservable implements Runnable {
   private int _currentBlackWins = 0;
   private int _currentDraws = 0;
 
-  // Game request handling
-  private final Object _gameRequestLock = new Object();
-  private boolean _gameRequestPending = false;
-  private boolean _noMultipleGames = false; // we do not want multiple games with the server
-
   /** Default constructor is private as we are a singleton. */
   private Playroom() {
     _matchHistory.set(FXCollections.observableList(new MatchHistory()));
@@ -134,15 +129,10 @@ public class Playroom extends ModelObservable implements Runnable {
    * The thread then calls run() to actually do the work.
    */
   public void startPlayroom() {
-    synchronized (
-        _gameRequestLock) { // synchronize so that the local user cannot start a game during our
-                            // request
-      if ((_gameRequestPending) || _isPlaying) { // there is another request or a running game
+      if (_isPlaying) { // there is another request or a running game
         throw new IllegalStateException(
             "startPlayroom(): Another start request is pending or Playroom already is playing.");
       }
-      // There is no other game request and no running game so we process this request
-      _gameRequestPending = true;
       // Now start the thread
       if (_playroomThread == null) {
         _stopMultipleGames = false;
@@ -152,7 +142,6 @@ public class Playroom extends ModelObservable implements Runnable {
         throw new IllegalStateException("startPlayroom(): Playroom thread already exists.");
       }
     }
-  }
 
   /** Stops the playroom thread and the running game.<br> */
   public synchronized void stopPlayroom() {
@@ -183,11 +172,6 @@ public class Playroom extends ModelObservable implements Runnable {
       // -- set the status to playing --
       _isPlaying = true;
 
-      // Now we are playing, so we don't have a game request pending any more.
-      synchronized (_gameRequestLock) {
-        _gameRequestPending = false;
-      }
-
       // -- tell the views that model has changed --
       setChanged();
       notifyObservers(new ModelEvent("PLAYROOM Thread started", SIG_PLAYROOM_THREAD_STARTED));
@@ -210,8 +194,7 @@ public class Playroom extends ModelObservable implements Runnable {
         // Run GC so that to avoid it during a running game
         System.gc();
 
-      } while (!_noMultipleGames
-          && ++_currentGameNumber <= _numberOfGames); // Loop if we play multiple games in a row
+      } while (++_currentGameNumber <= _numberOfGames); // Loop if we play multiple games in a row
 
     } catch (Exception e) { // in case anything went wrong we can clean up here
       throw new RuntimeException(e);
@@ -367,15 +350,6 @@ public class Playroom extends ModelObservable implements Runnable {
   }
 
   /**
-   * Getter for _gameRequestPending so that the observers can see we have a game request
-   *
-   * @return true - if we have a pending request for a new game
-   */
-  public boolean isGameRequestPending() {
-    return _gameRequestPending;
-  }
-
-  /**
    * Returns the current game - maybe null if no game exists
    *
    * @return aGame
@@ -386,11 +360,11 @@ public class Playroom extends ModelObservable implements Runnable {
 
   /**
    * Undo a certain number of halfmoves. Usually called by UI with 2 to undo the player's last move
-   * after the oppenent has made a move.
+   * after the opponent has made a move.
    *
-   * @param numberOfHalfmoves
+   * @param numberOfHalfmoves number of half moves
    */
-  public void undoMove(int numberOfHalfmoves) {
+  public void undoMove(final int numberOfHalfmoves) {
     if (_game != null && _game.isRunning() && _game.getBoardHistory().size() >= 2) {
       // we have at least two halfmoves
       _game.undoMove(numberOfHalfmoves);
@@ -412,7 +386,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param boolVal
    */
-  public void setTimedGame(boolean boolVal) {
+  public void setTimedGame(final boolean boolVal) {
     this._isTimedGame = boolVal;
     // Tell the views that model has changed --
     this.setChanged();
@@ -433,7 +407,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newTimeBlack in seconds
    */
-  public void setTimeBlack(long newTimeBlack) {
+  public void setTimeBlack(final long newTimeBlack) {
     if (newTimeBlack <= 0) {
       throw new IllegalArgumentException("Parameter newTimeBlack must be > 0. Was " + newTimeBlack);
     }
@@ -458,7 +432,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newTimeWhite in seconds
    */
-  public void setTimeWhite(long newTimeWhite) {
+  public void setTimeWhite(final long newTimeWhite) {
     if (newTimeWhite <= 0) {
       throw new IllegalArgumentException("Parameter newTimeWhite must be > 0. Was " + newTimeWhite);
     }
@@ -485,7 +459,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newLevelBlack
    */
-  public void setCurrentLevelBlack(int newLevelBlack) {
+  public void setCurrentLevelBlack(final int newLevelBlack) {
     if (newLevelBlack <= 0) {
       throw new IllegalArgumentException(
           "Parameter newLevelBlack must be > 0. Was " + newLevelBlack);
@@ -514,7 +488,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newLevelWhite
    */
-  public void setCurrentLevelWhite(int newLevelWhite) {
+  public void setCurrentLevelWhite(final int newLevelWhite) {
     if (newLevelWhite <= 0) {
       throw new IllegalArgumentException(
           "Parameter newLevelWhite must be > 0. Was " + newLevelWhite);
@@ -541,7 +515,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newNumberOfGames
    */
-  public void setNumberOfGames(int newNumberOfGames) {
+  public void setNumberOfGames(final int newNumberOfGames) {
     if (newNumberOfGames <= 0) {
       throw new IllegalArgumentException(
           "Parameter newNumberOfGames must be > 0. Was " + newNumberOfGames);
@@ -567,7 +541,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newPlayerTypeBlack as defined in the interface Player
    */
-  public void setPlayerTypeBlack(PlayerType newPlayerTypeBlack) {
+  public void setPlayerTypeBlack(final PlayerType newPlayerTypeBlack) {
     if (!Arrays.asList(PlayerType.values()).contains(newPlayerTypeBlack)) {
       throw new IllegalArgumentException(
           "Parameter newPlayerTypeBlack not a valid player type. Was " + newPlayerTypeBlack);
@@ -594,7 +568,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newPlayerTypeWhite as defined in the interface Player
    */
-  public void setPlayerTypeWhite(PlayerType newPlayerTypeWhite) {
+  public void setPlayerTypeWhite(final PlayerType newPlayerTypeWhite) {
     if (!Arrays.asList(PlayerType.values()).contains(newPlayerTypeWhite)) {
       throw new IllegalArgumentException(
           "Parameter newPlayerTypeWhite not a valid player type. Was " + newPlayerTypeWhite);
@@ -621,7 +595,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newNameBlackPlayer
    */
-  public void setNameBlackPlayer(String newNameBlackPlayer) {
+  public void setNameBlackPlayer(final String newNameBlackPlayer) {
     if (newNameBlackPlayer == null) {
       throw new IllegalArgumentException("Parameter newNameBlackPlayer must not be null.");
     }
@@ -647,7 +621,7 @@ public class Playroom extends ModelObservable implements Runnable {
    *
    * @param newNameWhitePlayer
    */
-  public void setNameWhitePlayer(String newNameWhitePlayer) {
+  public void setNameWhitePlayer(final String newNameWhitePlayer) {
     if (newNameWhitePlayer == null) {
       throw new IllegalArgumentException("Parameter newNameWhitePlayer must not be null.");
     }
