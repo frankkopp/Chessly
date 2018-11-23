@@ -674,7 +674,7 @@ public class OpeningBookImpl implements OpeningBook, Serializable {
 
 		if (_config.VERBOSE) {
 			start = System.currentTimeMillis();
-			printInfo(String.format("Saving Open Book to cache file..."));
+			printInfo("Saving Open Book to cache file...");
 		}
 
 		Path cacheFile = createCacheFileName(pathString);
