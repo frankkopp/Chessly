@@ -120,7 +120,7 @@ public class WindowStateFX extends java.util.Properties {
 		OutputStream out=null;
 		try {
 			out = Files.newOutputStream(_filePath);
-			this.store(out, " Window state file for Tetris by Frank Kopp");
+			this.store(out, " Window state file for Chessly by Frank Kopp");
 		} catch (FileNotFoundException e) {
 			Chessly.criticalError("While reading windows state file: File " + propertiesFile + " could not be saved!");
 			e.printStackTrace();
