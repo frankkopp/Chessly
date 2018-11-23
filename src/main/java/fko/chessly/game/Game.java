@@ -93,7 +93,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
     private GameMove _illegalMove = null;
 
     // saves each board after each move - used for "take back move"
-    private final List<GameBoard> _boardHistory = new ArrayList<GameBoard>(256);
+    private final List<GameBoard> _boardHistory = new ArrayList<>(256);
 
     // -- Flags --
     private AtomicBoolean _illegalMoveFlag = new AtomicBoolean(false);
@@ -129,7 +129,7 @@ public class Game extends ModelObservable implements Runnable, Observer {
         _blackClock = new GameClock(_playerBlack.getName());
         _whiteClock = new GameClock(_playerWhite.getName());
 
-        if (timedGame && _blackTime > 0 && _whiteTime > 0) {
+        if (timedGame) {
             _isTimedGame = true;
             _blackClock.setAlarm(_blackTime,this);
             _whiteClock.setAlarm(_whiteTime,this);
