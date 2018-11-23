@@ -31,9 +31,6 @@ import fko.chessly.util.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -140,12 +137,6 @@ public class Chessly {
    */
   public static final String VERSION = "v2.4";
 
-  @SuppressWarnings("unused")
-  private static Chessly myChessly = null;
-
-  private final Playroom playroom;
-  private final UserInterface userInterface;
-
   // -- debug --
   private static boolean DEBUG = Boolean.valueOf(getProperties().getProperty("debug", "false"));
 
@@ -158,7 +149,6 @@ public class Chessly {
   public static void main(final String[] args) {
 
     CmdLineParser cp = new CmdLineParser();
-    CmdLineParser.Option javafx = cp.addBooleanOption('x', "javaFX");
     CmdLineParser.Option debug = cp.addBooleanOption('d', "debug");
     CmdLineParser.Option start = cp.addBooleanOption('s', "start");
     CmdLineParser.Option cache = cp.addBooleanOption('c', "cache");
@@ -195,12 +185,8 @@ public class Chessly {
       changeProperty("engine.cacheEnabled", "false");
     }
 
-    if ((Boolean) cp.getOptionValue(javafx)) {
-      changeProperty("ui.class", "fko.chessly.ui.MainView.MainView");
-    }
-
     // Now create our singleton instance of Chessly
-    myChessly = new Chessly();
+    final Chessly myChessly = new Chessly();
   }
 
   /**
@@ -210,10 +196,10 @@ public class Chessly {
   private Chessly() {
 
     // Create and get an instance of an interface for Chessly.
-    userInterface = MainView.getInstance();
+    final UserInterface userInterface = MainView.getInstance();
 
     // Create and get an instance of the singleton Playroom class
-    playroom = Playroom.getInstance();
+    final Playroom playroom = Playroom.getInstance();
 
     // The user interface (View) is an Observer to the Playroom (Model)
     playroom.addObserver(userInterface);
@@ -249,7 +235,7 @@ public class Chessly {
    *
    * @param message to be displayed with the exception message
    */
-  public static void fatalError(String message) {
+  public static void fatalError(final String message) {
     Exception e = new Exception(message);
     LOG.error(message, e);
     e.printStackTrace();
@@ -262,7 +248,7 @@ public class Chessly {
    *
    * @param message to be displayed with the exception message
    */
-  public static void criticalError(String message) {
+  public static void criticalError(final String message) {
     Exception e = new Exception(message);
     LOG.error(message, e);
     e.printStackTrace();
@@ -274,7 +260,7 @@ public class Chessly {
    *
    * @param message to be displayed
    */
-  public static void minorError(String message) {
+  public static void minorError(final String message) {
     System.err.println(message);
     LOG.warn(message);
   }
@@ -285,7 +271,7 @@ public class Chessly {
   }
 
   /** Clean up and exit the application */
-  private static void exitChessly(int returnCode) {
+  private static void exitChessly(final int returnCode) {
     // nothing to clean up yet
     System.exit(returnCode);
   }
@@ -305,7 +291,7 @@ public class Chessly {
    * @param name
    * @param value
    */
-  private static void changeProperty(String name, String value) {
+  private static void changeProperty(final String name, final String value) {
     getProperties().setProperty(name, value);
     System.out.println("Startup option: " + name + '=' + value);
   }
@@ -314,15 +300,13 @@ public class Chessly {
   private static void printUsage() {
     System.out.println();
     System.out.println(
-        "Usage: OptionTest [-x,--javaFX] [-w,--javaSwing] [-d,--debug] [-s,--start] [-c,--cache] [--nocache] \n"
+        "Usage: OptionTest [-d,--debug] [-s,--start] [-c,--cache] [--nocache] \n"
             + "                  [-?, --help]");
     System.out.println("Options:");
     System.out.println();
-    System.out.println("-x use JavaFX ui");
-    System.out.println("-w use JavaSwing ui");
     System.out.println("-d debug mode");
     System.out.println("-s start game immediately with default settings");
-    System.out.println("-c enables the cache for the engines (cache not implemented)");
+    System.out.println("-c enables the cache for the engines");
     System.out.println("--nocache disables the cache for the engines (overrides -c)");
     System.out.println();
   }
