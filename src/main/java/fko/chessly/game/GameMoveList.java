@@ -34,8 +34,6 @@ import java.util.Collection;
  */
 public class GameMoveList extends ArrayList<GameMove> {
 
-  private static final long serialVersionUID = 324138104775502009L;
-
   /** Constructor */
   public GameMoveList() {
     super();
@@ -47,7 +45,7 @@ public class GameMoveList extends ArrayList<GameMove> {
   }
 
   /** @param initialCapacity */
-  public GameMoveList(int initialCapacity) {
+  public GameMoveList(final int initialCapacity) {
     super(initialCapacity);
   }
 
@@ -58,16 +56,16 @@ public class GameMoveList extends ArrayList<GameMove> {
    */
   @Override
   public String toString() {
-    StringBuilder line = new StringBuilder();
+    String line = "";
     int index = 0;
     int moveCounter = 1;
     for (GameMove move : this) {
-      StringBuilder sbMove = new StringBuilder();
+      String sbMove = "";
       if (index++ % 2 == 0) { // Move number every second move
-        sbMove.append(moveCounter++).append(". ");
+        sbMove += moveCounter++ + ". ";
       }
-      sbMove.append(move.toString()).append(" ");
-      line.append(sbMove);
+      sbMove += move.toString() + " ";
+      line += sbMove;
     }
     return line.toString();
   }
@@ -78,19 +76,20 @@ public class GameMoveList extends ArrayList<GameMove> {
    * @return String with each GameMove and its value
    */
   public String toStringWithValues() {
-    StringBuilder line = new StringBuilder();
+    String line = "";
     int index = 0;
     int moveCounter = 1;
     for (GameMove move : this) {
-      StringBuilder sbMove = new StringBuilder();
+      String sbMove = "";
       if (index++ % 2 == 0) { // Move number every second move
-        sbMove.append(moveCounter++).append(". ");
+        sbMove += moveCounter++ + ". ";
       }
-      sbMove.append(move.toString()).append(" ");
-      sbMove.append(" (").append(move.getValue()).append(") ");
-      line.append(sbMove);
+      sbMove += move.toString() + " ";
+      sbMove += " (" + move.getValue() + ") ";
+
+     line += sbMove;
     }
-    return line.toString();
+    return line;
   }
 
   /** @return return last item in list */

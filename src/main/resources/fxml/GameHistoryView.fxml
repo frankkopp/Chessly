@@ -9,7 +9,7 @@
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
-
+<?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="800.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fko.chessly.ui.JavaFX_GUI.GameHistoryPresenter">
    <children>
@@ -24,7 +24,11 @@
                               <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                                 <items>
                                     <Button fx:id="buttonSaveAll" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#actionSaveAll" text="Save all" />
-                                    <Label fx:id="labelPathToSaveFolder" text="Path to save folder..." />
+                                    <Button fx:id="buttonSaveFolder" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#actionSaveFolder" text="Choose Save Folder:" />
+                                    <Label fx:id="labelPathToSaveFolder" prefHeight="20.0" prefWidth="360.0" text="./var/save_games">
+                                       <font>
+                                          <Font size="10.0" />
+                                       </font></Label>
                                 </items>
                               </ToolBar>
                               <TableView fx:id="matchTable" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">

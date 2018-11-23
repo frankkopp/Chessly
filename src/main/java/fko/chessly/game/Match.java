@@ -93,37 +93,37 @@ public class Match {
     }
 
     // build meta data block
-    StringBuilder sb = new StringBuilder();
-    sb.append("[Event \"").append(event).append("\"]\n");
-    sb.append("[Site \"").append(site).append("\"]\n");
-    sb.append("[Date \"").append(dateString).append("\"]\n");
-    sb.append("[Round \"").append(round).append("\"]\n");
-    sb.append("[White \"").append(white).append("\"]\n");
-    sb.append("[Black \"").append(black).append("\"]\n");
-    sb.append("[Result \"").append(resultString).append("\"]\n");
-    sb.append("\n");
+    String sb = "";
+    sb += "[Event \"" + event + "\"]\n";
+    sb += "[Site \"" + site + "\"]\n";
+    sb += "[Date \"" + dateString + "\"]\n";
+    sb += "[Round \"" + round + "\"]\n";
+    sb += "[White \"" + white + "\"]\n";
+    sb += "[Black \"" + black + "\"]\n";
+    sb += "[Result \"" + resultString + "\"]\n";
+    sb += "\n";
 
     // build lines of moves - new line before line length reaches 80
-    StringBuilder line = new StringBuilder();
+    String line = "";
     int index = 0;
     int moveCounter = 1;
     for (GameMove move : moveList) {
-      StringBuilder sbMove = new StringBuilder();
+      String sbMove = "";
       if (index++ % 2 == 0) { // Move number every second move
-        sbMove.append(moveCounter++).append(". ");
+        sbMove += moveCounter++ + ". ";
       }
-      sbMove.append(move.toString()).append(" ");
+      sbMove += move.toString() + " ";
       if (line.length() + sbMove.length() >= 80) { // cut line before length 80
-        sb.append(line).append("\n");
-        line = new StringBuilder();
+        sb += line + "\n";
+        line = "";
       }
-      line.append(sbMove);
+      line += sbMove;
     }
 
-    sb.append(line);
-    sb.append(" ").append(resultString).append("\n\n");
+    sb += line;
+    sb += " " + resultString + "\n\n";
 
-    return sb.toString();
+    return sb;
   }
 
   public enum Result {
