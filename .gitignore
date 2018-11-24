@@ -71,3 +71,4 @@ release/var/windowstate.guid
 release/var/book_cache/
 
 target/
+var/save_games/
