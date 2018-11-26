@@ -28,7 +28,7 @@
 package fko.chessly.player.computer.Omega;
 
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -264,7 +264,8 @@ public class TestOmegaPERFT {
      * Perft Timing Test
      * https://chessprogramming.wikispaces.com/Perft+Results
      */
-    @Ignore
+    @Test
+    @Disabled
     public void testStandardPerftTiming() {
 
         int maxDepth = 5;

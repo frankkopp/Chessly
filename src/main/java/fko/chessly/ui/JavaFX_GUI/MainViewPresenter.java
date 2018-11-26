@@ -24,6 +24,7 @@
  */
 package fko.chessly.ui.JavaFX_GUI;
 
+import com.sun.javafx.logging.PlatformLogger;
 import com.sun.javafx.scene.control.Logging;
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
@@ -57,7 +58,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.util.logging.PlatformLogger;
 
 import java.net.URL;
 import java.text.Format;
@@ -215,7 +215,7 @@ public class MainViewPresenter implements Observer {
   /** Configures the move_table */
   private void configMoveList() {
     // hack to avoid logging INFO to stdout from table view
-    Logging.getControlsLogger().setLevel(PlatformLogger.Level.WARNING);
+    //Logging.getControlsLogger().disableLogging();//setLevel(PlatformLogger.Level.WARNING);
 
     move_table_number.setCellValueFactory(cellData -> cellData.getValue().numberProperty());
     move_table_white.setCellValueFactory(cellData -> cellData.getValue().whiteProperty());
