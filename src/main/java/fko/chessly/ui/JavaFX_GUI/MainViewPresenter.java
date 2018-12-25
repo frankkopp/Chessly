@@ -24,8 +24,6 @@
  */
 package fko.chessly.ui.JavaFX_GUI;
 
-import com.sun.javafx.logging.PlatformLogger;
-import com.sun.javafx.scene.control.Logging;
 import fko.chessly.Chessly;
 import fko.chessly.Playroom;
 import fko.chessly.game.Game;
